@@ -14,7 +14,7 @@ from datetime import datetime
 from hashlib import sha256
 import json
 import re
-from typing import Any, Callable, Mapping
+from typing import Any, Mapping
 from uuid import UUID, uuid4
 
 EVIDENCE_PRECISIONS = {"EXACT", "BOUNDED", "APPROXIMATE", "UNKNOWN"}
@@ -156,13 +156,12 @@ def resolve_scope(
     project_id: str,
     conversation: Mapping[str, Any],
     branch: Mapping[str, Any],
-    *,
-    uuid_factory: Callable[[], UUID | str] = uuid4,
 ) -> dict[str, Any]:
-    """Resolve a stable scope or generate a fresh non-durable ephemeral scope.
+    """Resolve a stable scope or internally generate a fresh ephemeral scope.
 
-    The UUID dependency is injectable only so tests can be deterministic. No
-    caller-selected ephemeral scope value is accepted.
+    The public resolver exposes no caller-supplied UUID value or generator.
+    Tests may patch the module-private ``uuid4`` dependency, but production
+    callers cannot select an ephemeral identity through the resolver API.
     """
     conversation_status, conversation_id, _ = _identity(
         conversation, "conversation_identity"
@@ -174,10 +173,9 @@ def resolve_scope(
             "scope_id": stable_scope_id(project_id, conversation_id or "", branch_id or ""),
             "durable_recognition": True,
         }
-    generated = _uuid(uuid_factory(), "generated_ephemeral_scope_id")
     return {
         "mode": "EPHEMERAL",
-        "scope_id": generated,
+        "scope_id": _uuid(uuid4(), "generated_ephemeral_scope_id"),
         "durable_recognition": False,
     }
 
@@ -253,6 +251,42 @@ def _validate_payload(payload: Any) -> None:
             raise AnchorValidationError(f"payload.details.{key} must be a non-empty string")
 
 
+def _checkpoint_id(value: Any, field: str) -> str:
+    if not isinstance(value, str) or not value:
+        raise AnchorValidationError(f"{field} must be a non-empty string")
+    if value != value.strip() or any(ord(character) < 32 or ord(character) == 127 for character in value):
+        raise AnchorValidationError(
+            f"{field} must not contain surrounding whitespace or control characters"
+        )
+    return value
+
+
+def _checkpoint_identity_collisions(anchor: Mapping[str, Any]) -> dict[str, Any]:
+    conversation = anchor.get("conversation_identity")
+    branch = anchor.get("branch_identity")
+    conversation_id = conversation.get("value") if isinstance(conversation, Mapping) else None
+    branch_id = branch.get("value") if isinstance(branch, Mapping) else None
+    return {
+        "session_id": anchor.get("session_id"),
+        "anchor_id": anchor.get("anchor_id"),
+        "scope_instance_id": anchor.get("scope_instance_id"),
+        "conversation_identity": conversation_id,
+        "branch_identity": branch_id,
+        "scope_id": anchor.get("scope_id"),
+        "prior_anchor_id": anchor.get("prior_anchor_id"),
+    }
+
+
+def _validate_distinct_checkpoint_id(value: Any, anchor: Mapping[str, Any], field: str) -> str:
+    checkpoint_id = _checkpoint_id(value, field)
+    for identity_name, identity_value in _checkpoint_identity_collisions(anchor).items():
+        if identity_value is not None and checkpoint_id == identity_value:
+            raise AnchorValidationError(
+                f"{field} must remain distinct from {identity_name}"
+            )
+    return checkpoint_id
+
+
 def _validate_checkpoint_evidence(value: Any, anchor: Mapping[str, Any]) -> None:
     if not isinstance(value, Mapping):
         raise AnchorValidationError("predecessor_checkpoint_evidence must be an object")
@@ -265,8 +299,9 @@ def _validate_checkpoint_evidence(value: Any, anchor: Mapping[str, Any]) -> None
         raise AnchorValidationError(
             f"predecessor checkpoint source must be {CHECKPOINT_VERIFICATION_SOURCE}"
         )
-    if not isinstance(value.get("checkpoint_id"), str) or not value["checkpoint_id"].strip():
-        raise AnchorValidationError("predecessor checkpoint_id is required")
+    _validate_distinct_checkpoint_id(
+        value.get("checkpoint_id"), anchor, "predecessor_checkpoint_evidence.checkpoint_id"
+    )
     _uuid(
         value.get("predecessor_anchor_id"),
         "predecessor_checkpoint_evidence.predecessor_anchor_id",
@@ -356,12 +391,7 @@ def validate_anchor(anchor: Mapping[str, Any], *, verify_content_hash: bool = Tr
 
     checkpoint_id = anchor.get("checkpoint_id")
     if checkpoint_id is not None:
-        if not isinstance(checkpoint_id, str) or not checkpoint_id:
-            raise AnchorValidationError("checkpoint_id must be a non-empty string or null")
-        if checkpoint_id in {
-            anchor.get("session_id"), conversation_id, branch_id, anchor.get("scope_id")
-        }:
-            raise AnchorValidationError("checkpoint identity must remain distinct")
+        _validate_distinct_checkpoint_id(checkpoint_id, anchor, "checkpoint_id")
 
     prior_anchor_id = anchor.get("prior_anchor_id")
     checkpoint_evidence = anchor.get("predecessor_checkpoint_evidence")
@@ -520,22 +550,25 @@ class AppendOnlyAnchorSet:
                 "CONFLICTED: claimed content_hash does not match canonical logical content"
             )
         key = anchor["idempotency_key"]
+        anchor_id = anchor["anchor_id"]
         current = self._by_idempotency_key.get(key)
         if current is not None:
             stored_hash, stored_anchor_id = current
-            if stored_hash != canonical_hash:
+            if stored_hash != canonical_hash or stored_anchor_id != anchor_id:
                 raise IdempotencyConflict(
                     "CONFLICTED: idempotency key reused for different canonical content"
                 )
             return AppendResult("EXISTING", stored_anchor_id)
 
-        anchor_id = anchor["anchor_id"]
         existing_id = self._by_anchor_id.get(anchor_id)
         if existing_id is not None:
             if compute_content_hash(existing_id) != canonical_hash:
                 raise IdempotencyConflict(
                     "CONFLICTED: anchor_id reused for different canonical content"
                 )
+            # An alternate request key for byte-identical logical content is
+            # explicitly accepted and permanently bound to the existing anchor.
+            self._by_idempotency_key[key] = (canonical_hash, anchor_id)
             return AppendResult("EXISTING", anchor_id)
 
         self._validate_predecessor(anchor)
