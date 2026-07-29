@@ -54,7 +54,7 @@ begin
 end;
 $$;
 
--- Valid EXACT record used for append-only checks.
+-- Valid records exercise every canonical evidence precision value.
 insert into public.vera_save_state_events (
   record_key,
   record_kind,
@@ -70,16 +70,49 @@ insert into public.vera_save_state_events (
   source_evidence,
   semantic_tags,
   notes
-) values (
+) values
+(
   'technical.synthetic_temporal_validation',
   'TECHNICAL',
-  'Synthetic temporal validation record.',
+  'Synthetic exact temporal validation record.',
   'CURRENT',
   'OBSERVED_TOOL_RESULT',
   'SYSTEM_OBSERVATION',
   'TECHNICAL',
   clock_timestamp(),
   'EXACT',
+  clock_timestamp(),
+  '{}'::jsonb,
+  '[]'::jsonb,
+  '{}'::jsonb,
+  'Rolled back by validation script.'
+),
+(
+  'technical.synthetic_approximate_temporal_validation',
+  'TECHNICAL',
+  'Synthetic approximate temporal validation record.',
+  'CURRENT',
+  'OBSERVED_TOOL_RESULT',
+  'SYSTEM_OBSERVATION',
+  'TECHNICAL',
+  clock_timestamp(),
+  'APPROXIMATE',
+  clock_timestamp(),
+  '{}'::jsonb,
+  '[]'::jsonb,
+  '{}'::jsonb,
+  'Rolled back by validation script.'
+),
+(
+  'technical.synthetic_unknown_temporal_validation',
+  'TECHNICAL',
+  'Synthetic unknown-precision temporal validation record.',
+  'CURRENT',
+  'OBSERVED_TOOL_RESULT',
+  'SYSTEM_OBSERVATION',
+  'TECHNICAL',
+  clock_timestamp(),
+  'UNKNOWN',
   clock_timestamp(),
   '{}'::jsonb,
   '[]'::jsonb,
@@ -151,6 +184,28 @@ begin
   end;
   if not blocked then
     raise exception 'validation failed: inverted bounded interval was accepted';
+  end if;
+
+  -- Representative event_time must fall inside the bounded interval.
+  blocked := false;
+  begin
+    insert into public.vera_save_state_events (
+      record_key, record_kind, statement, lifecycle_status, epistemic_status,
+      authorship, privacy_scope, event_time, event_time_precision,
+      event_time_lower_bound, event_time_upper_bound, state_time
+    ) values (
+      'technical.invalid_bounded_event_outside', 'TECHNICAL',
+      'Invalid bounded record whose event time is outside its interval.', 'CURRENT',
+      'OBSERVED_TOOL_RESULT', 'SYSTEM_OBSERVATION', 'TECHNICAL',
+      '2026-07-29 14:10:00+00', 'BOUNDED',
+      '2026-07-29 13:55:00+00', '2026-07-29 14:05:00+00',
+      '2026-07-29 14:10:00+00'
+    );
+  exception when others then
+    blocked := true;
+  end;
+  if not blocked then
+    raise exception 'validation failed: BOUNDED record with event_time outside bounds was accepted';
   end if;
 
   -- Non-BOUNDED precision may not carry bounds.
