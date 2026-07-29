@@ -8,6 +8,7 @@ declare
   root_id uuid;
   successor_id uuid;
   other_branch_id uuid;
+  self_id uuid;
   stored_record_time timestamptz;
   blocked boolean;
 begin
@@ -86,6 +87,28 @@ begin
     raise exception 'validation failed: second root was accepted';
   end if;
 
+  -- Caller-supplied self-supersession must fail.
+  self_id := gen_random_uuid();
+  blocked := false;
+  begin
+    insert into public.vera_save_state_events (
+      record_id, project_id, branch_id, record_key, record_kind, statement,
+      lifecycle_status, epistemic_status, authorship, privacy_scope,
+      event_time, event_time_precision, state_time, supersedes_record_id
+    ) values (
+      self_id, 'vera-temporal-test', 'branch-self', 'technical.self_supersession',
+      'TECHNICAL', 'Invalid self-supersession.', 'CURRENT',
+      'OBSERVED_TOOL_RESULT', 'SYSTEM_OBSERVATION', 'TECHNICAL',
+      clock_timestamp(), 'EXACT', clock_timestamp(), self_id
+    );
+  exception when others then
+    blocked := true;
+  end;
+
+  if not blocked then
+    raise exception 'validation failed: self-supersession was accepted';
+  end if;
+
   -- Cross-key supersession must fail.
   blocked := false;
   begin
@@ -126,6 +149,27 @@ begin
 
   if not blocked then
     raise exception 'validation failed: cross-branch supersession was accepted';
+  end if;
+
+  -- Cross-project supersession must fail.
+  blocked := false;
+  begin
+    insert into public.vera_save_state_events (
+      project_id, branch_id, record_key, record_kind, statement,
+      lifecycle_status, epistemic_status, authorship, privacy_scope,
+      event_time, event_time_precision, state_time, supersedes_record_id
+    ) values (
+      'vera-other-project', 'branch-a', 'technical.lineage_validation',
+      'TECHNICAL', 'Invalid cross-project successor.', 'CURRENT',
+      'OBSERVED_TOOL_RESULT', 'SYSTEM_OBSERVATION', 'TECHNICAL',
+      clock_timestamp(), 'EXACT', clock_timestamp(), root_id
+    );
+  exception when others then
+    blocked := true;
+  end;
+
+  if not blocked then
+    raise exception 'validation failed: cross-project supersession was accepted';
   end if;
 
   -- A valid successor becomes current even with an older state_time.
@@ -253,6 +297,13 @@ begin
       and indexname = 'vera_save_state_events_one_successor_idx'
   ) then
     raise exception 'validation failed: one-successor index missing';
+  end if;
+
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'vera_save_state_events_no_self_supersession'
+  ) then
+    raise exception 'validation failed: self-supersession constraint missing';
   end if;
 
   if has_table_privilege('anon', 'public.vera_save_state_heads', 'SELECT')
