@@ -1,0 +1,65 @@
+name: Temporal pilot
+
+on:
+  push:
+    branches:
+      - temporal-pilot
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate-temporal-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Initialize local Supabase configuration
+        run: |
+          if [ ! -f supabase/config.toml ]; then
+            supabase init
+          fi
+
+      - name: Start isolated local Supabase stack
+        run: supabase start
+
+      - name: Rebuild baseline from versioned migrations
+        run: supabase db reset
+
+      - name: Apply temporal precision draft
+        env:
+          PGDATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/drafts/20260729_add_event_time_precision.sql
+
+      - name: Apply lineage hardening draft
+        env:
+          PGDATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/drafts/20260729_enforce_save_state_lineage.sql
+
+      - name: Validate temporal precision
+        env:
+          PGDATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/validate_event_time_precision.sql
+
+      - name: Validate save-state lineage
+        env:
+          PGDATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/validate_save_state_lineage.sql
+
+      - name: Run database lint
+        run: supabase db lint --local
+
+      - name: Stop and delete local stack
+        if: always()
+        run: supabase stop --no-backup
