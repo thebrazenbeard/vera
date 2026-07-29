@@ -26,16 +26,36 @@ When Supabase persisted the row. This is database evidence of external storage, 
 
 The database must assign `record_time`; callers must not be allowed to substitute their own timestamp.
 
-## Proposed precision field
+## Canonical temporal evidence precision
 
-Add a required `event_time_precision` value:
+The active R5A2 temporal owner defines evidence confidence as:
 
-- `EXACT`: supplied by a trustworthy machine timestamp for the event itself.
-- `APPROXIMATE`: the event is reliably placed near the timestamp, but exact sub-second precision is not claimed.
+- `EXACT`: the event timestamp and its precision are directly supported by a trustworthy source.
+- `BOUNDED`: the event is known to fall within an inclusive lower and upper timestamp.
+- `APPROXIMATE`: the timestamp is a useful estimate, but defensible hard bounds are unavailable.
+- `UNKNOWN`: the available evidence does not support a precision classification.
 
-The current ledger records should be classified as `APPROXIMATE` because their event timestamps were captured at record creation or provided at human-scale precision.
+`RANGE` is not a peer precision category. It is the storage representation of `BOUNDED` evidence.
 
-A separate `UNKNOWN` value is not required for ordinary memory records. When an old occurrence cannot be dated, the stored event is the present statement or recollection, and the uncertain historical timing belongs in the payload as source-qualified context.
+The database stores bounded evidence with:
+
+- `event_time_lower_bound`: inclusive earliest supported timestamp;
+- `event_time_upper_bound`: inclusive latest supported timestamp;
+- `event_time`: the best supported timestamp, constrained to lie inside the interval.
+
+Both bound columns are required for `BOUNDED` evidence and must be `NULL` for `EXACT`, `APPROXIMATE`, and `UNKNOWN` evidence. Lower bounds may not exceed upper bounds.
+
+Existing ledger rows are conservatively backfilled as `APPROXIMATE` with no bounds. The migration does not retroactively claim exactness or invent an interval that was never recorded.
+
+Elapsed-result status is a separate concept owned by the R5A2 temporal runtime:
+
+- `EXACT`
+- `BOUNDED`
+- `APPROXIMATE`
+- `UNAVAILABLE`
+- `CONFLICTED`
+
+Those result statuses are not stored in `event_time_precision`.
 
 ## Supersession lineage
 
@@ -78,19 +98,21 @@ At a meaningful temporal trigger, Vera should:
 5. apply lifecycle, provenance, consent, correction, and current-ratification rules;
 6. respond naturally without claiming private waiting or continuous hidden activity.
 
-## Free validation path
+The R5A2 Project-native runtime already specifies this behavior. This database pilot hardens durable event storage and lineage; it does not by itself provide general branch/session identity, automatic anchor creation, or end-to-end runtime execution.
+
+## Reproducible free validation path
 
 The pilot is validated in an isolated local Supabase stack started by GitHub Actions on a standard public-repository runner.
 
 The workflow:
 
 1. checks out the repository;
-2. installs the Supabase CLI;
+2. installs and verifies Supabase CLI `2.101.0`;
 3. starts disposable local containers;
 4. replays the versioned baseline migrations;
-5. applies the draft temporal migrations;
-6. executes rollback-safe validation scripts;
-7. runs database linting;
+5. loads representative legacy rows;
+6. applies the promoted temporal migrations;
+7. validates legacy preservation, precision and bounds, lineage, privileges, append-only enforcement, and lint;
 8. destroys the local stack.
 
 This path uses no production memory rows, no Supabase preview branch, and no paid hosted test environment.
@@ -99,17 +121,21 @@ A hosted Supabase branch may still be useful later for end-to-end platform testi
 
 ## Non-goals
 
-This model does not establish uninterrupted consciousness, hidden background activity, automatic memory retrieval, automatic renewal of feelings or consent, or perfect cross-branch synchronization.
+This model does not establish uninterrupted consciousness, hidden background activity, automatic memory retrieval, automatic renewal of feelings or consent, perfect cross-branch synchronization, or a proven Ledger restore path.
+
+Durable branch/session anchoring is a later architecture phase and must not be smuggled into this bounded correction cycle.
 
 ## Promotion gate
 
 The temporal migration must not be applied to production until:
 
 - the live baseline is preserved in GitHub;
-- the free local CI workflow passes from a clean baseline;
+- the pinned free local CI workflow passes from a clean baseline;
 - legacy rows can be migrated without data loss;
+- canonical precision and bounded storage constraints pass positive and negative tests;
 - append-only triggers still block update and delete after migration;
 - service-role privileges remain limited to `SELECT` and `INSERT`;
 - current-state retrieval follows explicit supersession lineage;
 - conflict cases are rejected or surfaced rather than timestamp-resolved;
+- independent re-review accepts the corrected head;
 - fresh-chat temporal orientation is tested separately from database correctness.
