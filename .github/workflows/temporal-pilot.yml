@@ -1,0 +1,86 @@
+name: Temporal pilot
+
+on:
+  push:
+    branches:
+      - temporal-pilot
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate-temporal-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      PGDATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      SUPABASE_CLI_VERSION: 2.101.0
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+
+      - name: Verify pinned Supabase CLI
+        run: |
+          test "$(supabase --version)" = "$SUPABASE_CLI_VERSION"
+
+      - name: Initialize local Supabase configuration
+        run: |
+          if [ ! -f supabase/config.toml ]; then
+            supabase init
+          fi
+
+      - name: Stage migrations for explicit replay
+        run: |
+          rm -rf supabase/migrations.explicit
+          mv supabase/migrations supabase/migrations.explicit
+          mkdir -p supabase/migrations
+
+      - name: Start isolated local Supabase stack
+        run: supabase start
+
+      - name: Install test-only platform fixture
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/fixtures/platform_rls_auto_enable.sql
+
+      - name: Replay initial save-state migration
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations.explicit/20260729012911_initialize_vera_save_state_ledger.sql
+
+      - name: Replay trigger-hardening migration
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations.explicit/20260729013307_harden_vera_save_state_trigger.sql
+
+      - name: Replay access-hardening migration
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations.explicit/20260729094322_harden_vera_save_state_access.sql
+
+      - name: Load representative legacy rows
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/fixtures/legacy_save_state_rows.sql
+
+      - name: Apply promoted temporal precision migration
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations.explicit/20260729133200_add_event_time_precision.sql
+
+      - name: Apply promoted lineage hardening migration
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations.explicit/20260729133300_enforce_save_state_lineage.sql
+
+      - name: Validate legacy row migration
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/validate_legacy_save_state_migration.sql
+
+      - name: Validate temporal precision and bounds
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/validate_event_time_precision.sql
+
+      - name: Validate save-state lineage
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/validate_save_state_lineage.sql
+
+      - name: Run database lint
+        run: supabase db lint --local
+
+      - name: Stop and delete local stack
+        if: always()
+        run: supabase stop --no-backup
