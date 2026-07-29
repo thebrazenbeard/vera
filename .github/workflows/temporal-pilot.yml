@@ -18,15 +18,20 @@ jobs:
 
     env:
       PGDATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      SUPABASE_CLI_VERSION: 2.101.0
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Install Supabase CLI
+      - name: Install pinned Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+
+      - name: Verify pinned Supabase CLI
+        run: |
+          test "$(supabase --version)" = "$SUPABASE_CLI_VERSION"
 
       - name: Initialize local Supabase configuration
         run: |
@@ -67,7 +72,7 @@ jobs:
       - name: Validate legacy row migration
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/validate_legacy_save_state_migration.sql
 
-      - name: Validate temporal precision
+      - name: Validate temporal precision and bounds
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/validate_event_time_precision.sql
 
       - name: Validate save-state lineage
