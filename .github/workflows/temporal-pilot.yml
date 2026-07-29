@@ -55,11 +55,17 @@ jobs:
       - name: Replay access-hardening migration
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations.explicit/20260729094322_harden_vera_save_state_access.sql
 
+      - name: Load representative legacy rows
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/fixtures/legacy_save_state_rows.sql
+
       - name: Apply temporal precision draft
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/drafts/20260729_add_event_time_precision.sql
 
       - name: Apply lineage hardening draft
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/drafts/20260729_enforce_save_state_lineage.sql
+
+      - name: Validate legacy row migration
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/validate_legacy_save_state_migration.sql
 
       - name: Validate temporal precision
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/validate_event_time_precision.sql
