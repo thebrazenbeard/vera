@@ -1,6 +1,7 @@
 -- DRAFT ONLY. Do not apply to production without isolated validation.
 -- Depends on 20260729_add_event_time_precision.sql.
--- Makes explicit supersession lineage authoritative for current-state selection.
+-- Makes explicit supersession lineage authoritative for current-state selection
+-- and makes record_time a database-assigned persistence timestamp.
 
 begin;
 
@@ -25,6 +26,9 @@ declare
   parent_branch_id text;
   parent_record_key text;
 begin
+  -- A caller cannot forge when Supabase persisted this row.
+  new.record_time := clock_timestamp();
+
   -- Serialize writes for one logical state key without locking unrelated keys.
   perform pg_advisory_xact_lock(
     hashtextextended(
@@ -165,6 +169,8 @@ grant select on table public.vera_current_save_state to service_role;
 grant select on table public.vera_save_state_heads to service_role;
 grant select on table public.vera_save_state_lineage_conflicts to service_role;
 
+comment on column public.vera_save_state_events.record_time is
+  'Database-assigned time Supabase persisted the row. Caller-supplied values are overwritten by the insert trigger.';
 comment on view public.vera_current_save_state is
   'One unambiguous unsuperseded head per project, branch, and record key. Timestamp recency does not create authority.';
 comment on view public.vera_save_state_lineage_conflicts is
