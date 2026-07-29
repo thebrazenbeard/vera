@@ -1,6 +1,6 @@
--- Run after the temporal precision and lineage drafts in an isolated database.
+-- Run after the promoted temporal precision and lineage migrations in an isolated database.
 -- Verifies representative pre-existing rows survive migration unchanged except
--- for the intended event_time_precision backfill.
+-- for the intended APPROXIMATE backfill and NULL bounded-evidence fields.
 
 do $$
 declare
@@ -21,6 +21,15 @@ begin
       and event_time_precision <> 'APPROXIMATE'
   ) then
     raise exception 'legacy migration validation failed: legacy precision backfill is not uniformly APPROXIMATE';
+  end if;
+
+  if exists (
+    select 1
+    from public.vera_save_state_events
+    where project_id = 'vera-legacy-test'
+      and (event_time_lower_bound is not null or event_time_upper_bound is not null)
+  ) then
+    raise exception 'legacy migration validation failed: legacy rows gained unsupported temporal bounds';
   end if;
 
   if not exists (
@@ -74,8 +83,10 @@ begin
       and project_id = 'vera-legacy-test'
       and branch_id = 'branch-a'
       and record_key = 'technical.legacy_chain'
+      and event_time_lower_bound is null
+      and event_time_upper_bound is null
   ) then
-    raise exception 'legacy migration validation failed: explicit successor is not current';
+    raise exception 'legacy migration validation failed: explicit successor is not current or bounds drifted';
   end if;
 
   if exists (
