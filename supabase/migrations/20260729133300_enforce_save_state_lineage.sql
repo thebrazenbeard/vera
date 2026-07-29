@@ -5,7 +5,6 @@
 
 begin;
 
--- One record may have at most one direct successor. This prevents forks.
 create unique index if not exists vera_save_state_events_one_successor_idx
   on public.vera_save_state_events (supersedes_record_id)
   where supersedes_record_id is not null;
@@ -26,10 +25,8 @@ declare
   parent_branch_id text;
   parent_record_key text;
 begin
-  -- A caller cannot forge when Supabase persisted this row.
   new.record_time := clock_timestamp();
 
-  -- Serialize writes for one logical state key without locking unrelated keys.
   perform pg_advisory_xact_lock(
     hashtextextended(
       new.project_id || E'\x1f' || new.branch_id || E'\x1f' || new.record_key,
@@ -94,7 +91,6 @@ create trigger vera_save_state_events_enforce_lineage
 before insert on public.vera_save_state_events
 for each row execute function public.enforce_vera_save_state_lineage();
 
--- Expose every unsuperseded head so conflicts remain visible rather than hidden.
 create or replace view public.vera_save_state_heads
 with (security_invoker = true)
 as
@@ -106,11 +102,8 @@ where not exists (
   where child.supersedes_record_id = e.record_id
 );
 
--- event_time_precision changes the view shape, so recreate deliberately.
 drop view public.vera_current_save_state;
 
--- Return only unambiguous heads. A fork becomes absent here and visible in
--- vera_save_state_lineage_conflicts instead of being resolved by timestamp.
 create view public.vera_current_save_state
 with (security_invoker = true)
 as
@@ -134,6 +127,8 @@ select
   privacy_scope,
   event_time,
   event_time_precision,
+  event_time_lower_bound,
+  event_time_upper_bound,
   state_time,
   record_time,
   supersedes_record_id,
