@@ -1,6 +1,6 @@
 # Branch and Session Anchor Protocol
 
-Status: bounded contract pilot under correction review; production deployment and merge are not authorized.
+Status: bounded contract pilot under correction re-review; production deployment and merge are not authorized.
 
 ## Objective
 
@@ -45,7 +45,7 @@ A `STABLE` scope is permitted only when both identities are `EXPOSED` with sourc
 (project_id, conversation_id, branch_id)
 ```
 
-When either provider identity is unavailable, `resolve_scope` generates a fresh UUID internally and returns an `EPHEMERAL` scope. It accepts no caller-selected ephemeral UUID. A UUID generator dependency is keyword-only and exists solely for deterministic tests.
+When either provider identity is unavailable, the public `resolve_scope(project_id, conversation, branch)` API generates a fresh UUID internally and returns an `EPHEMERAL` scope. The production API accepts neither a caller-selected UUID nor a caller-supplied UUID generator. Deterministic tests may patch the module-private UUID dependency; that test seam is not a protocol input.
 
 An ephemeral scope separates the current visible runtime. It is explicitly non-durable recognition and cannot prove that another chat resumed the same conversation or branch. A fresh ephemeral `ENTRY` therefore cannot reference a predecessor.
 
@@ -61,9 +61,9 @@ A stable entry may carry `prior_anchor_id` only when one of these is proven:
 2. `predecessor_checkpoint_evidence` explicitly identifies the same predecessor, project, and stable scope with:
    - `status: VERIFIED`;
    - `source: CHECKPOINT_OWNER_VERIFIED`;
-   - a non-empty distinct checkpoint ID.
+   - a present, well-formed, distinct checkpoint ID.
 
-Unverified, mismatched, or merely claimed checkpoint evidence is rejected. Ephemeral entries cannot use predecessor anchors or checkpoint evidence to establish durable recognition.
+The evidence checkpoint ID must not equal the current `session_id`, `anchor_id`, `scope_instance_id`, provider conversation identity, provider branch identity, `scope_id`, or `prior_anchor_id`. Missing, malformed, reused, cross-identity, unverified, source-mismatched, or scope-mismatched checkpoint evidence is rejected. Ephemeral entries cannot use predecessor anchors or checkpoint evidence to establish durable recognition.
 
 ### `MATERIAL_EXIT`
 
@@ -102,7 +102,7 @@ scope_mode: STABLE|EPHEMERAL
 scope_id: SHA-256 hex when STABLE; internally generated UUID when EPHEMERAL
 scope_instance_id: UUID
 session_id: UUID
-checkpoint_id: text|null
+checkpoint_id: distinct text|null
 anchor_kind: ENTRY|MATERIAL_EXIT
 entry_reason: text|null
 exit_reason: enum|null
@@ -161,8 +161,11 @@ The reference set retains anchors by both `anchor_id` and `idempotency_key`.
 
 - New valid canonical content: `APPENDED`.
 - Same idempotency key and same canonical content: existing anchor returned.
-- Same idempotency key with different canonical content: `CONFLICTED`.
+- Same idempotency key with different canonical content or anchor ID: `CONFLICTED`.
 - Same anchor ID with different canonical content: `CONFLICTED`.
+- Same anchor ID and identical canonical content with an alternate idempotency key: existing anchor returned and the alternate key is permanently bound to that same canonical hash and anchor ID.
+- A later retry through either accepted key returns that same existing anchor.
+- An accepted alternate key cannot later be reused for changed content.
 - Missing or incompatible predecessor evidence: rejected.
 
 This is storage-neutral reference behavior. It does not create a table, durable append function, runtime integration, or production record.
@@ -191,15 +194,21 @@ Elapsed output does not imply waiting, emotional change, continuity of activity,
 | Missing, fabricated, or precision-incompatible event-time source | Rejected |
 | Both provider identities exposed with valid sources | Deterministic stable scope |
 | Either provider identity unavailable | Fresh internally generated ephemeral scope |
-| Reused caller input for unidentified chat | Cannot select or reproduce ephemeral scope |
+| Caller supplies an ephemeral UUID or generator | API call rejected |
+| Repeated unidentified-chat inputs | Cannot select or reproduce ephemeral scope |
 | Ephemeral scope used as durable recognition | Rejected |
 | Stable entry with existing same-project same-scope predecessor | Accepted |
 | Stable entry with nonexistent predecessor and no verified checkpoint | Rejected |
 | Cross-project or cross-scope entry predecessor | Rejected |
-| Unverified checkpoint predecessor | Rejected |
+| Missing, malformed, reused, cross-identity, or unverified checkpoint evidence | Rejected |
+| Checkpoint evidence without `CHECKPOINT_OWNER_VERIFIED` source | Rejected |
 | Material exit with nonexistent predecessor | Rejected |
 | Material exit cross-project, cross-scope, cross-instance, or cross-session | Rejected |
 | Free-form exit reason | Rejected |
+| Same anchor and same idempotency key | Existing anchor returned |
+| Same anchor and alternate key | Existing anchor returned; alternate key bound |
+| Either accepted key retried | Same existing anchor returned |
+| Accepted alternate key later carries changed content | Conflicted |
 | Changed logical field with retained old hash | Conflicted |
 | Unrestricted or nested reserved payload field | Rejected |
 | Reserved words appearing only in permitted free text | Not semantically policed |
@@ -217,6 +226,6 @@ This correction modifies only:
 2. `tests/test_branch_session_anchor.py`;
 3. `docs/BRANCH_SESSION_ANCHOR_PROTOCOL.md`.
 
-It adds no Supabase migration, anchor table, durable append function, runtime integration, Memory Ledger operation, signed R5A2 owner change, production change, or merge authorization.
+It adds no workflow change, Supabase migration, anchor table, durable append function, runtime integration, Memory Ledger operation, signed R5A2 owner change, production change, or merge authorization.
 
 Independent re-review must approve the corrected source head before any later storage proposal proceeds. The later storage proposal remains narrow and separately gated: exact table shape, concurrency-safe append semantics, predecessor constraints, privilege and RLS surface, integration with merged temporal lineage, and fresh-chat runtime evidence.
