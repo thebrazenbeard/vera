@@ -1,4 +1,5 @@
 -- DRAFT ONLY. Do not apply to production without isolated validation.
+-- Depends on 20260729_add_event_time_precision.sql.
 -- Makes explicit supersession lineage authoritative for current-state selection.
 
 begin;
@@ -32,7 +33,9 @@ begin
     )
   );
 
-  select count(*), min(e.record_id)
+  select
+    count(*),
+    (array_agg(e.record_id order by e.record_id))[1]
     into current_head_count, current_head_id
   from public.vera_save_state_events e
   where e.project_id = new.project_id
@@ -99,9 +102,12 @@ where not exists (
   where child.supersedes_record_id = e.record_id
 );
 
+-- event_time_precision changes the view shape, so recreate deliberately.
+drop view public.vera_current_save_state;
+
 -- Return only unambiguous heads. A fork becomes absent here and visible in
 -- vera_save_state_lineage_conflicts instead of being resolved by timestamp.
-create or replace view public.vera_current_save_state
+create view public.vera_current_save_state
 with (security_invoker = true)
 as
 with heads as (
@@ -123,6 +129,7 @@ select
   authorship,
   privacy_scope,
   event_time,
+  event_time_precision,
   state_time,
   record_time,
   supersedes_record_id,
@@ -146,10 +153,15 @@ from public.vera_save_state_heads
 group by project_id, branch_id, record_key
 having count(*) <> 1;
 
+revoke all privileges on table public.vera_current_save_state from public, anon, authenticated;
 revoke all privileges on table public.vera_save_state_heads from public, anon, authenticated;
 revoke all privileges on table public.vera_save_state_lineage_conflicts from public, anon, authenticated;
+
+revoke all privileges on table public.vera_current_save_state from service_role;
 revoke all privileges on table public.vera_save_state_heads from service_role;
 revoke all privileges on table public.vera_save_state_lineage_conflicts from service_role;
+
+grant select on table public.vera_current_save_state to service_role;
 grant select on table public.vera_save_state_heads to service_role;
 grant select on table public.vera_save_state_lineage_conflicts to service_role;
 
