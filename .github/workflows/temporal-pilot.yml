@@ -34,6 +34,12 @@ jobs:
             supabase init
           fi
 
+      - name: Stage historical migrations for explicit replay
+        run: |
+          rm -rf supabase/migrations.explicit
+          mv supabase/migrations supabase/migrations.explicit
+          mkdir -p supabase/migrations
+
       - name: Start isolated local Supabase stack
         run: supabase start
 
@@ -41,13 +47,13 @@ jobs:
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/fixtures/platform_rls_auto_enable.sql
 
       - name: Replay initial save-state migration
-        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20260729012911_initialize_vera_save_state_ledger.sql
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations.explicit/20260729012911_initialize_vera_save_state_ledger.sql
 
       - name: Replay trigger-hardening migration
-        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20260729013307_harden_vera_save_state_trigger.sql
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations.explicit/20260729013307_harden_vera_save_state_trigger.sql
 
       - name: Replay access-hardening migration
-        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20260729094322_harden_vera_save_state_access.sql
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations.explicit/20260729094322_harden_vera_save_state_access.sql
 
       - name: Apply temporal precision draft
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/drafts/20260729_add_event_time_precision.sql
