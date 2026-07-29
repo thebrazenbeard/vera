@@ -155,7 +155,7 @@ select
   array_agg(record_id order by record_time, record_id) as head_record_ids
 from public.vera_save_state_heads
 group by project_id, branch_id, record_key
-having count(*) <> 1;
+having count(*) > 1;
 
 revoke all privileges on table public.vera_current_save_state from public, anon, authenticated;
 revoke all privileges on table public.vera_save_state_heads from public, anon, authenticated;
@@ -174,6 +174,6 @@ comment on column public.vera_save_state_events.record_time is
 comment on view public.vera_current_save_state is
   'One unambiguous unsuperseded head per project, branch, and record key. Timestamp recency does not create authority.';
 comment on view public.vera_save_state_lineage_conflicts is
-  'Diagnostic view for state keys with zero or multiple lineage heads. Conflicts are not resolved by recency.';
+  'Diagnostic view for state keys with multiple lineage heads. Conflicts are not resolved by recency.';
 
 commit;
