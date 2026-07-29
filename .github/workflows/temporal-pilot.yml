@@ -16,6 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
+    env:
+      PGDATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -34,27 +37,28 @@ jobs:
       - name: Start isolated local Supabase stack
         run: supabase start
 
-      - name: Rebuild baseline from versioned migrations
-        run: supabase db reset
+      - name: Install test-only platform fixture
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/fixtures/platform_rls_auto_enable.sql
+
+      - name: Replay initial save-state migration
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20260729012911_initialize_vera_save_state_ledger.sql
+
+      - name: Replay trigger-hardening migration
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20260729013307_harden_vera_save_state_trigger.sql
+
+      - name: Replay access-hardening migration
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20260729094322_harden_vera_save_state_access.sql
 
       - name: Apply temporal precision draft
-        env:
-          PGDATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/drafts/20260729_add_event_time_precision.sql
 
       - name: Apply lineage hardening draft
-        env:
-          PGDATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/drafts/20260729_enforce_save_state_lineage.sql
 
       - name: Validate temporal precision
-        env:
-          PGDATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/validate_event_time_precision.sql
 
       - name: Validate save-state lineage
-        env:
-          PGDATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/validate_save_state_lineage.sql
 
       - name: Run database lint
