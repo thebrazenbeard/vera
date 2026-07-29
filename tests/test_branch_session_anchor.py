@@ -5,6 +5,7 @@ from hashlib import sha256
 import inspect
 import json
 import unittest
+from unittest.mock import patch
 from uuid import UUID, uuid4
 
 from protocol.branch_session_anchor import (
@@ -122,6 +123,17 @@ def material_exit_from(predecessor: dict, *, reason: str = "BRANCH_HANDOFF") -> 
     return finalize(value)
 
 
+def checkpoint_evidence(value: dict, checkpoint_id: object = "checkpoint-verified-001") -> dict:
+    return {
+        "status": "VERIFIED",
+        "source": "CHECKPOINT_OWNER_VERIFIED",
+        "checkpoint_id": checkpoint_id,
+        "predecessor_anchor_id": value["prior_anchor_id"],
+        "project_id": value["project_id"],
+        "scope_id": value["scope_id"],
+    }
+
+
 class IdentityEvidenceTests(unittest.TestCase):
     def test_project_conversation_branch_session_checkpoint_are_distinct(self):
         value = anchor()
@@ -228,6 +240,34 @@ class ScopeResolutionTests(unittest.TestCase):
                 str(uuid4()),
             )
 
+    def test_uuid_factory_is_not_a_public_argument(self):
+        self.assertNotIn("uuid_factory", inspect.signature(resolve_scope).parameters)
+        with self.assertRaises(TypeError):
+            resolve_scope(
+                "vera-chatgpt-instance",
+                exposed_identity("conv-a"),
+                unavailable_identity(),
+                uuid_factory=lambda: UUID("11111111-1111-4111-8111-111111111111"),
+            )
+
+    def test_repeated_caller_attempts_cannot_force_ephemeral_reuse(self):
+        fixed = UUID("11111111-1111-4111-8111-111111111111")
+        for _ in range(2):
+            with self.assertRaises(TypeError):
+                resolve_scope(
+                    "vera-chatgpt-instance",
+                    exposed_identity("conv-a"),
+                    unavailable_identity(),
+                    uuid_factory=lambda: fixed,
+                )
+        first = resolve_scope(
+            "vera-chatgpt-instance", exposed_identity("conv-a"), unavailable_identity()
+        )
+        second = resolve_scope(
+            "vera-chatgpt-instance", exposed_identity("conv-a"), unavailable_identity()
+        )
+        self.assertNotEqual(first["scope_id"], second["scope_id"])
+
     def test_default_generator_produces_fresh_ephemeral_scopes(self):
         first = resolve_scope(
             "vera-chatgpt-instance", exposed_identity("conv-a"), unavailable_identity()
@@ -237,16 +277,13 @@ class ScopeResolutionTests(unittest.TestCase):
         )
         self.assertNotEqual(first["scope_id"], second["scope_id"])
 
-    def test_generator_dependency_is_keyword_only_for_tests(self):
+    def test_deterministic_test_support_is_private_module_patching(self):
         fixed = UUID("11111111-1111-4111-8111-111111111111")
-        result = resolve_scope(
-            "vera-chatgpt-instance",
-            exposed_identity("conv-a"),
-            unavailable_identity(),
-            uuid_factory=lambda: fixed,
-        )
+        with patch("protocol.branch_session_anchor.uuid4", return_value=fixed):
+            result = resolve_scope(
+                "vera-chatgpt-instance", exposed_identity("conv-a"), unavailable_identity()
+            )
         self.assertEqual(str(fixed), result["scope_id"])
-        self.assertIn("uuid_factory", inspect.signature(resolve_scope).parameters)
 
     def test_concurrent_conversations_are_separate(self):
         self.assertNotEqual(
@@ -290,11 +327,45 @@ class AnchorValidationTests(unittest.TestCase):
         with self.assertRaises(AnchorValidationError):
             validate_anchor(value)
 
-    def test_checkpoint_cannot_be_session_identity(self):
-        value = anchor()
-        value["checkpoint_id"] = value["session_id"]
+    def assert_top_level_checkpoint_collision(self, field: str):
+        value = anchor(prior_anchor_id=str(uuid4()))
+        if field == "conversation_identity":
+            collision = value["conversation_identity"]["value"]
+        elif field == "branch_identity":
+            collision = value["branch_identity"]["value"]
+        else:
+            collision = value[field]
+        value["checkpoint_id"] = collision
         finalize(value)
-        with self.assertRaises(AnchorValidationError):
+        with self.assertRaisesRegex(AnchorValidationError, "distinct"):
+            validate_anchor(value)
+
+    def test_checkpoint_cannot_be_session_identity(self):
+        self.assert_top_level_checkpoint_collision("session_id")
+
+    def test_checkpoint_cannot_be_anchor_identity(self):
+        self.assert_top_level_checkpoint_collision("anchor_id")
+
+    def test_checkpoint_cannot_be_scope_instance_identity(self):
+        self.assert_top_level_checkpoint_collision("scope_instance_id")
+
+    def test_checkpoint_cannot_be_conversation_identity(self):
+        self.assert_top_level_checkpoint_collision("conversation_identity")
+
+    def test_checkpoint_cannot_be_branch_identity(self):
+        self.assert_top_level_checkpoint_collision("branch_identity")
+
+    def test_checkpoint_cannot_be_scope_identity(self):
+        self.assert_top_level_checkpoint_collision("scope_id")
+
+    def test_checkpoint_cannot_reuse_prior_anchor_identity(self):
+        self.assert_top_level_checkpoint_collision("prior_anchor_id")
+
+    def test_malformed_top_level_checkpoint_is_rejected(self):
+        value = anchor()
+        value["checkpoint_id"] = " checkpoint-001 "
+        finalize(value)
+        with self.assertRaisesRegex(AnchorValidationError, "whitespace"):
             validate_anchor(value)
 
     def test_unrestricted_payload_field_is_rejected(self):
@@ -369,34 +440,114 @@ class PredecessorTests(unittest.TestCase):
         with self.assertRaises(AnchorValidationError):
             store.append(anchor(conversation="conv-b", prior_anchor_id=predecessor["anchor_id"]))
 
-    def test_verified_checkpoint_can_support_missing_stable_predecessor(self):
-        store = AppendOnlyAnchorSet()
+    def checkpoint_value(self, checkpoint_id: object = "checkpoint-verified-001") -> dict:
         prior = str(uuid4())
         value = anchor(prior_anchor_id=prior)
-        value["predecessor_checkpoint_evidence"] = {
-            "status": "VERIFIED",
-            "source": "CHECKPOINT_OWNER_VERIFIED",
-            "checkpoint_id": "checkpoint-verified-001",
-            "predecessor_anchor_id": prior,
-            "project_id": value["project_id"],
-            "scope_id": value["scope_id"],
-        }
+        value["predecessor_checkpoint_evidence"] = checkpoint_evidence(value, checkpoint_id)
+        return finalize(value)
+
+    def test_verified_checkpoint_can_support_missing_stable_predecessor(self):
+        value = self.checkpoint_value()
+        self.assertEqual("APPENDED", AppendOnlyAnchorSet().append(value).outcome)
+
+    def test_missing_checkpoint_id_is_rejected(self):
+        value = self.checkpoint_value()
+        del value["predecessor_checkpoint_evidence"]["checkpoint_id"]
         finalize(value)
-        self.assertEqual("APPENDED", store.append(value).outcome)
+        with self.assertRaisesRegex(AnchorValidationError, "checkpoint_id"):
+            AppendOnlyAnchorSet().append(value)
+
+    def test_missing_checkpoint_owner_source_is_rejected(self):
+        value = self.checkpoint_value()
+        del value["predecessor_checkpoint_evidence"]["source"]
+        finalize(value)
+        with self.assertRaisesRegex(AnchorValidationError, "source"):
+            AppendOnlyAnchorSet().append(value)
+
+    def test_wrong_checkpoint_owner_source_is_rejected(self):
+        value = self.checkpoint_value()
+        value["predecessor_checkpoint_evidence"]["source"] = "MODEL_ASSERTED"
+        finalize(value)
+        with self.assertRaisesRegex(AnchorValidationError, "CHECKPOINT_OWNER_VERIFIED"):
+            AppendOnlyAnchorSet().append(value)
 
     def test_unverified_checkpoint_predecessor_is_rejected(self):
-        prior = str(uuid4())
-        value = anchor(prior_anchor_id=prior)
-        value["predecessor_checkpoint_evidence"] = {
-            "status": "UNVERIFIED",
-            "source": "CHECKPOINT_OWNER_VERIFIED",
-            "checkpoint_id": "checkpoint-unverified-001",
-            "predecessor_anchor_id": prior,
-            "project_id": value["project_id"],
-            "scope_id": value["scope_id"],
-        }
+        value = self.checkpoint_value()
+        value["predecessor_checkpoint_evidence"]["status"] = "UNVERIFIED"
         finalize(value)
         with self.assertRaises(AnchorValidationError):
+            AppendOnlyAnchorSet().append(value)
+
+    def test_malformed_non_string_checkpoint_id_is_rejected(self):
+        value = self.checkpoint_value(42)
+        with self.assertRaisesRegex(AnchorValidationError, "non-empty string"):
+            AppendOnlyAnchorSet().append(value)
+
+    def test_malformed_whitespace_checkpoint_id_is_rejected(self):
+        value = self.checkpoint_value(" checkpoint-verified-001 ")
+        with self.assertRaisesRegex(AnchorValidationError, "whitespace"):
+            AppendOnlyAnchorSet().append(value)
+
+    def test_malformed_control_character_checkpoint_id_is_rejected(self):
+        value = self.checkpoint_value("checkpoint\nverified")
+        with self.assertRaisesRegex(AnchorValidationError, "control"):
+            AppendOnlyAnchorSet().append(value)
+
+    def assert_evidence_checkpoint_collision(self, identity_name: str):
+        value = self.checkpoint_value()
+        if identity_name == "conversation_identity":
+            collision = value["conversation_identity"]["value"]
+        elif identity_name == "branch_identity":
+            collision = value["branch_identity"]["value"]
+        else:
+            collision = value[identity_name]
+        value["predecessor_checkpoint_evidence"]["checkpoint_id"] = collision
+        finalize(value)
+        with self.assertRaisesRegex(AnchorValidationError, f"distinct from {identity_name}"):
+            AppendOnlyAnchorSet().append(value)
+
+    def test_evidence_checkpoint_cannot_equal_session_id(self):
+        self.assert_evidence_checkpoint_collision("session_id")
+
+    def test_evidence_checkpoint_cannot_equal_anchor_id(self):
+        self.assert_evidence_checkpoint_collision("anchor_id")
+
+    def test_evidence_checkpoint_cannot_equal_scope_instance_id(self):
+        self.assert_evidence_checkpoint_collision("scope_instance_id")
+
+    def test_evidence_checkpoint_cannot_equal_conversation_identity(self):
+        self.assert_evidence_checkpoint_collision("conversation_identity")
+
+    def test_evidence_checkpoint_cannot_equal_branch_identity(self):
+        self.assert_evidence_checkpoint_collision("branch_identity")
+
+    def test_evidence_checkpoint_cannot_equal_scope_id(self):
+        self.assert_evidence_checkpoint_collision("scope_id")
+
+    def test_evidence_checkpoint_cannot_reuse_prior_anchor_id(self):
+        self.assert_evidence_checkpoint_collision("prior_anchor_id")
+
+    def test_checkpoint_evidence_predecessor_must_match(self):
+        value = self.checkpoint_value()
+        value["predecessor_checkpoint_evidence"]["predecessor_anchor_id"] = str(uuid4())
+        finalize(value)
+        with self.assertRaisesRegex(AnchorValidationError, "does not match"):
+            AppendOnlyAnchorSet().append(value)
+
+    def test_checkpoint_evidence_project_must_match(self):
+        value = self.checkpoint_value()
+        value["predecessor_checkpoint_evidence"]["project_id"] = "other-project"
+        finalize(value)
+        with self.assertRaisesRegex(AnchorValidationError, "project"):
+            AppendOnlyAnchorSet().append(value)
+
+    def test_checkpoint_evidence_scope_must_match(self):
+        value = self.checkpoint_value()
+        value["predecessor_checkpoint_evidence"]["scope_id"] = stable_scope_id(
+            value["project_id"], "conv-other", "branch-a"
+        )
+        finalize(value)
+        with self.assertRaisesRegex(AnchorValidationError, "scope"):
             AppendOnlyAnchorSet().append(value)
 
     def test_material_exit_accepts_existing_same_session_predecessor(self):
@@ -454,14 +605,63 @@ class PredecessorTests(unittest.TestCase):
 
 
 class CanonicalHashAndIdempotencyTests(unittest.TestCase):
-    def test_duplicate_same_canonical_content_returns_existing(self):
+    def test_same_anchor_same_key_returns_existing(self):
         store = AppendOnlyAnchorSet()
         value = anchor()
         first = store.append(value)
-        second = store.append(deepcopy(value))
+        retry = store.append(deepcopy(value))
         self.assertEqual("APPENDED", first.outcome)
-        self.assertEqual("EXISTING", second.outcome)
-        self.assertEqual(first.anchor_id, second.anchor_id)
+        self.assertEqual("EXISTING", retry.outcome)
+        self.assertEqual(first.anchor_id, retry.anchor_id)
+
+    def test_same_anchor_alternate_key_is_bound_to_existing_anchor(self):
+        store = AppendOnlyAnchorSet()
+        value = anchor()
+        store.append(value)
+        alternate = deepcopy(value)
+        alternate["idempotency_key"] = digest("alternate-key")
+        accepted = store.append(alternate)
+        self.assertEqual("EXISTING", accepted.outcome)
+        self.assertEqual(value["anchor_id"], accepted.anchor_id)
+        self.assertEqual("EXISTING", store.append(deepcopy(alternate)).outcome)
+
+    def test_later_retries_using_each_accepted_key_return_existing(self):
+        store = AppendOnlyAnchorSet()
+        original = anchor()
+        alternate = deepcopy(original)
+        alternate["idempotency_key"] = digest("alternate-key")
+        store.append(original)
+        store.append(alternate)
+        original_retry = store.append(deepcopy(original))
+        alternate_retry = store.append(deepcopy(alternate))
+        self.assertEqual("EXISTING", original_retry.outcome)
+        self.assertEqual("EXISTING", alternate_retry.outcome)
+        self.assertEqual(original["anchor_id"], original_retry.anchor_id)
+        self.assertEqual(original["anchor_id"], alternate_retry.anchor_id)
+
+    def test_alternate_key_with_changed_content_conflicts_before_binding(self):
+        store = AppendOnlyAnchorSet()
+        original = anchor()
+        store.append(original)
+        changed = deepcopy(original)
+        changed["idempotency_key"] = digest("alternate-key")
+        changed["payload"] = {"labels": ["changed"]}
+        finalize(changed)
+        with self.assertRaisesRegex(IdempotencyConflict, "anchor_id reused"):
+            store.append(changed)
+
+    def test_bound_alternate_key_with_later_changed_content_conflicts(self):
+        store = AppendOnlyAnchorSet()
+        original = anchor()
+        alternate = deepcopy(original)
+        alternate["idempotency_key"] = digest("alternate-key")
+        store.append(original)
+        store.append(alternate)
+        changed = deepcopy(alternate)
+        changed["payload"] = {"labels": ["changed"]}
+        finalize(changed)
+        with self.assertRaisesRegex(IdempotencyConflict, "idempotency key reused"):
+            store.append(changed)
 
     def assert_old_claimed_hash_conflicts(self, first: dict, second: dict):
         store = AppendOnlyAnchorSet()
