@@ -115,7 +115,10 @@ begin
       'privacy_scope', 'PROJECT',
       'payload', jsonb_build_object('version', 99),
       'source_evidence', jsonb_build_array(
-        jsonb_build_object('surface', 'GITHUB_ACTIONS_LOCAL_SUPABASE')
+        jsonb_build_object(
+          'surface', 'GITHUB_ACTIONS_LOCAL_SUPABASE',
+          'observation', 'Foreign branch memory value was written for isolation testing.'
+        )
       ),
       'semantic_tags', jsonb_build_object(
         'topics', jsonb_build_array('memory'),
@@ -138,7 +141,10 @@ begin
       'source_actor', 'EXTERNAL',
       'privacy_scope', 'PRIVATE',
       'source_evidence', jsonb_build_array(
-        jsonb_build_object('surface', 'GITHUB_ACTIONS_LOCAL_SUPABASE')
+        jsonb_build_object(
+          'surface', 'GITHUB_ACTIONS_LOCAL_SUPABASE',
+          'observation', 'Private scoped value was written for authorization-filter testing.'
+        )
       ),
       'semantic_tags', jsonb_build_object(
         'topics', jsonb_build_array('memory', 'privacy'),
@@ -160,8 +166,17 @@ begin
       'epistemic_status', 'MODEL_GENERATED_CLAIM',
       'source_actor', 'CHATGPT_MODEL',
       'privacy_scope', 'PROJECT',
+      'payload', jsonb_build_object(
+        'model_context', jsonb_build_object(
+          'runtime', 'CHATGPT',
+          'source_surface', 'GITHUB_ACTIONS_LOCAL_SUPABASE'
+        )
+      ),
       'source_evidence', jsonb_build_array(
-        jsonb_build_object('surface', 'GITHUB_ACTIONS_LOCAL_SUPABASE')
+        jsonb_build_object(
+          'surface', 'GITHUB_ACTIONS_LOCAL_SUPABASE',
+          'generation_id', 'MREQ-e2e-save-model-claim'
+        )
       ),
       'semantic_tags', jsonb_build_object(
         'topics', jsonb_build_array('memory', 'model_output'),
@@ -186,7 +201,10 @@ begin
       'source_actor', 'UNRESOLVED',
       'privacy_scope', 'PROJECT',
       'source_evidence', jsonb_build_array(
-        jsonb_build_object('surface', 'GITHUB_ACTIONS_LOCAL_SUPABASE')
+        jsonb_build_object(
+          'surface', 'GITHUB_ACTIONS_LOCAL_SUPABASE',
+          'observation', 'Rejected candidate retained only for exclusion testing.'
+        )
       ),
       'semantic_tags', jsonb_build_object(
         'topics', jsonb_build_array('memory', 'rejection'),
