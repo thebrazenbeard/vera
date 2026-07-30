@@ -26,6 +26,7 @@ def is_reproducible_source(path: Path) -> bool:
     relative_parts = path.relative_to(REPOSITORY).parts
     return (
         path.is_file()
+        and not path.is_symlink()
         and path != MANIFEST
         and not any(part in EXCLUDED_DIRECTORY_NAMES for part in relative_parts)
         and not any(part.endswith(".egg-info") for part in relative_parts)
