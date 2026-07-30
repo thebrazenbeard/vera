@@ -8,8 +8,10 @@ declare
   record_id uuid;
   blocked boolean;
   derived_limitation text := 'Derived state_time is approximate and depends on the cited sequence evidence.';
+  unknown_state_limitation text := 'state_time is UNKNOWN; the non-null column contains PostgreSQL -infinity only as a compatibility sentinel and not as event, state, record, delivery, recollection, or receipt-generation time evidence.';
 begin
-  -- Missing event_time and state_time remain NULL and are explicitly UNKNOWN.
+  -- Missing event_time remains NULL. Missing state_time is explicitly UNKNOWN
+  -- through the payload, limitation, and non-temporal -infinity sentinel.
   receipt := public.append_vera_context_v3(
     'MREQ-temporal-unknown',
     jsonb_build_object(
@@ -35,19 +37,25 @@ begin
 
   record_id := (receipt#>>'{record_ids,0}')::uuid;
   if receipt#>>'{records,0,event_time}' is not null
-     or receipt#>>'{records,0,state_time}' is not null
      or receipt#>>'{records,0,payload,temporal,event_time,precision}' <> 'UNKNOWN'
-     or receipt#>>'{records,0,payload,temporal,state_time,precision}' <> 'UNKNOWN' then
-    raise exception 'temporal validation failed: omitted times were not preserved as NULL/UNKNOWN: %', receipt;
+     or receipt#>>'{records,0,payload,temporal,state_time,precision}' <> 'UNKNOWN'
+     or receipt#>>'{records,0,payload,temporal,state_time,storage,mode}' <> 'NOT_NULL_COMPATIBILITY_SENTINEL'
+     or receipt#>>'{records,0,payload,temporal,state_time,storage,value}' <> '-infinity'
+     or receipt#>>'{records,0,payload,temporal,state_time,storage,temporal_claim}' <> 'false'
+     or not (receipt#>'{records,0,limitations}') @> jsonb_build_array(unknown_state_limitation) then
+    raise exception 'temporal validation failed: omitted times were not preserved as NULL/explicit UNKNOWN: %', receipt;
   end if;
 
-  if exists (
+  if not exists (
     select 1
     from public.vera_context_events_v3
     where public.vera_context_events_v3.record_id = record_id
-      and (event_time is not null or state_time is not null)
+      and event_time is null
+      and state_time = '-infinity'::timestamptz
+      and payload#>>'{temporal,state_time,storage,temporal_claim}' = 'false'
+      and limitations @> jsonb_build_array(unknown_state_limitation)
   ) then
-    raise exception 'temporal validation failed: database invented an omitted event_time or state_time';
+    raise exception 'temporal validation failed: database did not preserve explicit UNKNOWN state_time representation';
   end if;
 
   -- Caller-provided timestamps without precision remain UNKNOWN, never silently EXACT.
@@ -77,8 +85,9 @@ begin
   );
 
   if receipt#>>'{records,0,payload,temporal,event_time,precision}' <> 'UNKNOWN'
-     or receipt#>>'{records,0,payload,temporal,state_time,precision}' <> 'UNKNOWN' then
-    raise exception 'temporal validation failed: supplied timestamps were silently promoted to exact precision: %', receipt;
+     or receipt#>>'{records,0,payload,temporal,state_time,precision}' <> 'UNKNOWN'
+     or receipt#>'{records,0,payload,temporal,state_time,storage}' is not null then
+    raise exception 'temporal validation failed: supplied timestamps were silently promoted or given a sentinel: %', receipt;
   end if;
 
   -- Explicit supported precision is preserved.
