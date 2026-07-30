@@ -9,8 +9,13 @@ from coordination_bus import (
     CoordinationEventDraft,
     InMemoryCoordinationRepository,
     INSERT_EVENT_SQL,
+    PERMISSION_ACKNOWLEDGE,
+    PERMISSION_POST,
     PERMISSION_READ_ANY,
     PERMISSION_READ_SELF,
+    PERMISSION_RESOLVE,
+    PERMISSION_REVIEW,
+    PERMISSION_STATUS,
     READ_INBOX_SQL,
     RepositoryConflict,
 )
@@ -49,19 +54,16 @@ class CoordinationBusTests(unittest.TestCase):
         self.assertEqual(len(result.receipt.result_hash), 64)
 
     def test_source_must_match_actor(self):
-        with self.assertRaises(PermissionError):
-            self.bus.coordination_post(
-                self.memory,
-                CoordinationEventDraft(
-                    thread_key="x",
-                    source_branch="workstream/time",
-                    target_branch="workstream/memory",
-                    event_type="STATUS",
-                    status="IN_PROGRESS",
-                    objective="x",
-                    summary="x",
-                ),
-            )
+        result = self.bus.coordination_post(
+            self.memory,
+            CoordinationEventDraft(
+                thread_key="x", source_branch="workstream/time",
+                target_branch="workstream/memory", event_type="STATUS",
+                status="IN_PROGRESS", objective="x", summary="x",
+            ),
+        )
+        self.assertEqual(result.receipt.result_class, "DENIED")
+        self.assertFalse(result.receipt.database_write_confirmed)
 
     def test_unknown_workstream_rejected(self):
         with self.assertRaises(ValueError):
@@ -101,8 +103,10 @@ class CoordinationBusTests(unittest.TestCase):
 
     def test_read_other_inbox_requires_any_permission(self):
         actor = ActorContext("workstream/time", frozenset({PERMISSION_READ_SELF}))
-        with self.assertRaises(PermissionError):
-            self.bus.coordination_read_inbox(actor, target_branch="workstream/memory")
+        result = self.bus.coordination_read_inbox(
+            actor, target_branch="workstream/memory"
+        )
+        self.assertEqual(result.receipt.result_class, "DENIED")
 
     def test_cross_inbox_read_with_any_permission(self):
         self.issue()
@@ -112,28 +116,30 @@ class CoordinationBusTests(unittest.TestCase):
 
     def test_only_addressed_target_can_acknowledge(self):
         event = self.issue().events[0]
-        with self.assertRaises(PermissionError):
-            self.bus.coordination_acknowledge(
-                self.initiative, event_id=event.event_id, summary="Consumed."
-            )
+        result = self.bus.coordination_acknowledge(
+            self.initiative, event_id=event.event_id, summary="Consumed."
+        )
+        self.assertEqual(result.receipt.result_class, "DENIED")
 
     def test_acknowledgement_hides_consumed_message_from_default_inbox(self):
         event = self.issue().events[0]
         ack = self.bus.coordination_acknowledge(
-            self.time,
-            event_id=event.event_id,
-            summary="Temporal workstream consumed request.",
+            self.time, event_id=event.event_id, summary="Temporal workstream consumed request."
         )
         self.assertEqual(ack.events[0].acknowledges_event_id, event.event_id)
         self.assertEqual(self.bus.coordination_read_inbox(self.time).events, ())
-        full = self.bus.coordination_read_inbox(self.time, include_acknowledged=True)
+        full = self.bus.coordination_read_inbox(
+            self.time, include_acknowledged=True
+        )
         self.assertEqual(len(full.events), 1)
 
     def test_acknowledgement_requires_permission(self):
         event = self.issue().events[0]
         actor = ActorContext("workstream/time", frozenset({PERMISSION_READ_SELF}))
-        with self.assertRaises(PermissionError):
-            self.bus.coordination_acknowledge(actor, event_id=event.event_id, summary="x")
+        result = self.bus.coordination_acknowledge(
+            actor, event_id=event.event_id, summary="x"
+        )
+        self.assertEqual(result.receipt.result_class, "DENIED")
 
     def test_request_review_creates_ready_status(self):
         result = self.bus.coordination_request_review(
@@ -149,12 +155,11 @@ class CoordinationBusTests(unittest.TestCase):
 
     def test_resolve_thread_requires_participant(self):
         event = self.issue().events[0]
-        with self.assertRaises(PermissionError):
-            self.bus.coordination_resolve_thread(
-                self.integration,
-                acknowledges_event_id=event.event_id,
-                summary="Resolved.",
-            )
+        result = self.bus.coordination_resolve_thread(
+            self.integration, acknowledges_event_id=event.event_id,
+            summary="Resolved.",
+        )
+        self.assertEqual(result.receipt.result_class, "DENIED")
 
     def test_resolution_links_original(self):
         event = self.issue().events[0]
@@ -176,16 +181,13 @@ class CoordinationBusTests(unittest.TestCase):
             objective="Build memory system",
             summary="Initial status.",
         ).events[0]
-        with self.assertRaises(RepositoryConflict):
-            self.bus.coordination_publish_status(
-                self.memory,
-                thread_key="different-thread",
-                target_branch="workstream/integration",
-                status="IN_PROGRESS",
-                objective="Build memory system",
-                summary="Wrong thread.",
-                supersedes_event_id=first.event_id,
-            )
+        result = self.bus.coordination_publish_status(
+            self.memory, thread_key="different-thread",
+            target_branch="workstream/integration", status="IN_PROGRESS",
+            objective="Build memory system", summary="Wrong thread.",
+            supersedes_event_id=first.event_id,
+        )
+        self.assertEqual(result.receipt.result_class, "CONFLICT")
 
     def test_one_successor_per_superseded_event(self):
         first = self.bus.coordination_publish_status(
@@ -205,16 +207,13 @@ class CoordinationBusTests(unittest.TestCase):
             summary="Review status.",
             supersedes_event_id=first.event_id,
         )
-        with self.assertRaises(RepositoryConflict):
-            self.bus.coordination_publish_status(
-                self.memory,
-                thread_key="memory-build-v1",
-                target_branch="workstream/integration",
-                status="BLOCKED",
-                objective="Build memory system",
-                summary="Competing successor.",
-                supersedes_event_id=first.event_id,
-            )
+        result = self.bus.coordination_publish_status(
+            self.memory, thread_key="memory-build-v1",
+            target_branch="workstream/integration", status="BLOCKED",
+            objective="Build memory system", summary="Competing successor.",
+            supersedes_event_id=first.event_id,
+        )
+        self.assertEqual(result.receipt.result_class, "CONFLICT")
 
     def test_entry_checkpoint_reads_without_acknowledging(self):
         self.issue()
@@ -257,9 +256,7 @@ class CoordinationBusTests(unittest.TestCase):
     def test_sql_insert_omits_generated_fields(self):
         lower = INSERT_EVENT_SQL.lower()
         insert_columns = lower.split("(", 1)[1].split(") values", 1)[0]
-        columns = {
-            item.strip() for item in insert_columns.replace("\n", " ").split(",")
-        }
+        columns = {item.strip() for item in insert_columns.replace("\n", " ").split(",")}
         self.assertNotIn("event_sequence", columns)
         self.assertNotIn("record_time", columns)
         self.assertNotIn("event_id", columns)
@@ -283,6 +280,70 @@ class CoordinationBusTests(unittest.TestCase):
             )
         )
         self.assertEqual(params["payload"], '{"a":2,"z":1}')
+
+    def test_generic_post_cannot_bypass_acknowledgement_permission(self):
+        original = self.issue().events[0]
+        actor = ActorContext(
+            "workstream/time", frozenset({"coordination:post"})
+        )
+        result_draft = CoordinationEventDraft(
+            thread_key=original.thread_key,
+            source_branch="workstream/time",
+            target_branch="workstream/memory",
+            event_type="ACKNOWLEDGEMENT",
+            status="ACKNOWLEDGED",
+            objective=original.objective,
+            summary="Attempted acknowledgement through generic post.",
+            acknowledges_event_id=original.event_id,
+        )
+        result = self.bus.coordination_post(actor, result_draft)
+        self.assertEqual(result.receipt.result_class, "DENIED")
+
+    def test_generic_review_requires_addressed_target(self):
+        original = self.issue().events[0]
+        review = CoordinationEventDraft(
+            thread_key=original.thread_key,
+            source_branch="workstream/integration",
+            target_branch="workstream/memory",
+            event_type="REVIEW",
+            status="APPROVED",
+            objective=original.objective,
+            summary="Unauthorized review.",
+            acknowledges_event_id=original.event_id,
+        )
+        result = self.bus.coordination_post(self.integration, review)
+        self.assertEqual(result.receipt.result_class, "DENIED")
+
+    def test_entry_checkpoint_hash_covers_all_returned_events(self):
+        self.issue()
+        first = self.bus.entry_checkpoint(self.time)
+        self.bus.coordination_post(
+            self.memory,
+            CoordinationEventDraft(
+                thread_key="second-thread",
+                source_branch="workstream/memory",
+                target_branch="workstream/time",
+                event_type="STATUS",
+                status="IN_PROGRESS",
+                objective="Second objective",
+                summary="Second inbox event.",
+            ),
+        )
+        second = self.bus.entry_checkpoint(self.time)
+        self.assertNotEqual(first.receipt.result_hash, second.receipt.result_hash)
+        self.assertEqual(len(second.events), 2)
+
+    def test_failure_receipt_is_deterministic(self):
+        actor = ActorContext("workstream/time", frozenset({PERMISSION_READ_SELF}))
+        first = self.bus.coordination_read_inbox(
+            actor, target_branch="workstream/memory"
+        )
+        second = self.bus.coordination_read_inbox(
+            actor, target_branch="workstream/memory"
+        )
+        self.assertEqual(first.receipt.result_class, "DENIED")
+        self.assertEqual(first.receipt.result_hash, second.receipt.result_hash)
+        self.assertIsNotNone(first.receipt.error)
 
 
 if __name__ == "__main__":
