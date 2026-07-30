@@ -1,8 +1,15 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from tul_fixture.proof import build_proof_artifact, write_proof_artifact
+
+
+EXPERIMENT_ROOT = Path(__file__).resolve().parents[1]
+COMMITTED_PROOF = (
+    EXPERIMENT_ROOT / "proof" / "tul_instrumented_host_fixture_proof_v0_1.json"
+)
 
 
 def _walk_strings(value):
@@ -92,3 +99,11 @@ def test_write_proof_artifact_is_deterministic_and_excludes_fixture_text(tmp_pat
     assert "reply" not in serialized_strings
     assert "user_text" not in serialized_strings
     assert "model_output" not in serialized_strings
+
+
+def test_committed_proof_matches_generator_byte_for_byte(tmp_path):
+    generated = tmp_path / "proof.json"
+    write_proof_artifact(generated)
+
+    assert COMMITTED_PROOF.is_file()
+    assert generated.read_bytes() == COMMITTED_PROOF.read_bytes()
