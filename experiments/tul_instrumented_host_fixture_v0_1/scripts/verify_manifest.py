@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import hashlib
 import re
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 EXPERIMENT = Path(__file__).resolve().parents[1]
 REPOSITORY = Path(__file__).resolve().parents[3]
@@ -60,16 +60,23 @@ for line_number, line in enumerate(
     if not SHA256_RE.fullmatch(expected):
         failures.append(f"invalid sha256 on line {line_number}")
         continue
-    if not rel or rel.startswith("/"):
+
+    pure_rel = PurePosixPath(rel)
+    if (
+        not rel
+        or pure_rel.is_absolute()
+        or rel != pure_rel.as_posix()
+        or any(part in {"", ".", ".."} for part in pure_rel.parts)
+    ):
         failures.append(f"invalid path on line {line_number}: {rel!r}")
         continue
     if rel in entries:
         failures.append(f"duplicate entry: {rel}")
         continue
 
-    path = REPOSITORY / rel
+    path = REPOSITORY.joinpath(*pure_rel.parts)
     try:
-        path.relative_to(REPOSITORY)
+        path.resolve().relative_to(REPOSITORY)
     except ValueError:
         failures.append(f"path escapes repository: {rel}")
         continue
@@ -84,7 +91,7 @@ for rel in sorted(manifest_paths - expected_paths):
     failures.append(f"out of scope: {rel}")
 
 for rel, expected in sorted(entries.items()):
-    path = REPOSITORY / rel
+    path = REPOSITORY.joinpath(*PurePosixPath(rel).parts)
     if not path.is_file() or path.is_symlink():
         failures.append(f"missing or non-regular: {rel}")
         continue
