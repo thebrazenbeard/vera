@@ -10,13 +10,18 @@ on:
     paths:
       - "supabase/migrations/20260730213000_harden_neutral_v3_memory_contract.sql"
       - "supabase/migrations/20260730213100_tighten_neutral_v3_memory_governance.sql"
+      - "supabase/migrations/20260730213200_close_neutral_v3_memory_review_gaps.sql"
       - "supabase/tests/fixtures/neutral_v3_live_schema.sql"
+      - "supabase/tests/fixtures/neutral_v3_cycle_preflight_fixture.sql"
+      - "supabase/tests/fixtures/cleanup_neutral_v3_cycle_preflight_fixture.sql"
       - "supabase/tests/validate_neutral_v3_memory_contract.sql"
       - "supabase/tests/validate_neutral_v3_memory_governance.sql"
       - "supabase/tests/validate_neutral_v3_memory_temporal_fields.sql"
+      - "supabase/tests/validate_neutral_v3_memory_review_corrections.sql"
       - "supabase/tests/exercise_neutral_v3_memory_save.sql"
       - "supabase/tests/exercise_neutral_v3_memory_recall.sql"
       - "docs/MEMORY_CROSS_CHAT_CONTRACT_V1.md"
+      - "docs/MEMORY_CROSS_CHAT_CONTRACT_V1_REVIEW_CORRECTION.md"
       - "reviews/MEMORY_CONTRACT_REVIEW.md"
       - ".github/workflows/memory-cross-chat-contract.yml"
 
@@ -59,6 +64,28 @@ jobs:
       - name: Start isolated local Supabase stack
         run: supabase start
 
+      - name: Install cyclic lineage preflight fixture
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/tests/fixtures/neutral_v3_cycle_preflight_fixture.sql
+
+      - name: Prove correction migration rejects cyclic baseline
+        shell: bash
+        run: |
+          set +e
+          output=$(psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 \
+            -f supabase/migrations.explicit/20260730213200_close_neutral_v3_memory_review_gaps.sql 2>&1)
+          status=$?
+          set -e
+          printf '%s\n' "$output"
+          test "$status" -ne 0
+          grep -q "multi-record supersession cycle" <<< "$output"
+
+      - name: Remove cyclic lineage preflight fixture
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/tests/fixtures/cleanup_neutral_v3_cycle_preflight_fixture.sql
+
       - name: Install observed neutral V3 live-schema fixture
         run: >-
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
@@ -83,6 +110,16 @@ jobs:
         run: >-
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
           -f supabase/tests/validate_neutral_v3_memory_governance.sql
+
+      - name: Apply bounded Memory review correction migration
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/migrations.explicit/20260730213200_close_neutral_v3_memory_review_gaps.sql
+
+      - name: Run adversarial independent-review correction validation
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/tests/validate_neutral_v3_memory_review_corrections.sql
 
       - name: Run adversarial temporal field validation
         run: >-
