@@ -15,8 +15,23 @@ from .supabase_sql import (
     READ_INBOX_SQL, SqlExecutor, SupabaseSqlRepository,
 )
 from .temporal import (
-    CoordinationBus, TemporalCoordinationReceipt, TemporalCoordinationResult,
+    CoordinationBus as LegacyTemporalCoordinationBus,
+    TemporalCoordinationReceipt,
+    TemporalCoordinationResult,
     TemporalEvidence,
+)
+from .verified_temporal import (
+    CoordinationBus,
+    EVIDENCE_ENVELOPE_SCHEMA,
+    HmacTemporalEvidenceAuthority,
+    ReceiptTimeProvider,
+    TemporalEvidenceEnvelope,
+    TemporalEvidenceInput,
+    TemporalEvidenceVerifier,
+    acknowledgement_subject,
+    entry_checkpoint_subject,
+    exit_checkpoint_subject,
+    receipt_subject,
 )
 
 __all__ = [name for name in globals() if not name.startswith("_")]

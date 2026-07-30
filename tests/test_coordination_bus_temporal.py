@@ -8,8 +8,12 @@ from coordination_bus import (
     ActorContext,
     CoordinationBus,
     CoordinationEventDraft,
+    HmacTemporalEvidenceAuthority,
     InMemoryCoordinationRepository,
     TemporalEvidence,
+    acknowledgement_subject,
+    entry_checkpoint_subject,
+    exit_checkpoint_subject,
 )
 
 
@@ -19,15 +23,25 @@ T2 = "2026-07-30T22:20:02+00:00"
 
 
 def exact(value: str, role: str) -> TemporalEvidence:
-    return TemporalEvidence.exact(value, source="HOST", reference_id=f"host:{role}:{value}")
+    return TemporalEvidence.exact(
+        value,
+        source="HOST_CLOCK",
+        reference_id=f"host:{role}:{value}",
+    )
 
 
 class TemporalCoordinationTests(unittest.TestCase):
     def setUp(self) -> None:
         self.repo = InMemoryCoordinationRepository()
+        self.authority = HmacTemporalEvidenceAuthority(
+            "temporal-test-host", b"t" * 32
+        )
         self.bus = CoordinationBus(
             self.repo,
-            receipt_time_provider=lambda: exact(T2, "receipt"),
+            evidence_verifier=self.authority,
+            receipt_time_provider=lambda role, subject: self.authority.issue(
+                exact(T2, "receipt"), role=role, subject=subject
+            ),
         )
         self.memory = ActorContext("workstream/memory", ALL_PERMISSIONS)
         self.time = ActorContext("workstream/time", ALL_PERMISSIONS)
@@ -51,12 +65,21 @@ class TemporalCoordinationTests(unittest.TestCase):
     def test_limited_page_returns_candidate_cursor_and_has_more(self):
         self.post_to_time("one")
         self.post_to_time("two")
+        subject = entry_checkpoint_subject("workstream/time", 0, 1)
         result = self.bus.entry_checkpoint(
             self.time,
             after_sequence=0,
             limit=1,
-            entry_time=exact(T0, "entry"),
-            retrieval_time=exact(T1, "retrieval"),
+            entry_time=self.authority.issue(
+                exact(T0, "entry"),
+                role="entry_time",
+                subject=subject,
+            ),
+            retrieval_time=self.authority.issue(
+                exact(T1, "retrieval"),
+                role="retrieval_time",
+                subject=subject,
+            ),
         )
         self.assertEqual(result.receipt.cursor_in, 0)
         self.assertEqual(result.receipt.cursor_out, 1)
@@ -80,7 +103,10 @@ class TemporalCoordinationTests(unittest.TestCase):
         self.assertEqual([event.event_sequence for event in result.events], [7])
         self.assertEqual(result.receipt.cursor_out, 7)
         self.assertTrue(result.receipt.has_more)
-        self.assertIn("Sequence gaps do not imply missing time", " ".join(result.receipt.limitations))
+        self.assertIn(
+            "Sequence gaps do not imply missing time",
+            " ".join(result.receipt.limitations),
+        )
 
     def test_empty_page_preserves_cursor(self):
         result = self.bus.entry_checkpoint(self.time, after_sequence=99, limit=10)
@@ -104,14 +130,27 @@ class TemporalCoordinationTests(unittest.TestCase):
             self.time,
             event_id=original.event_id,
             summary="Acknowledged for review.",
-            acknowledgement_time=exact(T1, "acknowledgement"),
+            acknowledgement_time=self.authority.issue(
+                exact(T1, "acknowledgement"),
+                role="acknowledgement_time",
+                subject=acknowledgement_subject(original.event_id),
+            ),
         )
         temporal = result.events[0].payload["temporal"]
         self.assertEqual(temporal["consumption_time"]["precision"], "UNKNOWN")
-        self.assertEqual(temporal["record_time_semantics"], "DATABASE_PERSISTENCE_TIME_ONLY")
-        self.assertIn("does not prove processing completion", " ".join(result.receipt.limitations))
+        self.assertEqual(
+            temporal["record_time_semantics"],
+            "DATABASE_PERSISTENCE_TIME_ONLY",
+        )
+        self.assertIn(
+            "does not prove processing completion",
+            " ".join(result.receipt.limitations),
+        )
 
     def test_material_exit_separates_event_state_and_record_time(self):
+        subject = exit_checkpoint_subject(
+            "workstream/integration", "exit-thread", "workstream/time"
+        )
         result = self.bus.exit_checkpoint(
             self.integration,
             thread_key="exit-thread",
@@ -120,8 +159,16 @@ class TemporalCoordinationTests(unittest.TestCase):
             summary="Temporal review completed.",
             material=True,
             status="READY_FOR_REVIEW",
-            event_time=exact(T0, "event"),
-            state_time=exact(T1, "state"),
+            event_time=self.authority.issue(
+                exact(T0, "event"),
+                role="event_time",
+                subject=subject,
+            ),
+            state_time=self.authority.issue(
+                exact(T1, "state"),
+                role="state_time",
+                subject=subject,
+            ),
         )
         temporal = result.events[0].payload["temporal"]
         self.assertEqual(temporal["event_time"]["value"], T0)
@@ -131,10 +178,22 @@ class TemporalCoordinationTests(unittest.TestCase):
 
     def test_receipt_time_is_excluded_from_deterministic_result_hash(self):
         times = iter([exact(T1, "receipt-one"), exact(T2, "receipt-two")])
-        bus = CoordinationBus(self.repo, receipt_time_provider=lambda: next(times))
+        authority = HmacTemporalEvidenceAuthority(
+            "receipt-test-host", b"r" * 32
+        )
+        bus = CoordinationBus(
+            self.repo,
+            evidence_verifier=authority,
+            receipt_time_provider=lambda role, subject: authority.issue(
+                next(times), role=role, subject=subject
+            ),
+        )
         first = bus.entry_checkpoint(self.time)
         second = bus.entry_checkpoint(self.time)
-        self.assertNotEqual(first.receipt.receipt_time.value, second.receipt.receipt_time.value)
+        self.assertNotEqual(
+            first.receipt.receipt_time.value,
+            second.receipt.receipt_time.value,
+        )
         self.assertEqual(first.receipt.result_hash, second.receipt.result_hash)
 
     def test_record_time_cannot_substitute_for_material_event_time(self):

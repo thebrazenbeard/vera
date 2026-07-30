@@ -5,7 +5,7 @@ on:
     paths:
       - "coordination_bus/**"
       - "tests/test_coordination_bus*.py"
-      - "docs/COORDINATION_BUS_V1.md"
+      - "docs/COORDINATION_BUS*.md"
       - ".github/workflows/coordination-bus.yml"
   workflow_dispatch:
 
