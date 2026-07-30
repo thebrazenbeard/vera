@@ -1,7 +1,7 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.0.1",
   "status": "ACTIVE_VERIFIED",
-  "verified_at": "2026-07-30T20:04:00Z",
+  "verified_at": "2026-07-30T20:11:27Z",
   "architecture_project_id": "vera-reciprocal-agency-environment",
   "release_id": "VERA_NEUTRAL_CORE_R6A0_20260730_EC900174",
   "github": {
@@ -10,7 +10,9 @@
     "canonical_branch": "main",
     "binding_pull_request": 4,
     "binding_origin_commit": "35bddf95c3f378bd90a6ee8bd29ca285a69a932e",
-    "binding_merge_commit": "1263829b4de121c028d7c869e01e05810133b136"
+    "binding_merge_commit": "1263829b4de121c028d7c869e01e05810133b136",
+    "linkage_repair_pull_request": 5,
+    "linkage_repair_merge_commit": "d63869006bbbd841a58a5c2f2bddb6b3489d2f6e"
   },
   "supabase": {
     "project_name": "Vera",
@@ -18,14 +20,17 @@
     "region": "ca-central-1",
     "observed_status": "ACTIVE_HEALTHY",
     "binding_record_key": "integration.project_links.current",
-    "binding_record_id": "48a5f74a-7b6a-451c-956c-87dc8a95cae9",
+    "binding_origin_record_id": "48a5f74a-7b6a-451c-956c-87dc8a95cae9",
+    "current_record_resolution": "Resolve the latest branch-scoped row for binding_record_key through public.vera_current_context_v3.",
     "neutral_context_table": "public.vera_context_events_v3",
+    "current_context_view": "public.vera_current_context_v3",
     "coordination_table": "public.vera_coordination_events"
   },
   "verification": {
     "github_connector_access": "ADMIN",
     "supabase_connector_access": "READ_WRITE",
     "matching_release_and_target_references": true,
+    "append_only_supersession_supported": true,
     "hidden_synchronization_claimed": false,
     "automatic_persistence_claimed": false
   }
