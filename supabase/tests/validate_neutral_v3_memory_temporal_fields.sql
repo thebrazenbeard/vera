@@ -5,7 +5,7 @@ begin;
 do $$
 declare
   receipt jsonb;
-  record_id uuid;
+  stored_record_id uuid;
   blocked boolean;
   derived_limitation text := 'Derived state_time is approximate and depends on the cited sequence evidence.';
   unknown_state_limitation text := 'state_time is UNKNOWN; the non-null column contains PostgreSQL -infinity only as a compatibility sentinel and not as event, state, record, delivery, recollection, or receipt-generation time evidence.';
@@ -35,7 +35,7 @@ begin
     )
   );
 
-  record_id := (receipt#>>'{record_ids,0}')::uuid;
+  stored_record_id := (receipt#>>'{record_ids,0}')::uuid;
   if receipt#>>'{records,0,event_time}' is not null
      or receipt#>>'{records,0,payload,temporal,event_time,precision}' <> 'UNKNOWN'
      or receipt#>>'{records,0,payload,temporal,state_time,precision}' <> 'UNKNOWN'
@@ -48,12 +48,12 @@ begin
 
   if not exists (
     select 1
-    from public.vera_context_events_v3
-    where public.vera_context_events_v3.record_id = record_id
-      and event_time is null
-      and state_time = '-infinity'::timestamptz
-      and payload#>>'{temporal,state_time,storage,temporal_claim}' = 'false'
-      and limitations @> jsonb_build_array(unknown_state_limitation)
+    from public.vera_context_events_v3 e
+    where e.record_id = stored_record_id
+      and e.event_time is null
+      and e.state_time = '-infinity'::timestamptz
+      and e.payload#>>'{temporal,state_time,storage,temporal_claim}' = 'false'
+      and e.limitations @> jsonb_build_array(unknown_state_limitation)
   ) then
     raise exception 'temporal validation failed: database did not preserve explicit UNKNOWN state_time representation';
   end if;
