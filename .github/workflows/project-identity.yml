@@ -7,6 +7,7 @@ on:
       - "docs/PROJECT_IDENTITY_V1.md"
       - "docs/IDENTITY_INTEGRATION_V1.md"
       - "schemas/vera_project_identity_v1.schema.json"
+      - "schemas/vera_behavior_profile_v1.schema.json"
       - "scripts/validate_project_identity.py"
       - "tests/test_project_identity.py"
       - ".github/workflows/project-identity.yml"
@@ -18,6 +19,7 @@ on:
       - "docs/PROJECT_IDENTITY_V1.md"
       - "docs/IDENTITY_INTEGRATION_V1.md"
       - "schemas/vera_project_identity_v1.schema.json"
+      - "schemas/vera_behavior_profile_v1.schema.json"
       - "scripts/validate_project_identity.py"
       - "tests/test_project_identity.py"
       - ".github/workflows/project-identity.yml"
@@ -37,6 +39,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Install pinned validation dependency
+        run: python -m pip install --disable-pip-version-check "jsonschema==4.25.1"
 
       - name: Validate identity contracts
         run: python scripts/validate_project_identity.py
