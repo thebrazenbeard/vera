@@ -1,13 +1,4 @@
-"""Trusted temporal-evidence boundary for the public V.E.R.A. coordination bus.
-
-Non-UNKNOWN temporal evidence is accepted only inside a verifier-issued envelope
-bound to an issuer, temporal role, operation subject, evidence value, precision,
-and bounds. UNKNOWN evidence remains usable without external verification.
-
-The reference HMAC authority is suitable for tests and bounded runtimes where
-the signing secret is held outside untrusted callers. Production may inject any
-verifier implementing ``TemporalEvidenceVerifier``.
-"""
+"""Single public verifier-bound temporal evidence contract for coordination bus v1."""
 
 from __future__ import annotations
 
@@ -15,16 +6,18 @@ from dataclasses import asdict, dataclass, replace
 from hashlib import sha256
 import hmac
 import json
-from typing import Any, Callable, Protocol, runtime_checkable
+from typing import Any, Callable, Mapping, Protocol, runtime_checkable
 
-from .contracts import ActorContext, canonicalize, validate_text
+from .contracts import (
+    ActorContext, PERMISSION_ACKNOWLEDGE, PERMISSION_READ_SELF,
+    PERMISSION_STATUS, canonicalize, validate_text,
+)
 from .core import _receipted
 from .temporal import (
     CoordinationBus as _TemporalCoordinationBus,
     TemporalCoordinationResult,
     TemporalEvidence,
 )
-
 
 EVIDENCE_ENVELOPE_SCHEMA = "VERA_TEMPORAL_EVIDENCE_ENVELOPE_V1"
 
@@ -35,13 +28,16 @@ def _canonical_bytes(value: Any) -> bytes:
         sort_keys=True,
         separators=(",", ":"),
         ensure_ascii=False,
+        allow_nan=False,
     ).encode("utf-8")
+
+
+def _subject(prefix: str, body: Mapping[str, Any]) -> str:
+    return f"{prefix}:" + sha256(_canonical_bytes(body)).hexdigest()
 
 
 @dataclass(frozen=True)
 class TemporalEvidenceEnvelope:
-    """Opaque verifier-issued binding around one temporal evidence claim."""
-
     schema: str
     issuer_id: str
     role: str
@@ -64,8 +60,6 @@ class TemporalEvidenceEnvelope:
 
 @runtime_checkable
 class TemporalEvidenceVerifier(Protocol):
-    """Runtime trust boundary for non-UNKNOWN temporal evidence."""
-
     def verify(
         self,
         envelope: TemporalEvidenceEnvelope,
@@ -77,7 +71,7 @@ class TemporalEvidenceVerifier(Protocol):
 
 
 class HmacTemporalEvidenceAuthority:
-    """Reference issuer/verifier using an externally held HMAC-SHA256 secret."""
+    """Reference single-use issuer/verifier using an externally held HMAC key."""
 
     def __init__(self, issuer_id: str, secret: bytes) -> None:
         validate_text(issuer_id, "issuer_id")
@@ -85,6 +79,7 @@ class HmacTemporalEvidenceAuthority:
             raise ValueError("secret must be at least 32 bytes")
         self.issuer_id = issuer_id
         self._secret = secret
+        self._used_tokens: set[str] = set()
 
     def issue(
         self,
@@ -105,7 +100,9 @@ class HmacTemporalEvidenceAuthority:
             verification_token="",
         )
         token = hmac.new(
-            self._secret, _canonical_bytes(unsigned.canonical_body()), sha256
+            self._secret,
+            _canonical_bytes(unsigned.canonical_body()),
+            sha256,
         ).hexdigest()
         return replace(unsigned, verification_token=token)
 
@@ -133,7 +130,13 @@ class HmacTemporalEvidenceAuthority:
                 _canonical_bytes(envelope.canonical_body()),
                 sha256,
             ).hexdigest()
-            return hmac.compare_digest(expected, envelope.verification_token)
+            if not hmac.compare_digest(expected, envelope.verification_token):
+                return False
+            replay_key = f"{envelope.issuer_id}:{envelope.verification_token}"
+            if replay_key in self._used_tokens:
+                return False
+            self._used_tokens.add(replay_key)
+            return True
         except (TypeError, ValueError):
             return False
 
@@ -143,31 +146,69 @@ ReceiptTimeProvider = Callable[[str, str], TemporalEvidenceInput]
 
 
 def entry_checkpoint_subject(
-    workstream: str, after_sequence: int, limit: int
+    workstream: str,
+    after_sequence: int,
+    limit: int,
 ) -> str:
-    return (
-        f"coordination-entry:{workstream}:"
-        f"after_sequence={after_sequence}:limit={limit}"
-    )
+    return _subject("coordination-entry-v2", {
+        "operation": "coordination_entry_checkpoint",
+        "actor_workstream": workstream,
+        "target_branch": workstream,
+        "after_sequence": after_sequence,
+        "limit": limit,
+        "include_acknowledged": False,
+    })
 
 
-def acknowledgement_subject(event_id: str) -> str:
-    return f"coordination-acknowledgement:event_id={event_id}"
+def acknowledgement_subject(
+    event_id: str,
+    *,
+    actor_workstream: str,
+    thread_key: str,
+    summary: str,
+    payload: Mapping[str, Any] | None = None,
+    reference_data: Mapping[str, Any] | None = None,
+) -> str:
+    return _subject("coordination-acknowledgement-v2", {
+        "operation": "coordination_acknowledge",
+        "actor_workstream": actor_workstream,
+        "source_event_id": event_id,
+        "thread_key": thread_key,
+        "summary": summary,
+        "payload": canonicalize(payload or {}),
+        "reference_data": canonicalize(reference_data or {}),
+    })
 
 
 def exit_checkpoint_subject(
-    workstream: str, thread_key: str, target_branch: str | None
+    workstream: str,
+    thread_key: str,
+    target_branch: str | None,
+    *,
+    objective: str,
+    summary: str,
+    material: bool,
+    status: str = "IN_PROGRESS",
+    active_issue: str | None = None,
+    acknowledges_event_id: str | None = None,
+    reference_data: Mapping[str, Any] | None = None,
 ) -> str:
-    target = target_branch if target_branch is not None else "NONE"
-    return (
-        f"coordination-exit:{workstream}:"
-        f"thread_key={thread_key}:target_branch={target}"
-    )
+    return _subject("coordination-exit-v2", {
+        "operation": "coordination_exit_checkpoint",
+        "actor_workstream": workstream,
+        "thread_key": thread_key,
+        "target_branch": target_branch,
+        "objective": objective,
+        "summary": summary,
+        "material": material,
+        "status": status,
+        "active_issue": active_issue,
+        "acknowledges_event_id": acknowledges_event_id,
+        "reference_data": canonicalize(reference_data or {}),
+    })
 
 
 def receipt_subject(result: Any) -> str:
-    """Bind receipt evidence to the deterministic operation-result identity."""
-
     receipt = result.receipt
     body = {
         "operation": receipt.operation,
@@ -183,7 +224,7 @@ def receipt_subject(result: Any) -> str:
 
 
 class CoordinationBus(_TemporalCoordinationBus):
-    """Strict public bus with verifier-bound non-UNKNOWN temporal evidence."""
+    """Only public bus: verifier-issued, role-bound, full-subject evidence."""
 
     def __init__(
         self,
@@ -192,8 +233,6 @@ class CoordinationBus(_TemporalCoordinationBus):
         evidence_verifier: TemporalEvidenceVerifier | None = None,
         receipt_time_provider: ReceiptTimeProvider | None = None,
     ) -> None:
-        # The parent provider is deliberately disabled. Receipt evidence is
-        # verified here before it is attached to the public receipt.
         super().__init__(repository, receipt_time_provider=None)
         self._evidence_verifier = evidence_verifier
         self._trusted_receipt_time_provider = receipt_time_provider
@@ -258,9 +297,6 @@ class CoordinationBus(_TemporalCoordinationBus):
             receipt_time = TemporalEvidence.unknown(
                 "UNVERIFIED_RECEIPT_TIME_REJECTED"
             )
-
-        # Parent result_hash already excludes receipt_time. Replacing only this
-        # field preserves deterministic hashing across receipt-generation times.
         return replace(
             wrapped,
             receipt=replace(wrapped.receipt, receipt_time=receipt_time),
@@ -276,16 +312,22 @@ class CoordinationBus(_TemporalCoordinationBus):
         entry_time: TemporalEvidenceInput = None,
         retrieval_time: TemporalEvidenceInput = None,
     ) -> TemporalCoordinationResult:
-        subject = entry_checkpoint_subject(
-            actor.workstream, after_sequence, limit
-        )
+        actor.validate()
+        actor.require(PERMISSION_READ_SELF)
+        workstream = actor.canonical_workstream
+        subject = entry_checkpoint_subject(workstream, after_sequence, limit)
         entry = self._verified_claim(
-            entry_time, role="entry_time", subject=subject
+            entry_time,
+            role="entry_time",
+            subject=subject,
         )
         retrieval = self._verified_claim(
-            retrieval_time, role="retrieval_time", subject=subject
+            retrieval_time,
+            role="retrieval_time",
+            subject=subject,
         )
-        return super().entry_checkpoint(
+        return _TemporalCoordinationBus.entry_checkpoint(
+            self,
             actor,
             after_sequence=after_sequence,
             limit=limit,
@@ -302,10 +344,20 @@ class CoordinationBus(_TemporalCoordinationBus):
         summary: str,
         acknowledgement_time: TemporalEvidenceInput = None,
         consumption_time: TemporalEvidenceInput = None,
-        payload: dict[str, Any] | None = None,
-        reference_data: dict[str, Any] | None = None,
+        payload: Mapping[str, Any] | None = None,
+        reference_data: Mapping[str, Any] | None = None,
     ) -> TemporalCoordinationResult:
-        subject = acknowledgement_subject(event_id)
+        actor.require(PERMISSION_ACKNOWLEDGE)
+        original = self._event(event_id)
+        self._addressed_target(actor, original)
+        subject = acknowledgement_subject(
+            event_id,
+            actor_workstream=actor.canonical_workstream,
+            thread_key=original.thread_key,
+            summary=summary,
+            payload=payload,
+            reference_data=reference_data,
+        )
         acknowledgement = self._verified_claim(
             acknowledgement_time,
             role="acknowledgement_time",
@@ -316,7 +368,8 @@ class CoordinationBus(_TemporalCoordinationBus):
             role="consumption_time",
             subject=subject,
         )
-        return super().coordination_acknowledge(
+        return _TemporalCoordinationBus.coordination_acknowledge(
+            self,
             actor,
             event_id=event_id,
             summary=summary,
@@ -341,18 +394,35 @@ class CoordinationBus(_TemporalCoordinationBus):
         acknowledges_event_id: str | None = None,
         event_time: TemporalEvidenceInput = None,
         state_time: TemporalEvidenceInput = None,
-        reference_data: dict[str, Any] | None = None,
+        reference_data: Mapping[str, Any] | None = None,
     ) -> TemporalCoordinationResult:
+        actor.validate()
+        if material:
+            actor.require(PERMISSION_STATUS)
         subject = exit_checkpoint_subject(
-            actor.workstream, thread_key, target_branch
+            actor.canonical_workstream,
+            thread_key,
+            target_branch,
+            objective=objective,
+            summary=summary,
+            material=material,
+            status=status,
+            active_issue=active_issue,
+            acknowledges_event_id=acknowledges_event_id,
+            reference_data=reference_data,
         )
         event = self._verified_claim(
-            event_time, role="event_time", subject=subject
+            event_time,
+            role="event_time",
+            subject=subject,
         )
         state = self._verified_claim(
-            state_time, role="state_time", subject=subject
+            state_time,
+            role="state_time",
+            subject=subject,
         )
-        return super().exit_checkpoint(
+        return _TemporalCoordinationBus.exit_checkpoint(
+            self,
             actor,
             thread_key=thread_key,
             target_branch=target_branch,
