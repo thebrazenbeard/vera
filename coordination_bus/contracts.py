@@ -10,28 +10,18 @@ import math
 from typing import Any, Literal, Mapping, Protocol, Sequence
 
 WORKSTREAMS = frozenset({
-    "workstream/memory",
-    "workstream/time",
-    "workstream/initiatives",
-    "workstream/integration",
-    "workstream/coordination",
-    "workstream/identity",
-    "workstream/project-architecture",
-    "workstream/github-repo",
+    "workstream/memory", "workstream/time", "workstream/initiatives",
+    "workstream/integration", "workstream/coordination", "workstream/identity",
+    "workstream/project-architecture", "workstream/github-repo",
 })
 OBSOLETE_WORKSTREAMS = frozenset({"workstream/initiative"})
 ACTOR_WORKSTREAM_ALIASES = {"workstream/initiative": "workstream/initiatives"}
 LEGACY_STORED_ADDRESSES = frozenset({
-    "chatgpt-project-current",
-    "codex-independent-audit",
+    "chatgpt-project-current", "codex-independent-audit",
     "feature/branch-session-anchor-contract-v1",
-    "feature/memory-cross-chat-contract-v1",
-    "GitHub Connection",
-    "github-review",
-    "time-management",
-    "workstream/initiative",
+    "feature/memory-cross-chat-contract-v1", "GitHub Connection",
+    "github-review", "time-management", "workstream/initiative",
 })
-
 EVENT_TYPES = frozenset({
     "STATUS", "ISSUE", "ACKNOWLEDGEMENT", "REVIEW", "DECISION", "RESOLUTION"
 })
@@ -64,7 +54,6 @@ ALL_PERMISSIONS = frozenset({
     PERMISSION_ACKNOWLEDGE, PERMISSION_STATUS, PERMISSION_REVIEW,
     PERMISSION_RESOLVE, PERMISSION_DECIDE,
 })
-
 RECORD_CLASS = "OPERATIONAL_COORDINATION"
 INSTRUCTION_TRUST = "DATA_NOT_INSTRUCTION"
 CANONICAL_MEMORY_ELIGIBLE = False
@@ -97,14 +86,17 @@ class ActorContext:
     workstream: str
     permissions: frozenset[str] = field(default_factory=frozenset)
 
+    def __post_init__(self) -> None:
+        canonical = ACTOR_WORKSTREAM_ALIASES.get(self.workstream)
+        if canonical is not None:
+            object.__setattr__(self, "workstream", canonical)
+
     @property
     def canonical_workstream(self) -> str:
-        return ACTOR_WORKSTREAM_ALIASES.get(self.workstream, self.workstream)
+        return self.workstream
 
     def validate(self) -> None:
-        validate_text(self.workstream, "workstream")
-        if self.workstream not in WORKSTREAMS and self.workstream not in ACTOR_WORKSTREAM_ALIASES:
-            raise ValueError(f"workstream must be one of {sorted(WORKSTREAMS)}")
+        validate_workstream(self.workstream, "workstream")
         unknown = sorted(set(self.permissions) - ALL_PERMISSIONS)
         if unknown:
             raise ValueError(f"unknown permissions: {', '.join(unknown)}")
@@ -113,7 +105,7 @@ class ActorContext:
         self.validate()
         if permission not in self.permissions:
             raise PermissionError(
-                f"{self.canonical_workstream} lacks required permission {permission!r}"
+                f"{self.workstream} lacks required permission {permission!r}"
             )
 
 
@@ -162,14 +154,10 @@ class CoordinationEventDraft:
     def canonical_dict(self) -> dict[str, Any]:
         self.validate()
         return {
-            "thread_key": self.thread_key,
-            "source_branch": self.source_branch,
-            "target_branch": self.target_branch,
-            "event_type": self.event_type,
-            "status": self.status,
-            "objective": self.objective,
-            "summary": self.summary,
-            "active_issue": self.active_issue,
+            "thread_key": self.thread_key, "source_branch": self.source_branch,
+            "target_branch": self.target_branch, "event_type": self.event_type,
+            "status": self.status, "objective": self.objective,
+            "summary": self.summary, "active_issue": self.active_issue,
             "requested_perspective": self.requested_perspective,
             "supersedes_event_id": self.supersedes_event_id,
             "acknowledges_event_id": self.acknowledges_event_id,
@@ -204,7 +192,10 @@ class CoordinationEvent:
 
     def __post_init__(self) -> None:
         if self.target_branch is not None and self.target_address_class is None:
-            object.__setattr__(self, "target_address_class", classify_stored_address(self.target_branch))
+            object.__setattr__(
+                self, "target_address_class",
+                classify_stored_address(self.target_branch),
+            )
 
     @classmethod
     def from_row(cls, row: Mapping[str, Any]) -> "CoordinationEvent":
@@ -231,19 +222,14 @@ class CoordinationEvent:
         event = cls(
             event_id=str(row["event_id"]),
             event_sequence=int(row["event_sequence"]),
-            thread_key=str(row["thread_key"]),
-            source_branch=source,
-            target_branch=target,
-            event_type=event_type,
-            status=status,
-            objective=str(row["objective"]),
-            summary=str(row["summary"]),
+            thread_key=str(row["thread_key"]), source_branch=source,
+            target_branch=target, event_type=event_type, status=status,
+            objective=str(row["objective"]), summary=str(row["summary"]),
             active_issue=nullable(row.get("active_issue")),
             requested_perspective=nullable(row.get("requested_perspective")),
             supersedes_event_id=nullable(row.get("supersedes_event_id")),
             acknowledges_event_id=nullable(row.get("acknowledges_event_id")),
-            payload=canonicalize(payload),
-            reference_data=canonicalize(reference_data),
+            payload=canonicalize(payload), reference_data=canonicalize(reference_data),
             record_time=record_time,
             source_address_class=classify_stored_address(source),
             target_address_class=None if target is None else classify_stored_address(target),
@@ -302,12 +288,9 @@ def make_result(
     event = materialized[-1] if materialized else None
     outcome = f"{operation.upper()}_{result_class}"
     base = {
-        "schema": "VERA_COORDINATION_RECEIPT_V1",
-        "operation": operation,
-        "result_class": result_class,
-        "outcome_code": outcome,
-        "actor_workstream": actor.canonical_workstream,
-        "thread_key": thread_key,
+        "schema": "VERA_COORDINATION_RECEIPT_V1", "operation": operation,
+        "result_class": result_class, "outcome_code": outcome,
+        "actor_workstream": actor.workstream, "thread_key": thread_key,
         "event_id": None if event is None else event.event_id,
         "event_sequence": None if event is None else event.event_sequence,
         "target_branch": target_branch,
@@ -317,12 +300,11 @@ def make_result(
         "instruction_trust": INSTRUCTION_TRUST,
         "canonical_memory_eligible": CANONICAL_MEMORY_ELIGIBLE,
         "events": [item.as_dict() for item in materialized],
-        "error": error,
-        "limitations": list(limitations),
+        "error": error, "limitations": list(limitations),
     }
     receipt = CoordinationReceipt(
         schema=base["schema"], operation=operation, result_class=result_class,
-        outcome_code=outcome, actor_workstream=actor.canonical_workstream,
+        outcome_code=outcome, actor_workstream=actor.workstream,
         thread_key=thread_key, event_id=base["event_id"],
         event_sequence=base["event_sequence"], target_branch=target_branch,
         database_write_confirmed=database_write_confirmed,
