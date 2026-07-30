@@ -62,12 +62,14 @@ jobs:
           mkdir -p supabase/migrations
       - name: Start disposable local Supabase
         run: supabase start
-      - name: Apply temporal enforcement draft
+      - name: Apply temporal enforcement base draft
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/drafts/20260730_temporal_enforcement_v1.sql
+      - name: Validate temporal enforcement base contract
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/validate_temporal_enforcement_v1.sql
       - name: Apply role-specific temporal precision draft
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/drafts/20260730_temporal_role_precision_v1.sql
-      - name: Validate temporal enforcement database contract
-        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/validate_temporal_enforcement_v1.sql
+      - name: Validate role-specific temporal precision
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/validate_temporal_role_precision_v1.sql
       - name: Run database lint
         run: supabase db lint --local
       - name: Stop and delete disposable Supabase
