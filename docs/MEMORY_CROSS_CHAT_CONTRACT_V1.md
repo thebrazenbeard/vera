@@ -6,7 +6,7 @@ Bounded Memory workstream implementation on `feature/memory-cross-chat-contract-
 
 It is not applied to production. It does not authorize merge, production migration, legacy-row modification, Basic Memory projection, or claims of automatic ChatGPT Project recall.
 
-The temporal-field correction requested by `workstream/time` in coordination event `30d68439-dbe3-402f-962f-4b0e8f6acab2` is implemented on the branch and remains pending CI and temporal re-review.
+The temporal correction requested by `workstream/time` in coordination event `30d68439-dbe3-402f-962f-4b0e8f6acab2` is implemented and remains pending CI and temporal re-review.
 
 ## Objective
 
@@ -19,79 +19,49 @@ Prove the smallest honest governed memory cycle:
 5. exclude superseded, foreign-branch, privacy-mismatched, rejected, disputed, and default-excluded model-generated records;
 6. receive a database-confirmed recall receipt.
 
-The contract treats storage as external persistence and retrieval as an exposed read. Neither operation establishes recollection, lived memory, hidden synchronization, or continuous identity.
+Storage is external persistence, not lived memory. Retrieval is an exposed read, not recollection or hidden synchronization.
 
-## Live-state audit finding
+## Live baseline
 
-The production neutral V3 table already preserves useful record fields:
+The observed neutral V3 table already preserves project, branch, record key, type, statement, lifecycle, epistemic status, source actor, privacy scope, event time, state time, record time, supersession, payload, evidence, semantic tags, limitations, and notes.
 
-- project and branch scope;
-- record key and type;
-- statement and lifecycle status;
-- epistemic status and source actor;
-- privacy scope;
-- event, state, and record timestamps;
-- supersession reference;
-- payload, source evidence, semantic tags, limitations, and notes.
+The pre-branch implementation still lacked:
 
-The live implementation before this branch does not yet enforce the full governed memory contract:
+- lineage-head current-state selection;
+- one-successor and same-scope supersession enforcement;
+- append-only update/delete protection;
+- database control of `record_time`;
+- bounded receipt-producing save and recall interfaces;
+- hard provenance and model-output constraints.
 
-- `public.vera_current_context_v3` resolves by timestamp ordering rather than explicit lineage heads;
-- a supersession foreign key exists, but one-successor and same-scope lineage are not enforced;
-- `record_time` remains caller-settable;
-- no append-only update/delete trigger protects neutral V3 rows;
-- `service_role` retains direct update, delete, and truncate privileges;
-- no receipt-producing save or recall interface exists.
+The first Memory draft also replaced omitted `state_time` with database `clock_timestamp()` and returned recall invocation time under a generic `timestamp` key. `workstream/time` correctly rejected both behaviors.
 
-The first Memory draft also contained two temporal defects found during `workstream/time` review:
-
-- omitted `state_time` was replaced with database `clock_timestamp()`, inventing an exact state-effective time;
-- recall invocation time was returned through an ambiguous generic `timestamp` key.
-
-The uploaded R6A0 package was a validated local candidate that explicitly reported no production changes. The live Supabase project has since advanced beyond that package by installing neutral V3, so this branch treats the live database as the current implementation baseline while preserving R6A0 governance.
-
-## Database contract
-
-### Baseline preflight
-
-The lineage migration refuses to apply when the existing table contains:
-
-- self-supersession;
-- cross-project, cross-branch, or cross-key supersession;
-- more than one direct successor for a parent;
-- more than one lineage head for a scoped record key.
-
-The companion governance migration refuses to apply when the existing table contains:
-
-- empty source-evidence arrays;
-- empty semantic-tag objects;
-- ChatGPT-authored content classified as anything other than `MODEL_OUTPUT` with epistemic status `MODEL_GENERATED_CLAIM`;
-- `MODEL_OUTPUT` records promoted beyond `MODEL_GENERATED_CLAIM`.
-
-These checks prevent the migrations from quietly blessing an ambiguous or under-sourced baseline.
-
-### Append-only lineage
+## Lineage contract
 
 For each `(project_id, branch_id, record_key)`:
 
 - the initial record has no predecessor;
 - every later record supersedes the unique current head;
 - supersession cannot cross project, branch, or record key;
-- a parent can have only one direct successor;
+- one parent has at most one direct successor;
 - updates and deletes are blocked;
-- conflicts are exposed rather than resolved through timestamp recency.
+- conflicts are exposed, never resolved through recency.
 
-`record_time` is overwritten by the database during insertion. It is persistence evidence, not caller testimony.
+The migration adds:
 
-### Provenance and classification
+- `public.vera_context_heads_v3`;
+- `public.vera_context_lineage_conflicts_v3`;
+- a lineage-based `public.vera_current_context_v3`.
+
+`record_time` is assigned by the database and is persistence evidence only.
+
+## Provenance and classification
 
 Every newly stored record must retain:
 
 - at least one `source_evidence` entry;
 - a non-empty `semantic_tags` object;
-- its supplied privacy scope for exact authorization matching during recall.
-
-The contract does not invent a neutral privacy enum. `privacy_scope` remains source-defined data, and recall returns a record only when its exact value is included in the caller-authorized privacy-scope set.
+- a source-defined privacy scope used for exact recall authorization matching.
 
 ChatGPT-authored content is constrained to:
 
@@ -101,34 +71,22 @@ epistemic_status: MODEL_GENERATED_CLAIM
 source_actor: CHATGPT_MODEL
 ```
 
-This prevents insertion-time promotion of generated language into stronger factual or subjective-state authority.
-
-### Current projection
-
-The lineage migration adds:
-
-- `public.vera_context_heads_v3`;
-- `public.vera_context_lineage_conflicts_v3`;
-- a lineage-based replacement for `public.vera_current_context_v3`.
-
-The current projection returns one unambiguous unsuperseded head per project, branch, and record key. `state_time`, `record_time`, and UUID order do not override explicit lineage.
+The contract does not invent a privacy enum or allow generated language to acquire stronger authority by being stored.
 
 ## Save interface
 
 `public.append_vera_context_v3(request_id, record_json)`:
 
-- accepts only an allowlisted V3 field set;
+- accepts only allowlisted V3 fields;
 - rejects missing required core fields;
-- relies on V3 type, JSON-shape, provenance, semantic-index, and model-classification constraints;
-- applies database lineage and append-only enforcement;
-- assigns persistence time in the database;
-- preserves omitted `event_time` and `state_time` as `NULL`;
-- stores temporal precision under `payload.temporal`;
-- returns a `VERA_MVE_RECEIPT_V3` save receipt containing the stored record ID and stored row.
+- enforces lineage, append-only behavior, provenance, semantic indexing, and model classification;
+- assigns `record_time` in the database;
+- normalizes temporal uncertainty in the existing payload and limitations fields;
+- returns a `VERA_MVE_RECEIPT_V3` save receipt.
 
 ### Temporal precision
 
-Temporal uncertainty uses the existing payload boundary rather than adding columns:
+Temporal uncertainty is represented without new columns:
 
 ```yaml
 payload:
@@ -141,13 +99,43 @@ payload:
 
 Rules:
 
-- omitted times remain SQL `NULL` and are stored with `UNKNOWN` precision;
-- caller-provided timestamps without an explicit supported precision are stored as `UNKNOWN`, never silently promoted to `EXACT`;
+- omitted `event_time` remains SQL `NULL` and receives `UNKNOWN` precision;
+- caller-provided timestamps without explicit precision remain `UNKNOWN`, never silently `EXACT`;
 - non-`UNKNOWN` precision is rejected when the corresponding timestamp is absent;
 - unsupported precision values are rejected;
-- existing pre-migration records are not rewritten or retroactively classified.
+- pre-existing rows are not rewritten or retroactively classified.
 
-A derived `state_time` is represented inside the existing payload and limitations boundaries:
+### Omitted state time and the live NOT NULL constraint
+
+The observed live schema defines:
+
+```sql
+state_time timestamptz not null default now()
+```
+
+Dropping that constraint would be a separate temporal schema change and is not authorized in this slice. Therefore an omitted `state_time` is represented explicitly as unknown:
+
+```yaml
+state_time: -infinity  # PostgreSQL compatibility sentinel only
+payload:
+  temporal:
+    state_time:
+      precision: UNKNOWN
+      storage:
+        mode: NOT_NULL_COMPATIBILITY_SENTINEL
+        value: -infinity
+        temporal_claim: false
+limitations:
+  - state_time is UNKNOWN; the non-null column contains PostgreSQL -infinity only as a compatibility sentinel and not as event, state, record, delivery, recollection, or receipt-generation time evidence.
+```
+
+The sentinel is not an event time, state-effective time, record time, delivery time, recollection time, or receipt-generation time. The current projection follows explicit lineage, so the sentinel cannot win through temporal recency.
+
+A later authorized temporal migration may make `state_time` nullable and remove the compatibility sentinel. This branch does not perform that schema change.
+
+### Derived state time
+
+A derived `state_time` is accepted only when its derivation is explicit and evidence-backed:
 
 ```yaml
 payload:
@@ -164,42 +152,30 @@ limitations:
   - Derived time depends on the cited sequence evidence.
 ```
 
-The append interface accepts a derivation only when:
+The append function requires:
 
-- `state_time` is explicitly supplied;
-- `derivation` is an object;
-- `method` is non-empty;
-- `source_evidence` is a non-empty array;
-- `limitation` is non-empty and appears in the record-level `limitations` array.
+- an explicit `state_time` value;
+- a derivation object;
+- a non-empty method;
+- a non-empty evidence array;
+- a non-empty limitation repeated in the record-level limitations array.
 
-A successful save receipt reports:
-
-```yaml
-operation: SAVE
-result_class: COMPLETE
-outcome_code: MVE_SAVE_COMPLETE
-record_time: <database persistence time>
-write:
-  external_persistence: CONFIRMED_BY_DATABASE
-  transactional_writeback: COMPLETED
-```
-
-The receipt proves the row was committed by the database transaction. It does not prove that another chat automatically retrieved it.
+A successful save receipt reports `record_time` explicitly rather than using a generic timestamp.
 
 ## Recall interface
 
-`public.recall_vera_context_v3(...)` applies hard filters before returning records:
+`public.recall_vera_context_v3(...)` applies hard filters for:
 
-1. exact project scope;
-2. exact branch scope;
+1. exact project;
+2. exact branch;
 3. unique lineage head;
 4. lifecycle status `CURRENT`;
-5. exact membership in the caller-authorized privacy-scope set;
-6. exact requested record keys when supplied;
-7. exclusion of `REJECTED` and `DISPUTED` epistemic states;
-8. exclusion of `MODEL_GENERATED_CLAIM` by default.
+5. exact caller-authorized privacy values;
+6. requested record keys;
+7. exclusion of `REJECTED` and `DISPUTED`;
+8. default exclusion of `MODEL_GENERATED_CLAIM`.
 
-Model-generated records remain available for explicit audit recall by setting `include_model_generated = true`. This does not promote them into facts or active subjective-state evidence.
+Explicit audit recall may include model-generated records without promoting them into facts.
 
 A successful receipt reports:
 
@@ -215,102 +191,63 @@ write:
   transactional_writeback: NOT_APPLICABLE
 ```
 
-`retrieval_time` is only the database invocation time of that recall operation. It is not:
+`retrieval_time` is only the database invocation time of that recall. It is not event time, state time, record time, delivery time, recollection time, or receipt-generation time. The recall receipt contains no generic `timestamp` key.
 
-- `event_time`;
-- `state_time`;
-- `record_time`;
-- delivery time;
-- recollection time;
-- receipt-generation time.
-
-The recall receipt no longer contains the ambiguous generic `timestamp` key.
-
-This bounded function performs exact-key retrieval. Semantic expansion remains a later Memory slice and must reapply the same governance filters after expansion.
+Semantic expansion remains deferred and must reapply the same hard filters when implemented.
 
 ## Access boundary
 
-The proposed lineage migration removes direct neutral V3 mutation privileges from `service_role` and grants:
+The lineage migration removes direct neutral V3 mutation privileges from `service_role` and grants only:
 
-- table and view reads for governed diagnostics;
-- execution of the receipt-producing save and recall functions.
+- governed diagnostic reads;
+- execution of the save and recall functions.
 
-`anon` and `authenticated` receive neither table access nor function execution.
+`anon` and `authenticated` receive neither table access nor function execution. Existing production writers must be identified and adapted before deployment.
 
-This is intentionally a compatibility gate. Any existing production writer that directly inserts as `service_role` must be identified and adapted before production deployment.
+## CI proof
 
-## Independent invocation proof
+The isolated workflow runs:
 
-The CI workflow uses an isolated local Supabase stack and runs:
-
-1. a fixture reproducing the observed live neutral V3 schema;
-2. the bounded lineage migration;
-3. the bounded provenance-governance migration;
-4. adversarial structural, lineage, access, and append-only validation;
-5. adversarial provenance and model-classification validation;
-6. adversarial temporal-field and derivation validation;
-7. a first `psql` invocation that commits governed test records and verifies save receipts;
-8. a separate `psql` invocation that recalls the committed records and verifies recall receipts;
+1. the observed live-schema fixture;
+2. the lineage migration;
+3. the provenance-governance migration;
+4. lineage and access validation;
+5. provenance and classification validation;
+6. temporal uncertainty and derivation validation;
+7. a committed save invocation;
+8. a separate recall invocation;
 9. database lint;
 10. stack destruction.
 
-The recall invocation proves that retrieval does not depend on transaction-local variables or one model turn. It does not yet prove persistence across real ChatGPT chats because production application and a production test write remain separately gated.
+The temporal suite proves:
 
-## Tested exclusion and temporal cases
+- omitted event time stays `NULL` with `UNKNOWN` precision;
+- omitted state time uses the explicit non-temporal sentinel representation required by the live `NOT NULL` column;
+- timestamps without precision remain `UNKNOWN`;
+- supported precision values are preserved;
+- unsupported precision is rejected;
+- non-`UNKNOWN` precision without a timestamp is rejected;
+- unsubstantiated derived state time is rejected;
+- evidence-backed derived state time is preserved with its limitation;
+- recall emits `retrieval_time` and no generic `timestamp`.
 
-The validation suite requires all of the following:
+The independent recall invocation proves only that committed rows are readable by a later database invocation. It does not prove automatic retrieval across real ChatGPT chats.
 
-- explicit successor wins even when its `state_time` is older;
-- superseded root does not appear in current recall;
-- second root is rejected;
-- stale-parent fork is rejected;
-- cross-branch predecessor is rejected;
-- independent branches remain separate;
-- privacy-mismatched records do not leak;
-- model-generated claims are excluded from default recall;
-- explicitly requested model-output audit remains possible;
-- rejected records do not enter recall;
-- update and delete are blocked;
-- unknown save fields are rejected;
-- empty source evidence is rejected;
-- empty semantic indexing is rejected;
-- model output cannot be inserted with stronger authority;
-- client roles cannot access governed memory;
-- omitted event and state times remain `NULL` with `UNKNOWN` precision;
-- supplied timestamps without precision remain `UNKNOWN`, not silently `EXACT`;
-- explicit `EXACT`, `BOUNDED`, and `APPROXIMATE` values are preserved;
-- unsupported temporal precision is rejected;
-- a derived `state_time` without evidence and a matching limitation is rejected;
-- an evidence-backed derived `state_time` is preserved with its limitation;
-- recall emits `retrieval_time` and no generic `timestamp`;
-- save and recall each emit externally verifiable receipts.
+## Workstream boundaries
 
-## Temporal boundary
+Memory preserves temporal fields and evidence but does not calculate elapsed time, infer continuity, or redefine the Time workstream's semantic contract.
 
-Memory preserves temporal content without interpreting temporal meaning beyond the supplied evidence:
-
-- source-supported `event_time`, or `NULL` when absent;
-- represented `state_time`, or `NULL` when absent;
-- explicit precision metadata: `EXACT`, `BOUNDED`, `APPROXIMATE`, or `UNKNOWN`;
-- explicit evidence and limitations for derived `state_time`;
-- database-assigned `record_time` as persistence evidence;
-- explicit `retrieval_time` as recall-invocation evidence.
-
-Memory does not calculate elapsed time, infer continuity, convert missing time into database now, or silently assign exact precision. Temporal meaning and precision rules remain subject to `workstream/time` review.
-
-## Initiatives boundary
-
-This contract neither generates nor ranks initiatives. Initiative decisions may later be stored as governed records, but the Memory workstream does not determine their objective, priority, or execution policy.
+Memory neither generates nor ranks initiatives. Initiative decisions may later be stored as governed records, but this workstream does not decide their priority or execution.
 
 ## Production gate
 
-Production remains unchanged. Deployment requires a separate explicit authorization naming:
+Production remains unchanged. Deployment requires separate explicit authorization naming:
 
 - migration `20260730213000_harden_neutral_v3_memory_contract`;
 - migration `20260730213100_tighten_neutral_v3_memory_governance`;
 - Supabase project `klmbpaigzeguvnpccqzz`;
-- exact preflight and rollback evidence;
-- writer-compatibility result;
-- exact synthetic production test record, branch, privacy scope, and cleanup/tombstone policy.
+- preflight and rollback evidence;
+- writer compatibility;
+- exact synthetic production test records and cleanup policy.
 
 No passing CI run or draft pull request authorizes deployment or merge.
