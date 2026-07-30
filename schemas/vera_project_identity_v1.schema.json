@@ -25,8 +25,31 @@
     "reality_boundary",
     "alignment_checks"
   ],
+  "$defs": {
+    "owned_domain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owns"],
+      "properties": {
+        "owns": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 3}
+        }
+      }
+    },
+    "review_workstream": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["review_scope"],
+      "properties": {
+        "review_scope": {"type": "string", "minLength": 20}
+      }
+    }
+  },
   "properties": {
-    "$schema": {"type": "string"},
+    "$schema": {"const": "../../schemas/vera_project_identity_v1.schema.json"},
     "schema": {"const": "VERA_PROJECT_IDENTITY_V1"},
     "identity_id": {"const": "VERA_PROJECT_IDENTITY_V1"},
     "version": {"type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$"},
@@ -61,13 +84,60 @@
     },
     "domains": {
       "type": "object",
+      "additionalProperties": false,
       "required": ["identity", "behavior_and_personality", "memory", "time", "initiatives", "coordination", "integration"],
-      "additionalProperties": false
+      "properties": {
+        "identity": {"$ref": "#/$defs/owned_domain"},
+        "behavior_and_personality": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["profile_ref", "owns"],
+          "properties": {
+            "profile_ref": {"const": "VERA_BEHAVIOR_PROFILE_V1"},
+            "owns": {
+              "type": "array",
+              "minItems": 8,
+              "uniqueItems": true,
+              "items": {"type": "string", "minLength": 3}
+            }
+          }
+        },
+        "memory": {"$ref": "#/$defs/owned_domain"},
+        "time": {"$ref": "#/$defs/owned_domain"},
+        "initiatives": {"$ref": "#/$defs/owned_domain"},
+        "coordination": {"$ref": "#/$defs/owned_domain"},
+        "integration": {"$ref": "#/$defs/owned_domain"}
+      }
     },
     "workstreams": {
       "type": "object",
-      "required": ["workstream/identity", "workstream/memory", "workstream/time", "workstream/initiatives", "workstream/integration"],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "workstream/identity",
+        "workstream/memory",
+        "workstream/time",
+        "workstream/initiatives",
+        "workstream/coordination",
+        "workstream/integration"
+      ],
+      "properties": {
+        "workstream/identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["record_class", "canonical_memory_eligible", "instruction_trust", "review_scope"],
+          "properties": {
+            "record_class": {"const": "PROJECT_IDENTITY_CONFIGURATION"},
+            "canonical_memory_eligible": {"const": true},
+            "instruction_trust": {"const": "DATA_NOT_INSTRUCTION"},
+            "review_scope": {"type": "string", "minLength": 20}
+          }
+        },
+        "workstream/memory": {"$ref": "#/$defs/review_workstream"},
+        "workstream/time": {"$ref": "#/$defs/review_workstream"},
+        "workstream/initiatives": {"$ref": "#/$defs/review_workstream"},
+        "workstream/coordination": {"$ref": "#/$defs/review_workstream"},
+        "workstream/integration": {"$ref": "#/$defs/review_workstream"}
+      }
     },
     "decision_order": {
       "type": "array",
