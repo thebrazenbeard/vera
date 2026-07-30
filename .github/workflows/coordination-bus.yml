@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - "coordination_bus/**"
-      - "tests/test_coordination_bus.py"
+      - "tests/test_coordination_bus*.py"
       - "docs/COORDINATION_BUS_V1.md"
       - ".github/workflows/coordination-bus.yml"
   workflow_dispatch:
@@ -21,6 +21,6 @@ jobs:
         with:
           python-version: "3.12"
       - name: Run coordination bus tests
-        run: python -m unittest discover -s tests -p "test_coordination_bus.py" -v
+        run: python -m unittest discover -s tests -p "test_coordination_bus*.py" -v
       - name: Compile reference implementation
-        run: python -m py_compile coordination_bus/*.py tests/test_coordination_bus.py
+        run: python -m py_compile coordination_bus/*.py tests/test_coordination_bus*.py
