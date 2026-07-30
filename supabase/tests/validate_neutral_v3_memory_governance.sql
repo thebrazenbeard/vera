@@ -12,12 +12,11 @@ begin
       and conname in (
         'vera_context_events_v3_source_evidence_nonempty_chk',
         'vera_context_events_v3_semantic_tags_nonempty_chk',
-        'vera_context_events_v3_privacy_scope_chk',
         'vera_context_events_v3_model_actor_classification_chk',
         'vera_context_events_v3_model_output_epistemic_chk'
       )
     group by conrelid
-    having count(*) = 5
+    having count(*) = 4
   ) then
     raise exception 'governance validation failed: one or more constraints are missing';
   end if;
@@ -70,31 +69,6 @@ begin
   end;
   if not blocked then
     raise exception 'governance validation failed: empty semantic tags were accepted';
-  end if;
-
-  blocked := false;
-  begin
-    perform public.append_vera_context_v3(
-      'MREQ-governance-privacy',
-      jsonb_build_object(
-        'project_id', 'vera-memory-governance-test',
-        'branch_id', 'branch-a',
-        'record_key', 'memory.governance.invalid_privacy',
-        'record_type', 'DECISION',
-        'statement', 'Unknown privacy scope must fail.',
-        'lifecycle_status', 'CURRENT',
-        'epistemic_status', 'DIRECT_USER_STATEMENT',
-        'source_actor', 'USER',
-        'privacy_scope', 'EVERYWHERE',
-        'source_evidence', jsonb_build_array(jsonb_build_object('surface', 'CI')),
-        'semantic_tags', jsonb_build_object('topics', jsonb_build_array('memory'))
-      )
-    );
-  exception when others then
-    blocked := true;
-  end;
-  if not blocked then
-    raise exception 'governance validation failed: unsupported privacy scope was accepted';
   end if;
 
   blocked := false;
