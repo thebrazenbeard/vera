@@ -6,8 +6,14 @@ from typing import Any
 
 
 def build_proof_artifact() -> dict[str, Any]:
-    """Build the deterministic fixture proof artifact."""
-    raise NotImplementedError("proof builder staged for repository transfer")
+    """Return the bounded fixture proof envelope used during staged transfer."""
+    return {
+        "artifact": "TUL Instrumented Host Fixture Proof",
+        "fixture_version": "0.1.0",
+        "transfer_state": "STAGED",
+        "proof_classification": "UNAVAILABLE",
+        "reason": "Full deterministic proof cases are not yet transferred.",
+    }
 
 
 def write_proof_artifact(path: Path) -> dict[str, Any]:
