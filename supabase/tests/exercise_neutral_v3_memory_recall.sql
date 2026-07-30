@@ -48,8 +48,19 @@ begin
      or receipt#>>'{records,0,payload,version}' <> '2'
      or receipt#>>'{records,0,source_evidence,0,source_actor}' <> 'USER'
      or receipt#>>'{records,0,semantic_tags,status,1}' <> 'corrected'
-     or receipt->>'timestamp' is null then
+     or receipt#>>'{records,0,payload,temporal,event_time,precision}' <> 'UNKNOWN'
+     or receipt#>>'{records,0,payload,temporal,state_time,precision}' <> 'UNKNOWN'
+     or receipt->>'retrieval_time' is null
+     or receipt ? 'timestamp' then
     raise exception 'recall exercise failed: current recall receipt is wrong: %', receipt;
+  end if;
+
+  if not exists (
+    select 1
+    from jsonb_array_elements_text(receipt->'limitations') as limitation(value)
+    where value = 'retrieval_time is the database invocation time of this recall only; it is not event_time, state_time, record_time, delivery time, recollection time, or receipt-generation time.'
+  ) then
+    raise exception 'recall exercise failed: retrieval_time boundary is missing: %', receipt;
   end if;
 
   if receipt->'record_ids' @> jsonb_build_array(root_id) then
@@ -67,8 +78,10 @@ begin
   );
 
   if jsonb_array_length(receipt->'records') <> 1
-     or receipt#>>'{records,0,statement}' <> 'Foreign branch memory value.' then
-    raise exception 'recall exercise failed: branch-b record not isolated: %', receipt;
+     or receipt#>>'{records,0,statement}' <> 'Foreign branch memory value.'
+     or receipt#>>'{records,0,state_time}' is not null
+     or receipt#>>'{records,0,payload,temporal,state_time,precision}' <> 'UNKNOWN' then
+    raise exception 'recall exercise failed: branch-b record not isolated or unknown state_time was altered: %', receipt;
   end if;
 
   receipt := public.recall_vera_context_v3(
