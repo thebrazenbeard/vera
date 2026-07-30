@@ -47,14 +47,21 @@ The uploaded R6A0 package was a validated local candidate that explicitly report
 
 ### Baseline preflight
 
-The migration refuses to apply when the existing table contains:
+The lineage migration refuses to apply when the existing table contains:
 
 - self-supersession;
 - cross-project, cross-branch, or cross-key supersession;
 - more than one direct successor for a parent;
 - more than one lineage head for a scoped record key.
 
-This prevents a migration from quietly blessing an already-ambiguous state.
+The companion governance migration refuses to apply when the existing table contains:
+
+- empty source-evidence arrays;
+- empty semantic-tag objects;
+- ChatGPT-authored content classified as anything other than `MODEL_OUTPUT` with epistemic status `MODEL_GENERATED_CLAIM`;
+- `MODEL_OUTPUT` records promoted beyond `MODEL_GENERATED_CLAIM`.
+
+These checks prevent the migrations from quietly blessing an ambiguous or under-sourced baseline.
 
 ### Append-only lineage
 
@@ -69,9 +76,29 @@ For each `(project_id, branch_id, record_key)`:
 
 `record_time` is overwritten by the database during insertion. It is persistence evidence, not caller testimony.
 
+### Provenance and classification
+
+Every newly stored record must retain:
+
+- at least one `source_evidence` entry;
+- a non-empty `semantic_tags` object;
+- its supplied privacy scope for exact authorization matching during recall.
+
+The contract does not invent a neutral privacy enum. `privacy_scope` remains source-defined data, and recall returns a record only when its exact value is included in the caller-authorized privacy-scope set.
+
+ChatGPT-authored content is constrained to:
+
+```yaml
+record_type: MODEL_OUTPUT
+epistemic_status: MODEL_GENERATED_CLAIM
+source_actor: CHATGPT_MODEL
+```
+
+This prevents insertion-time promotion of generated language into stronger factual or subjective-state authority.
+
 ### Current projection
 
-The migration adds:
+The lineage migration adds:
 
 - `public.vera_context_heads_v3`;
 - `public.vera_context_lineage_conflicts_v3`;
@@ -85,7 +112,7 @@ The current projection returns one unambiguous unsuperseded head per project, br
 
 - accepts only an allowlisted V3 field set;
 - rejects missing required core fields;
-- relies on existing V3 type and JSON-shape constraints;
+- relies on V3 type, JSON-shape, provenance, semantic-index, and model-classification constraints;
 - applies database lineage and append-only enforcement;
 - assigns persistence time in the database;
 - returns a `VERA_MVE_RECEIPT_V3` save receipt containing the stored record ID and stored row.
@@ -111,7 +138,7 @@ The receipt proves the row was committed by the database transaction. It does no
 2. exact branch scope;
 3. unique lineage head;
 4. lifecycle status `CURRENT`;
-5. explicitly allowed privacy scopes;
+5. exact membership in the caller-authorized privacy-scope set;
 6. exact requested record keys when supplied;
 7. exclusion of `REJECTED` and `DISPUTED` epistemic states;
 8. exclusion of `MODEL_GENERATED_CLAIM` by default.
@@ -135,7 +162,7 @@ This bounded function performs exact-key retrieval. Semantic expansion remains a
 
 ## Access boundary
 
-The proposed migration removes direct neutral V3 mutation privileges from `service_role` and grants:
+The proposed lineage migration removes direct neutral V3 mutation privileges from `service_role` and grants:
 
 - table and view reads for governed diagnostics;
 - execution of the receipt-producing save and recall functions.
@@ -149,12 +176,14 @@ This is intentionally a compatibility gate. Any existing production writer that 
 The CI workflow uses an isolated local Supabase stack and runs:
 
 1. a fixture reproducing the observed live neutral V3 schema;
-2. the bounded Memory migration;
-3. adversarial structural, lineage, access, and append-only validation;
-4. a first `psql` invocation that commits governed test records and verifies save receipts;
-5. a separate `psql` invocation that recalls the committed records and verifies recall receipts;
-6. database lint;
-7. stack destruction.
+2. the bounded lineage migration;
+3. the bounded provenance-governance migration;
+4. adversarial structural, lineage, access, and append-only validation;
+5. adversarial provenance and model-classification validation;
+6. a first `psql` invocation that commits governed test records and verifies save receipts;
+7. a separate `psql` invocation that recalls the committed records and verifies recall receipts;
+8. database lint;
+9. stack destruction.
 
 The recall invocation proves that retrieval does not depend on transaction-local variables or one model turn. It does not yet prove persistence across real ChatGPT chats because production application and a production test write remain separately gated.
 
@@ -174,6 +203,9 @@ The validation suite requires all of the following:
 - rejected records do not enter recall;
 - update and delete are blocked;
 - unknown save fields are rejected;
+- empty source evidence is rejected;
+- empty semantic indexing is rejected;
+- model output cannot be inserted with stronger authority;
 - client roles cannot access governed memory;
 - save and recall each emit externally verifiable receipts.
 
@@ -197,6 +229,7 @@ This contract neither generates nor ranks initiatives. Initiative decisions may 
 Production remains unchanged. Deployment requires a separate explicit authorization naming:
 
 - migration `20260730213000_harden_neutral_v3_memory_contract`;
+- migration `20260730213100_tighten_neutral_v3_memory_governance`;
 - Supabase project `klmbpaigzeguvnpccqzz`;
 - exact preflight and rollback evidence;
 - writer-compatibility result;
