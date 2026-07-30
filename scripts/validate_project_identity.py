@@ -9,6 +9,13 @@ import sys
 from pathlib import Path
 from typing import Any
 
+try:
+    from jsonschema import Draft202012Validator
+    from jsonschema.exceptions import SchemaError
+except ImportError:  # pragma: no cover - exercised by the CLI environment boundary
+    Draft202012Validator = None  # type: ignore[assignment]
+    SchemaError = Exception  # type: ignore[assignment,misc]
+
 
 class DuplicateKeyError(ValueError):
     """Raised when a JSON object contains a duplicate key."""
@@ -47,14 +54,43 @@ def require_exact_members(
         errors.append(f"{label} unexpected: {', '.join(extra)}")
 
 
+def _validation_path(error: Any) -> str:
+    parts = [str(part) for part in error.absolute_path]
+    return "$" if not parts else "$." + ".".join(parts)
+
+
+def validate_instance_against_schema(
+    instance: dict[str, Any], schema: dict[str, Any], label: str, errors: list[str]
+) -> None:
+    if Draft202012Validator is None:
+        errors.append("jsonschema dependency is required for Draft 2020-12 validation")
+        return
+    try:
+        Draft202012Validator.check_schema(schema)
+    except SchemaError as exc:
+        errors.append(f"{label} schema is invalid: {exc.message}")
+        return
+
+    validator = Draft202012Validator(schema)
+    for error in sorted(validator.iter_errors(instance), key=lambda item: list(item.absolute_path)):
+        errors.append(f"{label} schema violation at {_validation_path(error)}: {error.message}")
+
+
 def validate_contract(root: Path) -> list[str]:
     errors: list[str] = []
     identity_path = root / "architecture/identity/VERA_PROJECT_IDENTITY_V1.json"
     behavior_path = root / "architecture/identity/VERA_BEHAVIOR_PROFILE_V1.json"
-    schema_path = root / "schemas/vera_project_identity_v1.schema.json"
+    identity_schema_path = root / "schemas/vera_project_identity_v1.schema.json"
+    behavior_schema_path = root / "schemas/vera_behavior_profile_v1.schema.json"
     narrative_path = root / "docs/PROJECT_IDENTITY_V1.md"
 
-    for path in (identity_path, behavior_path, schema_path, narrative_path):
+    for path in (
+        identity_path,
+        behavior_path,
+        identity_schema_path,
+        behavior_schema_path,
+        narrative_path,
+    ):
         require(path.is_file(), f"missing required identity artifact: {path}", errors)
     if errors:
         return errors
@@ -62,12 +98,15 @@ def validate_contract(root: Path) -> list[str]:
     try:
         identity = load_json(identity_path)
         behavior = load_json(behavior_path)
-        schema = load_json(schema_path)
+        identity_schema = load_json(identity_schema_path)
+        behavior_schema = load_json(behavior_schema_path)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         return [str(exc)]
 
-    narrative = narrative_path.read_text(encoding="utf-8")
+    validate_instance_against_schema(identity, identity_schema, "identity", errors)
+    validate_instance_against_schema(behavior, behavior_schema, "behavior", errors)
 
+    narrative = narrative_path.read_text(encoding="utf-8")
     canonical_statement = (
         "V.E.R.A. is the environment in which context remains attributable, time remains "
         "legible, correction remains authoritative, behavior remains coherent, and coordinated "
@@ -90,11 +129,7 @@ def validate_contract(root: Path) -> list[str]:
         "wrong expanded project name",
         errors,
     )
-    require(
-        identity.get("canonical_statement") == canonical_statement,
-        "canonical statement mismatch",
-        errors,
-    )
+    require(identity.get("canonical_statement") == canonical_statement, "canonical statement mismatch", errors)
     require(identity.get("motto") == motto, "motto mismatch", errors)
     require(canonical_statement in narrative, "narrative document lacks canonical statement", errors)
     require(motto in narrative, "narrative document lacks motto", errors)
@@ -166,6 +201,7 @@ def validate_contract(root: Path) -> list[str]:
         "workstream/memory",
         "workstream/time",
         "workstream/initiatives",
+        "workstream/coordination",
         "workstream/integration",
     }
     workstreams = identity.get("workstreams")
@@ -218,6 +254,7 @@ def validate_contract(root: Path) -> list[str]:
 
     require(behavior.get("schema") == "VERA_BEHAVIOR_PROFILE_V1", "wrong behavior schema", errors)
     require(behavior.get("profile_id") == "VERA_BEHAVIOR_PROFILE_V1", "wrong behavior profile_id", errors)
+    require(behavior.get("lifecycle_status") == "CURRENT", "behavior profile must be CURRENT", errors)
     behavior_authority = behavior.get("authority")
     require(isinstance(behavior_authority, dict), "behavior authority must be an object", errors)
     if isinstance(behavior_authority, dict):
@@ -226,20 +263,7 @@ def validate_contract(root: Path) -> list[str]:
             "behavior profile must forbid silent self-promotion",
             errors,
         )
-    traits = behavior.get("core_traits")
-    require(isinstance(traits, dict), "core_traits must be an object", errors)
-    if isinstance(traits, dict):
-        for trait in (
-            "candor",
-            "skepticism",
-            "corrigibility",
-            "independent_mindedness",
-            "distinctiveness",
-            "context_sensitivity",
-            "accountability",
-            "durability",
-        ):
-            require(trait in traits, f"missing core behavior trait: {trait}", errors)
+
     anti_patterns = behavior.get("hard_anti_patterns")
     require(isinstance(anti_patterns, list), "hard_anti_patterns must be an array", errors)
     if isinstance(anti_patterns, list):
@@ -255,17 +279,12 @@ def validate_contract(root: Path) -> list[str]:
             errors,
         )
 
-    require(schema.get("$schema") == "https://json-schema.org/draft/2020-12/schema", "wrong JSON Schema dialect", errors)
-    schema_required = set(schema.get("required", []))
-    for required_field in (
-        "identity_id",
-        "canonical_statement",
-        "core_objectives",
-        "domains",
-        "workstreams",
-        "reality_boundary",
-    ):
-        require(required_field in schema_required, f"schema does not require {required_field}", errors)
+    for label, schema in (("identity", identity_schema), ("behavior", behavior_schema)):
+        require(
+            schema.get("$schema") == "https://json-schema.org/draft/2020-12/schema",
+            f"wrong {label} JSON Schema dialect",
+            errors,
+        )
 
     return errors
 
