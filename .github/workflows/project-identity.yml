@@ -1,0 +1,48 @@
+name: Project Identity
+
+on:
+  pull_request:
+    paths:
+      - "architecture/identity/**"
+      - "docs/PROJECT_IDENTITY_V1.md"
+      - "docs/IDENTITY_INTEGRATION_V1.md"
+      - "schemas/vera_project_identity_v1.schema.json"
+      - "scripts/validate_project_identity.py"
+      - "tests/test_project_identity.py"
+      - ".github/workflows/project-identity.yml"
+  push:
+    branches:
+      - "feature/project-identity-contract-v1"
+    paths:
+      - "architecture/identity/**"
+      - "docs/PROJECT_IDENTITY_V1.md"
+      - "docs/IDENTITY_INTEGRATION_V1.md"
+      - "schemas/vera_project_identity_v1.schema.json"
+      - "scripts/validate_project_identity.py"
+      - "tests/test_project_identity.py"
+      - ".github/workflows/project-identity.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-project-identity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate identity contracts
+        run: python scripts/validate_project_identity.py
+
+      - name: Run identity tests
+        run: python -m unittest discover -s tests -p "test_project_identity.py" -v
+
+      - name: Compile validator and tests
+        run: python -m py_compile scripts/validate_project_identity.py tests/test_project_identity.py
