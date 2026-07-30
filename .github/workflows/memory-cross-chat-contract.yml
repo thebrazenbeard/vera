@@ -9,11 +9,14 @@ on:
       - main
     paths:
       - "supabase/migrations/20260730213000_harden_neutral_v3_memory_contract.sql"
+      - "supabase/migrations/20260730213100_tighten_neutral_v3_memory_governance.sql"
       - "supabase/tests/fixtures/neutral_v3_live_schema.sql"
       - "supabase/tests/validate_neutral_v3_memory_contract.sql"
+      - "supabase/tests/validate_neutral_v3_memory_governance.sql"
       - "supabase/tests/exercise_neutral_v3_memory_save.sql"
       - "supabase/tests/exercise_neutral_v3_memory_recall.sql"
       - "docs/MEMORY_CROSS_CHAT_CONTRACT_V1.md"
+      - "reviews/MEMORY_CONTRACT_REVIEW.md"
       - ".github/workflows/memory-cross-chat-contract.yml"
 
 permissions:
@@ -60,15 +63,25 @@ jobs:
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
           -f supabase/tests/fixtures/neutral_v3_live_schema.sql
 
-      - name: Apply bounded Memory hardening migration
+      - name: Apply bounded Memory lineage migration
         run: >-
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
           -f supabase/migrations.explicit/20260730213000_harden_neutral_v3_memory_contract.sql
 
-      - name: Run adversarial contract validation
+      - name: Apply bounded Memory governance migration
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/migrations.explicit/20260730213100_tighten_neutral_v3_memory_governance.sql
+
+      - name: Run adversarial lineage and access validation
         run: >-
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
           -f supabase/tests/validate_neutral_v3_memory_contract.sql
+
+      - name: Run adversarial provenance governance validation
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/tests/validate_neutral_v3_memory_governance.sql
 
       - name: Save governed memory in first invocation
         run: >-
