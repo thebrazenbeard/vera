@@ -437,26 +437,26 @@ def elapsed_between(
     start_best = start.role_best_time(normalized_role)
     end_best = end.role_best_time(normalized_role)
     assert start_best is not None and end_best is not None
-    best = (end_best - start_best).total_seconds()
-    if best < 0:
-        return legacy.ElapsedResult(
-            legacy.ElapsedStatus.CONFLICTED,
-            None,
-            None,
-            None,
-            (
-                f"Best-supported end {normalized_role.value} "
-                f"precedes start {normalized_role.value}.",
-            ),
-        )
+    representative_best = (end_best - start_best).total_seconds()
 
     if legacy.TemporalPrecision.APPROXIMATE in (
         start_precision,
         end_precision,
     ):
+        if representative_best < 0:
+            return legacy.ElapsedResult(
+                legacy.ElapsedStatus.CONFLICTED,
+                None,
+                None,
+                None,
+                (
+                    f"Best-supported end {normalized_role.value} "
+                    f"precedes start {normalized_role.value}.",
+                ),
+            )
         return legacy.ElapsedResult(
             legacy.ElapsedStatus.APPROXIMATE,
-            best,
+            representative_best,
             None,
             None,
         )
@@ -477,20 +477,24 @@ def elapsed_between(
                 f"earlier than the start interval.",
             ),
         )
+
     if (
         start_precision is legacy.TemporalPrecision.EXACT
         and end_precision is legacy.TemporalPrecision.EXACT
     ):
         return legacy.ElapsedResult(
             legacy.ElapsedStatus.EXACT,
-            best,
-            best,
-            best,
+            representative_best,
+            representative_best,
+            representative_best,
         )
+
+    lower = max(0.0, raw_lower)
+    supported_best = min(max(representative_best, lower), upper)
     return legacy.ElapsedResult(
         legacy.ElapsedStatus.BOUNDED,
-        best,
-        max(0.0, raw_lower),
+        supported_best,
+        lower,
         upper,
     )
 
