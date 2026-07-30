@@ -136,9 +136,10 @@ The existing coordination table is not modified by this draft.
 - distinct session/scope/checkpoint identities;
 - idempotency keys;
 - one-successor supersession;
-- cross-scope supersession rejection;
+- cross-scope and cross-anchor supersession rejection;
 - explicit `UNANCHORED` rows with limitations;
-- service-role `SELECT` and `INSERT` only;
+- service-role `SELECT` plus `EXECUTE` on the governed append function;
+- no direct service-role `INSERT`, `UPDATE`, `DELETE`, or sequence usage;
 - no client access through RLS.
 
 It does not duplicate semantic memory and does not claim ordinary ChatGPT has mandatory lifecycle hooks.
