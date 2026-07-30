@@ -31,7 +31,7 @@ Coordination events are operational metadata. They are not canonical memory reco
 | Operation | Effect |
 |---|---|
 | `coordination_read_inbox` | Reads addressed events without acknowledging them. |
-| `coordination_post` | Appends a validated event. |
+| `coordination_post` | Appends a validated event while preserving typed permission rules. |
 | `coordination_acknowledge` | Appends an explicit acknowledgement linked to one addressed event. |
 | `coordination_publish_status` | Appends a bounded workstream status. |
 | `coordination_request_review` | Appends a `READY_FOR_REVIEW` status with a requested perspective. |
@@ -49,6 +49,8 @@ Coordination events are operational metadata. They are not canonical memory reco
 6. Inbox reads are ordered by database-generated `event_sequence`.
 
 There is no chat wake-up, hidden polling, or synchronous conversation claim.
+
+The bus also does **not** claim exactly-once delivery. A retry after an ambiguous transport failure can duplicate a logical message unless a future runtime and storage contract add a durable idempotency key. Explicit acknowledgements make consumption auditable; they do not repeal distributed systems.
 
 ## Live Supabase contract observed July 30, 2026
 
@@ -80,12 +82,14 @@ The caller supplies an `ActorContext` with one or more explicit permissions:
 
 The implementation does not infer permission from fluency, labels, or prior access. The production runtime must bind these permissions to authenticated service identities or another explicit authorization mechanism.
 
+Generic `coordination_post` cannot be used to bypass typed permissions. A generic acknowledgement still requires acknowledgement permission and may be posted only by the addressed target. Reviews require review permission and the addressed target. Resolutions require resolution permission and thread participation.
+
 ## Deterministic receipts
 
 Every operation returns `VERA_COORDINATION_RECEIPT_V1` containing:
 
 - operation;
-- result class;
+- result class and outcome code;
 - actor workstream;
 - thread key when applicable;
 - confirmed event ID and sequence when applicable;
@@ -93,21 +97,32 @@ Every operation returns `VERA_COORDINATION_RECEIPT_V1` containing:
 - write-confirmation boolean;
 - acknowledgement link when applicable;
 - SHA-256 result hash;
+- error text for denied, invalid, conflicting, or missing-event outcomes;
 - limitations.
 
-The hash covers canonical JSON of the operation result. It proves only evaluation of the returned material, not external delivery, target consumption, or subjective activity.
+The hash covers canonical JSON of the full operation result, including every returned event. Successful reads, confirmed writes, denied requests, invalid requests, lineage conflicts, and missing-event results therefore remain deterministic relative to the same supplied state.
+
+A receipt proves only evaluation of the returned material. It does not prove external delivery, target consumption, exactly-once processing, or subjective activity.
 
 ## Entry and material-exit behavior
 
-At work entry, a workstream may call `entry_checkpoint` with its last consumed sequence. This reads current unacknowledged events but performs no write.
+At work entry, a workstream may call `entry_checkpoint` with its last consumed sequence. This reads current unacknowledged events but performs no write. Its receipt hash covers the complete returned event set.
 
 At material exit, a workstream may call `exit_checkpoint`. If `material=false`, no event is written. If `material=true`, an append-only status is written and confirmed through the repository result.
+
+## Implementation layout
+
+- `coordination_bus/contracts.py`: schemas, validation, canonical JSON, and receipts;
+- `coordination_bus/core.py`: permissioned operations and lineage enforcement;
+- `coordination_bus/in_memory.py`: deterministic test repository;
+- `coordination_bus/supabase_sql.py`: parameterized SQL repository boundary;
+- `tests/test_coordination_bus.py`: 27 behavioral and regression tests.
 
 ## Supabase adapter boundary
 
 `SupabaseSqlRepository` accepts an injected parameter-binding executor. It contains no credentials and opens no network connection. The insert statement intentionally omits `event_id`, `event_sequence`, and `record_time`, allowing the live database to remain authoritative for those fields.
 
-A production adapter remains separately gated because it must establish authenticated service access, transactional behavior, retry policy, and error classification. This PR does not provide or deploy credentials.
+A production adapter remains separately gated because it must establish authenticated service access, transactional behavior, retry policy, durable idempotency, and error classification. This PR does not provide or deploy credentials.
 
 ## Non-goals
 
@@ -115,6 +130,7 @@ A production adapter remains separately gated because it must establish authenti
 - continuous background monitoring;
 - automatic canonical-memory creation;
 - model-owned goals, identity, consent, or conations;
+- exactly-once delivery claims;
 - production schema migration;
 - production test rows;
 - merge or deployment authorization.
