@@ -30,14 +30,18 @@ It does not use or modify:
 
 ## Reproduce
 
+Run these commands from the repository checkout:
+
 ```bash
 cd experiments/tul_instrumented_host_fixture_v0_1
-export PYTHONPATH="$PWD/src"
+export PYTHONPATH="$PWD/../../src"
 python -m unittest discover -s tests -v
 python scripts/generate_proof.py
 python scripts/generate_manifest.py
 python scripts/verify_manifest.py
 ```
+
+The manifest covers this experiment directory and `src/tul_fixture`. It excludes virtual environments, caches, bytecode, package metadata, and build outputs so local tooling debris cannot alter the integrity boundary.
 
 ## Design note
 
