@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "observed_at": "2026-07-30T21:49:00Z",
+  "observation_source": "Supabase connector list_migrations",
+  "project": {
+    "name": "Vera",
+    "ref": "klmbpaigzeguvnpccqzz",
+    "status": "ACTIVE_HEALTHY"
+  },
+  "production_changes_applied_by_this_record": false,
+  "migrations": [
+    {
+      "version": "20260729012911",
+      "name": "initialize_vera_save_state_ledger"
+    },
+    {
+      "version": "20260729013307",
+      "name": "harden_vera_save_state_trigger"
+    },
+    {
+      "version": "20260729094322",
+      "name": "harden_vera_save_state_access"
+    },
+    {
+      "version": "20260729125913",
+      "name": "add_vera_branch_coordination_ledger"
+    },
+    {
+      "version": "20260730191337",
+      "name": "add_neutral_vera_context_v3"
+    },
+    {
+      "version": "20260730191421",
+      "name": "harden_neutral_vera_context_v3_access"
+    },
+    {
+      "version": "20260730191641",
+      "name": "complete_neutral_vera_context_v3_hardening"
+    }
+  ],
+  "limitations": [
+    "This file records the connector-observed migration ledger only.",
+    "It does not contain migration SQL or prove repository parity.",
+    "It does not authorize replay, rollback, repair, or production mutation."
+  ]
+}
