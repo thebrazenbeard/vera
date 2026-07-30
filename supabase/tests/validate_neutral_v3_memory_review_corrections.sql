@@ -17,7 +17,12 @@ begin
   end if;
 
   -- Force-inject two malformed cyclic components into the disposable database.
-  alter table public.vera_context_events_v3 disable trigger all;
+  -- Only the two Memory user triggers are disabled. Foreign-key system triggers
+  -- remain enabled, so roots are inserted first and then linked into cycles.
+  alter table public.vera_context_events_v3
+    disable trigger vera_context_events_v3_enforce_lineage;
+  alter table public.vera_context_events_v3
+    disable trigger vera_context_events_v3_block_mutation;
 
   insert into public.vera_context_events_v3 (
     record_id, project_id, branch_id, record_key, record_type, statement,
@@ -29,8 +34,8 @@ begin
     '31000000-0000-0000-0000-000000000001',
     'vera-memory-review-test', 'branch-cycle', 'memory.cycle.two-node',
     'TECHNICAL_RESULT', 'Two-node cycle A.', 'CURRENT',
-    'OBSERVED_TOOL_RESULT', 'TOOL', 'PROJECT', null, now(), now(),
-    '31000000-0000-0000-0000-000000000002', '{}'::jsonb,
+    'OBSERVED_TOOL_RESULT', 'TOOL', 'PROJECT', null, now(), now(), null,
+    '{}'::jsonb,
     '[{"surface":"CI","observation":"forced two-node cycle A"}]'::jsonb,
     '{"topics":["memory","cycle"]}'::jsonb,
     '["Synthetic corruption fixture."]'::jsonb, null
@@ -39,8 +44,8 @@ begin
     '31000000-0000-0000-0000-000000000002',
     'vera-memory-review-test', 'branch-cycle', 'memory.cycle.two-node',
     'TECHNICAL_RESULT', 'Two-node cycle B.', 'CURRENT',
-    'OBSERVED_TOOL_RESULT', 'TOOL', 'PROJECT', null, now(), now(),
-    '31000000-0000-0000-0000-000000000001', '{}'::jsonb,
+    'OBSERVED_TOOL_RESULT', 'TOOL', 'PROJECT', null, now(), now(), null,
+    '{}'::jsonb,
     '[{"surface":"CI","observation":"forced two-node cycle B"}]'::jsonb,
     '{"topics":["memory","cycle"]}'::jsonb,
     '["Synthetic corruption fixture."]'::jsonb, null
@@ -49,8 +54,8 @@ begin
     '32000000-0000-0000-0000-000000000001',
     'vera-memory-review-test', 'branch-cycle', 'memory.cycle.longer',
     'TECHNICAL_RESULT', 'Longer cycle A.', 'CURRENT',
-    'OBSERVED_TOOL_RESULT', 'TOOL', 'PROJECT', null, now(), now(),
-    '32000000-0000-0000-0000-000000000003', '{}'::jsonb,
+    'OBSERVED_TOOL_RESULT', 'TOOL', 'PROJECT', null, now(), now(), null,
+    '{}'::jsonb,
     '[{"surface":"CI","observation":"forced longer cycle A"}]'::jsonb,
     '{"topics":["memory","cycle"]}'::jsonb,
     '["Synthetic corruption fixture."]'::jsonb, null
@@ -59,8 +64,8 @@ begin
     '32000000-0000-0000-0000-000000000002',
     'vera-memory-review-test', 'branch-cycle', 'memory.cycle.longer',
     'TECHNICAL_RESULT', 'Longer cycle B.', 'CURRENT',
-    'OBSERVED_TOOL_RESULT', 'TOOL', 'PROJECT', null, now(), now(),
-    '32000000-0000-0000-0000-000000000001', '{}'::jsonb,
+    'OBSERVED_TOOL_RESULT', 'TOOL', 'PROJECT', null, now(), now(), null,
+    '{}'::jsonb,
     '[{"surface":"CI","observation":"forced longer cycle B"}]'::jsonb,
     '{"topics":["memory","cycle"]}'::jsonb,
     '["Synthetic corruption fixture."]'::jsonb, null
@@ -69,14 +74,38 @@ begin
     '32000000-0000-0000-0000-000000000003',
     'vera-memory-review-test', 'branch-cycle', 'memory.cycle.longer',
     'TECHNICAL_RESULT', 'Longer cycle C.', 'CURRENT',
-    'OBSERVED_TOOL_RESULT', 'TOOL', 'PROJECT', null, now(), now(),
-    '32000000-0000-0000-0000-000000000002', '{}'::jsonb,
+    'OBSERVED_TOOL_RESULT', 'TOOL', 'PROJECT', null, now(), now(), null,
+    '{}'::jsonb,
     '[{"surface":"CI","observation":"forced longer cycle C"}]'::jsonb,
     '{"topics":["memory","cycle"]}'::jsonb,
     '["Synthetic corruption fixture."]'::jsonb, null
   );
 
-  alter table public.vera_context_events_v3 enable trigger all;
+  update public.vera_context_events_v3
+  set supersedes_record_id = case record_id
+    when '31000000-0000-0000-0000-000000000001'::uuid
+      then '31000000-0000-0000-0000-000000000002'::uuid
+    when '31000000-0000-0000-0000-000000000002'::uuid
+      then '31000000-0000-0000-0000-000000000001'::uuid
+    when '32000000-0000-0000-0000-000000000001'::uuid
+      then '32000000-0000-0000-0000-000000000003'::uuid
+    when '32000000-0000-0000-0000-000000000002'::uuid
+      then '32000000-0000-0000-0000-000000000001'::uuid
+    when '32000000-0000-0000-0000-000000000003'::uuid
+      then '32000000-0000-0000-0000-000000000002'::uuid
+  end
+  where record_id in (
+    '31000000-0000-0000-0000-000000000001'::uuid,
+    '31000000-0000-0000-0000-000000000002'::uuid,
+    '32000000-0000-0000-0000-000000000001'::uuid,
+    '32000000-0000-0000-0000-000000000002'::uuid,
+    '32000000-0000-0000-0000-000000000003'::uuid
+  );
+
+  alter table public.vera_context_events_v3
+    enable trigger vera_context_events_v3_enforce_lineage;
+  alter table public.vera_context_events_v3
+    enable trigger vera_context_events_v3_block_mutation;
 
   if not exists (
     select 1
