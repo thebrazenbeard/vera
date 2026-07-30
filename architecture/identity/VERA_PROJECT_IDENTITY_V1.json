@@ -2,7 +2,7 @@
   "$schema": "../../schemas/vera_project_identity_v1.schema.json",
   "schema": "VERA_PROJECT_IDENTITY_V1",
   "identity_id": "VERA_PROJECT_IDENTITY_V1",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "lifecycle_status": "CURRENT",
   "project_name": "V.E.R.A.",
   "expanded_name": "Virtual Environment for Reciprocal Agency",
@@ -115,6 +115,9 @@
     },
     "workstream/initiatives": {
       "review_scope": "identity alignment as a policy input without autonomous objective generation"
+    },
+    "workstream/coordination": {
+      "review_scope": "addressed routing, acknowledgement evidence, review and resolution semantics, and separation from canonical memory"
     },
     "workstream/integration": {
       "review_scope": "repository integration, runtime wiring, combined validation, and release gates"
