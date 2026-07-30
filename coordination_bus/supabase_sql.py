@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from typing import Any, Mapping
 
-from .bus import CoordinationEvent, CoordinationEventDraft, CoordinationRepository
+from .contracts import CoordinationEvent, CoordinationEventDraft, CoordinationRepository
 
 TABLE = "public.vera_coordination_events"
 SELECT_COLUMNS = """
