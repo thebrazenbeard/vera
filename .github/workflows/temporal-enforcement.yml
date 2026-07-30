@@ -1,0 +1,67 @@
+name: Temporal enforcement kernel
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - feature/temporal-enforcement-kernel-v1
+
+permissions:
+  contents: read
+
+jobs:
+  python-kernel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run temporal enforcement tests
+        run: python -m unittest discover -s tests -v
+      - name: Compile temporal enforcement module
+        run: python -m py_compile protocol/temporal_enforcement.py tests/test_temporal_enforcement.py
+
+  database-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PGDATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      SUPABASE_CLI_VERSION: 2.101.0
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+      - name: Verify pinned Supabase CLI
+        run: test "$(supabase --version)" = "$SUPABASE_CLI_VERSION"
+      - name: Initialize local Supabase configuration
+        run: |
+          if [ ! -f supabase/config.toml ]; then
+            supabase init
+          fi
+      - name: Isolate the new draft from historical migrations
+        run: |
+          rm -rf supabase/migrations.temporal-enforcement-backup
+          if [ -d supabase/migrations ]; then
+            mv supabase/migrations supabase/migrations.temporal-enforcement-backup
+          fi
+          mkdir -p supabase/migrations
+      - name: Start disposable local Supabase
+        run: supabase start
+      - name: Apply temporal enforcement draft
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/drafts/20260730_temporal_enforcement_v1.sql
+      - name: Validate temporal enforcement database contract
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/validate_temporal_enforcement_v1.sql
+      - name: Run database lint
+        run: supabase db lint --local
+      - name: Stop and delete disposable Supabase
+        if: always()
+        run: supabase stop --no-backup
