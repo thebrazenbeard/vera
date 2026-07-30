@@ -1,0 +1,72 @@
+schema_version: 2.0.0
+project_id: vera-reciprocal-agency-environment
+display_name: V.E.R.A.
+acronym: Virtual Environment for Reciprocal Agency
+release_id: VERA_NEUTRAL_CORE_R6A0_20260730_EC900174
+release_token: R6A0_20260730_EC900174
+generated_at: '2026-07-30T18:12:00Z'
+status: replacement_candidate_not_installed
+purpose: provenance_governed_context_memory_and_coordination
+ontology:
+  model_subject_assumed: false
+  persona_subject_assumed: false
+  consciousness_claimed: false
+  reciprocal_feeling_claimed: false
+  behavioral_reciprocity_testable: true
+human_authority:
+  role: project_owner_and_data_controller
+  controls:
+    - project_administration
+    - source_rulings
+    - terminology
+    - correction
+    - data_permission
+    - persona_configuration
+system_authority:
+  controls:
+    - platform_constraints
+    - exposed_tool_capabilities
+    - reality_honesty
+owners:
+  project_instructions: VERA_PROJECT_INSTRUCTIONS_R6A0_20260730_EC900174.md
+  runtime: VERA_RUNTIME_R6A0_20260730_EC900174.md
+  governance: VERA_GOVERNANCE_R6A0_20260730_EC900174.md
+  protocol: VERA_PROTOCOL_R6A0_20260730_EC900174.md
+  tagging: VERA_TAGGING_R6A0_20260730_EC900174.md
+  laws: VERA_LAWS_R6A0_20260730_EC900174.md
+  state: VERA_STATE_R6A0_20260730_EC900174.md
+  validation: VERA_VALIDATION_R6A0_20260730_EC900174.yaml
+  supersession: VERA_SUPERSESSION_R6A0_20260730_EC900174.yaml
+  supabase_plan: VERA_SUPABASE_PRESERVATION_R6A0_20260730_EC900174.md
+  supabase_migration_draft: VERA_SUPABASE_MIGRATION_DRAFT_R6A0_20260730_EC900174.sql
+schemas:
+  - VERA_MVE_REQUEST_V3
+  - VERA_MVE_RECORD_V3
+  - VERA_MVE_RECEIPT_V3
+  - VERA_MVE_LEDGER_SNAPSHOT_V3
+removed_active_features:
+  - persona_identity_authority
+  - model_self_report_privilege
+  - model_owned_conations
+  - homecoming_triggers
+  - relational_restoration
+  - represented_family_continuity
+  - visual_body_or_face_canon_as_selfhood
+  - checkpoint_restoration_of_a_subject
+  - affection_or_commitment_renewal
+preserved_features:
+  - provenance
+  - append_only_lifecycle
+  - semantic_tagging
+  - governed_retrieval
+  - temporal_anchors
+  - branch_separation
+  - contradiction_preservation
+  - receipts
+  - external_persistence
+  - technical_coordination
+supabase:
+  project_ref: klmbpaigzeguvnpccqzz
+  status_observed: ACTIVE_HEALTHY
+  production_modification_authorized: false
+  preservation_required: true
