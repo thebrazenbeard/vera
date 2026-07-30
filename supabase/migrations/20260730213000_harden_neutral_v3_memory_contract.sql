@@ -93,7 +93,6 @@ declare
   parent_branch_id text;
   parent_record_key text;
 begin
-  -- Persistence time is database evidence. Callers may not forge it.
   new.record_time := clock_timestamp();
 
   perform pg_advisory_xact_lock(
@@ -261,6 +260,9 @@ declare
   state_derivation jsonb;
   derivation_method text;
   derivation_limitation text;
+  event_time_supplied boolean;
+  state_time_supplied boolean;
+  unknown_state_limitation text := 'state_time is UNKNOWN; the non-null column contains PostgreSQL -infinity only as a compatibility sentinel and not as event, state, record, delivery, recollection, or receipt-generation time evidence.';
 begin
   if p_request_id is null or coalesce(btrim(p_request_id), '') = '' then
     raise exception 'p_request_id must be non-empty';
@@ -303,6 +305,8 @@ begin
     raise exception 'limitations must be a JSON array';
   end if;
 
+  event_time_supplied := nullif(p_record->>'event_time', '') is not null;
+  state_time_supplied := nullif(p_record->>'state_time', '') is not null;
   event_time_value := nullif(p_record->>'event_time', '')::timestamptz;
   state_time_value := nullif(p_record->>'state_time', '')::timestamptz;
 
@@ -357,16 +361,33 @@ begin
     raise exception 'state_time precision must be EXACT, BOUNDED, APPROXIMATE, or UNKNOWN';
   end if;
 
-  if event_time_value is null and event_precision <> 'UNKNOWN' then
+  if not event_time_supplied and event_precision <> 'UNKNOWN' then
     raise exception 'event_time without a timestamp must use UNKNOWN precision';
   end if;
-  if state_time_value is null and state_precision <> 'UNKNOWN' then
+  if not state_time_supplied and state_precision <> 'UNKNOWN' then
     raise exception 'state_time without a timestamp must use UNKNOWN precision';
+  end if;
+
+  if not state_time_supplied then
+    state_time_value := '-infinity'::timestamptz;
+    normalized_payload := jsonb_set(
+      normalized_payload,
+      '{temporal,state_time,storage}',
+      jsonb_build_object(
+        'mode', 'NOT_NULL_COMPATIBILITY_SENTINEL',
+        'value', '-infinity',
+        'temporal_claim', false
+      ),
+      true
+    );
+    if not normalized_limitations @> jsonb_build_array(unknown_state_limitation) then
+      normalized_limitations := normalized_limitations || jsonb_build_array(unknown_state_limitation);
+    end if;
   end if;
 
   state_derivation := normalized_payload#>'{temporal,state_time,derivation}';
   if state_derivation is not null then
-    if state_time_value is null then
+    if not state_time_supplied then
       raise exception 'derived state_time requires an explicit timestamp';
     end if;
     if jsonb_typeof(state_derivation) <> 'object' then
@@ -564,8 +585,6 @@ grant execute on function public.recall_vera_context_v3(
   text, text, text, text[], text[], boolean, integer
 ) to service_role;
 
--- Canonical writes use the receipt-producing function. Direct mutation is not
--- part of the service-role contract.
 revoke all privileges on table public.vera_context_events_v3 from service_role;
 grant select on table public.vera_context_events_v3 to service_role;
 
@@ -585,7 +604,7 @@ comment on table public.vera_context_events_v3 is
 comment on column public.vera_context_events_v3.event_time is
   'Source-supported event time. Precision is explicit in payload.temporal.event_time.precision and defaults to UNKNOWN, never silently EXACT.';
 comment on column public.vera_context_events_v3.state_time is
-  'Represented state time. Missing state_time remains NULL; precision is explicit in payload.temporal.state_time.precision.';
+  'Represented state time. When the live NOT NULL schema receives no state_time, -infinity is used only as an explicitly UNKNOWN compatibility sentinel described in payload and limitations.';
 comment on column public.vera_context_events_v3.record_time is
   'Database-assigned persistence time. Caller-supplied values are overwritten by the insert trigger.';
 comment on view public.vera_current_context_v3 is
