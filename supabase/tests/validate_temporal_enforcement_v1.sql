@@ -6,6 +6,7 @@ insert into public.vera_temporal_events_v1 (
     temporal_event_id,
     project_id,
     workstream,
+    anchor_key,
     scope_instance_id,
     scope_stability,
     provider_conversation_id,
@@ -26,6 +27,7 @@ insert into public.vera_temporal_events_v1 (
     '00000000-0000-0000-0000-000000000101',
     'vera-reciprocal-agency-environment',
     'workstream/time',
+    'anchor:stable:one',
     'scope:stable:one',
     'STABLE',
     'conversation-one',
@@ -39,7 +41,7 @@ insert into public.vera_temporal_events_v1 (
     '2026-07-30T21:05:01Z',
     'EXACT',
     'entry-one',
-    '[{"system":"HOST","operation":"current_time","confirmed":true}]',
+    '[{"system":"HOST","operation":"current_time","reference_id":"host:test:entry-one","subject_hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}]',
     '[]',
     '{"test":"stable exact entry"}'
 );
@@ -60,15 +62,16 @@ do $$
 begin
     begin
         insert into public.vera_temporal_events_v1 (
-            workstream, scope_instance_id, scope_stability,
+            workstream, anchor_key, scope_instance_id, scope_stability,
             provider_conversation_id, provider_branch_id, session_id,
             event_kind, anchor_status, event_time, event_time_precision,
             idempotency_key, source_evidence
         ) values (
-            'workstream/time', 'scope:stable:one', 'STABLE',
+            'workstream/time', 'anchor:stable:one', 'scope:stable:one', 'STABLE',
             'conversation-one', 'branch-one', 'session:two',
             'RETRIEVAL', 'ANCHORED', '2026-07-30T21:06:00Z', 'EXACT',
-            'entry-one', '[]'
+            'entry-one',
+            '[{"system":"HOST","operation":"current_time","reference_id":"host:test:duplicate","subject_hash":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}]'
         );
         raise exception 'duplicate idempotency key was accepted';
     exception when unique_violation then
@@ -81,17 +84,18 @@ do $$
 begin
     begin
         insert into public.vera_temporal_events_v1 (
-            workstream, scope_instance_id, scope_stability,
+            workstream, anchor_key, scope_instance_id, scope_stability,
             session_id, event_kind, anchor_status,
             event_time, event_time_precision,
             event_time_lower_bound, event_time_upper_bound,
             idempotency_key, source_evidence
         ) values (
-            'workstream/time', 'scope:ephemeral:two', 'EPHEMERAL',
+            'workstream/time', 'anchor:bad-bounds', 'scope:ephemeral:two', 'EPHEMERAL',
             'session:three', 'ENTRY', 'ANCHORED',
             '2026-07-30T21:10:00Z', 'BOUNDED',
             '2026-07-30T21:11:00Z', '2026-07-30T21:12:00Z',
-            'bad-bounds', '[]'
+            'bad-bounds',
+            '[{"system":"HOST","operation":"current_time","reference_id":"host:test:bounds","subject_hash":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}]'
         );
         raise exception 'out-of-bounds event_time was accepted';
     exception when check_violation then
@@ -104,15 +108,16 @@ do $$
 begin
     begin
         insert into public.vera_temporal_events_v1 (
-            workstream, scope_instance_id, scope_stability,
+            workstream, anchor_key, scope_instance_id, scope_stability,
             session_id, event_kind, anchor_status,
             event_time, event_time_precision,
             idempotency_key, source_evidence
         ) values (
-            'workstream/time', 'scope:bad-stable', 'STABLE',
+            'workstream/time', 'anchor:bad-stable', 'scope:bad-stable', 'STABLE',
             'session:four', 'ENTRY', 'ANCHORED',
             '2026-07-30T21:10:00Z', 'EXACT',
-            'missing-provider-identity', '[]'
+            'missing-provider-identity',
+            '[{"system":"HOST","operation":"current_time","reference_id":"host:test:stable","subject_hash":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}]'
         );
         raise exception 'stable scope without provider identity was accepted';
     exception when check_violation then
@@ -122,7 +127,7 @@ end;
 $$;
 
 insert into public.vera_temporal_events_v1 (
-    temporal_event_id, project_id, workstream, scope_instance_id,
+    temporal_event_id, project_id, workstream, anchor_key, scope_instance_id,
     scope_stability, provider_conversation_id, provider_branch_id,
     session_id, event_kind, anchor_status, event_time,
     event_time_precision, idempotency_key, supersedes_event_id,
@@ -131,6 +136,7 @@ insert into public.vera_temporal_events_v1 (
     '00000000-0000-0000-0000-000000000102',
     'vera-reciprocal-agency-environment',
     'workstream/time',
+    'anchor:stable:one',
     'scope:stable:one',
     'STABLE',
     'conversation-one',
@@ -142,7 +148,7 @@ insert into public.vera_temporal_events_v1 (
     'EXACT',
     'transition-one',
     '00000000-0000-0000-0000-000000000101',
-    '[{"system":"SUPABASE","operation":"append_temporal_event","confirmed":true}]',
+    '[{"system":"SUPABASE","operation":"append_temporal_event","reference_id":"supabase:test:transition","subject_hash":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"}]',
     '{"test":"valid successor"}'
 );
 
@@ -150,17 +156,18 @@ do $$
 begin
     begin
         insert into public.vera_temporal_events_v1 (
-            workstream, scope_instance_id, scope_stability,
+            workstream, anchor_key, scope_instance_id, scope_stability,
             provider_conversation_id, provider_branch_id,
             session_id, event_kind, anchor_status, event_time,
             event_time_precision, idempotency_key, supersedes_event_id,
             source_evidence
         ) values (
-            'workstream/time', 'scope:stable:one', 'STABLE',
+            'workstream/time', 'anchor:stable:one', 'scope:stable:one', 'STABLE',
             'conversation-one', 'branch-one',
             'session:six', 'MATERIAL_TRANSITION', 'ANCHORED',
             '2026-07-30T21:16:00Z', 'EXACT', 'fork-one',
-            '00000000-0000-0000-0000-000000000101', '[]'
+            '00000000-0000-0000-0000-000000000101',
+            '[{"system":"SUPABASE","operation":"append_temporal_event","reference_id":"supabase:test:fork","subject_hash":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"}]'
         );
         raise exception 'supersession fork was accepted';
     exception when unique_violation then
@@ -173,17 +180,42 @@ do $$
 begin
     begin
         insert into public.vera_temporal_events_v1 (
-            workstream, scope_instance_id, scope_stability,
+            workstream, anchor_key, scope_instance_id, scope_stability,
             session_id, event_kind, anchor_status, event_time,
             event_time_precision, idempotency_key, supersedes_event_id,
             source_evidence
         ) values (
-            'workstream/time', 'scope:ephemeral:different', 'EPHEMERAL',
+            'workstream/time', 'anchor:stable:one', 'scope:ephemeral:different', 'EPHEMERAL',
             'session:seven', 'MATERIAL_TRANSITION', 'ANCHORED',
             '2026-07-30T21:17:00Z', 'EXACT', 'cross-scope',
-            '00000000-0000-0000-0000-000000000102', '[]'
+            '00000000-0000-0000-0000-000000000102',
+            '[{"system":"SUPABASE","operation":"append_temporal_event","reference_id":"supabase:test:cross-scope","subject_hash":"1111111111111111111111111111111111111111111111111111111111111111"}]'
         );
         raise exception 'cross-scope supersession was accepted';
+    exception when check_violation then
+        null;
+    end;
+end;
+$$;
+
+do $$
+begin
+    begin
+        insert into public.vera_temporal_events_v1 (
+            workstream, anchor_key, scope_instance_id, scope_stability,
+            provider_conversation_id, provider_branch_id,
+            session_id, event_kind, anchor_status, event_time,
+            event_time_precision, idempotency_key, supersedes_event_id,
+            source_evidence
+        ) values (
+            'workstream/time', 'anchor:different', 'scope:stable:one', 'STABLE',
+            'conversation-one', 'branch-one',
+            'session:eight', 'MATERIAL_TRANSITION', 'ANCHORED',
+            '2026-07-30T21:18:00Z', 'EXACT', 'cross-anchor',
+            '00000000-0000-0000-0000-000000000102',
+            '[{"system":"SUPABASE","operation":"append_temporal_event","reference_id":"supabase:test:cross-anchor","subject_hash":"2222222222222222222222222222222222222222222222222222222222222222"}]'
+        );
+        raise exception 'cross-anchor supersession was accepted';
     exception when check_violation then
         null;
     end;
