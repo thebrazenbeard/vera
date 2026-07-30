@@ -8,7 +8,7 @@ Temporal review event: `30d68439-dbe3-402f-962f-4b0e8f6acab2`
 
 The branch proposes a bounded neutral V3 memory correction. It adds explicit supersession lineage, append-only enforcement, database-assigned persistence time, receipt-producing save and recall functions, exact branch and caller-authorized privacy matching, required source evidence and semantic indexing, hard model-output classification, explicit temporal uncertainty, and isolated save/recall tests.
 
-No production migration, production memory write, legacy-row mutation, merge, Time-system redesign, or Initiatives-system redesign is included.
+No production migration, production memory write, legacy-row mutation, merge, Time-system redesign, Initiatives-system redesign, or temporal column-schema change is included.
 
 ## Required review evidence
 
@@ -22,7 +22,9 @@ No production migration, production memory write, legacy-row mutation, merge, Ti
 - save and recall each produce database-confirmed receipts;
 - recall executes in a separate database invocation;
 - superseded, foreign-branch, privacy-mismatched, rejected, disputed, and default-excluded model-generated records do not leak;
-- omitted `event_time` and `state_time` remain `NULL` and are represented with `UNKNOWN` precision;
+- omitted `event_time` remains `NULL` with `UNKNOWN` precision;
+- because the observed live `state_time` column is `NOT NULL`, omitted `state_time` is represented as `UNKNOWN` using a PostgreSQL `-infinity` compatibility sentinel plus machine-readable `temporal_claim: false` metadata and an appended limitation;
+- the compatibility sentinel is never described as event, state, record, delivery, recollection, or receipt-generation time evidence;
 - supplied timestamps without explicit precision remain `UNKNOWN`, never silently `EXACT`;
 - supported precision values are limited to `EXACT`, `BOUNDED`, `APPROXIMATE`, and `UNKNOWN`;
 - non-`UNKNOWN` precision is rejected when its timestamp is absent;
@@ -33,6 +35,7 @@ No production migration, production memory write, legacy-row mutation, merge, Ti
 ## Known limitations
 
 - validation uses a disposable local Supabase stack;
+- the live `state_time NOT NULL` constraint prevents literal `NULL` without a separately authorized temporal schema migration;
 - semantic expansion is deferred;
 - automatic ChatGPT recall hooks are not implemented;
 - durable request idempotency and a stored receipt ledger are not included in this slice;
