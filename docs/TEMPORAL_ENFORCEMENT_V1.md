@@ -20,7 +20,7 @@ turn begins
   -> resolve stable host scope or issue fresh ephemeral scope internally
   -> read Supabase coordination inbox for the active workstream
   -> retrieve the smallest relevant temporal context when required
-  -> validate prior anchor, precision, scope, staleness, and conflicts
+  -> validate prior anchor, role-specific precision, scope, staleness, and conflicts
   -> ANCHORED or UNANCHORED preflight
   -> temporal reasoning only when ANCHORED
   -> if material, require confirmed Supabase temporal append
@@ -62,7 +62,7 @@ Provides shared semantic and cross-chat context. It is not duplicated wholesale 
 
 ### GitHub
 
-Stores this implementation, tests, database draft, activation gate, and validation evidence. It stores no private conversation content.
+Stores this implementation, tests, database drafts, activation gate, and validation evidence. It stores no private conversation content.
 
 ### Google Drive
 
@@ -77,12 +77,18 @@ The kernel keeps these concepts separate:
 - `record_time`: when an external system persisted the record;
 - `retrieval_time`: when the record was retrieved for this execution.
 
-Evidence precision remains:
+Each role has its own precision:
 
 - `EXACT`
 - `BOUNDED`
 - `APPROXIMATE`
 - `UNKNOWN`
+
+A timestamp without an explicit precision is not silently promoted to `EXACT`. `UNKNOWN` is a non-claim and therefore cannot accompany a timestamp or bounds.
+
+`record_time` is `EXACT` only relative to the database persistence clock. It says nothing about event, state, retrieval, delivery, acknowledgement, consumption, or receipt-generation time.
+
+Retrieval time never refreshes the represented event or state. Anchor freshness prefers database materialization time, then state time, then event time.
 
 Elapsed results remain separate:
 
@@ -91,6 +97,19 @@ Elapsed results remain separate:
 - `APPROXIMATE`
 - `UNAVAILABLE`
 - `CONFLICTED`
+
+## Canonical Python API
+
+Package-level imports from `protocol` expose:
+
+- `RoleTemporalPoint`;
+- strict role-specific `run_preflight`;
+- unchanged fail-closed `run_postflight`;
+- role-aware subject hashing.
+
+The original `protocol.temporal_enforcement.TemporalPoint` remains available only as a compatibility surface. Strict preflight rejects a prior anchor using that single-precision shape with `PRIOR_ANCHOR_ROLE_PRECISION_MISSING`.
+
+External evidence is bound to every role value, precision, bound, scope, and provenance field. Changing a precision after issuance invalidates verification.
 
 ## Stable and ephemeral scope
 
@@ -108,9 +127,9 @@ A turn is `UNANCHORED` when any required condition lacks external evidence, incl
 - unresolved or malformed scope;
 - coordination inbox not read from Supabase;
 - required retrieval unconfirmed;
-- required prior anchor missing, stale, invalid, future-dated, or cross-scope;
+- required prior anchor missing, stale, invalid, future-dated, cross-scope, or lacking role-specific precision;
 - editable evidence offered where immutable proof is required;
-- temporal precision shape invalid;
+- any temporal role precision shape is invalid;
 - supported endpoint intervals conflict;
 - material transition not appended to Supabase;
 - required Memory or Initiatives handoff not confirmed by Supabase.
@@ -123,16 +142,16 @@ Before meaningful temporal work, `workstream/time` reads events whose `target_br
 
 After a material temporal decision, Time posts to `public.vera_coordination_events` only when another workstream needs the result. Delivery is established by the returned Supabase event ID, not by generated language.
 
-The existing coordination table is not modified by this draft.
+The existing coordination table is not modified by these drafts.
 
-## Database draft
+## Database drafts
 
 `supabase/drafts/20260730_temporal_enforcement_v1.sql` proposes:
 
 - append-only temporal events;
 - database-assigned `record_time`;
 - stable/ephemeral scope checks;
-- canonical precision and bound checks;
+- event-time precision and bound checks;
 - distinct session/scope/checkpoint identities;
 - idempotency keys;
 - one-successor supersession;
@@ -142,7 +161,9 @@ The existing coordination table is not modified by this draft.
 - no direct service-role `INSERT`, `UPDATE`, `DELETE`, or sequence usage;
 - no client access through RLS.
 
-It does not duplicate semantic memory and does not claim ordinary ChatGPT has mandatory lifecycle hooks.
+`supabase/drafts/20260730_temporal_role_precision_v1.sql` adds independent state, record, and retrieval precision fields and constraints. State and retrieval precision are derived from the canonical payload before the base trigger computes the logical hash, so idempotency binds the complete role classification.
+
+The drafts do not duplicate semantic memory and do not claim ordinary ChatGPT has mandatory lifecycle hooks.
 
 ## Future strict runtime
 
