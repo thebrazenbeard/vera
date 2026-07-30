@@ -1,0 +1,88 @@
+name: Memory cross-chat contract
+
+on:
+  push:
+    branches:
+      - feature/memory-cross-chat-contract-v1
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "supabase/migrations/20260730213000_harden_neutral_v3_memory_contract.sql"
+      - "supabase/tests/fixtures/neutral_v3_live_schema.sql"
+      - "supabase/tests/validate_neutral_v3_memory_contract.sql"
+      - "supabase/tests/exercise_neutral_v3_memory_save.sql"
+      - "supabase/tests/exercise_neutral_v3_memory_recall.sql"
+      - "docs/MEMORY_CROSS_CHAT_CONTRACT_V1.md"
+      - ".github/workflows/memory-cross-chat-contract.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-memory-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      PGDATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      SUPABASE_CLI_VERSION: 2.101.0
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+
+      - name: Verify pinned Supabase CLI
+        run: test "$(supabase --version)" = "$SUPABASE_CLI_VERSION"
+
+      - name: Initialize local Supabase configuration
+        run: |
+          if [ ! -f supabase/config.toml ]; then
+            supabase init
+          fi
+
+      - name: Stage repository migrations for explicit replay
+        run: |
+          rm -rf supabase/migrations.explicit
+          mv supabase/migrations supabase/migrations.explicit
+          mkdir -p supabase/migrations
+
+      - name: Start isolated local Supabase stack
+        run: supabase start
+
+      - name: Install observed neutral V3 live-schema fixture
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/tests/fixtures/neutral_v3_live_schema.sql
+
+      - name: Apply bounded Memory hardening migration
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/migrations.explicit/20260730213000_harden_neutral_v3_memory_contract.sql
+
+      - name: Run adversarial contract validation
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/tests/validate_neutral_v3_memory_contract.sql
+
+      - name: Save governed memory in first invocation
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/tests/exercise_neutral_v3_memory_save.sql
+
+      - name: Recall governed memory in independent invocation
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/tests/exercise_neutral_v3_memory_recall.sql
+
+      - name: Run database lint
+        run: supabase db lint --local
+
+      - name: Stop and delete local stack
+        if: always()
+        run: supabase stop --no-backup
