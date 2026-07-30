@@ -24,8 +24,14 @@ jobs:
           python-version: '3.12'
       - name: Run temporal enforcement tests
         run: python -m unittest discover -s tests -v
-      - name: Compile temporal enforcement module
-        run: python -m py_compile protocol/temporal_enforcement.py tests/test_temporal_enforcement.py
+      - name: Compile temporal enforcement modules
+        run: >-
+          python -m py_compile
+          protocol/temporal_enforcement.py
+          protocol/temporal_role_precision.py
+          protocol/__init__.py
+          tests/test_temporal_enforcement.py
+          tests/test_temporal_role_precision.py
 
   database-contract:
     runs-on: ubuntu-latest
@@ -58,6 +64,8 @@ jobs:
         run: supabase start
       - name: Apply temporal enforcement draft
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/drafts/20260730_temporal_enforcement_v1.sql
+      - name: Apply role-specific temporal precision draft
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/drafts/20260730_temporal_role_precision_v1.sql
       - name: Validate temporal enforcement database contract
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/validate_temporal_enforcement_v1.sql
       - name: Run database lint
