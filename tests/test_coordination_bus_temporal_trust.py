@@ -123,6 +123,20 @@ class TemporalEvidenceTrustTests(unittest.TestCase):
         )
         self.assertEqual(result.receipt.result_class, "INVALID")
 
+    def test_entry_evidence_cannot_replay_across_cursor(self):
+        envelope = self.authority.issue(
+            exact(T0, "cursor-bound"),
+            role="entry_time",
+            subject=entry_checkpoint_subject("workstream/time", 0, 100),
+        )
+        result = self.bus.entry_checkpoint(
+            self.time,
+            after_sequence=10,
+            limit=100,
+            entry_time=envelope,
+        )
+        self.assertEqual(result.receipt.result_class, "INVALID")
+
     def test_modified_claim_invalidates_token(self):
         subject = entry_checkpoint_subject("workstream/time", 0, 100)
         envelope = self.authority.issue(
@@ -140,18 +154,42 @@ class TemporalEvidenceTrustTests(unittest.TestCase):
         )
         self.assertEqual(result.receipt.result_class, "INVALID")
 
-    def test_acknowledgement_evidence_is_bound_to_event(self):
+    def test_unregistered_issuer_is_rejected(self):
+        other = HmacTemporalEvidenceAuthority(
+            "unregistered-clock", b"x" * 32
+        )
+        envelope = other.issue(
+            exact(T0, "unregistered"),
+            role="entry_time",
+            subject=entry_checkpoint_subject("workstream/time", 0, 100),
+        )
+        result = self.bus.entry_checkpoint(self.time, entry_time=envelope)
+        self.assertEqual(result.receipt.result_class, "INVALID")
+
+    def test_acknowledgement_evidence_is_bound_to_complete_operation(self):
         event = self.post_to_time()
+        summary = "Acknowledged."
+        payload = {"review": "started"}
+        reference_data = {"source_sequence": event.event_sequence}
         envelope = self.authority.issue(
             exact(T0, "ack"),
             role="acknowledgement_time",
-            subject=acknowledgement_subject(event.event_id),
+            subject=acknowledgement_subject(
+                event.event_id,
+                actor_workstream=self.time.workstream,
+                thread_key=event.thread_key,
+                summary=summary,
+                payload=payload,
+                reference_data=reference_data,
+            ),
         )
         result = self.bus.coordination_acknowledge(
             self.time,
             event_id=event.event_id,
-            summary="Acknowledged.",
+            summary=summary,
             acknowledgement_time=envelope,
+            payload=payload,
+            reference_data=reference_data,
         )
         self.assertEqual(result.receipt.result_class, "COMPLETE")
         self.assertEqual(
@@ -159,9 +197,62 @@ class TemporalEvidenceTrustTests(unittest.TestCase):
             "UNKNOWN",
         )
 
-    def test_exit_evidence_is_bound_to_transition_subject(self):
+    def test_acknowledgement_evidence_cannot_replay_with_changed_summary(self):
+        event = self.post_to_time()
+        envelope = self.authority.issue(
+            exact(T0, "ack-summary"),
+            role="acknowledgement_time",
+            subject=acknowledgement_subject(
+                event.event_id,
+                actor_workstream=self.time.workstream,
+                thread_key=event.thread_key,
+                summary="Original summary.",
+            ),
+        )
+        result = self.bus.coordination_acknowledge(
+            self.time,
+            event_id=event.event_id,
+            summary="Changed summary.",
+            acknowledgement_time=envelope,
+        )
+        self.assertEqual(result.receipt.result_class, "INVALID")
+        self.assertFalse(result.receipt.database_write_confirmed)
+
+    def test_acknowledgement_evidence_cannot_replay_with_changed_payload(self):
+        event = self.post_to_time()
+        envelope = self.authority.issue(
+            exact(T0, "ack-payload"),
+            role="acknowledgement_time",
+            subject=acknowledgement_subject(
+                event.event_id,
+                actor_workstream=self.time.workstream,
+                thread_key=event.thread_key,
+                summary="Acknowledged.",
+                payload={"stage": 1},
+            ),
+        )
+        result = self.bus.coordination_acknowledge(
+            self.time,
+            event_id=event.event_id,
+            summary="Acknowledged.",
+            acknowledgement_time=envelope,
+            payload={"stage": 2},
+        )
+        self.assertEqual(result.receipt.result_class, "INVALID")
+        self.assertFalse(result.receipt.database_write_confirmed)
+
+    def test_exit_evidence_is_bound_to_complete_transition(self):
+        objective = "Publish handoff"
+        summary = "Handoff ready."
+        status = "READY_FOR_REVIEW"
         subject = exit_checkpoint_subject(
-            "workstream/integration", "handoff", "workstream/time"
+            "workstream/integration",
+            "handoff",
+            "workstream/time",
+            objective=objective,
+            summary=summary,
+            material=True,
+            status=status,
         )
         event_envelope = self.authority.issue(
             exact(T0, "exit-event"),
@@ -177,9 +268,10 @@ class TemporalEvidenceTrustTests(unittest.TestCase):
             self.integration,
             thread_key="handoff",
             target_branch="workstream/time",
-            objective="Publish handoff",
-            summary="Handoff ready.",
+            objective=objective,
+            summary=summary,
             material=True,
+            status=status,
             event_time=event_envelope,
             state_time=state_envelope,
         )
@@ -187,6 +279,34 @@ class TemporalEvidenceTrustTests(unittest.TestCase):
         self.assertEqual(
             result.events[0].payload["temporal"]["event_time"]["value"], T0
         )
+
+    def test_exit_evidence_cannot_replay_with_changed_objective(self):
+        subject = exit_checkpoint_subject(
+            "workstream/integration",
+            "handoff",
+            "workstream/time",
+            objective="Original objective",
+            summary="Handoff ready.",
+            material=True,
+            status="READY_FOR_REVIEW",
+        )
+        envelope = self.authority.issue(
+            exact(T0, "exit-replay"),
+            role="event_time",
+            subject=subject,
+        )
+        result = self.bus.exit_checkpoint(
+            self.integration,
+            thread_key="handoff",
+            target_branch="workstream/time",
+            objective="Changed objective",
+            summary="Handoff ready.",
+            material=True,
+            status="READY_FOR_REVIEW",
+            event_time=envelope,
+        )
+        self.assertEqual(result.receipt.result_class, "INVALID")
+        self.assertFalse(result.receipt.database_write_confirmed)
 
     def test_unverified_receipt_provider_fails_closed_to_unknown(self):
         bus = CoordinationBus(
