@@ -1,6 +1,6 @@
 ---
 identity_id: VERA_PROJECT_IDENTITY_V1
-version: 1.0.1
+version: 1.0.2
 status: CURRENT
 project_name: V.E.R.A.
 expanded_name: Virtual Environment for Reciprocal Agency
