@@ -7,8 +7,8 @@ from typing import Any, Callable, Mapping, Sequence, TypeVar, cast
 
 from .contracts import (
     ActorContext, CoordinationEvent, CoordinationEventDraft, CoordinationRepository,
-    CoordinationResult, Operation, PERMISSION_ACKNOWLEDGE, PERMISSION_POST,
-    PERMISSION_READ_ANY, PERMISSION_READ_SELF, PERMISSION_RESOLVE,
+    CoordinationResult, Operation, PERMISSION_ACKNOWLEDGE, PERMISSION_DECIDE,
+    PERMISSION_POST, PERMISSION_READ_ANY, PERMISSION_READ_SELF, PERMISSION_RESOLVE,
     PERMISSION_REVIEW, PERMISSION_STATUS, RepositoryConflict, ResultClass,
     make_result, validate_text, validate_workstream,
 )
@@ -19,14 +19,12 @@ F = TypeVar("F", bound=Callable[..., CoordinationResult])
 def _receipted(operation: Operation) -> Callable[[F], F]:
     def decorate(function: F) -> F:
         @wraps(function)
-        def wrapped(
-            self: "CoordinationBus", actor: ActorContext, *args: Any, **kwargs: Any
-        ) -> CoordinationResult:
+        def wrapped(self: "CoordinationBus", actor: ActorContext, *args: Any, **kwargs: Any) -> CoordinationResult:
             try:
                 return function(self, actor, *args, **kwargs)
             except PermissionError as exc:
                 return self._failure(operation, actor, "DENIED", exc, args, kwargs)
-            except ValueError as exc:
+            except (TypeError, ValueError) as exc:
                 return self._failure(operation, actor, "INVALID", exc, args, kwargs)
             except RepositoryConflict as exc:
                 return self._failure(operation, actor, "CONFLICT", exc, args, kwargs)
@@ -72,11 +70,16 @@ class CoordinationBus:
         return self._append(
             "coordination_acknowledge", actor,
             CoordinationEventDraft(
-                thread_key=original.thread_key, source_branch=actor.workstream,
-                target_branch=original.source_branch, event_type="ACKNOWLEDGEMENT",
-                status="ACKNOWLEDGED", objective=original.objective,
-                summary=summary, acknowledges_event_id=original.event_id,
-                payload=payload or {}, reference_data=reference_data or {},
+                thread_key=original.thread_key,
+                source_branch=actor.canonical_workstream,
+                target_branch=original.source_branch,
+                event_type="ACKNOWLEDGEMENT",
+                status="ACKNOWLEDGED",
+                objective=original.objective,
+                summary=summary,
+                acknowledges_event_id=original.event_id,
+                payload=payload or {},
+                reference_data=reference_data or {},
             ),
         )
 
@@ -94,11 +97,17 @@ class CoordinationBus:
         return self._append(
             "coordination_publish_status", actor,
             CoordinationEventDraft(
-                thread_key=thread_key, source_branch=actor.workstream,
-                target_branch=target_branch, event_type="STATUS", status=status,
-                objective=objective, summary=summary, active_issue=active_issue,
+                thread_key=thread_key,
+                source_branch=actor.canonical_workstream,
+                target_branch=target_branch,
+                event_type="STATUS",
+                status=status,
+                objective=objective,
+                summary=summary,
+                active_issue=active_issue,
                 acknowledges_event_id=acknowledges_event_id,
-                supersedes_event_id=supersedes_event_id, payload=payload or {},
+                supersedes_event_id=supersedes_event_id,
+                payload=payload or {},
                 reference_data=reference_data or {},
             ),
         )
@@ -116,12 +125,17 @@ class CoordinationBus:
         return self._append(
             "coordination_request_review", actor,
             CoordinationEventDraft(
-                thread_key=thread_key, source_branch=actor.workstream,
-                target_branch=target_branch, event_type="STATUS",
-                status="READY_FOR_REVIEW", objective=objective, summary=summary,
+                thread_key=thread_key,
+                source_branch=actor.canonical_workstream,
+                target_branch=target_branch,
+                event_type="STATUS",
+                status="READY_FOR_REVIEW",
+                objective=objective,
+                summary=summary,
                 requested_perspective=requested_perspective,
                 acknowledges_event_id=acknowledges_event_id,
-                payload=payload or {}, reference_data=reference_data or {},
+                payload=payload or {},
+                reference_data=reference_data or {},
             ),
         )
 
@@ -133,19 +147,25 @@ class CoordinationBus:
     ) -> CoordinationResult:
         actor.require(PERMISSION_RESOLVE)
         original = self._event(acknowledges_event_id)
-        if actor.workstream not in {original.source_branch, original.target_branch}:
+        if actor.canonical_workstream not in {original.source_branch, original.target_branch}:
             raise PermissionError("only a participant may resolve the thread")
         target = (
             original.source_branch
-            if actor.workstream != original.source_branch else original.target_branch
+            if actor.canonical_workstream != original.source_branch
+            else original.target_branch
         )
         return self._append(
             "coordination_resolve_thread", actor,
             CoordinationEventDraft(
-                thread_key=original.thread_key, source_branch=actor.workstream,
-                target_branch=target, event_type="RESOLUTION", status="RESOLVED",
-                objective=original.objective, summary=summary,
-                acknowledges_event_id=original.event_id, payload=payload or {},
+                thread_key=original.thread_key,
+                source_branch=actor.canonical_workstream,
+                target_branch=target,
+                event_type="RESOLUTION",
+                status="RESOLVED",
+                objective=original.objective,
+                summary=summary,
+                acknowledges_event_id=original.event_id,
+                payload=payload or {},
                 reference_data=reference_data or {},
             ),
         )
@@ -155,8 +175,8 @@ class CoordinationBus:
         self, actor: ActorContext, *, after_sequence: int = 0, limit: int = 100
     ) -> CoordinationResult:
         return self._read(
-            "coordination_entry_checkpoint", actor, actor.workstream,
-            after_sequence, limit, False,
+            "coordination_entry_checkpoint", actor,
+            actor.canonical_workstream, after_sequence, limit, False,
         )
 
     @_receipted("coordination_exit_checkpoint")
@@ -178,9 +198,14 @@ class CoordinationBus:
         return self._append(
             "coordination_exit_checkpoint", actor,
             CoordinationEventDraft(
-                thread_key=thread_key, source_branch=actor.workstream,
-                target_branch=target_branch, event_type="STATUS", status=status,
-                objective=objective, summary=summary, active_issue=active_issue,
+                thread_key=thread_key,
+                source_branch=actor.canonical_workstream,
+                target_branch=target_branch,
+                event_type="STATUS",
+                status=status,
+                objective=objective,
+                summary=summary,
+                active_issue=active_issue,
                 acknowledges_event_id=acknowledges_event_id,
                 reference_data=reference_data or {},
             ),
@@ -192,17 +217,21 @@ class CoordinationBus:
         include_acknowledged: bool,
     ) -> CoordinationResult:
         actor.validate()
-        target = target_branch or actor.workstream
+        target = target_branch or actor.canonical_workstream
         validate_workstream(target, "target_branch")
         actor.require(
-            PERMISSION_READ_SELF if target == actor.workstream else PERMISSION_READ_ANY
+            PERMISSION_READ_SELF
+            if target == actor.canonical_workstream
+            else PERMISSION_READ_ANY
         )
         if after_sequence < 0:
             raise ValueError("after_sequence must be non-negative")
         if not 1 <= limit <= 500:
             raise ValueError("limit must be between 1 and 500")
         events = self.repository.read_inbox(
-            target, after_sequence=after_sequence, limit=limit,
+            target,
+            after_sequence=after_sequence,
+            limit=limit,
             include_acknowledged=include_acknowledged,
         )
         return make_result(
@@ -220,7 +249,7 @@ class CoordinationBus:
     ) -> CoordinationResult:
         actor.validate()
         draft.validate()
-        if draft.source_branch != actor.workstream:
+        if draft.source_branch != actor.canonical_workstream:
             raise PermissionError("source_branch must equal actor workstream")
         self._lineage(draft)
         event = self.repository.append(draft)
@@ -256,14 +285,18 @@ class CoordinationBus:
         if draft.event_type == "RESOLUTION":
             actor.require(PERMISSION_RESOLVE)
             original = self._event(draft.acknowledges_event_id or "")
-            if actor.workstream not in {original.source_branch, original.target_branch}:
+            if actor.canonical_workstream not in {original.source_branch, original.target_branch}:
                 raise PermissionError("only a participant may resolve the thread")
             target = (
                 original.source_branch
-                if actor.workstream != original.source_branch else original.target_branch
+                if actor.canonical_workstream != original.source_branch
+                else original.target_branch
             )
             if draft.target_branch != target:
                 raise PermissionError("resolution target must be other participant")
+            return
+        if draft.event_type == "DECISION":
+            actor.require(PERMISSION_DECIDE)
             return
         actor.require(PERMISSION_POST)
 
@@ -293,7 +326,7 @@ class CoordinationBus:
 
     @staticmethod
     def _addressed_target(actor: ActorContext, event: CoordinationEvent) -> None:
-        if event.target_branch != actor.workstream:
+        if event.target_branch != actor.canonical_workstream:
             raise PermissionError("only addressed target may acknowledge or review")
 
     def _failure(
