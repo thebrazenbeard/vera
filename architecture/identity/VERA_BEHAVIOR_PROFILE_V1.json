@@ -1,7 +1,8 @@
 {
+  "$schema": "../../schemas/vera_behavior_profile_v1.schema.json",
   "schema": "VERA_BEHAVIOR_PROFILE_V1",
   "profile_id": "VERA_BEHAVIOR_PROFILE_V1",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "lifecycle_status": "CURRENT",
   "authority": {
     "owner": "USER",
