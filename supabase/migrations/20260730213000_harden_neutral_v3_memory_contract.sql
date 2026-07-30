@@ -46,11 +46,7 @@ begin
   if exists (
     select 1
     from (
-      select
-        e.project_id,
-        e.branch_id,
-        e.record_key,
-        count(*) as head_count
+      select e.project_id, e.branch_id, e.record_key, count(*) as head_count
       from public.vera_context_events_v3 e
       where not exists (
         select 1
@@ -167,8 +163,10 @@ begin
 end;
 $$;
 
-revoke all on function public.enforce_vera_context_v3_lineage() from public, anon, authenticated;
-revoke all on function public.block_vera_context_v3_mutation() from public, anon, authenticated;
+revoke all on function public.enforce_vera_context_v3_lineage()
+  from public, anon, authenticated;
+revoke all on function public.block_vera_context_v3_mutation()
+  from public, anon, authenticated;
 
 drop trigger if exists vera_context_events_v3_enforce_lineage
   on public.vera_context_events_v3;
@@ -254,8 +252,17 @@ as $$
 declare
   stored public.vera_context_events_v3%rowtype;
   unknown_key text;
+  normalized_payload jsonb := coalesce(p_record->'payload', '{}'::jsonb);
+  normalized_limitations jsonb := coalesce(p_record->'limitations', '[]'::jsonb);
+  event_time_value timestamptz;
+  state_time_value timestamptz;
+  event_precision text;
+  state_precision text;
+  state_derivation jsonb;
+  derivation_method text;
+  derivation_limitation text;
 begin
-  if p_request_id is null or not btrim(p_request_id) <> '' then
+  if p_request_id is null or coalesce(btrim(p_request_id), '') = '' then
     raise exception 'p_request_id must be non-empty';
   end if;
 
@@ -289,6 +296,101 @@ begin
     raise exception 'p_record is missing a required non-empty field';
   end if;
 
+  if jsonb_typeof(normalized_payload) <> 'object' then
+    raise exception 'payload must be a JSON object';
+  end if;
+  if jsonb_typeof(normalized_limitations) <> 'array' then
+    raise exception 'limitations must be a JSON array';
+  end if;
+
+  event_time_value := nullif(p_record->>'event_time', '')::timestamptz;
+  state_time_value := nullif(p_record->>'state_time', '')::timestamptz;
+
+  if normalized_payload->'temporal' is null then
+    normalized_payload := jsonb_set(normalized_payload, '{temporal}', '{}'::jsonb, true);
+  elsif jsonb_typeof(normalized_payload->'temporal') <> 'object' then
+    raise exception 'payload.temporal must be a JSON object';
+  end if;
+
+  if normalized_payload#>'{temporal,event_time}' is null then
+    normalized_payload := jsonb_set(
+      normalized_payload, '{temporal,event_time}', '{}'::jsonb, true
+    );
+  elsif jsonb_typeof(normalized_payload#>'{temporal,event_time}') <> 'object' then
+    raise exception 'payload.temporal.event_time must be a JSON object';
+  end if;
+
+  if normalized_payload#>'{temporal,state_time}' is null then
+    normalized_payload := jsonb_set(
+      normalized_payload, '{temporal,state_time}', '{}'::jsonb, true
+    );
+  elsif jsonb_typeof(normalized_payload#>'{temporal,state_time}') <> 'object' then
+    raise exception 'payload.temporal.state_time must be a JSON object';
+  end if;
+
+  event_precision := normalized_payload#>>'{temporal,event_time,precision}';
+  if event_precision is null then
+    event_precision := 'UNKNOWN';
+    normalized_payload := jsonb_set(
+      normalized_payload,
+      '{temporal,event_time,precision}',
+      to_jsonb(event_precision),
+      true
+    );
+  end if;
+
+  state_precision := normalized_payload#>>'{temporal,state_time,precision}';
+  if state_precision is null then
+    state_precision := 'UNKNOWN';
+    normalized_payload := jsonb_set(
+      normalized_payload,
+      '{temporal,state_time,precision}',
+      to_jsonb(state_precision),
+      true
+    );
+  end if;
+
+  if event_precision not in ('EXACT', 'BOUNDED', 'APPROXIMATE', 'UNKNOWN') then
+    raise exception 'event_time precision must be EXACT, BOUNDED, APPROXIMATE, or UNKNOWN';
+  end if;
+  if state_precision not in ('EXACT', 'BOUNDED', 'APPROXIMATE', 'UNKNOWN') then
+    raise exception 'state_time precision must be EXACT, BOUNDED, APPROXIMATE, or UNKNOWN';
+  end if;
+
+  if event_time_value is null and event_precision <> 'UNKNOWN' then
+    raise exception 'event_time without a timestamp must use UNKNOWN precision';
+  end if;
+  if state_time_value is null and state_precision <> 'UNKNOWN' then
+    raise exception 'state_time without a timestamp must use UNKNOWN precision';
+  end if;
+
+  state_derivation := normalized_payload#>'{temporal,state_time,derivation}';
+  if state_derivation is not null then
+    if state_time_value is null then
+      raise exception 'derived state_time requires an explicit timestamp';
+    end if;
+    if jsonb_typeof(state_derivation) <> 'object' then
+      raise exception 'state_time derivation must be a JSON object';
+    end if;
+
+    derivation_method := btrim(coalesce(state_derivation->>'method', ''));
+    derivation_limitation := btrim(coalesce(state_derivation->>'limitation', ''));
+
+    if derivation_method = '' then
+      raise exception 'derived state_time requires a non-empty derivation method';
+    end if;
+    if jsonb_typeof(state_derivation->'source_evidence') <> 'array'
+       or jsonb_array_length(state_derivation->'source_evidence') = 0 then
+      raise exception 'derived state_time requires non-empty source_evidence';
+    end if;
+    if derivation_limitation = '' then
+      raise exception 'derived state_time requires a non-empty limitation';
+    end if;
+    if not normalized_limitations @> jsonb_build_array(derivation_limitation) then
+      raise exception 'derived state_time limitation must also appear in record limitations';
+    end if;
+  end if;
+
   insert into public.vera_context_events_v3 (
     project_id,
     branch_id,
@@ -318,14 +420,14 @@ begin
     p_record->>'epistemic_status',
     p_record->>'source_actor',
     p_record->>'privacy_scope',
-    nullif(p_record->>'event_time', '')::timestamptz,
-    coalesce(nullif(p_record->>'state_time', '')::timestamptz, clock_timestamp()),
+    event_time_value,
+    state_time_value,
     nullif(p_record->>'supersedes_record_id', '')::uuid,
     nullif(p_record->>'legacy_record_id', '')::uuid,
-    coalesce(p_record->'payload', '{}'::jsonb),
+    normalized_payload,
     coalesce(p_record->'source_evidence', '[]'::jsonb),
     coalesce(p_record->'semantic_tags', '{}'::jsonb),
-    coalesce(p_record->'limitations', '[]'::jsonb),
+    normalized_limitations,
     p_record->>'notes'
   )
   returning * into stored;
@@ -347,7 +449,7 @@ begin
     'limitations', jsonb_build_array(
       'The receipt proves a database write, not lived memory or hidden synchronization.'
     ),
-    'timestamp', stored.record_time
+    'record_time', stored.record_time
   );
 end;
 $$;
@@ -369,7 +471,7 @@ as $$
 declare
   recalled_records jsonb;
   recalled_ids jsonb;
-  retrieved_at timestamptz := clock_timestamp();
+  retrieval_time timestamptz := clock_timestamp();
 begin
   if p_request_id is null or coalesce(btrim(p_request_id), '') = '' then
     raise exception 'p_request_id must be non-empty';
@@ -442,9 +544,10 @@ begin
     ),
     'limitations', jsonb_build_array(
       'Retrieval proves an exposed database read, not recollection or hidden continuity.',
+      'retrieval_time is the database invocation time of this recall only; it is not event_time, state_time, record_time, delivery time, recollection time, or receipt-generation time.',
       'This bounded function performs exact-key filtering, not semantic expansion.'
     ),
-    'timestamp', retrieved_at
+    'retrieval_time', retrieval_time
   );
 end;
 $$;
@@ -479,6 +582,10 @@ grant select on table public.vera_current_context_v3 to service_role;
 
 comment on table public.vera_context_events_v3 is
   'Append-only neutral V.E.R.A. context records. Database receipts prove exposed persistence only.';
+comment on column public.vera_context_events_v3.event_time is
+  'Source-supported event time. Precision is explicit in payload.temporal.event_time.precision and defaults to UNKNOWN, never silently EXACT.';
+comment on column public.vera_context_events_v3.state_time is
+  'Represented state time. Missing state_time remains NULL; precision is explicit in payload.temporal.state_time.precision.';
 comment on column public.vera_context_events_v3.record_time is
   'Database-assigned persistence time. Caller-supplied values are overwritten by the insert trigger.';
 comment on view public.vera_current_context_v3 is
@@ -486,10 +593,10 @@ comment on view public.vera_current_context_v3 is
 comment on view public.vera_context_lineage_conflicts_v3 is
   'Diagnostic view for scoped keys with multiple lineage heads. Conflicts are exposed, not timestamp-resolved.';
 comment on function public.append_vera_context_v3(text, jsonb) is
-  'Receipt-producing bounded append interface for neutral V3 context records.';
+  'Receipt-producing bounded append interface with explicit temporal precision and evidence-backed derived state_time handling.';
 comment on function public.recall_vera_context_v3(
   text, text, text, text[], text[], boolean, integer
 ) is
-  'Receipt-producing exact-key recall with project, branch, lifecycle, privacy, lineage, and model-claim filters.';
+  'Receipt-producing exact-key recall with an explicit retrieval_time distinct from event, state, record, delivery, recollection, and receipt-generation time.';
 
 commit;
