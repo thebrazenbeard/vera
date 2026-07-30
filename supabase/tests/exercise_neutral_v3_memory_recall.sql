@@ -79,9 +79,10 @@ begin
 
   if jsonb_array_length(receipt->'records') <> 1
      or receipt#>>'{records,0,statement}' <> 'Foreign branch memory value.'
-     or receipt#>>'{records,0,state_time}' is not null
-     or receipt#>>'{records,0,payload,temporal,state_time,precision}' <> 'UNKNOWN' then
-    raise exception 'recall exercise failed: branch-b record not isolated or unknown state_time was altered: %', receipt;
+     or receipt#>>'{records,0,payload,temporal,state_time,precision}' <> 'UNKNOWN'
+     or receipt#>>'{records,0,payload,temporal,state_time,storage,mode}' <> 'NOT_NULL_COMPATIBILITY_SENTINEL'
+     or receipt#>>'{records,0,payload,temporal,state_time,storage,temporal_claim}' <> 'false' then
+    raise exception 'recall exercise failed: branch-b record not isolated or unknown state_time was misrepresented: %', receipt;
   end if;
 
   receipt := public.recall_vera_context_v3(
