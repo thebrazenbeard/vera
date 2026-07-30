@@ -42,7 +42,7 @@ class InMemoryCoordinationRepository:
         self, target_branch: str, *, after_sequence: int = 0, limit: int = 100,
         include_acknowledged: bool = False,
     ) -> tuple[CoordinationEvent, ...]:
-        consumed = {
+        acknowledged_or_responded = {
             event.acknowledges_event_id for event in self._events
             if event.source_branch == target_branch and event.acknowledges_event_id
         }
@@ -50,6 +50,6 @@ class InMemoryCoordinationRepository:
             event for event in self._events
             if event.target_branch == target_branch
             and event.event_sequence > after_sequence
-            and (include_acknowledged or event.event_id not in consumed)
+            and (include_acknowledged or event.event_id not in acknowledged_or_responded)
         ]
         return tuple(sorted(events, key=lambda item: item.event_sequence)[:limit])
