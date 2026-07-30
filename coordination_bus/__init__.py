@@ -21,17 +21,20 @@ from .temporal import (
     TemporalEvidence,
 )
 from .verified_temporal import (
-    CoordinationBus,
+    CoordinationBus as VerifierBoundCoordinationBus,
     EVIDENCE_ENVELOPE_SCHEMA,
     HmacTemporalEvidenceAuthority,
     ReceiptTimeProvider,
     TemporalEvidenceEnvelope,
     TemporalEvidenceInput,
     TemporalEvidenceVerifier,
+    receipt_subject,
+)
+from .strict_temporal import (
+    CoordinationBus,
     acknowledgement_subject,
     entry_checkpoint_subject,
     exit_checkpoint_subject,
-    receipt_subject,
 )
 
 __all__ = [name for name in globals() if not name.startswith("_")]
