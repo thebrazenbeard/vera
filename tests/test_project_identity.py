@@ -107,8 +107,8 @@ class ProjectIdentityContractTests(unittest.TestCase):
                 authority["unexpected"] = "not allowed"
 
             errors = self.mutate_json(target_root, self.artifacts[0], mutation)
-            self.assertTrue(any("MODEL" in error for error in errors))
-            self.assertTrue(any("unexpected" in error for error in errors))
+            self.assertTrue(any("$.authority.owner" in error and "USER" in error for error in errors))
+            self.assertTrue(any("$.authority" in error and "unexpected" in error for error in errors))
 
     def test_behavior_profile_cannot_silently_self_promote(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
