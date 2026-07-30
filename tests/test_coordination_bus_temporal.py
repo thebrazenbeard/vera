@@ -126,14 +126,21 @@ class TemporalCoordinationTests(unittest.TestCase):
     def test_acknowledgement_does_not_invent_consumption_time(self):
         self.post_to_time("ack-thread")
         original = self.repo._events[-1]
+        summary = "Acknowledged for review."
+        subject = acknowledgement_subject(
+            original.event_id,
+            actor_workstream=self.time.workstream,
+            thread_key=original.thread_key,
+            summary=summary,
+        )
         result = self.bus.coordination_acknowledge(
             self.time,
             event_id=original.event_id,
-            summary="Acknowledged for review.",
+            summary=summary,
             acknowledgement_time=self.authority.issue(
                 exact(T1, "acknowledgement"),
                 role="acknowledgement_time",
-                subject=acknowledgement_subject(original.event_id),
+                subject=subject,
             ),
         )
         temporal = result.events[0].payload["temporal"]
@@ -148,17 +155,26 @@ class TemporalCoordinationTests(unittest.TestCase):
         )
 
     def test_material_exit_separates_event_state_and_record_time(self):
+        objective = "Publish bounded handoff"
+        summary = "Temporal review completed."
+        status = "READY_FOR_REVIEW"
         subject = exit_checkpoint_subject(
-            "workstream/integration", "exit-thread", "workstream/time"
+            "workstream/integration",
+            "exit-thread",
+            "workstream/time",
+            objective=objective,
+            summary=summary,
+            material=True,
+            status=status,
         )
         result = self.bus.exit_checkpoint(
             self.integration,
             thread_key="exit-thread",
             target_branch="workstream/time",
-            objective="Publish bounded handoff",
-            summary="Temporal review completed.",
+            objective=objective,
+            summary=summary,
             material=True,
-            status="READY_FOR_REVIEW",
+            status=status,
             event_time=self.authority.issue(
                 exact(T0, "event"),
                 role="event_time",
