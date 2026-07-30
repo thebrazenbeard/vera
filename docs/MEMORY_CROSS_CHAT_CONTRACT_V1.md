@@ -6,6 +6,8 @@ Bounded Memory workstream implementation on `feature/memory-cross-chat-contract-
 
 It is not applied to production. It does not authorize merge, production migration, legacy-row modification, Basic Memory projection, or claims of automatic ChatGPT Project recall.
 
+The temporal-field correction requested by `workstream/time` in coordination event `30d68439-dbe3-402f-962f-4b0e8f6acab2` is implemented on the branch and remains pending CI and temporal re-review.
+
 ## Objective
 
 Prove the smallest honest governed memory cycle:
@@ -40,6 +42,11 @@ The live implementation before this branch does not yet enforce the full governe
 - no append-only update/delete trigger protects neutral V3 rows;
 - `service_role` retains direct update, delete, and truncate privileges;
 - no receipt-producing save or recall interface exists.
+
+The first Memory draft also contained two temporal defects found during `workstream/time` review:
+
+- omitted `state_time` was replaced with database `clock_timestamp()`, inventing an exact state-effective time;
+- recall invocation time was returned through an ambiguous generic `timestamp` key.
 
 The uploaded R6A0 package was a validated local candidate that explicitly reported no production changes. The live Supabase project has since advanced beyond that package by installing neutral V3, so this branch treats the live database as the current implementation baseline while preserving R6A0 governance.
 
@@ -115,14 +122,63 @@ The current projection returns one unambiguous unsuperseded head per project, br
 - relies on V3 type, JSON-shape, provenance, semantic-index, and model-classification constraints;
 - applies database lineage and append-only enforcement;
 - assigns persistence time in the database;
+- preserves omitted `event_time` and `state_time` as `NULL`;
+- stores temporal precision under `payload.temporal`;
 - returns a `VERA_MVE_RECEIPT_V3` save receipt containing the stored record ID and stored row.
 
-A successful receipt reports:
+### Temporal precision
+
+Temporal uncertainty uses the existing payload boundary rather than adding columns:
+
+```yaml
+payload:
+  temporal:
+    event_time:
+      precision: EXACT | BOUNDED | APPROXIMATE | UNKNOWN
+    state_time:
+      precision: EXACT | BOUNDED | APPROXIMATE | UNKNOWN
+```
+
+Rules:
+
+- omitted times remain SQL `NULL` and are stored with `UNKNOWN` precision;
+- caller-provided timestamps without an explicit supported precision are stored as `UNKNOWN`, never silently promoted to `EXACT`;
+- non-`UNKNOWN` precision is rejected when the corresponding timestamp is absent;
+- unsupported precision values are rejected;
+- existing pre-migration records are not rewritten or retroactively classified.
+
+A derived `state_time` is represented inside the existing payload and limitations boundaries:
+
+```yaml
+payload:
+  temporal:
+    state_time:
+      precision: APPROXIMATE
+      derivation:
+        method: sequence interpolation
+        source_evidence:
+          - event_sequence: 29
+          - event_sequence: 31
+        limitation: Derived time depends on the cited sequence evidence.
+limitations:
+  - Derived time depends on the cited sequence evidence.
+```
+
+The append interface accepts a derivation only when:
+
+- `state_time` is explicitly supplied;
+- `derivation` is an object;
+- `method` is non-empty;
+- `source_evidence` is a non-empty array;
+- `limitation` is non-empty and appears in the record-level `limitations` array.
+
+A successful save receipt reports:
 
 ```yaml
 operation: SAVE
 result_class: COMPLETE
 outcome_code: MVE_SAVE_COMPLETE
+record_time: <database persistence time>
 write:
   external_persistence: CONFIRMED_BY_DATABASE
   transactional_writeback: COMPLETED
@@ -151,12 +207,24 @@ A successful receipt reports:
 operation: RECALL
 result_class: COMPLETE
 outcome_code: MVE_RECALL_COMPLETE
+retrieval_time: <database invocation time of this recall>
 retrieval:
   completeness: COMPLETE_RELATIVE_TO_QUERY_SCOPE
 write:
   external_persistence: READ_CONFIRMED
   transactional_writeback: NOT_APPLICABLE
 ```
+
+`retrieval_time` is only the database invocation time of that recall operation. It is not:
+
+- `event_time`;
+- `state_time`;
+- `record_time`;
+- delivery time;
+- recollection time;
+- receipt-generation time.
+
+The recall receipt no longer contains the ambiguous generic `timestamp` key.
 
 This bounded function performs exact-key retrieval. Semantic expansion remains a later Memory slice and must reapply the same governance filters after expansion.
 
@@ -180,14 +248,15 @@ The CI workflow uses an isolated local Supabase stack and runs:
 3. the bounded provenance-governance migration;
 4. adversarial structural, lineage, access, and append-only validation;
 5. adversarial provenance and model-classification validation;
-6. a first `psql` invocation that commits governed test records and verifies save receipts;
-7. a separate `psql` invocation that recalls the committed records and verifies recall receipts;
-8. database lint;
-9. stack destruction.
+6. adversarial temporal-field and derivation validation;
+7. a first `psql` invocation that commits governed test records and verifies save receipts;
+8. a separate `psql` invocation that recalls the committed records and verifies recall receipts;
+9. database lint;
+10. stack destruction.
 
 The recall invocation proves that retrieval does not depend on transaction-local variables or one model turn. It does not yet prove persistence across real ChatGPT chats because production application and a production test write remain separately gated.
 
-## Tested exclusion cases
+## Tested exclusion and temporal cases
 
 The validation suite requires all of the following:
 
@@ -207,18 +276,27 @@ The validation suite requires all of the following:
 - empty semantic indexing is rejected;
 - model output cannot be inserted with stronger authority;
 - client roles cannot access governed memory;
+- omitted event and state times remain `NULL` with `UNKNOWN` precision;
+- supplied timestamps without precision remain `UNKNOWN`, not silently `EXACT`;
+- explicit `EXACT`, `BOUNDED`, and `APPROXIMATE` values are preserved;
+- unsupported temporal precision is rejected;
+- a derived `state_time` without evidence and a matching limitation is rejected;
+- an evidence-backed derived `state_time` is preserved with its limitation;
+- recall emits `retrieval_time` and no generic `timestamp`;
 - save and recall each emit externally verifiable receipts.
 
 ## Temporal boundary
 
-Memory preserves:
+Memory preserves temporal content without interpreting temporal meaning beyond the supplied evidence:
 
-- `event_time` supplied with source-supported record content;
-- `state_time` supplied with the represented state;
-- database-assigned `record_time`;
-- retrieval timestamp emitted in the recall receipt.
+- source-supported `event_time`, or `NULL` when absent;
+- represented `state_time`, or `NULL` when absent;
+- explicit precision metadata: `EXACT`, `BOUNDED`, `APPROXIMATE`, or `UNKNOWN`;
+- explicit evidence and limitations for derived `state_time`;
+- database-assigned `record_time` as persistence evidence;
+- explicit `retrieval_time` as recall-invocation evidence.
 
-Memory does not calculate elapsed time, infer continuity, or redefine temporal precision. Compatibility review is requested from the `workstream/time` route through the Supabase coordination ledger.
+Memory does not calculate elapsed time, infer continuity, convert missing time into database now, or silently assign exact precision. Temporal meaning and precision rules remain subject to `workstream/time` review.
 
 ## Initiatives boundary
 
