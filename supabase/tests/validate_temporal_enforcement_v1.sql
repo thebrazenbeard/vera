@@ -251,9 +251,11 @@ do $$
 begin
     if has_table_privilege('service_role', 'public.vera_temporal_events_v1', 'UPDATE')
        or has_table_privilege('service_role', 'public.vera_temporal_events_v1', 'DELETE')
+       or has_table_privilege('service_role', 'public.vera_temporal_events_v1', 'INSERT')
        or not has_table_privilege('service_role', 'public.vera_temporal_events_v1', 'SELECT')
-       or not has_table_privilege('service_role', 'public.vera_temporal_events_v1', 'INSERT') then
-        raise exception 'service_role privileges are not select/insert only';
+       or has_sequence_privilege('service_role', 'public.vera_temporal_events_v1_event_sequence_seq', 'USAGE')
+       or not has_function_privilege('service_role', 'public.append_vera_temporal_event_v1(jsonb)', 'EXECUTE') then
+        raise exception 'service_role privileges do not enforce governed append-only access';
     end if;
 end;
 $$;
