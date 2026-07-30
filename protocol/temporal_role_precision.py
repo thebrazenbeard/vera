@@ -1,18 +1,37 @@
 """Role-specific temporal precision for the V.E.R.A. enforcement kernel.
 
-The original bounded kernel attached one precision value to ``event_time`` while
-also carrying state, record, and retrieval timestamps. This strict layer makes
-precision explicit for every temporal role and binds the complete shape to the
-external evidence verifier.
+The strict layer keeps event, state, record, and retrieval time independent.
+Persistence time never substitutes for represented-state freshness, and elapsed
+calculations must name the temporal role they compare.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from datetime import datetime, timedelta
+from enum import Enum
 from typing import Any
 
 from . import temporal_enforcement as legacy
+
+
+class TemporalRole(str, Enum):
+    EVENT_TIME = "event_time"
+    STATE_TIME = "state_time"
+    RECORD_TIME = "record_time"
+    RETRIEVAL_TIME = "retrieval_time"
+
+
+MEMORY_UNKNOWN_STATE_TIME_SENTINEL = "-infinity"
+
+
+def _normalize_role(role: TemporalRole | str) -> TemporalRole:
+    if isinstance(role, TemporalRole):
+        return role
+    try:
+        return TemporalRole(role)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"unsupported temporal role: {role!r}") from exc
 
 
 @dataclass(frozen=True)
@@ -55,11 +74,13 @@ class RoleTemporalPoint:
         )
         lower = (
             legacy._as_aware_datetime(lower_bound, f"{role}_lower_bound")
-            if lower_bound is not None else None
+            if lower_bound is not None
+            else None
         )
         upper = (
             legacy._as_aware_datetime(upper_bound, f"{role}_upper_bound")
-            if upper_bound is not None else None
+            if upper_bound is not None
+            else None
         )
 
         if precision is legacy.TemporalPrecision.EXACT:
@@ -87,76 +108,160 @@ class RoleTemporalPoint:
             raise ValueError("role temporal point requires confirmed evidence claim")
         legacy._nonblank(self.scope_instance_id, "scope_instance_id")
 
-        self._validate_role(
-            role="event_time",
-            value=self.event_time,
-            precision=self.event_time_precision,
-            lower_bound=self.event_time_lower_bound,
-            upper_bound=self.event_time_upper_bound,
-        )
-        self._validate_role(
-            role="state_time",
-            value=self.state_time,
-            precision=self.state_time_precision,
-            lower_bound=self.state_time_lower_bound,
-            upper_bound=self.state_time_upper_bound,
-        )
-        self._validate_role(
-            role="record_time",
-            value=self.record_time,
-            precision=self.record_time_precision,
-            lower_bound=self.record_time_lower_bound,
-            upper_bound=self.record_time_upper_bound,
-        )
-        self._validate_role(
-            role="retrieval_time",
-            value=self.retrieval_time,
-            precision=self.retrieval_time_precision,
-            lower_bound=self.retrieval_time_lower_bound,
-            upper_bound=self.retrieval_time_upper_bound,
-        )
+        for role in TemporalRole:
+            self._validate_role(
+                role=role.value,
+                value=self.role_value(role),
+                precision=self.role_precision(role),
+                lower_bound=self.role_lower_bound(role),
+                upper_bound=self.role_upper_bound(role),
+            )
 
-    @property
-    def best_time(self) -> datetime | None:
-        if self.event_time_precision is legacy.TemporalPrecision.UNKNOWN:
+    def role_value(self, role: TemporalRole | str) -> datetime | str | None:
+        normalized = _normalize_role(role)
+        return getattr(self, normalized.value)
+
+    def role_precision(
+        self, role: TemporalRole | str
+    ) -> legacy.TemporalPrecision:
+        normalized = _normalize_role(role)
+        return getattr(self, f"{normalized.value}_precision")
+
+    def role_lower_bound(
+        self, role: TemporalRole | str
+    ) -> datetime | str | None:
+        normalized = _normalize_role(role)
+        return getattr(self, f"{normalized.value}_lower_bound")
+
+    def role_upper_bound(
+        self, role: TemporalRole | str
+    ) -> datetime | str | None:
+        normalized = _normalize_role(role)
+        return getattr(self, f"{normalized.value}_upper_bound")
+
+    def role_best_time(self, role: TemporalRole | str) -> datetime | None:
+        normalized = _normalize_role(role)
+        if self.role_precision(normalized) is legacy.TemporalPrecision.UNKNOWN:
             return None
-        assert self.event_time is not None
-        return legacy._as_aware_datetime(self.event_time, "event_time")
+        value = self.role_value(normalized)
+        assert value is not None
+        return legacy._as_aware_datetime(value, normalized.value)
 
-    @property
-    def freshness_time(self) -> datetime | None:
-        """Materialization/state freshness, never retrieval recency."""
-
-        for role, value, precision in (
-            ("record_time", self.record_time, self.record_time_precision),
-            ("state_time", self.state_time, self.state_time_precision),
-            ("event_time", self.event_time, self.event_time_precision),
-        ):
-            if precision is not legacy.TemporalPrecision.UNKNOWN:
-                assert value is not None
-                return legacy._as_aware_datetime(value, role)
-        return None
-
-    def interval(self) -> tuple[datetime, datetime] | None:
+    def role_interval(
+        self, role: TemporalRole | str
+    ) -> tuple[datetime, datetime] | None:
+        normalized = _normalize_role(role)
         self.validate_shape()
-        if self.event_time_precision is legacy.TemporalPrecision.UNKNOWN:
+        precision = self.role_precision(normalized)
+        if precision is legacy.TemporalPrecision.UNKNOWN:
             return None
-        if self.event_time_precision is legacy.TemporalPrecision.BOUNDED:
-            assert self.event_time_lower_bound is not None
-            assert self.event_time_upper_bound is not None
+        if precision is legacy.TemporalPrecision.BOUNDED:
+            lower = self.role_lower_bound(normalized)
+            upper = self.role_upper_bound(normalized)
+            assert lower is not None and upper is not None
             return (
                 legacy._as_aware_datetime(
-                    self.event_time_lower_bound, "event_time_lower_bound"
+                    lower, f"{normalized.value}_lower_bound"
                 ),
                 legacy._as_aware_datetime(
-                    self.event_time_upper_bound, "event_time_upper_bound"
+                    upper, f"{normalized.value}_upper_bound"
                 ),
             )
-        if self.event_time_precision is legacy.TemporalPrecision.EXACT:
-            best = self.best_time
+        if precision is legacy.TemporalPrecision.EXACT:
+            best = self.role_best_time(normalized)
             assert best is not None
             return best, best
         return None
+
+    @property
+    def best_time(self) -> datetime | None:
+        """Best event time retained for compatibility with anchor checks."""
+
+        return self.role_best_time(TemporalRole.EVENT_TIME)
+
+    @property
+    def freshness_time(self) -> datetime | None:
+        """Substantive represented-state freshness.
+
+        Known state time is authoritative. Event time is the fallback. Database
+        persistence time and retrieval time never refresh represented state.
+        """
+
+        for role in (TemporalRole.STATE_TIME, TemporalRole.EVENT_TIME):
+            best = self.role_best_time(role)
+            if best is not None:
+                return best
+        return None
+
+    @property
+    def persistence_time(self) -> datetime | None:
+        """Database persistence time, kept separate from substantive freshness."""
+
+        return self.role_best_time(TemporalRole.RECORD_TIME)
+
+    def interval(self) -> tuple[datetime, datetime] | None:
+        """Event-time interval retained for compatibility."""
+
+        return self.role_interval(TemporalRole.EVENT_TIME)
+
+
+def adapt_memory_state_time(
+    value: datetime | str | None,
+    precision: legacy.TemporalPrecision | str,
+    *,
+    lower_bound: datetime | str | None = None,
+    upper_bound: datetime | str | None = None,
+    temporal_claim: bool | None,
+) -> tuple[
+    datetime | str | None,
+    legacy.TemporalPrecision,
+    datetime | str | None,
+    datetime | str | None,
+]:
+    """Normalize Memory's UNKNOWN state-time storage sentinel.
+
+    ``-infinity`` is a storage compatibility marker, not a timestamp. It is
+    converted to ``None`` only when accompanied by UNKNOWN precision,
+    ``temporal_claim=False``, and no bounds. Any mismatch fails with a named
+    error rather than silently treating the sentinel as temporal evidence.
+    """
+
+    try:
+        normalized_precision = (
+            precision
+            if isinstance(precision, legacy.TemporalPrecision)
+            else legacy.TemporalPrecision(precision)
+        )
+    except (TypeError, ValueError) as exc:
+        raise ValueError("MEMORY_STATE_TIME_PRECISION_INVALID") from exc
+
+    is_sentinel = (
+        isinstance(value, str)
+        and value.strip().lower() == MEMORY_UNKNOWN_STATE_TIME_SENTINEL
+    )
+
+    if is_sentinel:
+        if normalized_precision is not legacy.TemporalPrecision.UNKNOWN:
+            raise ValueError("MEMORY_UNKNOWN_STATE_SENTINEL_PRECISION_MISMATCH")
+        if temporal_claim is not False:
+            raise ValueError("MEMORY_UNKNOWN_STATE_SENTINEL_TEMPORAL_CLAIM_INVALID")
+        if lower_bound is not None or upper_bound is not None:
+            raise ValueError("MEMORY_UNKNOWN_STATE_SENTINEL_BOUNDS_FORBIDDEN")
+        return None, legacy.TemporalPrecision.UNKNOWN, None, None
+
+    if normalized_precision is legacy.TemporalPrecision.UNKNOWN:
+        if value is not None or lower_bound is not None or upper_bound is not None:
+            raise ValueError("MEMORY_UNKNOWN_STATE_TIME_VALUE_PRESENT")
+        if temporal_claim is True:
+            raise ValueError("MEMORY_UNKNOWN_STATE_TIME_TEMPORAL_CLAIM_INVALID")
+        return None, legacy.TemporalPrecision.UNKNOWN, None, None
+
+    if temporal_claim is False:
+        raise ValueError("MEMORY_KNOWN_STATE_TIME_TEMPORAL_CLAIM_FALSE")
+    if value is None:
+        raise ValueError("MEMORY_KNOWN_STATE_TIME_MISSING")
+
+    return value, normalized_precision, lower_bound, upper_bound
 
 
 def role_temporal_point_subject_hash(point: RoleTemporalPoint) -> str:
@@ -259,7 +364,7 @@ def run_preflight(
                     if freshness_time is None:
                         reasons.append("PRIOR_ANCHOR_FRESHNESS_UNAVAILABLE")
                     elif trusted_now < freshness_time:
-                        reasons.append("PRIOR_ANCHOR_RECORDED_IN_FUTURE")
+                        reasons.append("PRIOR_ANCHOR_STATE_FROM_FUTURE")
                     elif (
                         request.maximum_anchor_age >= timedelta(0)
                         and trusted_now - freshness_time
@@ -283,7 +388,111 @@ def run_preflight(
     )
 
 
-# Re-export unchanged postflight and elapsed logic. Their evidence subjects are
-# independent of the prior-anchor role-precision representation.
+def elapsed_between(
+    start: RoleTemporalPoint,
+    end: RoleTemporalPoint,
+    role: TemporalRole | str = TemporalRole.EVENT_TIME,
+) -> legacy.ElapsedResult:
+    """Calculate elapsed time for one explicit temporal role."""
+
+    try:
+        normalized_role = _normalize_role(role)
+        start.validate_shape()
+        end.validate_shape()
+    except (TypeError, ValueError) as exc:
+        return legacy.ElapsedResult(
+            legacy.ElapsedStatus.CONFLICTED,
+            None,
+            None,
+            None,
+            (str(exc),),
+        )
+
+    if start.scope_instance_id != end.scope_instance_id:
+        return legacy.ElapsedResult(
+            legacy.ElapsedStatus.CONFLICTED,
+            None,
+            None,
+            None,
+            ("Elapsed endpoints belong to different scope instances.",),
+        )
+
+    start_precision = start.role_precision(normalized_role)
+    end_precision = end.role_precision(normalized_role)
+    if (
+        start_precision is legacy.TemporalPrecision.UNKNOWN
+        or end_precision is legacy.TemporalPrecision.UNKNOWN
+    ):
+        return legacy.ElapsedResult(
+            legacy.ElapsedStatus.UNAVAILABLE,
+            None,
+            None,
+            None,
+            (
+                f"At least one endpoint has UNKNOWN "
+                f"{normalized_role.value} precision.",
+            ),
+        )
+
+    start_best = start.role_best_time(normalized_role)
+    end_best = end.role_best_time(normalized_role)
+    assert start_best is not None and end_best is not None
+    best = (end_best - start_best).total_seconds()
+    if best < 0:
+        return legacy.ElapsedResult(
+            legacy.ElapsedStatus.CONFLICTED,
+            None,
+            None,
+            None,
+            (
+                f"Best-supported end {normalized_role.value} "
+                f"precedes start {normalized_role.value}.",
+            ),
+        )
+
+    if legacy.TemporalPrecision.APPROXIMATE in (
+        start_precision,
+        end_precision,
+    ):
+        return legacy.ElapsedResult(
+            legacy.ElapsedStatus.APPROXIMATE,
+            best,
+            None,
+            None,
+        )
+
+    start_interval = start.role_interval(normalized_role)
+    end_interval = end.role_interval(normalized_role)
+    assert start_interval is not None and end_interval is not None
+    raw_lower = (end_interval[0] - start_interval[1]).total_seconds()
+    upper = (end_interval[1] - start_interval[0]).total_seconds()
+    if upper < 0:
+        return legacy.ElapsedResult(
+            legacy.ElapsedStatus.CONFLICTED,
+            None,
+            None,
+            None,
+            (
+                f"The supported end {normalized_role.value} interval is fully "
+                f"earlier than the start interval.",
+            ),
+        )
+    if (
+        start_precision is legacy.TemporalPrecision.EXACT
+        and end_precision is legacy.TemporalPrecision.EXACT
+    ):
+        return legacy.ElapsedResult(
+            legacy.ElapsedStatus.EXACT,
+            best,
+            best,
+            best,
+        )
+    return legacy.ElapsedResult(
+        legacy.ElapsedStatus.BOUNDED,
+        best,
+        max(0.0, raw_lower),
+        upper,
+    )
+
+
 run_postflight = legacy.run_postflight
-elapsed_between = legacy.elapsed_between
