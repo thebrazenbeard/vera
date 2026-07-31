@@ -15,7 +15,8 @@ WORKSTREAMS = frozenset({
     "workstream/project-architecture", "workstream/github-repo",
 })
 OBSOLETE_WORKSTREAMS = frozenset({"workstream/initiative"})
-ACTOR_WORKSTREAM_ALIASES = {"workstream/initiative": "workstream/initiatives"}
+# Historical aliases are decode-only. Strict actors and new drafts never normalize them.
+ACTOR_WORKSTREAM_ALIASES: Mapping[str, str] = {}
 LEGACY_STORED_ADDRESSES = frozenset({
     "chatgpt-project-current", "codex-independent-audit",
     "feature/branch-session-anchor-contract-v1",
@@ -87,9 +88,14 @@ class ActorContext:
     permissions: frozenset[str] = field(default_factory=frozenset)
 
     def __post_init__(self) -> None:
-        canonical = ACTOR_WORKSTREAM_ALIASES.get(self.workstream)
-        if canonical is not None:
-            object.__setattr__(self, "workstream", canonical)
+        try:
+            validate_workstream(self.workstream, "workstream")
+        except ValueError as exc:
+            if self.workstream in OBSOLETE_WORKSTREAMS:
+                raise ValueError(
+                    "STRICT_ACTOR_OBSOLETE_ROUTE: use 'workstream/initiatives'"
+                ) from exc
+            raise
 
     @property
     def canonical_workstream(self) -> str:
