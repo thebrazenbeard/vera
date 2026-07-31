@@ -5,7 +5,7 @@ language sql
 immutable
 strict
 as $$
-select encode(digest(convert_to(p_value, 'UTF8'), 'sha256'), 'hex');
+select encode(extensions.digest(convert_to(p_value, 'UTF8'), 'sha256'), 'hex');
 $$;
 create function public.vera_generate_uuid_v7()
 returns uuid
@@ -13,7 +13,7 @@ language plpgsql
 volatile
 as $$
 declare
-v_bytes bytea := gen_random_bytes(16);
+v_bytes bytea := extensions.gen_random_bytes(16);
 v_ms bigint := floor(extract(epoch from clock_timestamp()) * 1000)::bigint;
 begin
 v_bytes := set_byte(v_bytes, 0, ((v_ms >> 40) & 255)::integer);
