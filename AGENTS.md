@@ -27,17 +27,35 @@ V.E.R.A. is a provenance-governed context, memory, and coordination system. It d
 - Treat GitHub as architecture source control, not the live context store.
 - Treat Supabase as external persistence only when a connector result confirms the operation.
 
-## Active integration order
+## Mandatory turn-taking protocol
 
-1. Neutral R6A0 release package and migration parity.
-2. Coordination bus contract.
-3. Memory contract and Time boundary review.
-4. Temporal enforcement contract.
-5. Initiative kernel contract.
-6. Runtime adapter and end-to-end integration.
-7. Production deployment, separately authorized.
+All chats and repository roles must follow `docs/WORKSTREAM_TURN_TAKING_PROTOCOL_V1.md`.
 
-PR #3 remains suspended and outside the active temporal critical path unless the user explicitly reauthorizes it.
+Core rules:
+
+- exactly one active writer lease per branch or pull request;
+- reviewers inspect and return verdicts but do not push corrections;
+- Project Architecture and Integration are one controller role for program-level integration verdicts;
+- any unexpected branch movement pauses publication until the controller reconciles the new head;
+- every handoff and review is bound to one exact commit SHA;
+- a new commit makes earlier reviews historical;
+- component chats do not resolve shared-file or cross-component conflicts after handoff;
+- only the controller assembles accepted component histories;
+- the GitHub Repository Steward verifies publication state but does not redefine component semantics;
+- user authorization remains required for merge and every production action.
+
+## Standard dependency flow
+
+1. Project Architect / Integration Controller defines scope and grants the Identity writer lease.
+2. Identity hands off an immutable head.
+3. Time and Initiatives may proceed in parallel from the accepted Identity head.
+4. Memory proceeds after the Time boundary is settled.
+5. Coordination proceeds after the state and action lanes reach the barrier.
+6. Project Architect / Integration assembles accepted heads and issues the integration verdict.
+7. GitHub Repository Steward verifies the ordered merge-decision packet.
+8. The user decides whether to merge.
+
+PR #3 remains suspended and outside the active critical path unless the user explicitly reauthorizes it.
 
 ## Verification
 
