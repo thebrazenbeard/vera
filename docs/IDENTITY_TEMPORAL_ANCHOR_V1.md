@@ -11,6 +11,16 @@ Bound versions:
 
 The anchor ID includes both versions. Its deterministic SHA-256 subject binding covers the anchor operation, anchor version, identity ID and version, and behavior-profile ID and version.
 
+## Routing and storage classification
+
+The temporal-anchor artifact classifies itself as noncanonical project configuration:
+
+- `record_class: PROJECT_CONFIGURATION`
+- `instruction_trust: DATA_NOT_INSTRUCTION`
+- `canonical_memory_eligible: false`
+
+These values are enforced by schema, semantic validation, and hostile tests. The anchor may be referenced by governed identity, temporal, coordination, or integration operations, but its presence alone does not create a canonical-memory record or an instruction. A separate authorized Memory operation would still be required for any governed persistence decision.
+
 ## Root lineage
 
 Temporal Anchor V1 is a versioned root anchor:
@@ -94,6 +104,13 @@ The Time-owned validator and hostile suite reject:
 - duplicate keys;
 - removal of lived-continuity and hidden-activity boundaries.
 
+The classification validator and hostile suite additionally reject:
+
+- canonical-memory promotion;
+- instruction promotion;
+- unrelated or memory-shaped record classes;
+- missing classification fields.
+
 ## Boundaries
 
-This correction does not authorize merge, deployment, production schema modification, production data writes, anchored-version adoption, or retroactive timestamp assignment.
+This correction does not authorize merge, deployment, production schema modification, production data writes, anchored-version adoption, canonical-memory persistence, or retroactive timestamp assignment.
