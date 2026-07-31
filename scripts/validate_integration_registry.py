@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import argparse
+from hashlib import sha256
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from jsonschema import Draft202012Validator, FormatChecker
@@ -21,90 +22,71 @@ REQUIRED_ROUTES = {
 OBSOLETE_ROUTE = "workstream/initiative"
 EXTERNAL_AUTHORITY = "EXTERNAL_EXPLICIT_AUTHORIZATION"
 
-EXPECTED_OWNER_IDENTITIES = {
-    "workstream/identity": {
-        "contract_ids": {
-            "VERA_PROJECT_IDENTITY_V1",
-            "VERA_BEHAVIOR_PROFILE_V1",
-        },
-        "owned_artifacts": {
-            "architecture/identity/VERA_PROJECT_IDENTITY_V1.json",
-            "architecture/identity/VERA_BEHAVIOR_PROFILE_V1.json",
-            "architecture/identity/VERA_IDENTITY_TEMPORAL_ANCHOR_V1.json",
-        },
-        "required_checks": {"Project Identity"},
-    },
-    "workstream/time": {
-        "contract_ids": {
-            "TEMPORAL_ENFORCEMENT_V1",
-            "TEMPORAL_ROLE_PRECISION_V1",
-            "VERA_IDENTITY_TEMPORAL_ANCHOR_V1",
-        },
-        "owned_artifacts": {
-            "protocol/temporal_enforcement.py",
-            "protocol/temporal_role_precision.py",
-            "scripts/validate_identity_temporal_anchor.py",
-        },
-        "required_checks": {
-            "Temporal enforcement kernel",
-            "Temporal pilot",
-            "Project Identity",
-        },
-    },
-    "workstream/memory": {
-        "contract_ids": {"VERA_MEMORY_CROSS_CHAT_CONTRACT_V1"},
-        "owned_artifacts": {
-            "supabase/migrations/20260730213000_harden_neutral_v3_memory_contract.sql",
-            "supabase/migrations/20260730213100_tighten_neutral_v3_memory_governance.sql",
-            "supabase/migrations/20260730213200_close_neutral_v3_memory_review_gaps.sql",
-            "supabase/tests/validate_neutral_v3_memory_contract.sql",
-            "supabase/tests/validate_neutral_v3_memory_governance.sql",
-            "supabase/tests/validate_neutral_v3_memory_review_corrections.sql",
-            "supabase/tests/validate_neutral_v3_memory_temporal_fields.sql",
-        },
-        "required_checks": {
-            "Memory cross-chat contract",
-            "Temporal pilot",
-        },
-    },
-    "workstream/initiatives": {
-        "contract_ids": {"VERA_INITIATIVE_KERNEL_V0_1"},
-        "owned_artifacts": {"protocol/initiative_kernel.py"},
-        "required_checks": {
-            "Initiative kernel",
-            "Temporal pilot",
-        },
-    },
-    "workstream/coordination": {
-        "contract_ids": {"VERA_COORDINATION_BUS_V1"},
-        "owned_artifacts": {
-            "coordination_bus/__init__.py",
-            "coordination_bus/contracts.py",
-            "coordination_bus/core.py",
-            "coordination_bus/in_memory.py",
-            "coordination_bus/supabase_sql.py",
-            "coordination_bus/temporal.py",
-            "coordination_bus/verified_temporal.py",
-        },
-        "required_checks": {
-            "Coordination bus",
-            "Temporal pilot",
-        },
-    },
-    "workstream/integration": {
-        "contract_ids": {
-            "VERA_INTEGRATION_ASSURANCE_V1",
-            "VERA_WORKSTREAM_COMPATIBILITY_V1",
-        },
-        "owned_artifacts": {
-            "architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json",
-            "architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json",
-            "scripts/validate_integration_registry.py",
-            "scripts/validate_workstream_compatibility.py",
-        },
-        "required_checks": {"Integration Assurance"},
-    },
-}
+EXPECTED_OWNER_IDENTITIES = {'workstream/coordination': {'contract_ids': {'VERA_COORDINATION_BUS_V1'},
+                             'owned_artifacts': {'coordination_bus/__init__.py',
+                                                 'coordination_bus/contracts.py',
+                                                 'coordination_bus/core.py',
+                                                 'coordination_bus/in_memory.py',
+                                                 'coordination_bus/supabase_sql.py',
+                                                 'coordination_bus/temporal.py',
+                                                 'coordination_bus/verified_temporal.py'},
+                             'required_checks': {'Temporal pilot', 'Coordination bus'}},
+ 'workstream/identity': {'contract_ids': {'VERA_PROJECT_IDENTITY_V1', 'VERA_BEHAVIOR_PROFILE_V1'},
+                         'owned_artifacts': {'architecture/identity/VERA_BEHAVIOR_PROFILE_V1.json',
+                                             'architecture/identity/VERA_IDENTITY_TEMPORAL_ANCHOR_V1.json',
+                                             'architecture/identity/VERA_PROJECT_IDENTITY_V1.json'},
+                         'required_checks': {'Project Identity'}},
+ 'workstream/initiatives': {'contract_ids': {'VERA_INITIATIVE_KERNEL_V0_1'},
+                            'owned_artifacts': {'protocol/initiative_kernel.py'},
+                            'required_checks': {'Initiative kernel', 'Temporal pilot'}},
+ 'workstream/integration': {'contract_ids': {'VERA_INTEGRATION_ASSURANCE_V1',
+                                             'VERA_WORKSTREAM_COMPATIBILITY_V1'},
+                            'owned_artifacts': {'architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json',
+                                                'architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json',
+                                                'scripts/validate_integration_registry.py',
+                                                'scripts/validate_workstream_compatibility.py'},
+                            'required_checks': {'Integration Assurance'}},
+ 'workstream/memory': {'contract_ids': {'VERA_MEMORY_CROSS_CHAT_CONTRACT_V1'},
+                       'owned_artifacts': {'.github/workflows/memory-cross-chat-contract.yml',
+                                           '.github/workflows/memory-durability-review-corrections.yml',
+                                           '.github/workflows/memory-durability-single-path.yml',
+                                           'docs/MEMORY_CROSS_CHAT_CONTRACT_V1.md',
+                                           'docs/MEMORY_CROSS_CHAT_CONTRACT_V1_REVIEW_CORRECTION.md',
+                                           'reviews/MEMORY_CONTRACT_REVIEW.md',
+                                           'reviews/MEMORY_DURABILITY_CONSOLIDATION.md',
+                                           'supabase/migrations/20260730213000_harden_neutral_v3_memory_contract.sql',
+                                           'supabase/migrations/20260730213100_tighten_neutral_v3_memory_governance.sql',
+                                           'supabase/migrations/20260730213200_close_neutral_v3_memory_review_gaps.sql',
+                                           'supabase/migrations/20260731003000_add_memory_request_idempotency.sql',
+                                           'supabase/migrations/20260731003100_correct_memory_request_status_semantics.sql',
+                                           'supabase/tests/exercise_neutral_v3_memory_concurrent_conflict_a.sql',
+                                           'supabase/tests/exercise_neutral_v3_memory_concurrent_conflict_b.sql',
+                                           'supabase/tests/exercise_neutral_v3_memory_recall.sql',
+                                           'supabase/tests/exercise_neutral_v3_memory_save.sql',
+                                           'supabase/tests/fixtures/cleanup_neutral_v3_cycle_preflight_fixture.sql',
+                                           'supabase/tests/fixtures/neutral_v3_cycle_preflight_fixture.sql',
+                                           'supabase/tests/fixtures/neutral_v3_live_schema.sql',
+                                           'supabase/tests/validate_neutral_v3_memory_contract.sql',
+                                           'supabase/tests/validate_neutral_v3_memory_durability_review_corrections.sql',
+                                           'supabase/tests/validate_neutral_v3_memory_governance.sql',
+                                           'supabase/tests/validate_neutral_v3_memory_idempotency.sql',
+                                           'supabase/tests/validate_neutral_v3_memory_request_status_semantics.sql',
+                                           'supabase/tests/validate_neutral_v3_memory_review_corrections.sql',
+                                           'supabase/tests/validate_neutral_v3_memory_temporal_fields.sql',
+                                           'supabase/tests/verify_neutral_v3_memory_receipt_recovery.sql'},
+                       'required_checks': {'Memory cross-chat contract',
+                                           'Memory durability review corrections',
+                                           'Memory durability single path',
+                                           'Temporal pilot'}},
+ 'workstream/time': {'contract_ids': {'TEMPORAL_ENFORCEMENT_V1',
+                                      'TEMPORAL_ROLE_PRECISION_V1',
+                                      'VERA_IDENTITY_TEMPORAL_ANCHOR_V1'},
+                     'owned_artifacts': {'protocol/temporal_enforcement.py',
+                                         'protocol/temporal_role_precision.py',
+                                         'scripts/validate_identity_temporal_anchor.py'},
+                     'required_checks': {'Project Identity',
+                                         'Temporal enforcement kernel',
+                                         'Temporal pilot'}}}
 
 
 class DuplicateKeyError(ValueError):
@@ -130,6 +112,17 @@ def load_json_strict(path: Path) -> Any:
         raise ValueError(f"{path}: {exc}") from exc
 
 
+def canonical_json_sha256(value: Any) -> str:
+    payload = json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+    ).encode("utf-8")
+    return sha256(payload).hexdigest()
+
+
 def validate_schema(instance: Any, schema: Any) -> None:
     Draft202012Validator.check_schema(schema)
     validator = Draft202012Validator(schema, format_checker=FormatChecker())
@@ -139,6 +132,49 @@ def validate_schema(instance: Any, schema: Any) -> None:
             f"{list(error.path)}: {error.message}" for error in errors
         )
         raise ValueError(f"integration registry schema validation failed: {detail}")
+
+
+def validate_repository_artifact(root: Path, relative: str) -> Path:
+    """Require a regular, non-symlink, case-exact file below root."""
+    pure = PurePosixPath(relative)
+    if pure.is_absolute() or not pure.parts or any(part in {"", ".", ".."} for part in pure.parts):
+        raise ValueError(f"invalid repository artifact path: {relative!r}")
+
+    current = root
+    for index, part in enumerate(pure.parts):
+        if current.is_symlink():
+            raise ValueError(f"repository artifact traverses symlink: {relative!r}")
+        if not current.is_dir():
+            raise ValueError(f"repository artifact parent is not a directory: {relative!r}")
+
+        try:
+            entries = {entry.name: entry for entry in current.iterdir()}
+        except OSError as exc:
+            raise ValueError(f"cannot inspect repository artifact {relative!r}: {exc}") from exc
+
+        candidate = entries.get(part)
+        if candidate is None:
+            case_match = next(
+                (name for name in entries if name.casefold() == part.casefold()),
+                None,
+            )
+            if case_match is not None:
+                raise ValueError(
+                    f"repository artifact path has case drift: {relative!r} "
+                    f"(observed {case_match!r})"
+                )
+            raise ValueError(f"missing repository artifact: {relative!r}")
+
+        if candidate.is_symlink():
+            raise ValueError(f"repository artifact may not be a symlink: {relative!r}")
+        current = candidate
+
+        if index < len(pure.parts) - 1 and not current.is_dir():
+            raise ValueError(f"repository artifact parent is not a directory: {relative!r}")
+
+    if not current.is_file():
+        raise ValueError(f"repository artifact is not a regular file: {relative!r}")
+    return current
 
 
 def _claim_once(
@@ -157,7 +193,7 @@ def _claim_once(
     claimed[identity] = route
 
 
-def validate_semantics(registry: dict[str, Any]) -> None:
+def validate_semantics(registry: dict[str, Any], root: Path = ROOT) -> None:
     owners = registry["owners"]
     routes = [owner["route"] for owner in owners]
     route_set = set(routes)
@@ -165,7 +201,7 @@ def validate_semantics(registry: dict[str, Any]) -> None:
         raise ValueError("duplicate bounded owner route")
     if route_set != REQUIRED_ROUTES:
         raise ValueError(
-            f"bounded owner routes differ from required set: "
+            "bounded owner routes differ from required set: "
             f"{sorted(route_set ^ REQUIRED_ROUTES)}"
         )
 
@@ -222,6 +258,9 @@ def validate_semantics(registry: dict[str, Any]) -> None:
                     f"{sorted(actual ^ expected[field_name])}"
                 )
 
+        for artifact in owner["owned_artifacts"]:
+            validate_repository_artifact(root, artifact)
+
     coordination = by_route["workstream/coordination"]
     if (
         coordination["record_class"] != "OPERATIONAL_COORDINATION"
@@ -245,6 +284,7 @@ def validate_semantics(registry: dict[str, Any]) -> None:
 
 
 def validate_registry(root: Path = ROOT) -> None:
+    root = root.resolve()
     registry = load_json_strict(
         root / "architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json"
     )
@@ -252,7 +292,7 @@ def validate_registry(root: Path = ROOT) -> None:
         root / "schemas/vera_integration_registry_v1.schema.json"
     )
     validate_schema(registry, schema)
-    validate_semantics(registry)
+    validate_semantics(registry, root)
 
 
 def main() -> int:
