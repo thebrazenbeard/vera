@@ -291,7 +291,7 @@
       "execution_authorized": false,
       "canonical_memory_transfer": false,
       "acceptance_evidence": {
-        "source_artifacts": ["architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json"],
+        "source_artifacts": ["architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json"],
         "target_artifacts": ["architecture/identity/VERA_PROJECT_IDENTITY_V1.json"],
         "required_checks": ["Integration Assurance", "Project Identity"]
       },
