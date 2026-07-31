@@ -4,7 +4,7 @@ from .contracts import (
     ACTOR_WORKSTREAM_ALIASES, ALL_PERMISSIONS, CANONICAL_MEMORY_ELIGIBLE,
     EVENT_STATUS_PAIRS, EVENT_TYPES, INSTRUCTION_TRUST,
     LEGACY_STORED_ADDRESSES, OBSOLETE_WORKSTREAMS, RECORD_CLASS, STATUSES,
-    WORKSTREAMS, CoordinationEvent, CoordinationEventDraft,
+    WORKSTREAMS, ActorContext, CoordinationEvent, CoordinationEventDraft,
     CoordinationReceipt, CoordinationResult, PERMISSION_ACKNOWLEDGE,
     PERMISSION_DECIDE, PERMISSION_POST, PERMISSION_READ_ANY,
     PERMISSION_READ_SELF, PERMISSION_RESOLVE, PERMISSION_REVIEW,
@@ -22,6 +22,7 @@ from .temporal import (
     TemporalEvidence,
 )
 from .verified_temporal import (
+    CoordinationBus,
     DECISION_AUTHORITY_SCHEMA,
     EVIDENCE_ENVELOPE_SCHEMA,
     DecisionAuthorityEnvelope,
@@ -39,10 +40,9 @@ from .verified_temporal import (
     exit_checkpoint_subject,
     receipt_subject,
 )
-from .strict_authority import ActorContext, CoordinationBus
 
-# Compatibility name for the earlier review packet. The value is governed by
-# the single implementation in verified_temporal.py.
+# Compatibility name for the earlier review packet. It names the same canonical
+# envelope schema and does not introduce another implementation.
 DECISION_AUTHORITY_ENVELOPE_SCHEMA = DECISION_AUTHORITY_SCHEMA
 
 __all__ = [name for name in globals() if not name.startswith("_")]
