@@ -30,6 +30,7 @@ EXPECTED_OWNER_IDENTITIES = {
         "owned_artifacts": {
             "architecture/identity/VERA_PROJECT_IDENTITY_V1.json",
             "architecture/identity/VERA_BEHAVIOR_PROFILE_V1.json",
+            "architecture/identity/VERA_IDENTITY_TEMPORAL_ANCHOR_V1.json",
         },
         "required_checks": {"Project Identity"},
     },
@@ -37,14 +38,17 @@ EXPECTED_OWNER_IDENTITIES = {
         "contract_ids": {
             "TEMPORAL_ENFORCEMENT_V1",
             "TEMPORAL_ROLE_PRECISION_V1",
+            "VERA_IDENTITY_TEMPORAL_ANCHOR_V1",
         },
         "owned_artifacts": {
             "protocol/temporal_enforcement.py",
             "protocol/temporal_role_precision.py",
+            "scripts/validate_identity_temporal_anchor.py",
         },
         "required_checks": {
             "Temporal enforcement kernel",
             "Temporal pilot",
+            "Project Identity",
         },
     },
     "workstream/memory": {
