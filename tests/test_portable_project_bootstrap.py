@@ -215,7 +215,7 @@ class PortableBootstrapTests(unittest.TestCase):
     def test_exact_release_binding_in_temporary_git_repo(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             repo = Path(tmp) / "repo"
-            shutil.copytree(ROOT, repo)
+            shutil.copytree(ROOT, repo, ignore=shutil.ignore_patterns(".git", "__pycache__", "*.pyc"))
             subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
             subprocess.run(["git", "config", "user.email", "test@example.invalid"], cwd=repo, check=True)
             subprocess.run(["git", "config", "user.name", "Test"], cwd=repo, check=True)

@@ -8,13 +8,13 @@
     "requires_exact_base_sha": true
   },
   "base_source_commit": "fc761beab263f2fab010cde2fab424b2b8358bb7",
-  "embedded_package_sha256": "5ccd856699926f4d724c8c8b28eaeff884eaebe9e69f3f43eaac6bea27a8b7b1",
+  "embedded_package_sha256": "0b577dbbb1befa2d91dfe09b9865cc9f090c66cc66584888150400cebe458f1a",
   "files": [
     {
       "activation_class": "NEVER_ACTIVE",
       "binding": {
-        "embedded_sha256": "f535593ec932ddc1fd2cae28c4c6adb32ce8f2f59decfcd433cfebe374625026",
-        "embedded_size": 5999,
+        "embedded_sha256": "a61b4de078c0a5238a0b00ae6b06c03dc943fa8370ffba898bd073d0ddc2783b",
+        "embedded_size": 6081,
         "external_git_blob_required": true,
         "self_excluded": false
       },
@@ -178,8 +178,8 @@
     {
       "activation_class": "NEVER_ACTIVE",
       "binding": {
-        "embedded_sha256": "623a2689c7f58b423f9364561f5759534d57f6d3357092e2ed404c119cd15630",
-        "embedded_size": 11128,
+        "embedded_sha256": "28eac1d44a5f3769f89cff41dc453c6123b1ccd98d299f137d2fb1cadf861dbf",
+        "embedded_size": 11191,
         "external_git_blob_required": true,
         "self_excluded": false
       },

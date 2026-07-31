@@ -141,4 +141,7 @@ jobs:
 
       - name: Stop and delete local stack
         if: always()
-        run: supabase stop --no-backup
+        run: |
+          if command -v supabase >/dev/null 2>&1; then
+            supabase stop --no-backup
+          fi
