@@ -21,10 +21,22 @@ class R6A1ReleaseBindingTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "source_commit"):
             validate(changed)
 
+    def test_installable_status_rejected(self) -> None:
+        changed = copy.deepcopy(self.valid)
+        changed["release_status"] = "INSTALLABLE"
+        with self.assertRaisesRegex(ValueError, "non-installable replacement candidate"):
+            validate(changed)
+
     def test_installation_authority_rejected(self) -> None:
         changed = copy.deepcopy(self.valid)
         changed["project_file_replacement_authorized"] = True
         with self.assertRaisesRegex(ValueError, "project_file_replacement_authorized"):
+            validate(changed)
+
+    def test_unresolved_future_files_rejected(self) -> None:
+        changed = copy.deepcopy(self.valid)
+        changed["required_future_files"] = ["checksums"]
+        with self.assertRaisesRegex(ValueError, "unresolved future files"):
             validate(changed)
 
     def test_missing_matrix_binding_rejected(self) -> None:
