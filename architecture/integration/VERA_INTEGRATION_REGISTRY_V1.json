@@ -14,19 +14,12 @@
       ],
       "owned_artifacts": [
         "architecture/identity/VERA_PROJECT_IDENTITY_V1.json",
-        "architecture/identity/VERA_BEHAVIOR_PROFILE_V1.json"
+        "architecture/identity/VERA_BEHAVIOR_PROFILE_V1.json",
+        "architecture/identity/VERA_IDENTITY_TEMPORAL_ANCHOR_V1.json"
       ],
-      "required_checks": [
-        "Project Identity"
-      ],
+      "required_checks": ["Project Identity"],
       "upstream_dependencies": [],
-      "downstream_dependencies": [
-        "workstream/time",
-        "workstream/memory",
-        "workstream/initiatives",
-        "workstream/coordination",
-        "workstream/integration"
-      ],
+      "downstream_dependencies": ["workstream/time", "workstream/memory", "workstream/initiatives", "workstream/coordination", "workstream/integration"],
       "authority_owner": "workstream/identity",
       "permission_owner": "workstream/identity",
       "record_class": "PROJECT_CONFIGURATION",
@@ -37,26 +30,11 @@
     },
     {
       "route": "workstream/time",
-      "contract_ids": [
-        "TEMPORAL_ENFORCEMENT_V1",
-        "TEMPORAL_ROLE_PRECISION_V1"
-      ],
-      "owned_artifacts": [
-        "protocol/temporal_enforcement.py",
-        "protocol/temporal_role_precision.py"
-      ],
-      "required_checks": [
-        "Temporal enforcement kernel",
-        "Temporal pilot"
-      ],
-      "upstream_dependencies": [
-        "workstream/identity"
-      ],
-      "downstream_dependencies": [
-        "workstream/memory",
-        "workstream/coordination",
-        "workstream/integration"
-      ],
+      "contract_ids": ["TEMPORAL_ENFORCEMENT_V1", "TEMPORAL_ROLE_PRECISION_V1", "VERA_IDENTITY_TEMPORAL_ANCHOR_V1"],
+      "owned_artifacts": ["protocol/temporal_enforcement.py", "protocol/temporal_role_precision.py", "scripts/validate_identity_temporal_anchor.py"],
+      "required_checks": ["Temporal enforcement kernel", "Temporal pilot", "Project Identity"],
+      "upstream_dependencies": ["workstream/identity"],
+      "downstream_dependencies": ["workstream/memory", "workstream/coordination", "workstream/integration"],
       "authority_owner": "workstream/time",
       "permission_owner": "workstream/time",
       "record_class": "TEMPORAL_EVIDENCE",
@@ -67,9 +45,7 @@
     },
     {
       "route": "workstream/memory",
-      "contract_ids": [
-        "VERA_MEMORY_CROSS_CHAT_CONTRACT_V1"
-      ],
+      "contract_ids": ["VERA_MEMORY_CROSS_CHAT_CONTRACT_V1"],
       "owned_artifacts": [
         "supabase/migrations/20260730213000_harden_neutral_v3_memory_contract.sql",
         "supabase/migrations/20260730213100_tighten_neutral_v3_memory_governance.sql",
@@ -79,17 +55,9 @@
         "supabase/tests/validate_neutral_v3_memory_review_corrections.sql",
         "supabase/tests/validate_neutral_v3_memory_temporal_fields.sql"
       ],
-      "required_checks": [
-        "Memory cross-chat contract",
-        "Temporal pilot"
-      ],
-      "upstream_dependencies": [
-        "workstream/identity",
-        "workstream/time"
-      ],
-      "downstream_dependencies": [
-        "workstream/integration"
-      ],
+      "required_checks": ["Memory cross-chat contract", "Temporal pilot"],
+      "upstream_dependencies": ["workstream/identity", "workstream/time"],
+      "downstream_dependencies": ["workstream/integration"],
       "authority_owner": "workstream/memory",
       "permission_owner": "workstream/memory",
       "record_class": "CANONICAL_MEMORY",
@@ -100,23 +68,11 @@
     },
     {
       "route": "workstream/initiatives",
-      "contract_ids": [
-        "VERA_INITIATIVE_KERNEL_V0_1"
-      ],
-      "owned_artifacts": [
-        "protocol/initiative_kernel.py"
-      ],
-      "required_checks": [
-        "Initiative kernel",
-        "Temporal pilot"
-      ],
-      "upstream_dependencies": [
-        "workstream/identity"
-      ],
-      "downstream_dependencies": [
-        "workstream/coordination",
-        "workstream/integration"
-      ],
+      "contract_ids": ["VERA_INITIATIVE_KERNEL_V0_1"],
+      "owned_artifacts": ["protocol/initiative_kernel.py"],
+      "required_checks": ["Initiative kernel", "Temporal pilot"],
+      "upstream_dependencies": ["workstream/identity"],
+      "downstream_dependencies": ["workstream/coordination", "workstream/integration"],
       "authority_owner": "workstream/identity",
       "permission_owner": "workstream/coordination",
       "record_class": "ACTION_SELECTION",
@@ -127,30 +83,11 @@
     },
     {
       "route": "workstream/coordination",
-      "contract_ids": [
-        "VERA_COORDINATION_BUS_V1"
-      ],
-      "owned_artifacts": [
-        "coordination_bus/__init__.py",
-        "coordination_bus/contracts.py",
-        "coordination_bus/core.py",
-        "coordination_bus/in_memory.py",
-        "coordination_bus/supabase_sql.py",
-        "coordination_bus/temporal.py",
-        "coordination_bus/verified_temporal.py"
-      ],
-      "required_checks": [
-        "Coordination bus",
-        "Temporal pilot"
-      ],
-      "upstream_dependencies": [
-        "workstream/identity",
-        "workstream/time",
-        "workstream/initiatives"
-      ],
-      "downstream_dependencies": [
-        "workstream/integration"
-      ],
+      "contract_ids": ["VERA_COORDINATION_BUS_V1"],
+      "owned_artifacts": ["coordination_bus/__init__.py", "coordination_bus/contracts.py", "coordination_bus/core.py", "coordination_bus/in_memory.py", "coordination_bus/supabase_sql.py", "coordination_bus/temporal.py", "coordination_bus/verified_temporal.py"],
+      "required_checks": ["Coordination bus", "Temporal pilot"],
+      "upstream_dependencies": ["workstream/identity", "workstream/time", "workstream/initiatives"],
+      "downstream_dependencies": ["workstream/integration"],
       "authority_owner": "workstream/coordination",
       "permission_owner": "workstream/coordination",
       "record_class": "OPERATIONAL_COORDINATION",
@@ -161,26 +98,10 @@
     },
     {
       "route": "workstream/integration",
-      "contract_ids": [
-        "VERA_INTEGRATION_ASSURANCE_V1",
-        "VERA_WORKSTREAM_COMPATIBILITY_V1"
-      ],
-      "owned_artifacts": [
-        "architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json",
-        "architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json",
-        "scripts/validate_integration_registry.py",
-        "scripts/validate_workstream_compatibility.py"
-      ],
-      "required_checks": [
-        "Integration Assurance"
-      ],
-      "upstream_dependencies": [
-        "workstream/identity",
-        "workstream/time",
-        "workstream/memory",
-        "workstream/initiatives",
-        "workstream/coordination"
-      ],
+      "contract_ids": ["VERA_INTEGRATION_ASSURANCE_V1", "VERA_WORKSTREAM_COMPATIBILITY_V1"],
+      "owned_artifacts": ["architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json", "architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json", "scripts/validate_integration_registry.py", "scripts/validate_workstream_compatibility.py"],
+      "required_checks": ["Integration Assurance"],
+      "upstream_dependencies": ["workstream/identity", "workstream/time", "workstream/memory", "workstream/initiatives", "workstream/coordination"],
       "downstream_dependencies": [],
       "authority_owner": "workstream/integration",
       "permission_owner": "workstream/integration",
