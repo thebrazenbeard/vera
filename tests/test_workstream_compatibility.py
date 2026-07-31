@@ -114,6 +114,30 @@ class WorkstreamCompatibilityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "target contract"):
             validate_semantics(document, registry())
 
+    def test_identity_time_anchor_contract_omission_rejected(self):
+        document = matrix()
+        interface(document, "VERA-IFACE-001")["target_contract_ids"].remove(
+            "VERA_IDENTITY_TEMPORAL_ANCHOR_V1"
+        )
+        with self.assertRaisesRegex(ValueError, "temporal-anchor binding"):
+            validate_semantics(document, registry())
+
+    def test_identity_time_anchor_artifact_omission_rejected(self):
+        document = matrix()
+        interface(document, "VERA-IFACE-001")["acceptance_evidence"]["source_artifacts"].remove(
+            "architecture/identity/VERA_IDENTITY_TEMPORAL_ANCHOR_V1.json"
+        )
+        with self.assertRaisesRegex(ValueError, "temporal-anchor binding"):
+            validate_semantics(document, registry())
+
+    def test_identity_time_validator_omission_rejected(self):
+        document = matrix()
+        interface(document, "VERA-IFACE-001")["acceptance_evidence"]["target_artifacts"].remove(
+            "scripts/validate_identity_temporal_anchor.py"
+        )
+        with self.assertRaisesRegex(ValueError, "temporal-anchor binding"):
+            validate_semantics(document, registry())
+
     def test_source_artifact_must_belong_to_source(self):
         document = matrix()
         interface(document, "VERA-IFACE-004")["acceptance_evidence"]["source_artifacts"] = ["coordination_bus/contracts.py"]
