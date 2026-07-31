@@ -1,0 +1,300 @@
+name: Integration lease repair
+
+on:
+  push:
+    branches:
+      - feature/integration-compatibility-matrix-v1
+    paths:
+      - .github/workflows/integration-lease-repair.yml
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out leased Integration branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/integration-compatibility-matrix-v1
+          fetch-depth: 0
+
+      - name: Apply bounded registry and matrix repair
+        shell: bash
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path('.')
+          registry_path = root / 'architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json'
+          matrix_path = root / 'architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json'
+          registry_validator_path = root / 'scripts/validate_integration_registry.py'
+          compatibility_validator_path = root / 'scripts/validate_workstream_compatibility.py'
+          focused_test_path = root / 'tests/test_identity_classification_integration_inventory.py'
+
+          continuity_contract = 'VERA_GOVERNED_WORKFLOW_CONTINUITY_V1'
+          continuity_artifact = 'architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V1.json'
+          continuity_artifacts = {
+              continuity_artifact,
+              'docs/GOVERNED_WORKFLOW_CONTINUITY_V1.md',
+              'schemas/vera_governed_workflow_continuity_v1.schema.json',
+              'scripts/validate_governed_workflow_continuity.py',
+              'tests/test_governed_workflow_continuity.py',
+          }
+
+          def compact_write(path: Path, value: object) -> None:
+              path.write_text(
+                  json.dumps(value, separators=(',', ':'), ensure_ascii=False, allow_nan=False) + '\n',
+                  encoding='utf-8',
+              )
+
+          def canonical_digest(value: object) -> str:
+              payload = json.dumps(
+                  value,
+                  sort_keys=True,
+                  separators=(',', ':'),
+                  ensure_ascii=False,
+                  allow_nan=False,
+              ).encode('utf-8')
+              return hashlib.sha256(payload).hexdigest()
+
+          registry = json.loads(registry_path.read_text(encoding='utf-8'))
+          identity_owner = next(
+              owner for owner in registry['owners']
+              if owner['route'] == 'workstream/identity'
+          )
+          identity_owner['contract_ids'] = sorted(
+              set(identity_owner['contract_ids']) | {continuity_contract}
+          )
+          identity_owner['owned_artifacts'] = sorted(
+              set(identity_owner['owned_artifacts']) | continuity_artifacts
+          )
+          compact_write(registry_path, registry)
+
+          registry_validator = registry_validator_path.read_text(encoding='utf-8')
+          start = registry_validator.index(" 'workstream/identity':")
+          end = registry_validator.index(" 'workstream/initiatives':", start)
+          identity_expected = ''' 'workstream/identity': {'contract_ids': {'VERA_PROJECT_IDENTITY_V1',
+                                                           'VERA_BEHAVIOR_PROFILE_V1',
+                                                           'VERA_GOVERNED_WORKFLOW_CONTINUITY_V1'},
+                         'owned_artifacts': {'architecture/identity/VERA_BEHAVIOR_PROFILE_V1.json',
+                                             'architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V1.json',
+                                             'architecture/identity/VERA_IDENTITY_TEMPORAL_ANCHOR_V1.json',
+                                             'architecture/identity/VERA_PROJECT_IDENTITY_V1.json',
+                                             'docs/GOVERNED_WORKFLOW_CONTINUITY_V1.md',
+                                             'schemas/vera_governed_workflow_continuity_v1.schema.json',
+                                             'scripts/validate_governed_workflow_continuity.py',
+                                             'scripts/validate_identity_temporal_anchor_classification.py',
+                                             'tests/test_governed_workflow_continuity.py'},
+                         'required_checks': {'Project Identity'}},
+'''
+          registry_validator = (
+              registry_validator[:start] + identity_expected + registry_validator[end:]
+          )
+          registry_validator_path.write_text(registry_validator, encoding='utf-8')
+
+          matrix = json.loads(matrix_path.read_text(encoding='utf-8'))
+          for interface in matrix['interfaces']:
+              if interface['interface_id'] in {'VERA-IFACE-001', 'VERA-IFACE-002', 'VERA-IFACE-003'}:
+                  interface['source_contract_ids'] = sorted(
+                      set(interface['source_contract_ids']) | {continuity_contract}
+                  )
+                  evidence = interface['acceptance_evidence']
+                  evidence['source_artifacts'] = sorted(
+                      set(evidence['source_artifacts']) | {continuity_artifact}
+                  )
+          matrix['active_registry_sha256'] = canonical_digest(registry)
+          compact_write(matrix_path, matrix)
+
+          compatibility_validator = compatibility_validator_path.read_text(encoding='utf-8')
+          classification_marker = '''IDENTITY_CLASSIFICATION_VALIDATOR = (
+    "scripts/validate_identity_temporal_anchor_classification.py"
+)
+'''
+          continuity_constants = '''WORKFLOW_CONTINUITY_CONTRACT = "VERA_GOVERNED_WORKFLOW_CONTINUITY_V1"
+WORKFLOW_CONTINUITY_ARTIFACT = (
+    "architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V1.json"
+)
+WORKFLOW_CONTINUITY_INTERFACE_IDS = {
+    "VERA-IFACE-001",
+    "VERA-IFACE-002",
+    "VERA-IFACE-003",
+}
+'''
+          if continuity_constants not in compatibility_validator:
+              compatibility_validator = compatibility_validator.replace(
+                  classification_marker,
+                  classification_marker + continuity_constants,
+                  1,
+              )
+
+          binding_start = compatibility_validator.index('IDENTITY_TIME_BINDING = {')
+          binding_end = compatibility_validator.index(
+              'IDENTITY_MEMORY_CLASSIFICATION_BINDING = {', binding_start
+          )
+          identity_time_binding = '''IDENTITY_TIME_BINDING = {
+    "source_contract_ids": {
+        "VERA_PROJECT_IDENTITY_V1",
+        "VERA_BEHAVIOR_PROFILE_V1",
+        WORKFLOW_CONTINUITY_CONTRACT,
+    },
+    "target_contract_ids": {
+        "TEMPORAL_ENFORCEMENT_V1",
+        "TEMPORAL_ROLE_PRECISION_V1",
+        "VERA_IDENTITY_TEMPORAL_ANCHOR_V1",
+    },
+    "source_artifacts": {
+        "architecture/identity/VERA_PROJECT_IDENTITY_V1.json",
+        "architecture/identity/VERA_IDENTITY_TEMPORAL_ANCHOR_V1.json",
+        WORKFLOW_CONTINUITY_ARTIFACT,
+    },
+    "target_artifacts": {
+        "protocol/temporal_enforcement.py",
+        "protocol/temporal_role_precision.py",
+        "scripts/validate_identity_temporal_anchor.py",
+    },
+    "required_checks": {
+        "Project Identity",
+        "Temporal enforcement kernel",
+        "Temporal pilot",
+    },
+}
+'''
+          compatibility_validator = (
+              compatibility_validator[:binding_start]
+              + identity_time_binding
+              + compatibility_validator[binding_end:]
+          )
+
+          insertion_marker = '        if interface_id == "VERA-IFACE-002":\n'
+          continuity_check = '''        if interface_id in WORKFLOW_CONTINUITY_INTERFACE_IDS:
+            if WORKFLOW_CONTINUITY_CONTRACT not in interface["source_contract_ids"]:
+                raise ValueError(
+                    f"{interface_id} omits the governed workflow-continuity contract"
+                )
+            if WORKFLOW_CONTINUITY_ARTIFACT not in evidence["source_artifacts"]:
+                raise ValueError(
+                    f"{interface_id} omits the governed workflow-continuity artifact"
+                )
+
+'''
+          if continuity_check not in compatibility_validator:
+              compatibility_validator = compatibility_validator.replace(
+                  insertion_marker,
+                  continuity_check + insertion_marker,
+                  1,
+              )
+          compatibility_validator_path.write_text(
+              compatibility_validator, encoding='utf-8'
+          )
+
+          focused_test = focused_test_path.read_text(encoding='utf-8')
+          constant_marker = '''CLASSIFICATION_VALIDATOR = (
+    "scripts/validate_identity_temporal_anchor_classification.py"
+)
+'''
+          test_constants = '''WORKFLOW_CONTINUITY_CONTRACT = "VERA_GOVERNED_WORKFLOW_CONTINUITY_V1"
+WORKFLOW_CONTINUITY_ARTIFACT = (
+    "architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V1.json"
+)
+WORKFLOW_CONTINUITY_INTERFACES = (
+    "VERA-IFACE-001",
+    "VERA-IFACE-002",
+    "VERA-IFACE-003",
+)
+'''
+          if test_constants not in focused_test:
+              focused_test = focused_test.replace(
+                  constant_marker,
+                  constant_marker + test_constants,
+                  1,
+              )
+
+          method_marker = '    def test_component_test_and_workflow_are_check_evidence(self):\n'
+          new_methods = '''    def test_workflow_continuity_registry_contract_omission_is_rejected(self):
+        source_registry = registry()
+        owner(source_registry, "workstream/identity")["contract_ids"].remove(
+            WORKFLOW_CONTINUITY_CONTRACT
+        )
+        with self.assertRaisesRegex(ValueError, "canonical source intent"):
+            validate_registry_semantics(source_registry, ROOT)
+
+    def test_workflow_continuity_registry_artifact_omission_is_rejected(self):
+        source_registry = registry()
+        owner(source_registry, "workstream/identity")["owned_artifacts"].remove(
+            WORKFLOW_CONTINUITY_ARTIFACT
+        )
+        with self.assertRaisesRegex(ValueError, "canonical source intent"):
+            validate_registry_semantics(source_registry, ROOT)
+
+    def test_workflow_continuity_interface_contract_omission_is_rejected(self):
+        for interface_id in WORKFLOW_CONTINUITY_INTERFACES:
+            with self.subTest(interface_id=interface_id):
+                source_matrix = matrix()
+                interface(source_matrix, interface_id)["source_contract_ids"].remove(
+                    WORKFLOW_CONTINUITY_CONTRACT
+                )
+                with self.assertRaisesRegex(ValueError, "workflow-continuity contract"):
+                    validate_compatibility_semantics(source_matrix, registry(), ROOT)
+
+    def test_workflow_continuity_interface_artifact_omission_is_rejected(self):
+        for interface_id in WORKFLOW_CONTINUITY_INTERFACES:
+            with self.subTest(interface_id=interface_id):
+                source_matrix = matrix()
+                interface(source_matrix, interface_id)["acceptance_evidence"][
+                    "source_artifacts"
+                ].remove(WORKFLOW_CONTINUITY_ARTIFACT)
+                with self.assertRaisesRegex(ValueError, "workflow-continuity artifact"):
+                    validate_compatibility_semantics(source_matrix, registry(), ROOT)
+
+    def test_stale_registry_digest_is_rejected_after_continuity_registration(self):
+        source_matrix = matrix()
+        source_matrix["active_registry_sha256"] = "0" * 64
+        with self.assertRaisesRegex(ValueError, "active registry digest"):
+            validate_compatibility_semantics(source_matrix, registry(), ROOT)
+
+'''
+          if new_methods not in focused_test:
+              focused_test = focused_test.replace(
+                  method_marker,
+                  new_methods + method_marker,
+                  1,
+              )
+          focused_test_path.write_text(focused_test, encoding='utf-8')
+          PY
+
+      - name: Validate repaired exact tree before commit
+        shell: bash
+        run: |
+          python scripts/validate_integration_registry.py
+          python -m scripts.validate_workstream_compatibility
+          python -m unittest tests.test_integration_registry -v
+          python -m unittest tests.test_workstream_compatibility -v
+          python -m unittest tests.test_identity_classification_integration_inventory -v
+          python -m py_compile \
+            scripts/validate_integration_registry.py \
+            scripts/validate_workstream_compatibility.py \
+            tests/test_integration_registry.py \
+            tests/test_workstream_compatibility.py \
+            tests/test_identity_classification_integration_inventory.py
+
+      - name: Commit bounded repair and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name "V.E.R.A. Integration Lease"
+          git config user.email "actions@users.noreply.github.com"
+          git rm .github/workflows/integration-lease-repair.yml
+          git add \
+            architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json \
+            architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json \
+            scripts/validate_integration_registry.py \
+            scripts/validate_workstream_compatibility.py \
+            tests/test_identity_classification_integration_inventory.py
+          git commit -m "Complete workflow-continuity integration registration"
+          git push origin HEAD:feature/integration-compatibility-matrix-v1
