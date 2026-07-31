@@ -1,8 +1,8 @@
-"""Temporal semantics correction for the public V.E.R.A. coordination bus.
+"""Internal temporal receipt mechanics for the V.E.R.A. coordination bus.
 
-The underlying coordination table remains unchanged. This layer keeps sequence
-cursors, checkpoint times, acknowledgement semantics, and receipt-generation
-time distinct from database ``record_time``.
+This module is not a public trust boundary. It preserves sequence, checkpoint,
+acknowledgement, consumption, event, state, retrieval, and receipt-time
+separation while the public verifier contract lives in verified_temporal.py.
 """
 
 from __future__ import annotations
@@ -14,21 +14,10 @@ import json
 from typing import Any, Callable, Mapping, Sequence
 
 from .contracts import (
-    ActorContext,
-    CoordinationEvent,
-    CoordinationEventDraft,
-    CoordinationReceipt,
-    CoordinationResult,
-    Operation,
-    PERMISSION_ACKNOWLEDGE,
-    PERMISSION_READ_ANY,
-    PERMISSION_READ_SELF,
-    PERMISSION_STATUS,
-    ResultClass,
-    canonicalize,
-    make_result,
-    validate_text,
-    validate_workstream,
+    ActorContext, CoordinationEvent, CoordinationEventDraft, CoordinationReceipt,
+    CoordinationResult, Operation, PERMISSION_ACKNOWLEDGE, PERMISSION_READ_ANY,
+    PERMISSION_READ_SELF, PERMISSION_STATUS, ResultClass, canonicalize,
+    make_result, validate_text, validate_workstream,
 )
 from .core import CoordinationBus as _BaseCoordinationBus, _receipted
 
@@ -48,8 +37,6 @@ def _aware(value: str, name: str) -> datetime:
 
 @dataclass(frozen=True)
 class TemporalEvidence:
-    """Externally supplied temporal evidence or an explicit UNKNOWN value."""
-
     precision: str
     source: str
     verified: bool
@@ -74,21 +61,18 @@ class TemporalEvidence:
             raise ValueError("model output cannot verify temporal evidence")
         if role != "record_time" and self.source in _RECORD_TIME_SOURCES:
             raise ValueError(f"database record_time cannot substitute for {role}")
-
         if self.precision == "UNKNOWN":
             if self.value is not None or self.lower_bound is not None or self.upper_bound is not None:
                 raise ValueError("UNKNOWN temporal evidence forbids timestamps and bounds")
             if self.verified:
                 raise ValueError("UNKNOWN temporal evidence may not claim verification")
             return
-
         if not self.verified:
             raise ValueError(f"{self.precision} temporal evidence must be externally verified")
         validate_text(self.reference_id or "", "temporal reference_id")
         if self.value is None:
             raise ValueError(f"{self.precision} temporal evidence requires value")
         value = _aware(self.value, f"{role}.value")
-
         if self.precision == "BOUNDED":
             if self.lower_bound is None or self.upper_bound is None:
                 raise ValueError("BOUNDED temporal evidence requires both inclusive bounds")
@@ -111,8 +95,6 @@ def _time(value: TemporalEvidence | None, role: str) -> TemporalEvidence:
 
 @dataclass(frozen=True)
 class TemporalCoordinationReceipt:
-    """Public receipt with deterministic result body and separate receipt time."""
-
     base: CoordinationReceipt
     result_hash: str
     limitations: tuple[str, ...]
@@ -157,8 +139,8 @@ class TemporalCoordinationResult:
     events: tuple[CoordinationEvent, ...] = ()
 
 
-class CoordinationBus(_BaseCoordinationBus):
-    """Public bus with fail-closed temporal semantics and no schema change."""
+class _TemporalCoordinationCore(_BaseCoordinationBus):
+    """Internal temporal mechanics used only by the verifier-bound public bus."""
 
     def __init__(
         self,
@@ -229,7 +211,11 @@ class CoordinationBus(_BaseCoordinationBus):
             "limitations": list(limitations),
         }
         result_hash = sha256(json.dumps(
-            deterministic_body, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+            deterministic_body,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
         ).encode("utf-8")).hexdigest()
         receipt = TemporalCoordinationReceipt(
             base=result.receipt,
@@ -303,14 +289,17 @@ class CoordinationBus(_BaseCoordinationBus):
         retrieval_time: TemporalEvidence | None,
     ) -> TemporalCoordinationResult:
         actor.validate()
-        target = target_branch or actor.workstream
+        target = target_branch or actor.canonical_workstream
         validate_workstream(target, "target_branch")
-        actor.require(PERMISSION_READ_SELF if target == actor.workstream else PERMISSION_READ_ANY)
+        actor.require(
+            PERMISSION_READ_SELF
+            if target == actor.canonical_workstream
+            else PERMISSION_READ_ANY
+        )
         if after_sequence < 0:
             raise ValueError("after_sequence must be a non-negative exclusive high-water mark")
         if not 1 <= limit <= 500:
             raise ValueError("limit must be between 1 and 500")
-
         entry = _time(entry_time, "entry_time")
         retrieval = _time(retrieval_time, "retrieval_time")
         raw = self.repository.read_inbox(
@@ -365,7 +354,7 @@ class CoordinationBus(_BaseCoordinationBus):
         return self._read_temporal(
             "coordination_entry_checkpoint",
             actor,
-            actor.workstream,
+            actor.canonical_workstream,
             after_sequence,
             limit,
             False,
@@ -404,7 +393,7 @@ class CoordinationBus(_BaseCoordinationBus):
             actor,
             CoordinationEventDraft(
                 thread_key=original.thread_key,
-                source_branch=actor.workstream,
+                source_branch=actor.canonical_workstream,
                 target_branch=original.source_branch,
                 event_type="ACKNOWLEDGEMENT",
                 status="ACKNOWLEDGED",
@@ -458,7 +447,6 @@ class CoordinationBus(_BaseCoordinationBus):
                 ("No event written because the exit was not material.",),
             )
             return self._wrap(base, event_time=event, state_time=state)
-
         actor.require(PERMISSION_STATUS)
         base = _BaseCoordinationBus._append(
             self,
@@ -466,7 +454,7 @@ class CoordinationBus(_BaseCoordinationBus):
             actor,
             CoordinationEventDraft(
                 thread_key=thread_key,
-                source_branch=actor.workstream,
+                source_branch=actor.canonical_workstream,
                 target_branch=target_branch,
                 event_type="STATUS",
                 status=status,
