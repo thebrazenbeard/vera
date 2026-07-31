@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from pathlib import Path
+import tempfile
 import unittest
 
 from scripts.validate_integration_registry import (
     load_json_strict,
+    validate_repository_artifact,
     validate_schema,
     validate_semantics,
 )
@@ -23,12 +25,20 @@ def owner(registry, route):
     return next(item for item in registry["owners"] if item["route"] == route)
 
 
+def materialize_declared_artifacts(root: Path, registry: dict) -> None:
+    for item in registry["owners"]:
+        for relative in item["owned_artifacts"]:
+            path = root / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("fixture\n", encoding="utf-8")
+
+
 class IntegrationRegistryTests(unittest.TestCase):
     def test_valid_registry_passes(self):
         registry = load_json_strict(REGISTRY)
         schema = load_json_strict(SCHEMA)
         validate_schema(registry, schema)
-        validate_semantics(registry)
+        validate_semantics(registry, ROOT)
 
     def test_duplicate_json_keys_rejected_before_schema(self):
         with self.assertRaisesRegex(ValueError, "duplicate JSON key"):
@@ -105,6 +115,31 @@ class IntegrationRegistryTests(unittest.TestCase):
         memory["owned_artifacts"][0] = (
             "supabase/drafts/20260730_memory_cross_chat_contract_v1.sql"
         )
+        with self.assertRaisesRegex(ValueError, "canonical source intent"):
+            validate_semantics(registry)
+
+    def test_memory_durability_migration_omission_rejected(self):
+        registry = valid_registry()
+        memory = owner(registry, "workstream/memory")
+        memory["owned_artifacts"].remove(
+            "supabase/migrations/20260731003000_add_memory_request_idempotency.sql"
+        )
+        with self.assertRaisesRegex(ValueError, "canonical source intent"):
+            validate_semantics(registry)
+
+    def test_memory_receipt_recovery_evidence_omission_rejected(self):
+        registry = valid_registry()
+        memory = owner(registry, "workstream/memory")
+        memory["owned_artifacts"].remove(
+            "supabase/tests/verify_neutral_v3_memory_receipt_recovery.sql"
+        )
+        with self.assertRaisesRegex(ValueError, "canonical source intent"):
+            validate_semantics(registry)
+
+    def test_memory_durability_check_omission_rejected(self):
+        registry = valid_registry()
+        memory = owner(registry, "workstream/memory")
+        memory["required_checks"].remove("Memory durability review corrections")
         with self.assertRaisesRegex(ValueError, "canonical source intent"):
             validate_semantics(registry)
 
@@ -213,6 +248,57 @@ class IntegrationRegistryTests(unittest.TestCase):
         integration["contract_ids"][0] = identity["contract_ids"][0]
         with self.assertRaisesRegex(ValueError, "contract_id collision"):
             validate_semantics(registry)
+
+    def test_missing_declared_file_rejected(self):
+        registry = valid_registry()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            materialize_declared_artifacts(root, registry)
+            path = root / "architecture/identity/VERA_IDENTITY_TEMPORAL_ANCHOR_V1.json"
+            path.unlink()
+            with self.assertRaisesRegex(ValueError, "missing repository artifact"):
+                validate_semantics(registry, root)
+
+    def test_directory_substitution_rejected(self):
+        registry = valid_registry()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            materialize_declared_artifacts(root, registry)
+            path = root / "protocol/initiative_kernel.py"
+            path.unlink()
+            path.mkdir()
+            with self.assertRaisesRegex(ValueError, "not a regular file"):
+                validate_semantics(registry, root)
+
+    def test_symlink_substitution_rejected(self):
+        registry = valid_registry()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            materialize_declared_artifacts(root, registry)
+            path = root / "coordination_bus/contracts.py"
+            path.unlink()
+            try:
+                path.symlink_to("core.py")
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinks are unavailable on this platform")
+            with self.assertRaisesRegex(ValueError, "may not be a symlink"):
+                validate_semantics(registry, root)
+
+    def test_case_drift_rejected(self):
+        registry = valid_registry()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            materialize_declared_artifacts(root, registry)
+            path = root / "scripts/validate_identity_temporal_anchor.py"
+            wrong_case = path.with_name("Validate_Identity_Temporal_Anchor.py")
+            path.rename(wrong_case)
+            with self.assertRaisesRegex(ValueError, "case drift"):
+                validate_semantics(registry, root)
+
+    def test_direct_repository_artifact_traversal_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(ValueError, "invalid repository artifact path"):
+                validate_repository_artifact(Path(directory), "../outside")
 
 
 if __name__ == "__main__":
