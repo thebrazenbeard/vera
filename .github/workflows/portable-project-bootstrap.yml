@@ -23,6 +23,7 @@ permissions:
 
 jobs:
   validate-bootstrap:
+    if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[delivery-only]')
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -186,3 +187,52 @@ jobs:
           if command -v supabase >/dev/null 2>&1; then
             supabase stop --no-backup
           fi
+
+  package-project-delivery:
+    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[delivery-only]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out delivery source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Build governed upload bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_dir="architecture/releases/R7A0_20260731_EC7D18F7"
+          root="/tmp/VERA_PORTABLE_PROJECT_UPLOAD_BUNDLE_R7A1_20260731_V1"
+          mkdir -p "$root/PROJECT_FILES" "$root/PROJECT_INSTRUCTIONS"
+          cp "$release_dir"/* "$root/PROJECT_FILES/"
+          cp architecture/bootstrap/VERA_BOOTSTRAP_MANIFEST_V1.json "$root/PROJECT_FILES/"
+          cp architecture/bootstrap/VERA_NATIVE_PROJECT_INSTRUCTIONS_BOOTLOADER_V1.txt "$root/PROJECT_INSTRUCTIONS/"
+          cp docs/PORTABLE_PROJECT_BOOTSTRAP_V1.md "$root/INSTALLATION_GUIDE.md"
+          cat > "$root/START_HERE.txt" <<'EOF'
+          V.E.R.A. PORTABLE PROJECT UPLOAD BUNDLE
+
+          1. Create a fresh ChatGPT Project.
+          2. Upload every file inside PROJECT_FILES. Do not upload the folders themselves.
+          3. Replace the Project Instructions field with the complete contents of:
+             PROJECT_INSTRUCTIONS/VERA_NATIVE_PROJECT_INSTRUCTIONS_BOOTLOADER_V1.txt
+          4. Connect GitHub and Supabase.
+          5. Open the first chat and send exactly:
+             VERA::INITIALIZE::PORTABLE_PROJECT_V1
+
+          Do not upload INSTALLATION_GUIDE.md, START_HERE.txt, or DELIVERY_CHECKSUMS.sha256 as Project files.
+          EOF
+          (
+            cd "$root"
+            find PROJECT_FILES PROJECT_INSTRUCTIONS -type f -print0 | sort -z | xargs -0 sha256sum > DELIVERY_CHECKSUMS.sha256
+          )
+          cd /tmp
+          zip -qr VERA_PORTABLE_PROJECT_UPLOAD_BUNDLE_R7A1_20260731_V1.zip "$(basename "$root")"
+
+      - name: Upload governed project bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: VERA_PORTABLE_PROJECT_UPLOAD_BUNDLE_R7A1_20260731_V1
+          path: /tmp/VERA_PORTABLE_PROJECT_UPLOAD_BUNDLE_R7A1_20260731_V1.zip
+          if-no-files-found: error
+          retention-days: 7
