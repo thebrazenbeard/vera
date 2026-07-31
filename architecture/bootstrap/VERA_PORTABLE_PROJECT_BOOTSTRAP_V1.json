@@ -10,6 +10,7 @@
   },
   "authority_contract": {
     "coordinator_can_issue_or_expand_lease": false,
+    "coordinator_manages_team_routing": true,
     "github_repo_is_support_and_review": true,
     "green_test_is_authority": false,
     "manifest_self_authorizes": false,
@@ -61,15 +62,29 @@
   },
   "durable_registry": {
     "apply_to_current_supabase_authorized": false,
+    "attempt_states": [
+      "CLAIMED",
+      "BINDING_PENDING",
+      "BINDING_VERIFIED",
+      "CONFLICTED",
+      "FAILED_CLOSED"
+    ],
+    "candidate_and_pending_are_durable": false,
+    "durable_api_states": [
+      "DURABLY_BOUND"
+    ],
     "migration_path": "supabase/migrations/20260731142200_create_vera_portable_bootstrap_registry_v1.sql",
     "required_properties": [
       "APPEND_ONLY",
-      "ATOMIC_REQUEST_CLAIM",
+      "SERVER_BOUND_REQUEST_IDENTITY",
+      "VERIFIER_ISSUED_PROJECT_INSTANCE",
       "REPLAY_OR_CONFLICT",
       "ONE_SUCCESSOR_LINEAGE",
-      "TYPED_PROJECT_INSTANCE_STATE",
-      "INDEPENDENT_READ_BACK",
-      "STRICT_TEMPORAL_EVIDENCE",
+      "LEGAL_TRANSITIONS",
+      "UNKNOWN_FAIL_CLOSED",
+      "VERIFIER_OWNED_AUTHORITY_AND_SOURCE_EVIDENCE",
+      "INDEPENDENT_EXACT_READ_BACK",
+      "ROLE_SPECIFIC_TEMPORAL_EVIDENCE",
       "RLS",
       "LEAST_PRIVILEGE_FUNCTION_BOUNDARY"
     ],
@@ -88,44 +103,63 @@
     "unresolved_medium_required": 0
   },
   "idempotency_contract": {
-    "current_time_in_identity_digest": false,
-    "fresh_attempt_id_per_execution": true,
-    "post_binding_initialization_identity_inputs": [
-      "project_instance_id",
-      "branch_id",
-      "manifest_sha256",
-      "requested_mode",
+    "caller_supplied_request_identity": false,
+    "claim_slot_key_inputs": [
+      "command_version",
+      "project_template_id",
+      "target_fingerprint",
       "canonical_request"
     ],
-    "pre_binding_request_key_inputs": [
+    "current_time_in_identity_digest": false,
+    "fresh_attempt_id_per_execution": true,
+    "immutable_digest_inputs": [
       "command_version",
       "release_id",
       "manifest_sha256",
       "project_template_id",
       "target_fingerprint",
-      "canonical_request"
+      "canonical_request",
+      "source_repository",
+      "source_base_commit",
+      "requested_mode"
     ],
-    "same_key_changed_digest": "CONFLICT",
-    "same_key_same_digest": "REPLAY_OR_SAFE_RESUME"
+    "input_digest_issuer": "DEDICATED_BOOTSTRAP_REGISTRY",
+    "request_key_issuer": "DEDICATED_BOOTSTRAP_REGISTRY",
+    "same_claim_slot_changed_immutable_field": "CONFLICT",
+    "same_complete_claim": "REPLAY_OR_SAFE_RESUME"
   },
   "identity_contract": {
     "branch_id": "independent opaque UUID",
     "checkpoint_id": "immutable evidence node with optional predecessor",
     "conversation_scope_id": "independent opaque UUID; platform conversation ID optional evidence only",
     "identifier_time_is_temporal_evidence": false,
-    "project_instance_id": "opaque UUIDv7 supplied once per logical initialization and stable only after authorized registry read-back",
+    "project_instance_id": {
+      "authoritative_only_after_exact_readback": true,
+      "caller_supplied": false,
+      "embedded_time_is_authority": false,
+      "issuer": "DEDICATED_BOOTSTRAP_REGISTRY",
+      "type": "opaque UUIDv7",
+      "unique": true
+    },
     "project_template_id": "manifest-defined data-only identifier",
     "record_scope_id": "sha256 of canonical project instance, branch, namespace, and privacy tuple",
-    "session_id": "independent opaque UUID scoped to one conversation and branch"
+    "session_id": "independent opaque UUID scoped to one conversation and branch",
+    "target_fingerprint": {
+      "caller_supplied": false,
+      "derived_from": "VERIFIER_OBSERVED_TARGET_EVIDENCE",
+      "issuer": "DEDICATED_BOOTSTRAP_REGISTRY"
+    }
   },
   "prohibited_dependencies": [
     "chat_title",
     "historical_chat_id",
     "named_chat_route",
     "fixed_conversation_alias",
+    "chatgpt-project-current",
     "hidden_state",
     "persona_identity",
-    "credential_literal"
+    "credential_literal",
+    "mutable_branch_head_as_identity"
   ],
   "project_instance_states": [
     "UNISSUED",
@@ -144,26 +178,25 @@
     "reciprocal_attachment_claimed": false
   },
   "receipt_contract": {
+    "durably_bound_requires_exact_readback": true,
     "initialized_requires_durable_binding_and_confirmed_effects": true,
     "required_sections": [
+      "schema_id",
+      "receipt_id",
       "request",
-      "source_bindings",
-      "observations",
-      "capabilities",
-      "files_validated",
-      "target_bindings",
       "project_scope",
-      "plan",
-      "effects",
-      "optional_skips",
-      "blockers",
+      "source_bindings",
       "authority_evidence",
       "temporal_evidence",
+      "durable_readback",
+      "effects",
       "limitations",
       "result"
     ],
     "schema_id": "VERA_PORTABLE_BOOTSTRAP_RECEIPT_V1",
-    "visible_unconfirmed_receipt_can_claim_external_effect": false
+    "schema_location": "schemas/vera_portable_project_bootstrap_v1.schema.json#/$defs/receipt",
+    "unknown_fields_allowed": false,
+    "visible_receipt_self_certifies": false
   },
   "release_id": "VERA_PORTABLE_BOOTSTRAP_R7A1_20260731_V1",
   "result_states": [
@@ -176,9 +209,11 @@
   ],
   "routing_contract": {
     "canonical_routes_are_project_scoped_roles": true,
+    "coordinator_is_team_router": true,
     "cross_project_acknowledgement": "FAIL_CLOSED",
     "ephemeral_role_claims_required": true,
     "linked_acknowledgement_required_for_consumption": true,
+    "project_architect_is_build_lead": true,
     "stored_event_proves_consumption": false
   },
   "scaffold_contract": {
@@ -197,31 +232,56 @@
     "sequential_fallback_allowed": false
   },
   "schema_id": "VERA_PORTABLE_PROJECT_BOOTSTRAP_V1",
+  "source_binding_contract": {
+    "base_source_commit": "fc761beab263f2fab010cde2fab424b2b8358bb7",
+    "base_source_role": "INHERITED_PRE_BOOTSTRAP_BASE",
+    "embedded_release_commit": false,
+    "exact_head_required_for_acceptance": true,
+    "mutable_branch_head_is_identity": false,
+    "package_digest_required": true,
+    "path_set_digest_required": true,
+    "per_path_evidence": [
+      "path",
+      "mode",
+      "size",
+      "sha256",
+      "git_blob_sha"
+    ],
+    "portable_release_role": "EXTERNAL_EXACT_HEAD_ATTESTATION",
+    "self_exclusion_rule": "SCAFFOLD_MANIFEST_EMBEDDED_HASH_EXCLUDED_AND_BOUND_BY_EXACT_GIT_HEAD_ATTESTATION"
+  },
   "state_machine": [
     "DISCOVER",
     "VALIDATE_ATOMIC_SET",
     "PROBE_CAPABILITIES",
     "BIND_TARGETS",
     "CLAIM_REQUEST",
-    "RESOLVE_OR_ISSUE_SCOPE",
     "VERIFY_BASELINES",
     "PLAN",
     "AUTHORITY_CHECK",
     "APPLY_CREATE_OR_VERIFY",
     "VERIFY_RESULT",
+    "READ_BACK_DURABLE_BINDING",
     "RECEIPT",
     "STOP"
   ],
   "temporal_contract": {
     "observation_proves_continuing_availability": false,
-    "precisions": [
-      "EXACT",
-      "BOUNDED",
-      "APPROXIMATE",
-      "UNKNOWN"
-    ],
+    "point_schema": {
+      "APPROXIMATE": "VALUE_ONLY",
+      "BOUNDED": "LOWER_AND_UPPER_REQUIRED",
+      "EXACT": "VALUE_ONLY",
+      "UNKNOWN": "NO_VALUE_OR_BOUNDS",
+      "precisions": [
+        "EXACT",
+        "BOUNDED",
+        "APPROXIMATE",
+        "UNKNOWN"
+      ]
+    },
     "record_time_proves_effective_time": false,
     "retrieval_refreshes_state": false,
+    "role_specific_precision_required": true,
     "roles": [
       "event_time",
       "state_time",
@@ -230,7 +290,7 @@
       "record_time",
       "retrieval_time"
     ],
-    "unknown_carries_value": false
+    "uuidv7_time_is_authority": false
   },
-  "version": "1.0.0"
+  "version": "1.1.0"
 }

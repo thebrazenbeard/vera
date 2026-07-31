@@ -32,6 +32,7 @@
   "contract_paths": {
     "bootstrap": "architecture/bootstrap/VERA_PORTABLE_PROJECT_BOOTSTRAP_V1.json",
     "bootstrap_schema": "schemas/vera_portable_project_bootstrap_v1.schema.json",
+    "receipt_schema": "schemas/vera_portable_project_bootstrap_v1.schema.json#/$defs/receipt",
     "scaffold": "architecture/bootstrap/VERA_PORTABLE_SCAFFOLD_MANIFEST_V1.json",
     "scaffold_schema": "schemas/vera_portable_scaffold_manifest_v1.schema.json"
   },
@@ -54,7 +55,7 @@
     "line_endings": "LF",
     "maximum_characters": 7600,
     "repository_path": "architecture/bootstrap/VERA_NATIVE_PROJECT_INSTRUCTIONS_BOOTLOADER_V1.txt",
-    "sha256": "4e990e3d7ede395cdcc096f59b60174b54cf01cd35eae2acf2c5f6ce79d000be"
+    "sha256": "e67045b0d925dabae4916c2e6bc1e2587bcc3b1355673a475322aa95c12ee666"
   },
   "project_file_bundle": {
     "files": [
@@ -194,10 +195,26 @@
   "release_id": "VERA_PORTABLE_BOOTSTRAP_R7A1_20260731_V1",
   "schema_id": "VERA_BOOTSTRAP_MANIFEST_V1",
   "source_binding": {
+    "base_source_commit": "fc761beab263f2fab010cde2fab424b2b8358bb7",
+    "base_source_role": "INHERITED_PRE_BOOTSTRAP_BASE",
     "expected_default_branch": "main",
-    "head_policy": "REQUIRE_SOURCE_ANCESTOR_OF_HEAD",
-    "release_commit": null,
-    "repository": "thebrazenbeard/vera",
-    "source_commit": "fc761beab263f2fab010cde2fab424b2b8358bb7"
+    "head_policy": "REQUIRE_BASE_ANCESTOR_AND_VALIDATE_EXACT_RELEASE_HEAD",
+    "portable_release_evidence": {
+      "embedded_release_commit": false,
+      "path_set_sha256": "a010ac6b7caaba5ef26d4ab069fd8da5869fb7066dcc7a4c53119cd1c5f0d50d",
+      "reason": "Embedding the commit that contains this manifest would be self-referential.",
+      "required_evidence": [
+        "release_commit",
+        "path",
+        "mode",
+        "size",
+        "sha256",
+        "git_blob_sha",
+        "package_sha256"
+      ],
+      "required_path_count": 12,
+      "resolution": "EXTERNAL_EXACT_HEAD_ATTESTATION_REQUIRED"
+    },
+    "repository": "thebrazenbeard/vera"
   }
 }

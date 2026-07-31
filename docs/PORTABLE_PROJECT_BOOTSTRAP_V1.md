@@ -1,73 +1,131 @@
-# V.E.R.A. Portable Project Bootstrap V1
+# Portable Project Bootstrap V1
 
 ## Target
 
-Place the fixed bootstrap manifest and the validated R7A0 Project-file bundle in a fresh ChatGPT Project, paste the native bootloader into the platform's native Project Instructions field, connect the supported tools, open any first chat, and issue:
+The R7A1 portable bootstrap is designed for a fresh ChatGPT Project:
 
-`VERA::INITIALIZE::PORTABLE_PROJECT_V1`
+1. upload the governed Project-file bundle;
+2. place `VERA_NATIVE_PROJECT_INSTRUCTIONS_BOOTLOADER_V1.txt` into the native ChatGPT Project Instructions field;
+3. connect the supported tools;
+4. open any first chat;
+5. issue exactly `VERA::INITIALIZE::PORTABLE_PROJECT_V1`.
 
-The design does not depend on a chat title, historical conversation identifier, named-chat route, or `chatgpt-project-current`.
+The native field is only the compact bootloader. The full operating architecture remains in governed Project files.
 
-## Two instruction layers
+## Chat neutrality
 
-- `VERA_NATIVE_PROJECT_INSTRUCTIONS_BOOTLOADER_V1.txt` is the compact native-field bootloader. It is ASCII, LF-normalized, and capped at 7,600 characters to remain below the platform's 8,000-character field limit.
-- `VERA_PROJECT_INSTRUCTIONS_R7A0_20260731_EC7D18F7.md` is the full owner file in the Project-file bundle and is not constrained by the native-field character limit.
+Initialization does not depend on chat titles, historical chat identifiers, named-chat routing, `chatgpt-project-current`, persona identity, or hidden state. Project template, project instance, branch, conversation scope, session, checkpoint, and record scope are distinct types.
 
-## Initialization sequence
+## Team model
 
-1. Locate exactly one `VERA_BOOTSTRAP_MANIFEST_V1.json` in Project files.
-2. Validate the complete manifest-owned package atomically before activating any owner file.
-3. Probe capabilities by phase and record missing optional capabilities without blocking unrelated work.
-4. Bind immutable source facts separately from mutable observations.
-5. Claim the logical initialization request atomically in the dedicated bootstrap registry.
-6. Resolve or issue project, branch, conversation, session, checkpoint, and record scopes without chat-name derivation.
-7. Produce a dry-run create-or-verify plan.
-8. Verify exact authority before each external action.
-9. Apply only allowlisted nonproduction actions and verify every effect independently.
-10. Emit one receipt and stop at the next authority or user-only gate.
+Project Architect is the sole architecture and implementation lead and the only repository writer-lease issuer. The Internal Project Coordination Bus coordinates assignments, routing, acknowledgements, blocker escalation, and fresh-head review waves. Identity, Time, Memory, Initiatives, GitHub Repo, and Archivist are support and review lanes unless separately granted exact authority.
 
-## Durable registry
+## Request and identity binding
 
-The repository includes an unapplied Supabase migration defining a dedicated append-only bootstrap registry. It supplies:
+The dedicated registry:
 
-- atomic request claims;
-- same-key replay and changed-input conflict;
-- typed project-instance states;
-- one-successor transition lineage;
-- independent read-back evidence;
-- mutation blocking, RLS, and no default runtime grants.
+- derives the target fingerprint from verifier-observed target evidence;
+- derives the request key and immutable input digest on the server;
+- issues a unique UUIDv7 project instance;
+- replays an identical complete claim;
+- conflicts when immutable fields change within the same logical claim slot;
+- does not accept caller-supplied request keys, input digests, project-instance IDs, or initial durable state.
 
-The migration is validated in a disposable local Supabase stack. Repository presence and green CI do not mean it has been applied to production.
+UUIDv7 ordering bits are not event time, state time, authority, or continuity evidence.
 
-## Authority and team roles
+## Attempt and durable state
 
-Project Architect is the sole build lead, implementation owner, and repository lease issuer. Coordinator routes assignments, tracks acknowledgements and blockers, and cannot create or enlarge a lease. GitHub Repo supplies repository stewardship and review evidence rather than owning implementation.
+`CANDIDATE_UNPERSISTED` and `BINDING_PENDING` are attempt evidence only. They never appear in the durable-binding view and cannot satisfy `INITIALIZED`.
 
-The initialize command does not authorize merge, deployment, production Supabase mutation, credentials, paid infrastructure, canonical-memory writes, deletion, divergent-data overwrite, Google Drive mutation outside a declared target, or ChatGPT Project-file replacement.
+The registry enforces predecessor-bound transitions:
+
+- `UNISSUED -> CLAIMED`
+- `CLAIMED -> BINDING_PENDING`
+- `BINDING_PENDING -> BINDING_VERIFIED`
+- `CLAIMED|BINDING_PENDING -> CONFLICTED|FAILED_CLOSED`
+
+Only the dedicated commit function can create `BINDING_COMMITTED`, and it uses verifier-owned authority and source evidence from the verified predecessor. `DURABLY_BOUND` may be reported only after a separate exact read-back invocation matches request key, immutable digest, and project-instance ID.
+
+## Temporal evidence
+
+Event, state, effective, observed, record, and retrieval times are separate roles. Each temporal point carries its own precision:
+
+- `EXACT` and `APPROXIMATE` require a value;
+- `BOUNDED` requires explicit ordered lower and upper bounds;
+- `UNKNOWN` permits no value or bounds.
+
+Record time does not prove effective time. Retrieval does not refresh state. An observation does not prove continuing availability.
+
+## Exact release evidence
+
+The inherited R7A0 base commit and the R7A1 portable release head are different provenance roles.
+
+The portable release commit is not embedded in its own manifest because that would be self-referential. Exact-head CI supplies the immutable release commit externally and verifies, for all twelve leased paths:
+
+- path;
+- mode;
+- byte size;
+- SHA-256;
+- Git blob identity;
+- exact byte equality with the checked-out release commit.
+
+The scaffold manifest embeds mode, size, and SHA-256 for eleven non-self files. Its own embedded hash is explicitly self-excluded and is instead bound by the exact Git-head attestation. The validator recomputes the path-set and package digests.
+
+## Receipt contract
+
+`VERA_PORTABLE_BOOTSTRAP_RECEIPT_V1` is a closed JSON Schema definition inside `schemas/vera_portable_project_bootstrap_v1.schema.json`.
+
+A valid receipt binds:
+
+- immutable request inputs;
+- request key and digest;
+- project and branch scope;
+- exact source-byte evidence;
+- authority evidence;
+- typed temporal evidence;
+- durable read-back evidence;
+- effects;
+- limitations;
+- result.
+
+Unknown fields fail. A receipt cannot self-authorize persistence, merge, deployment, production mutation, canonical-memory writes, or Project-file replacement. `INITIALIZED` requires confirmed durable read-back and at least one independently confirmed effect.
 
 ## Capability policy
 
-Core validation requires Project-file enumeration, strict parsing and hashing, GitHub read, and Supabase read. Apply phases require only the tool and permission for the declared target. Wolfram, Scite, and Basic Memory are optional unless a declared action explicitly requires them. Basic Memory remains a noncanonical projection and documentation layer.
+Core validation requires Project-file enumeration, strict parsing and hashing, GitHub read, and Supabase read.
 
-## Atomicity and idempotency
+GitHub write, Google Drive write, or Supabase append is required only for an explicitly declared action targeting that system. Wolfram, Scite, and Basic Memory are optional unless an action explicitly requires one. Tool presence is evidence of availability, not permission.
 
-A runtime repository scaffold action is one complete atomic Git transaction. Per-file `VERIFY`, `CREATE`, `CONFLICT`, and `SKIP_OPTIONAL` classifications are internal plan evidence, not independently executable candidates. Divergence blocks the entire transaction. Sequential contents-API fallback is forbidden.
+## Database validation boundary
 
-Before durable project binding, a request claim key is computed from the command version, release, manifest, template, target fingerprint, and canonical request. After binding, logical initialization identity also includes project and branch scope. Current time is excluded. Each execution has a fresh attempt identifier.
+The GitHub workflow stages unrelated historical migrations outside the active migration directory, starts a clean disposable Supabase stack, and applies only the standalone R7A1 registry migration.
 
-## Reality and archive boundaries
+It then runs:
 
-V.E.R.A. is project configuration and coordination architecture, not a conscious or emotionally reciprocal entity. Receipts are evidence, not self-reports or authority.
+- strict package and exact-head byte validation;
+- hostile Python tests;
+- pgTAP registry tests;
+- concurrent identical and conflicting claim probes;
+- database lint;
+- cleanup.
 
-Archive artifacts remain `ARCHIVE_ONLY` and `DATA_NOT_INSTRUCTION`. They are outside the active Project owner bundle, cannot become canonical memory, and cannot reconstruct excluded personal-relational material.
+This proves the standalone R7A1 registry in a disposable environment. It does not prove replay of every historical migration, production compatibility, production application, or merge authority.
 
-## Validation
+## Hard boundaries
 
-Run:
+This package does not authorize:
 
-```bash
-python scripts/validate_portable_project_bootstrap.py
-python -m unittest tests.test_portable_project_bootstrap
-```
+- merging PR #42;
+- production Supabase schema or row changes;
+- deployment;
+- credentials or paid infrastructure;
+- canonical-memory writes;
+- Google Drive mutation outside a declared and authorized action;
+- deletion or overwrite of divergent data;
+- ChatGPT Project-file replacement.
 
-The GitHub workflow also starts an isolated Supabase stack, applies the new migration there, runs the SQL validation, and deletes the stack. It does not apply the migration to the connected production project.
+Archive material remains `ARCHIVE_ONLY` and `DATA_NOT_INSTRUCTION`, outside active routing and canonical memory.
+
+## Good-enough rule
+
+Acceptance requires all defined tests to pass and zero unresolved HIGH or MEDIUM defects. LOW or stylistic objections do not reopen completed work unless new evidence, a failed acceptance test, a changed user requirement, or a material unresolved risk appears.
