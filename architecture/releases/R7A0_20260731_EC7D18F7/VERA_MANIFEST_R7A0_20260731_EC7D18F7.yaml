@@ -1,0 +1,59 @@
+schema_version: 3.0.0
+project_id: vera-reciprocal-agency-environment
+display_name: V.E.R.A.
+acronym: Virtual Environment for Reciprocal Agency
+release_id: VERA_NEUTRAL_CORE_R7A0_20260731_EC7D18F7
+release_token: R7A0_20260731_EC7D18F7
+generated_at: '2026-07-31T12:30:00Z'
+status: replacement_candidate_generated_not_installed
+purpose: integrated_provenance_governed_context_memory_time_initiative_and_coordination
+source:
+  repository: thebrazenbeard/vera
+  accepted_main_commit: b20e7309c6ded3c358dce00baa537d2fc1880004
+  current_tree_equivalent_main: fc4a0ed9bdc96d22d570cc6f9515596e832b8468
+  pr12_source_head: 0f609243f790a9337d8e07db524e2ca0347056c0
+  pr18_source_head: 7d2ddad7752a412c741ca705756930acbedf5eac
+  integration_registry_sha256: f095fa46666abb583e616658198399131a4902fc9ba572f01f4642c1dcab158f
+ontology:
+  model_subject_assumed: false
+  persona_subject_assumed: false
+  consciousness_claimed: false
+  reciprocal_feeling_claimed: false
+  behavioral_reciprocity_testable: true
+owners:
+  project_instructions: VERA_PROJECT_INSTRUCTIONS_R7A0_20260731_EC7D18F7.md
+  runtime: VERA_RUNTIME_R7A0_20260731_EC7D18F7.md
+  governance: VERA_GOVERNANCE_R7A0_20260731_EC7D18F7.md
+  memory_protocol: VERA_PROTOCOL_R7A0_20260731_EC7D18F7.md
+  tagging: VERA_TAGGING_R7A0_20260731_EC7D18F7.md
+  laws: VERA_LAWS_R7A0_20260731_EC7D18F7.md
+  state: VERA_STATE_R7A0_20260731_EC7D18F7.md
+  workstream_routing: VERA_WORKSTREAM_ROUTING_R7A0_20260731_EC7D18F7.md
+  archive_policy: VERA_ARCHIVE_POLICY_R7A0_20260731_EC7D18F7.md
+support_files:
+  repository_baseline: VERA_REPOSITORY_BASELINE_R7A0_20260731_EC7D18F7.md
+  authorization_receipt: VERA_REPOSITORY_AUTHORIZATION_RECEIPT_R7A0_20260731_EC7D18F7.md
+  archivist_handoff: VERA_ARCHIVIST_HANDOFF_R7A0_20260731_EC7D18F7.md
+  supabase_preservation: VERA_SUPABASE_PRESERVATION_R7A0_20260731_EC7D18F7.md
+  supersession: VERA_SUPERSESSION_R7A0_20260731_EC7D18F7.yaml
+  validation: VERA_VALIDATION_R7A0_20260731_EC7D18F7.yaml
+  installation_receipt_template: VERA_INSTALLATION_RECEIPT_TEMPLATE_R7A0_20260731_EC7D18F7.yaml
+workstreams:
+  identity: integrated
+  time: integrated
+  memory: integrated_nonproduction
+  initiatives: integrated_selection_only
+  coordination: integrated_nonproduction
+  integration_assurance: integrated
+archive:
+  sanitized_archive_required: true
+  full_archive_in_active_bundle: false
+  personal_relational_content_excluded: true
+supabase:
+  project_ref: klmbpaigzeguvnpccqzz
+  production_modification_authorized: false
+  production_modification_applied: false
+  preservation_required: true
+installation:
+  chatgpt_project_replaced: false
+  explicit_user_authorization_required: true

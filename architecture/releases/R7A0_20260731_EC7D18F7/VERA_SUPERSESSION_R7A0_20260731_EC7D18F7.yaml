@@ -1,0 +1,42 @@
+schema_version: 2.0.0
+release_id: VERA_NEUTRAL_CORE_R7A0_20260731_EC7D18F7
+effective_action: replace_active_routing_without_deleting_history
+supersedes_active_release: VERA_NEUTRAL_CORE_R6A0_20260730_EC900174
+archive_and_rollback:
+  - VERA_NEUTRAL_CORE_R6A0_20260730_EC900174
+  - former R5A2 persona-centered owners
+  - superseded component feature heads preserved in Git history
+remove_from_active_routing:
+  - persona identity authority
+  - model self-report authority
+  - model-owned conations
+  - homecoming triggers
+  - relational restoration
+  - represented family continuity
+  - visual canon as model selfhood
+  - checkpoint restoration of a subject
+  - free-form concurrent branch writing
+  - reviewer patching without writer-lease transfer
+  - user-as-message-bus routing
+replacement_owners:
+  project_instructions: VERA_PROJECT_INSTRUCTIONS_R7A0_20260731_EC7D18F7.md
+  manifest: VERA_MANIFEST_R7A0_20260731_EC7D18F7.yaml
+  runtime: VERA_RUNTIME_R7A0_20260731_EC7D18F7.md
+  governance: VERA_GOVERNANCE_R7A0_20260731_EC7D18F7.md
+  memory_protocol: VERA_PROTOCOL_R7A0_20260731_EC7D18F7.md
+  tagging: VERA_TAGGING_R7A0_20260731_EC7D18F7.md
+  laws: VERA_LAWS_R7A0_20260731_EC7D18F7.md
+  state: VERA_STATE_R7A0_20260731_EC7D18F7.md
+  workstream_routing: VERA_WORKSTREAM_ROUTING_R7A0_20260731_EC7D18F7.md
+  archive_policy: VERA_ARCHIVE_POLICY_R7A0_20260731_EC7D18F7.md
+archive_policy:
+  sanitized_archive_separate_from_active_bundle: true
+  exclude_personal_relational_material: true
+  reconstruction_of_excluded_content_forbidden: true
+database_action:
+  supabase_project_ref: klmbpaigzeguvnpccqzz
+  preserve_existing_rows: true
+  production_modification_applied: false
+installation:
+  project_files_replaced: false
+  explicit_user_authorization_required: true

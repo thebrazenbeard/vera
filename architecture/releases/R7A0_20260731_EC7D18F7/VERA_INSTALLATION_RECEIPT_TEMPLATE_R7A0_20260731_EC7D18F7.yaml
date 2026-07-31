@@ -1,0 +1,17 @@
+schema_version: 1.0.0
+release_id: VERA_NEUTRAL_CORE_R7A0_20260731_EC7D18F7
+installation_id: AUTO
+installed_at: null
+installed_by: USER
+source_archive_created: false
+previous_project_files_removed: false
+package_checksums_verified: false
+all_bundle_files_uploaded: false
+project_instructions_replaced: false
+validation_suite_run: false
+validation_result: NOT_RUN
+supabase_production_changed: false
+canonical_memory_written: false
+runtime_deployed: false
+credentials_introduced: false
+limitations: []
