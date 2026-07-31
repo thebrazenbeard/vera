@@ -7,15 +7,19 @@ on:
       - "docs/PROJECT_IDENTITY_V1.md"
       - "docs/IDENTITY_INTEGRATION_V1.md"
       - "docs/IDENTITY_TEMPORAL_ANCHOR_V1.md"
+      - "docs/GOVERNED_WORKFLOW_CONTINUITY_V1.md"
       - "schemas/vera_project_identity_v1.schema.json"
       - "schemas/vera_behavior_profile_v1.schema.json"
       - "schemas/vera_identity_temporal_anchor_v1.schema.json"
+      - "schemas/vera_governed_workflow_continuity_v1.schema.json"
       - "scripts/validate_project_identity.py"
       - "scripts/validate_identity_temporal_anchor.py"
       - "scripts/validate_identity_temporal_anchor_classification.py"
+      - "scripts/validate_governed_workflow_continuity.py"
       - "tests/test_project_identity.py"
       - "tests/test_identity_temporal_anchor.py"
       - "tests/test_identity_temporal_anchor_classification.py"
+      - "tests/test_governed_workflow_continuity.py"
       - ".github/workflows/project-identity.yml"
   push:
     branches:
@@ -25,15 +29,19 @@ on:
       - "docs/PROJECT_IDENTITY_V1.md"
       - "docs/IDENTITY_INTEGRATION_V1.md"
       - "docs/IDENTITY_TEMPORAL_ANCHOR_V1.md"
+      - "docs/GOVERNED_WORKFLOW_CONTINUITY_V1.md"
       - "schemas/vera_project_identity_v1.schema.json"
       - "schemas/vera_behavior_profile_v1.schema.json"
       - "schemas/vera_identity_temporal_anchor_v1.schema.json"
+      - "schemas/vera_governed_workflow_continuity_v1.schema.json"
       - "scripts/validate_project_identity.py"
       - "scripts/validate_identity_temporal_anchor.py"
       - "scripts/validate_identity_temporal_anchor_classification.py"
+      - "scripts/validate_governed_workflow_continuity.py"
       - "tests/test_project_identity.py"
       - "tests/test_identity_temporal_anchor.py"
       - "tests/test_identity_temporal_anchor_classification.py"
+      - "tests/test_governed_workflow_continuity.py"
       - ".github/workflows/project-identity.yml"
 
 permissions:
@@ -64,6 +72,9 @@ jobs:
       - name: Validate temporal anchor classification
         run: python scripts/validate_identity_temporal_anchor_classification.py
 
+      - name: Validate governed workflow continuity
+        run: python scripts/validate_governed_workflow_continuity.py
+
       - name: Run identity tests
         run: python -m unittest discover -s tests -p "test_project_identity.py" -v
 
@@ -73,12 +84,17 @@ jobs:
       - name: Run temporal anchor classification tests
         run: python -m unittest discover -s tests -p "test_identity_temporal_anchor_classification.py" -v
 
+      - name: Run governed workflow-continuity tests
+        run: python -m unittest discover -s tests -p "test_governed_workflow_continuity.py" -v
+
       - name: Compile validators and tests
         run: >-
           python -m py_compile
           scripts/validate_project_identity.py
           scripts/validate_identity_temporal_anchor.py
           scripts/validate_identity_temporal_anchor_classification.py
+          scripts/validate_governed_workflow_continuity.py
           tests/test_project_identity.py
           tests/test_identity_temporal_anchor.py
           tests/test_identity_temporal_anchor_classification.py
+          tests/test_governed_workflow_continuity.py
