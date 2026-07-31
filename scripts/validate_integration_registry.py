@@ -185,18 +185,6 @@ def validate_semantics(registry: dict[str, Any]) -> None:
         if owner["execution_authorized"]:
             raise ValueError(f"{route} may not claim execution authority")
 
-        expected = EXPECTED_OWNER_IDENTITIES[route]
-        for field_name in ("contract_ids", "owned_artifacts", "required_checks"):
-            actual_values = owner[field_name]
-            if len(actual_values) != len(set(actual_values)):
-                raise ValueError(f"{route} contains duplicate {field_name}")
-            actual = set(actual_values)
-            if actual != expected[field_name]:
-                raise ValueError(
-                    f"{route} {field_name} differ from canonical source intent: "
-                    f"{sorted(actual ^ expected[field_name])}"
-                )
-
         for contract_id in owner["contract_ids"]:
             _claim_once(
                 contract_claims,
@@ -211,6 +199,18 @@ def validate_semantics(registry: dict[str, Any]) -> None:
                 route=route,
                 field_name="owned_artifact",
             )
+
+        expected = EXPECTED_OWNER_IDENTITIES[route]
+        for field_name in ("contract_ids", "owned_artifacts", "required_checks"):
+            actual_values = owner[field_name]
+            if len(actual_values) != len(set(actual_values)):
+                raise ValueError(f"{route} contains duplicate {field_name}")
+            actual = set(actual_values)
+            if actual != expected[field_name]:
+                raise ValueError(
+                    f"{route} {field_name} differ from canonical source intent: "
+                    f"{sorted(actual ^ expected[field_name])}"
+                )
 
     coordination = by_route["workstream/coordination"]
     if (
