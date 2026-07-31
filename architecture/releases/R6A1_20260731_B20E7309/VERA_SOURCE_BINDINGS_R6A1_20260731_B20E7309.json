@@ -13,19 +13,23 @@
   "bindings": [
     {
       "role": "project_identity",
-      "path": "architecture/identity/VERA_PROJECT_IDENTITY_V1.json"
+      "path": "architecture/identity/VERA_PROJECT_IDENTITY_V1.json",
+      "git_blob_sha": "a33117145829399b595a1f27387d7170b9a79646"
     },
     {
       "role": "behavior_profile",
-      "path": "architecture/identity/VERA_BEHAVIOR_PROFILE_V1.json"
+      "path": "architecture/identity/VERA_BEHAVIOR_PROFILE_V1.json",
+      "git_blob_sha": "0c79625b993a559bd22a6fbe68279450fc736eb2"
     },
     {
       "role": "governed_workflow_continuity",
-      "path": "architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V1.json"
+      "path": "architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V1.json",
+      "git_blob_sha": "e717f7019c7d88ffad41ce11dd58dabbeaee35ca"
     },
     {
       "role": "identity_temporal_anchor",
-      "path": "architecture/identity/VERA_IDENTITY_TEMPORAL_ANCHOR_V1.json"
+      "path": "architecture/identity/VERA_IDENTITY_TEMPORAL_ANCHOR_V1.json",
+      "git_blob_sha": "6b5e03736d59969b01289fd8a698a260321b6820"
     },
     {
       "role": "integration_registry",
@@ -40,27 +44,33 @@
     },
     {
       "role": "turn_taking",
-      "path": "docs/WORKSTREAM_TURN_TAKING_PROTOCOL_V1.md"
+      "path": "docs/WORKSTREAM_TURN_TAKING_PROTOCOL_V1.md",
+      "git_blob_sha": "4bbeee29803eb61f8adfdd2e5268fe21808c3ea0"
     },
     {
       "role": "memory_contract",
-      "path": "docs/MEMORY_CROSS_CHAT_CONTRACT_V1.md"
+      "path": "docs/MEMORY_CROSS_CHAT_CONTRACT_V1.md",
+      "git_blob_sha": "b8a07a61bd93322cf020696f7ab8a6ec705014c1"
     },
     {
       "role": "temporal_contract",
-      "path": "docs/TEMPORAL_ENFORCEMENT_V1.md"
+      "path": "docs/TEMPORAL_ENFORCEMENT_V1.md",
+      "git_blob_sha": "1c9dacfb0014c1716244292d9ed167b8868a74ca"
     },
     {
       "role": "initiative_contract",
-      "path": "docs/INITIATIVE_KERNEL_V0_1.md"
+      "path": "docs/INITIATIVE_KERNEL_V0_1.md",
+      "git_blob_sha": "c8335fd27c68d227e870252ea17ebbff055b5f56"
     },
     {
       "role": "coordination_contract",
-      "path": "docs/COORDINATION_BUS_V1.md"
+      "path": "docs/COORDINATION_BUS_V1.md",
+      "git_blob_sha": "a6511981dfd58c8a4776c56361e16461e22bf42c"
     },
     {
       "role": "orchestration_state",
-      "path": "docs/PROJECT_ORCHESTRATION_R6A0.md"
+      "path": "docs/PROJECT_ORCHESTRATION_R6A0.md",
+      "git_blob_sha": "3f06540298a96367786516aeb73def5075188bc8"
     }
   ]
 }
