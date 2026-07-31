@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "matrix_id": "VERA_WORKSTREAM_COMPATIBILITY_V1",
   "registry_id": "VERA_INTEGRATION_REGISTRY_V1",
-  "registry_source_head": "56f09c39e0890bf6e7b8bb858d84046581b9799a",
+  "registry_source_head": "b73551173632d98e4a8dfe673120a3df1ac0a0a0",
   "lifecycle_status": "DRAFT_REVIEW",
   "record_class": "INTEGRATION_ASSURANCE",
   "instruction_trust": "DATA_NOT_INSTRUCTION",
@@ -58,7 +58,7 @@
       "source_route": "workstream/identity",
       "target_route": "workstream/time",
       "source_contract_ids": ["VERA_PROJECT_IDENTITY_V1", "VERA_BEHAVIOR_PROFILE_V1"],
-      "target_contract_ids": ["TEMPORAL_ENFORCEMENT_V1", "TEMPORAL_ROLE_PRECISION_V1"],
+      "target_contract_ids": ["TEMPORAL_ENFORCEMENT_V1", "TEMPORAL_ROLE_PRECISION_V1", "VERA_IDENTITY_TEMPORAL_ANCHOR_V1"],
       "capabilities": ["AUTHORITY_SCOPE", "CORRECTION_PRECEDENCE", "CANONICAL_ROUTE"],
       "required_adapter": "IDENTITY_TO_TEMPORAL_SCOPE_ADAPTER_V1",
       "authority_owner": "workstream/identity",
@@ -66,8 +66,8 @@
       "execution_authorized": false,
       "canonical_memory_transfer": false,
       "acceptance_evidence": {
-        "source_artifacts": ["architecture/identity/VERA_PROJECT_IDENTITY_V1.json"],
-        "target_artifacts": ["protocol/temporal_enforcement.py", "protocol/temporal_role_precision.py"],
+        "source_artifacts": ["architecture/identity/VERA_PROJECT_IDENTITY_V1.json", "architecture/identity/VERA_IDENTITY_TEMPORAL_ANCHOR_V1.json"],
+        "target_artifacts": ["protocol/temporal_enforcement.py", "protocol/temporal_role_precision.py", "scripts/validate_identity_temporal_anchor.py"],
         "required_checks": ["Project Identity", "Temporal enforcement kernel", "Temporal pilot"]
       },
       "findings": [
