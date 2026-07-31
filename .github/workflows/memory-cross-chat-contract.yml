@@ -11,8 +11,7 @@ on:
       - "supabase/migrations/20260730213000_harden_neutral_v3_memory_contract.sql"
       - "supabase/migrations/20260730213100_tighten_neutral_v3_memory_governance.sql"
       - "supabase/migrations/20260730213200_close_neutral_v3_memory_review_gaps.sql"
-      - "supabase/migrations/20260731003000_add_memory_request_idempotency.sql"
-      - "supabase/migrations/20260731003100_correct_memory_request_status_semantics.sql"
+      - "supabase/migrations/20260730213300_add_neutral_v3_memory_request_durability.sql"
       - "supabase/tests/fixtures/neutral_v3_live_schema.sql"
       - "supabase/tests/fixtures/neutral_v3_cycle_preflight_fixture.sql"
       - "supabase/tests/fixtures/cleanup_neutral_v3_cycle_preflight_fixture.sql"
@@ -20,9 +19,8 @@ on:
       - "supabase/tests/validate_neutral_v3_memory_governance.sql"
       - "supabase/tests/validate_neutral_v3_memory_temporal_fields.sql"
       - "supabase/tests/validate_neutral_v3_memory_review_corrections.sql"
-      - "supabase/tests/validate_neutral_v3_memory_idempotency.sql"
-      - "supabase/tests/validate_neutral_v3_memory_request_status_semantics.sql"
-      - "supabase/tests/verify_neutral_v3_memory_receipt_recovery.sql"
+      - "supabase/tests/exercise_neutral_v3_memory_concurrent_save.sql"
+      - "supabase/tests/validate_neutral_v3_memory_request_durability.sql"
       - "supabase/tests/exercise_neutral_v3_memory_save.sql"
       - "supabase/tests/exercise_neutral_v3_memory_recall.sql"
       - "docs/MEMORY_CROSS_CHAT_CONTRACT_V1.md"
@@ -131,75 +129,28 @@ jobs:
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
           -f supabase/tests/validate_neutral_v3_memory_temporal_fields.sql
 
-      - name: Apply durable Memory request migration
+      - name: Apply append-only Memory request durability migration
         run: >-
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
-          -f supabase/migrations.explicit/20260731003000_add_memory_request_idempotency.sql
+          -f supabase/migrations.explicit/20260730213300_add_neutral_v3_memory_request_durability.sql
 
-      - name: Apply Memory request status correction
-        run: >-
-          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
-          -f supabase/migrations.explicit/20260731003100_correct_memory_request_status_semantics.sql
-
-      - name: Validate request idempotency and interrupted state
-        run: >-
-          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
-          -f supabase/tests/validate_neutral_v3_memory_idempotency.sql
-
-      - name: Validate request status semantics
-        run: >-
-          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
-          -f supabase/tests/validate_neutral_v3_memory_request_status_semantics.sql
-
-      - name: Recover receipt and result in separate invocation
-        run: >-
-          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
-          -f supabase/tests/verify_neutral_v3_memory_receipt_recovery.sql
-
-      - name: Prove concurrent identical requests commit once
+      - name: Prove concurrent identical SAVE requests commit once
         shell: bash
         run: |
           set -euo pipefail
-          read -r -d '' SQL <<'SQL' || true
-          select public.append_vera_context_v3(
-            'MREQ-idempotency-concurrent',
-            jsonb_build_object(
-              'project_id', 'vera-memory-idempotency-test',
-              'branch_id', 'branch-a',
-              'record_key', 'memory.idempotency.concurrent',
-              'record_type', 'FACT',
-              'statement', 'Concurrent duplicate request fixture.',
-              'lifecycle_status', 'CURRENT',
-              'epistemic_status', 'DOCUMENTED_SOURCE',
-              'source_actor', 'EXTERNAL',
-              'privacy_scope', 'PROJECT',
-              'event_time', '2026-07-31T00:32:00+00:00',
-              'state_time', '2026-07-31T00:32:00+00:00',
-              'source_evidence', jsonb_build_array(
-                jsonb_build_object(
-                  'surface', 'GITHUB_ACTIONS_LOCAL_SUPABASE',
-                  'observation', 'Concurrent duplicate arrival fixture.'
-                )
-              ),
-              'semantic_tags', jsonb_build_object(
-                'topics', jsonb_build_array('memory', 'concurrency'),
-                'status', jsonb_build_array('current')
-              ),
-              'limitations', jsonb_build_array(
-                'Synthetic CI record in a disposable database.'
-              )
-            )
-          )::text;
-          SQL
-          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -Atc "$SQL" > /tmp/memory-request-a.json &
+          test_file=supabase/tests/exercise_neutral_v3_memory_concurrent_save.sql
+          psql "$PGDATABASE_URL" -X -qAt -v ON_ERROR_STOP=1 -f "$test_file" > /tmp/memory-request-a.json &
           pid_a=$!
-          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -Atc "$SQL" > /tmp/memory-request-b.json &
+          psql "$PGDATABASE_URL" -X -qAt -v ON_ERROR_STOP=1 -f "$test_file" > /tmp/memory-request-b.json &
           pid_b=$!
           wait "$pid_a"
           wait "$pid_b"
           diff -u /tmp/memory-request-a.json /tmp/memory-request-b.json
-          test "$(psql "$PGDATABASE_URL" -Atc "select count(*) from public.vera_context_events_v3 where project_id='vera-memory-idempotency-test' and branch_id='branch-a' and record_key='memory.idempotency.concurrent'")" = "1"
-          test "$(psql "$PGDATABASE_URL" -Atc "select count(*) from public.vera_memory_requests_v3 where request_id='MREQ-idempotency-concurrent' and request_state='COMPLETE'")" = "1"
+
+      - name: Validate append-only request durability and interrupted recovery
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/tests/validate_neutral_v3_memory_request_durability.sql
 
       - name: Save governed memory in first invocation
         run: >-
