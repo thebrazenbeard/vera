@@ -67,7 +67,7 @@ class CoordinationBusHostileTests(unittest.TestCase):
         }
 
     def test_obsolete_actor_route_is_rejected_but_stored_alias_remains_readable(self):
-        with self.assertRaisesRegex(ValueError, "obsolete route"):
+        with self.assertRaisesRegex(ValueError, "STRICT_ACTOR_OBSOLETE_ROUTE"):
             ActorContext("workstream/initiative", frozenset())
         with self.assertRaises(ValueError):
             self.draft(source_branch="workstream/initiative").validate()
