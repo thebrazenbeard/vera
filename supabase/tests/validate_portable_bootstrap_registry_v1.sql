@@ -130,7 +130,13 @@ select event_id from public.append_vera_portable_bootstrap_event(
   ),'[]','[]','{}'
 ) \gset e2_
 
-select is_empty($$select * from public.vera_portable_bootstrap_current where request_claim_id=:'c_request_claim_id'::uuid$$,'pending absent from durable view');
+select is_empty(
+  format(
+    $$select * from public.vera_portable_bootstrap_current where request_claim_id=%L::uuid$$,
+    :'c_request_claim_id'
+  ),
+  'pending absent from durable view'
+);
 
 select throws_ok(format(
   $$select public.append_vera_portable_bootstrap_event(%L::uuid,%L::uuid,%L::uuid,'BINDING_EVIDENCE_VERIFIED','BINDING_PENDING','BINDING_VERIFIED',%L::jsonb,%L::jsonb,%L::jsonb,'{}'::jsonb)$$,
@@ -162,7 +168,13 @@ select event_id from public.append_vera_portable_bootstrap_event(
   ),(select authority from f),(select source from f),'{}'
 ) \gset e3_
 
-select is_empty($$select * from public.read_vera_portable_bootstrap_binding(:'c_request_key'::text,:'c_input_digest'::text,:'c_project_instance_id'::uuid)$$,'no precommit read-back');
+select is_empty(
+  format(
+    $$select * from public.read_vera_portable_bootstrap_binding(%L::text,%L::text,%L::uuid)$$,
+    :'c_request_key',:'c_input_digest',:'c_project_instance_id'
+  ),
+  'no precommit read-back'
+);
 
 select throws_ok(format(
   $$select public.commit_vera_portable_bootstrap_binding(%L::uuid,%L::uuid,%L::uuid,%L::jsonb)$$,
@@ -187,7 +199,13 @@ from public.commit_vera_portable_bootstrap_binding(
   )
 ) \gset b_
 
-select is_empty($$select * from public.vera_portable_bootstrap_current where request_claim_id=:'c_request_claim_id'::uuid$$,'commit alone is not durable');
+select is_empty(
+  format(
+    $$select * from public.vera_portable_bootstrap_current where request_claim_id=%L::uuid$$,
+    :'c_request_claim_id'
+  ),
+  'commit alone is not durable'
+);
 
 select * from public.read_vera_portable_bootstrap_binding(
   :'c_request_key'::text,:'c_input_digest'::text,:'c_project_instance_id'::uuid
@@ -197,7 +215,13 @@ select is(:'rb_project_template_id'::text,'urn:vera:template:VERA_PORTABLE_BOOTS
 select is(:'rb_manifest_digest'::text,(select manifest from f)::text,'read-back manifest digest');
 select is(:'rb_authority_evidence_digest'::text,:'b_authority_evidence_digest'::text,'read-back authority digest');
 select is(:'rb_source_evidence_digest'::text,:'b_source_evidence_digest'::text,'read-back source digest');
-select is_empty($$select * from public.vera_portable_bootstrap_current where request_claim_id=:'c_request_claim_id'::uuid$$,'read alone is not durable');
+select is_empty(
+  format(
+    $$select * from public.vera_portable_bootstrap_current where request_claim_id=%L::uuid$$,
+    :'c_request_claim_id'
+  ),
+  'read alone is not durable'
+);
 
 select throws_ok(format(
   $$select public.confirm_vera_portable_bootstrap_readback(%L::text,%L::text,%L::uuid,%L::uuid,%L::timestamptz,%L::text,%L::text,%L::timestamptz,%L::uuid,'workstream/project-architecture')$$,
