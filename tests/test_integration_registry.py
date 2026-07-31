@@ -136,6 +136,22 @@ class IntegrationRegistryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "canonical source intent"):
             validate_semantics(registry)
 
+    def test_compatibility_contract_omission_rejected(self):
+        registry = valid_registry()
+        integration = owner(registry, "workstream/integration")
+        integration["contract_ids"].remove("VERA_WORKSTREAM_COMPATIBILITY_V1")
+        with self.assertRaisesRegex(ValueError, "canonical source intent"):
+            validate_semantics(registry)
+
+    def test_compatibility_artifact_omission_rejected(self):
+        registry = valid_registry()
+        integration = owner(registry, "workstream/integration")
+        integration["owned_artifacts"].remove(
+            "architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json"
+        )
+        with self.assertRaisesRegex(ValueError, "canonical source intent"):
+            validate_semantics(registry)
+
     def test_memory_workflow_name_is_case_exact(self):
         registry = valid_registry()
         memory = owner(registry, "workstream/memory")
