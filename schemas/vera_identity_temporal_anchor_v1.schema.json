@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/thebrazenbeard/vera/schemas/vera_identity_temporal_anchor_v1.schema.json",
+  "title": "V.E.R.A. Identity Temporal Anchor V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema",
+    "anchor_id",
+    "identity_ref",
+    "behavior_profile_ref",
+    "version_effectiveness",
+    "effective_time_role",
+    "temporal_roles",
+    "retrieval_time_semantics",
+    "limitations"
+  ],
+  "$defs": {
+    "temporal_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "precision",
+        "source",
+        "temporal_claim",
+        "value",
+        "lower_bound",
+        "upper_bound"
+      ],
+      "properties": {
+        "precision": {
+          "enum": ["EXACT", "BOUNDED", "APPROXIMATE", "UNKNOWN"]
+        },
+        "source": {"type": "string", "minLength": 3},
+        "temporal_claim": {"type": "boolean"},
+        "value": {
+          "oneOf": [
+            {"type": "string", "format": "date-time"},
+            {"type": "null"}
+          ]
+        },
+        "lower_bound": {
+          "oneOf": [
+            {"type": "string", "format": "date-time"},
+            {"type": "null"}
+          ]
+        },
+        "upper_bound": {
+          "oneOf": [
+            {"type": "string", "format": "date-time"},
+            {"type": "null"}
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"precision": {"const": "UNKNOWN"}}},
+          "then": {
+            "properties": {
+              "temporal_claim": {"const": false},
+              "value": {"type": "null"},
+              "lower_bound": {"type": "null"},
+              "upper_bound": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "precision": {"enum": ["EXACT", "APPROXIMATE"]}
+            }
+          },
+          "then": {
+            "properties": {
+              "temporal_claim": {"const": true},
+              "value": {"type": "string", "format": "date-time"},
+              "lower_bound": {"type": "null"},
+              "upper_bound": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"precision": {"const": "BOUNDED"}}},
+          "then": {
+            "properties": {
+              "temporal_claim": {"const": true},
+              "value": {"type": "string", "format": "date-time"},
+              "lower_bound": {"type": "string", "format": "date-time"},
+              "upper_bound": {"type": "string", "format": "date-time"}
+            }
+          }
+        }
+      ]
+    }
+  },
+  "properties": {
+    "$schema": {
+      "const": "../../schemas/vera_identity_temporal_anchor_v1.schema.json"
+    },
+    "schema": {"const": "VERA_IDENTITY_TEMPORAL_ANCHOR_V1"},
+    "anchor_id": {"const": "VERA_IDENTITY_TEMPORAL_ANCHOR_V1"},
+    "identity_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity_id", "version"],
+      "properties": {
+        "identity_id": {"const": "VERA_PROJECT_IDENTITY_V1"},
+        "version": {"type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$"}
+      }
+    },
+    "behavior_profile_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile_id", "version"],
+      "properties": {
+        "profile_id": {"const": "VERA_BEHAVIOR_PROFILE_V1"},
+        "version": {"type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$"}
+      }
+    },
+    "version_effectiveness": {"enum": ["ANCHORED", "UNANCHORED"]},
+    "effective_time_role": {"const": "state_time"},
+    "temporal_roles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_time", "state_time", "record_time", "retrieval_time"],
+      "properties": {
+        "event_time": {"$ref": "#/$defs/temporal_evidence"},
+        "state_time": {"$ref": "#/$defs/temporal_evidence"},
+        "record_time": {"$ref": "#/$defs/temporal_evidence"},
+        "retrieval_time": {"$ref": "#/$defs/temporal_evidence"}
+      }
+    },
+    "retrieval_time_semantics": {
+      "const": "INVOCATION_TIME_ONLY_NOT_VERSION_EFFECTIVENESS"
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 3,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 20}
+    }
+  }
+}
