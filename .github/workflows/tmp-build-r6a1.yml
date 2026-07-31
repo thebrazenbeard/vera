@@ -1,0 +1,59 @@
+name: Temporary R6A1 release builder
+
+on:
+  push:
+    branches:
+      - release/r6a1-20260731-b20e7309
+    paths:
+      - ".github/workflows/tmp-build-r6a1.yml"
+      - ".r6a1-build/**"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: release/r6a1-20260731-b20e7309
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Restore bounded build payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .r6a1-build/payload.* | base64 -d > /tmp/r6a1.tar.gz
+          mkdir -p /tmp/r6a1
+          tar -xzf /tmp/r6a1.tar.gz -C /tmp/r6a1
+          mkdir -p architecture/releases/R6A1_20260731_B20E7309
+          cp /tmp/r6a1/VERA_* architecture/releases/R6A1_20260731_B20E7309/
+          cp /tmp/r6a1/README.md architecture/releases/R6A1_20260731_B20E7309/
+          cp /tmp/r6a1/CHECKSUMS.sha256 architecture/releases/R6A1_20260731_B20E7309/
+          cp /tmp/r6a1/build_r6a1_release.py scripts/build_r6a1_release.py
+          cp /tmp/r6a1/validate_r6a1_release.py scripts/validate_r6a1_release.py
+          cp /tmp/r6a1/test_r6a1_release.py tests/test_r6a1_release.py
+          cp /tmp/r6a1/r6a1-release-package.yml .github/workflows/r6a1-release-package.yml
+      - name: Build and validate R6A1 candidate
+        run: |
+          python -m pip install PyYAML==6.0.2
+          python scripts/build_r6a1_release.py
+          python scripts/validate_r6a1_release.py
+          python -m unittest tests.test_r6a1_release -v
+          python -m py_compile scripts/build_r6a1_release.py scripts/validate_r6a1_release.py tests/test_r6a1_release.py
+      - name: Remove temporary write surface
+        run: |
+          rm -rf .r6a1-build
+          rm -f .github/workflows/tmp-build-r6a1.yml
+      - name: Commit candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add architecture/releases/R6A1_20260731_B20E7309 scripts/build_r6a1_release.py scripts/validate_r6a1_release.py tests/test_r6a1_release.py .github/workflows/r6a1-release-package.yml .r6a1-build .github/workflows/tmp-build-r6a1.yml
+          git commit -m "Build R6A1 replacement release candidate [skip ci]"
+          git push origin HEAD:release/r6a1-20260731-b20e7309
