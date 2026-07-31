@@ -7,11 +7,18 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.validate_r6a1_release import ROOT, TOKEN, validate
+import yaml
+
+from scripts.validate_r6a1_release import (
+    RELEASE_STATUS,
+    ROOT,
+    TOKEN,
+    validate,
+)
 
 
 class R6A1ReleaseTests(unittest.TestCase):
-    def copy(self):
+    def copy(self) -> tuple[tempfile.TemporaryDirectory[str], Path]:
         temporary = tempfile.TemporaryDirectory()
         root = Path(temporary.name)
         (root / "architecture" / "releases").mkdir(parents=True)
@@ -32,38 +39,60 @@ class R6A1ReleaseTests(unittest.TestCase):
         lines = []
         for line in checksum_path.read_text(encoding="utf-8").splitlines():
             _, name = line.split(maxsplit=1)
-            digest = hashlib.sha256((release_dir / name).read_bytes()).hexdigest()
+            digest = hashlib.sha256(
+                (release_dir / name).read_bytes()
+            ).hexdigest()
             lines.append(f"{digest}  {name}")
-        checksum_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        checksum_path.write_text(
+            "\n".join(lines) + "\n",
+            encoding="utf-8",
+        )
 
-    def test_valid(self):
+    def test_valid(self) -> None:
         validate()
 
-    def test_checksum_mutation(self):
+    def test_checksum_mutation(self) -> None:
         temporary, root = self.copy()
         try:
             path = root / "architecture" / "releases" / TOKEN / "README.md"
-            path.write_text(path.read_text(encoding="utf-8") + "x", encoding="utf-8")
+            path.write_text(
+                path.read_text(encoding="utf-8") + "x",
+                encoding="utf-8",
+            )
             with self.assertRaisesRegex(ValueError, "checksum mismatch"):
                 validate(root)
         finally:
             temporary.cleanup()
 
-    def test_missing_file(self):
+    def test_missing_file(self) -> None:
         temporary, root = self.copy()
         try:
-            (root / "architecture" / "releases" / TOKEN / f"VERA_STATE_{TOKEN}.md").unlink()
+            (
+                root
+                / "architecture"
+                / "releases"
+                / TOKEN
+                / f"VERA_STATE_{TOKEN}.md"
+            ).unlink()
             with self.assertRaisesRegex(ValueError, "checksum inventory"):
                 validate(root)
         finally:
             temporary.cleanup()
 
-    def test_duplicate_json(self):
+    def test_duplicate_json(self) -> None:
         temporary, root = self.copy()
         try:
-            path = root / "architecture" / "releases" / TOKEN / f"VERA_SOURCE_BINDINGS_{TOKEN}.json"
+            path = (
+                root
+                / "architecture"
+                / "releases"
+                / TOKEN
+                / f"VERA_SOURCE_BINDINGS_{TOKEN}.json"
+            )
             text = path.read_text(encoding="utf-8").replace(
-                "{", '{"release_id":"duplicate",', 1
+                "{",
+                '{"release_id":"duplicate",',
+                1,
             )
             path.write_text(text, encoding="utf-8")
             self.rehash(root)
@@ -72,57 +101,91 @@ class R6A1ReleaseTests(unittest.TestCase):
         finally:
             temporary.cleanup()
 
-    def test_install_authority_promotion(self):
+    def test_install_authority_promotion(self) -> None:
         temporary, root = self.copy()
         try:
-            path = root / "architecture" / "releases" / TOKEN / f"VERA_SOURCE_BINDINGS_{TOKEN}.json"
+            path = (
+                root
+                / "architecture"
+                / "releases"
+                / TOKEN
+                / f"VERA_SOURCE_BINDINGS_{TOKEN}.json"
+            )
             document = json.loads(path.read_text(encoding="utf-8"))
             document["project_file_replacement_authorized"] = True
-            path.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
+            path.write_text(
+                json.dumps(document, indent=2) + "\n",
+                encoding="utf-8",
+            )
             self.rehash(root)
-            with self.assertRaisesRegex(ValueError, "project_file_replacement_authorized"):
+            with self.assertRaisesRegex(
+                ValueError,
+                "project_file_replacement_authorized",
+            ):
                 validate(root)
         finally:
             temporary.cleanup()
 
-    def test_authority_provenance_promotion(self):
+    def test_authority_provenance_promotion(self) -> None:
         temporary, root = self.copy()
         try:
-            path = root / "architecture" / "releases" / TOKEN / f"VERA_SOURCE_BINDINGS_{TOKEN}.json"
+            path = (
+                root
+                / "architecture"
+                / "releases"
+                / TOKEN
+                / f"VERA_SOURCE_BINDINGS_{TOKEN}.json"
+            )
             document = json.loads(path.read_text(encoding="utf-8"))
             document["authority_provenance"] = "VERIFIED"
-            path.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
+            path.write_text(
+                json.dumps(document, indent=2) + "\n",
+                encoding="utf-8",
+            )
             self.rehash(root)
             with self.assertRaisesRegex(ValueError, "authority provenance"):
                 validate(root)
         finally:
             temporary.cleanup()
 
-    def test_manifest_status_drift_rejected(self):
+    def test_cross_document_release_status_drift_rejected(self) -> None:
         temporary, root = self.copy()
         try:
-            path = root / "architecture" / "releases" / TOKEN / f"VERA_MANIFEST_{TOKEN}.yaml"
+            path = (
+                root
+                / "architecture"
+                / "releases"
+                / TOKEN
+                / f"VERA_MANIFEST_{TOKEN}.yaml"
+            )
+            document = yaml.safe_load(path.read_text(encoding="utf-8"))
+            document["status"] = "replacement_candidate_not_installed"
             path.write_text(
-                path.read_text(encoding="utf-8").replace(
-                    "status: REPLACEMENT_CANDIDATE_NOT_INSTALLED",
-                    "status: replacement_candidate_not_installed",
-                ),
+                yaml.safe_dump(document, sort_keys=False),
                 encoding="utf-8",
             )
             self.rehash(root)
-            with self.assertRaisesRegex(ValueError, "manifest status"):
+            with self.assertRaisesRegex(ValueError, "manifest release status"):
                 validate(root)
         finally:
             temporary.cleanup()
 
-    def test_owner_inventory_mismatch_rejected(self):
+    def test_supersession_must_list_every_manifest_owner(self) -> None:
         temporary, root = self.copy()
         try:
-            path = root / "architecture" / "releases" / TOKEN / f"VERA_SUPERSESSION_{TOKEN}.yaml"
+            path = (
+                root
+                / "architecture"
+                / "releases"
+                / TOKEN
+                / f"VERA_SUPERSESSION_{TOKEN}.yaml"
+            )
+            document = yaml.safe_load(path.read_text(encoding="utf-8"))
+            document["replacement_owners"].remove(
+                f"VERA_SUPERSESSION_{TOKEN}.yaml"
+            )
             path.write_text(
-                path.read_text(encoding="utf-8").replace(
-                    "- VERA_SUPERSESSION_R6A1_20260731_B20E7309.yaml\n", ""
-                ),
+                yaml.safe_dump(document, sort_keys=False),
                 encoding="utf-8",
             )
             self.rehash(root)
@@ -131,10 +194,77 @@ class R6A1ReleaseTests(unittest.TestCase):
         finally:
             temporary.cleanup()
 
-    def test_stale_supabase_coordination_count_rejected(self):
+    def test_readme_release_status_drift_rejected(self) -> None:
         temporary, root = self.copy()
         try:
-            path = root / "architecture" / "releases" / TOKEN / f"VERA_SUPABASE_PRESERVATION_{TOKEN}.md"
+            path = root / "architecture" / "releases" / TOKEN / "README.md"
+            path.write_text(
+                path.read_text(encoding="utf-8").replace(
+                    RELEASE_STATUS,
+                    "DRAFT_NOT_INSTALLABLE",
+                ),
+                encoding="utf-8",
+            )
+            self.rehash(root)
+            with self.assertRaisesRegex(ValueError, "README release status"):
+                validate(root)
+        finally:
+            temporary.cleanup()
+
+    def test_bundle_release_status_drift_rejected(self) -> None:
+        temporary, root = self.copy()
+        try:
+            path = (
+                root
+                / "architecture"
+                / "releases"
+                / TOKEN
+                / f"VERA_BUNDLE_{TOKEN}.json"
+            )
+            document = json.loads(path.read_text(encoding="utf-8"))
+            document["release_status"] = "DRAFT_NOT_INSTALLABLE"
+            path.write_text(
+                json.dumps(document, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            self.rehash(root)
+            with self.assertRaisesRegex(ValueError, "bundle release status"):
+                validate(root)
+        finally:
+            temporary.cleanup()
+
+    def test_validation_spec_release_status_drift_rejected(self) -> None:
+        temporary, root = self.copy()
+        try:
+            path = (
+                root
+                / "architecture"
+                / "releases"
+                / TOKEN
+                / f"VERA_VALIDATION_{TOKEN}.yaml"
+            )
+            document = yaml.safe_load(path.read_text(encoding="utf-8"))
+            document["release_status"] = "DRAFT_NOT_INSTALLABLE"
+            path.write_text(
+                yaml.safe_dump(document, sort_keys=False),
+                encoding="utf-8",
+            )
+            self.rehash(root)
+            with self.assertRaisesRegex(ValueError, "validation release status"):
+                validate(root)
+        finally:
+            temporary.cleanup()
+
+    def test_stale_supabase_coordination_count_rejected(self) -> None:
+        temporary, root = self.copy()
+        try:
+            path = (
+                root
+                / "architecture"
+                / "releases"
+                / TOKEN
+                / f"VERA_SUPABASE_PRESERVATION_{TOKEN}.md"
+            )
             text = path.read_text(encoding="utf-8").replace(
                 "`public.vera_coordination_events`: 329 append-only rows",
                 "`public.vera_coordination_events`: 20 append-only rows",
@@ -146,13 +276,20 @@ class R6A1ReleaseTests(unittest.TestCase):
         finally:
             temporary.cleanup()
 
-    def test_stale_supabase_sequence_rejected(self):
+    def test_stale_supabase_sequence_rejected(self) -> None:
         temporary, root = self.copy()
         try:
-            path = root / "architecture" / "releases" / TOKEN / f"VERA_STATE_{TOKEN}.md"
+            path = (
+                root
+                / "architecture"
+                / "releases"
+                / TOKEN
+                / f"VERA_STATE_{TOKEN}.md"
+            )
             path.write_text(
                 path.read_text(encoding="utf-8").replace(
-                    "through sequence `351`", "through sequence `345`"
+                    "through sequence `351`",
+                    "through sequence `345`",
                 ),
                 encoding="utf-8",
             )
@@ -162,12 +299,21 @@ class R6A1ReleaseTests(unittest.TestCase):
         finally:
             temporary.cleanup()
 
-    def test_missing_exact_main_assurance_rejected(self):
+    def test_missing_exact_main_assurance_rejected(self) -> None:
         temporary, root = self.copy()
         try:
-            path = root / "architecture" / "releases" / TOKEN / f"VERA_STATE_{TOKEN}.md"
+            path = (
+                root
+                / "architecture"
+                / "releases"
+                / TOKEN
+                / f"VERA_STATE_{TOKEN}.md"
+            )
             path.write_text(
-                path.read_text(encoding="utf-8").replace("30629869594", "UNAVAILABLE"),
+                path.read_text(encoding="utf-8").replace(
+                    "30629869594",
+                    "UNAVAILABLE",
+                ),
                 encoding="utf-8",
             )
             self.rehash(root)
@@ -176,10 +322,16 @@ class R6A1ReleaseTests(unittest.TestCase):
         finally:
             temporary.cleanup()
 
-    def test_nonexistent_accompanying_sql_claim_rejected(self):
+    def test_nonexistent_accompanying_sql_claim_rejected(self) -> None:
         temporary, root = self.copy()
         try:
-            path = root / "architecture" / "releases" / TOKEN / f"VERA_SUPABASE_PRESERVATION_{TOKEN}.md"
+            path = (
+                root
+                / "architecture"
+                / "releases"
+                / TOKEN
+                / f"VERA_SUPABASE_PRESERVATION_{TOKEN}.md"
+            )
             path.write_text(
                 path.read_text(encoding="utf-8")
                 + "\nThe accompanying SQL file is a draft only.\n",
@@ -191,13 +343,14 @@ class R6A1ReleaseTests(unittest.TestCase):
         finally:
             temporary.cleanup()
 
-    def test_stale_external_authority_audit_rejected(self):
+    def test_stale_external_authority_audit_rejected(self) -> None:
         temporary, root = self.copy()
         try:
             path = root / "docs" / "MAIN_MERGE_AUTHORITY_AUDIT_20260731.md"
             path.write_text(
                 path.read_text(encoding="utf-8").replace(
-                    "through sequence `351`", "through sequence `345`"
+                    "through sequence `351`",
+                    "through sequence `345`",
                 ),
                 encoding="utf-8",
             )
