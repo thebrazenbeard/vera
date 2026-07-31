@@ -14,7 +14,7 @@ from .contracts import (
 )
 from .core import _receipted
 from .temporal import (
-    CoordinationBus as _TemporalCoordinationBus,
+    _TemporalCoordinationCore,
     TemporalCoordinationResult,
     TemporalEvidence,
 )
@@ -223,7 +223,7 @@ def receipt_subject(result: Any) -> str:
     return "coordination-receipt:" + sha256(_canonical_bytes(body)).hexdigest()
 
 
-class CoordinationBus(_TemporalCoordinationBus):
+class CoordinationBus(_TemporalCoordinationCore):
     """Only public bus: verifier-issued, role-bound, full-subject evidence."""
 
     def __init__(
@@ -279,7 +279,6 @@ class CoordinationBus(_TemporalCoordinationBus):
         provider = self._trusted_receipt_time_provider
         if provider is None:
             return wrapped
-
         subject = receipt_subject(result)
         try:
             candidate = provider("receipt_time", subject)
@@ -326,7 +325,7 @@ class CoordinationBus(_TemporalCoordinationBus):
             role="retrieval_time",
             subject=subject,
         )
-        return _TemporalCoordinationBus.entry_checkpoint(
+        return _TemporalCoordinationCore.entry_checkpoint(
             self,
             actor,
             after_sequence=after_sequence,
@@ -368,7 +367,7 @@ class CoordinationBus(_TemporalCoordinationBus):
             role="consumption_time",
             subject=subject,
         )
-        return _TemporalCoordinationBus.coordination_acknowledge(
+        return _TemporalCoordinationCore.coordination_acknowledge(
             self,
             actor,
             event_id=event_id,
@@ -421,7 +420,7 @@ class CoordinationBus(_TemporalCoordinationBus):
             role="state_time",
             subject=subject,
         )
-        return _TemporalCoordinationBus.exit_checkpoint(
+        return _TemporalCoordinationCore.exit_checkpoint(
             self,
             actor,
             thread_key=thread_key,
