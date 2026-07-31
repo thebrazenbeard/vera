@@ -282,7 +282,7 @@
       "interface_id": "VERA-IFACE-010",
       "source_route": "workstream/integration",
       "target_route": "workstream/identity",
-      "source_contract_ids": ["VERA_INTEGRATION_ASSURANCE_V1"],
+      "source_contract_ids": ["VERA_WORKSTREAM_COMPATIBILITY_V1"],
       "target_contract_ids": ["VERA_PROJECT_IDENTITY_V1"],
       "capabilities": ["COMPATIBILITY_FINDING", "DRIFT_FINDING", "ASSEMBLY_EVIDENCE", "NO_COMPONENT_SEMANTICS"],
       "required_adapter": "ASSURANCE_FINDING_TO_PROJECT_AUTHORITY_ADAPTER_V1",
@@ -291,7 +291,7 @@
       "execution_authorized": false,
       "canonical_memory_transfer": false,
       "acceptance_evidence": {
-        "source_artifacts": ["architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json"],
+        "source_artifacts": ["architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json"],
         "target_artifacts": ["architecture/identity/VERA_PROJECT_IDENTITY_V1.json"],
         "required_checks": ["Integration Assurance", "Project Identity"]
       },
