@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the first R6A1 replacement-release source-binding slice."""
+"""Validate the R6A1 replacement-release source-binding contract."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ BINDING_PATH = ROOT / "architecture/releases/R6A1_20260731_B20E7309/VERA_SOURCE_
 RELEASE_ID = "VERA_GOVERNED_CORE_R6A1_20260731_B20E7309"
 SOURCE_COMMIT = "b20e7309c6ded3c358dce00baa537d2fc1880004"
 REGISTRY_SHA256 = "f095fa46666abb583e616658198399131a4902fc9ba572f01f4642c1dcab158f"
+NONINSTALLABLE_STATUS = "REPLACEMENT_CANDIDATE_NOT_INSTALLED"
 REQUIRED_ROLES = {
     "project_identity", "behavior_profile", "governed_workflow_continuity",
     "identity_temporal_anchor", "integration_registry", "workstream_compatibility",
@@ -40,8 +41,8 @@ def load_binding(path: Path = BINDING_PATH) -> dict[str, Any]:
 def validate(document: dict[str, Any]) -> None:
     if document.get("release_id") != RELEASE_ID:
         raise ValueError("release_id mismatch")
-    if document.get("release_status") != "DRAFT_NOT_INSTALLABLE":
-        raise ValueError("release must remain non-installable")
+    if document.get("release_status") != NONINSTALLABLE_STATUS:
+        raise ValueError("release must remain a non-installable replacement candidate")
     if document.get("repository") != "thebrazenbeard/vera":
         raise ValueError("repository mismatch")
     if document.get("source_commit") != SOURCE_COMMIT:
@@ -79,8 +80,8 @@ def validate(document: dict[str, Any]) -> None:
         raise ValueError("compatibility blob mismatch")
 
     future = document.get("required_future_files")
-    if not isinstance(future, list) or len(future) != len(set(future)) or "checksums" not in future:
-        raise ValueError("future file inventory is incomplete or duplicated")
+    if future not in (None, []):
+        raise ValueError("completed replacement candidate cannot declare unresolved future files")
 
 
 def main() -> int:
