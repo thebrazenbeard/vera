@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/memory-cross-chat-contract-v1
+      - replacement/memory-cross-chat-durability-v1
   pull_request:
     branches:
       - main
@@ -11,6 +12,7 @@ on:
       - "supabase/migrations/20260730213000_harden_neutral_v3_memory_contract.sql"
       - "supabase/migrations/20260730213100_tighten_neutral_v3_memory_governance.sql"
       - "supabase/migrations/20260730213200_close_neutral_v3_memory_review_gaps.sql"
+      - "supabase/migrations/20260730213300_add_neutral_v3_memory_request_durability.sql"
       - "supabase/tests/fixtures/neutral_v3_live_schema.sql"
       - "supabase/tests/fixtures/neutral_v3_cycle_preflight_fixture.sql"
       - "supabase/tests/fixtures/cleanup_neutral_v3_cycle_preflight_fixture.sql"
@@ -18,6 +20,8 @@ on:
       - "supabase/tests/validate_neutral_v3_memory_governance.sql"
       - "supabase/tests/validate_neutral_v3_memory_temporal_fields.sql"
       - "supabase/tests/validate_neutral_v3_memory_review_corrections.sql"
+      - "supabase/tests/exercise_neutral_v3_memory_concurrent_save.sql"
+      - "supabase/tests/validate_neutral_v3_memory_request_durability.sql"
       - "supabase/tests/exercise_neutral_v3_memory_save.sql"
       - "supabase/tests/exercise_neutral_v3_memory_recall.sql"
       - "docs/MEMORY_CROSS_CHAT_CONTRACT_V1.md"
@@ -125,6 +129,29 @@ jobs:
         run: >-
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
           -f supabase/tests/validate_neutral_v3_memory_temporal_fields.sql
+
+      - name: Apply append-only Memory request durability migration
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/migrations.explicit/20260730213300_add_neutral_v3_memory_request_durability.sql
+
+      - name: Prove concurrent identical SAVE requests commit once
+        shell: bash
+        run: |
+          set -euo pipefail
+          test_file=supabase/tests/exercise_neutral_v3_memory_concurrent_save.sql
+          psql "$PGDATABASE_URL" -X -qAt -v ON_ERROR_STOP=1 -f "$test_file" > /tmp/memory-request-a.json &
+          pid_a=$!
+          psql "$PGDATABASE_URL" -X -qAt -v ON_ERROR_STOP=1 -f "$test_file" > /tmp/memory-request-b.json &
+          pid_b=$!
+          wait "$pid_a"
+          wait "$pid_b"
+          diff -u /tmp/memory-request-a.json /tmp/memory-request-b.json
+
+      - name: Validate append-only request durability and interrupted recovery
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/tests/validate_neutral_v3_memory_request_durability.sql
 
       - name: Save governed memory in first invocation
         run: >-
