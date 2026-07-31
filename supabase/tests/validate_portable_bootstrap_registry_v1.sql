@@ -24,8 +24,8 @@ create temporary table f as select
 select request_claim_id,request_key,input_digest,project_instance_id from public.claim_vera_portable_bootstrap_request(
  'V1','VERA_PORTABLE_BOOTSTRAP_R7A1_20260731_V1',(select manifest from f),'urn:vera:template:VERA_PORTABLE_BOOTSTRAP_R7A1_20260731_V1',(select target from f),'VERA::INITIALIZE::PORTABLE_PROJECT_V1','thebrazenbeard/vera','fc761beab263f2fab010cde2fab424b2b8358bb7','CREATE_OR_VERIFY') \gset c_
 select ok(:'c_request_claim_id'::uuid is not null,'claim id');
-select like(:'c_request_key','^[0-9a-f]{64}$','server request key');
-select like(:'c_input_digest','^[0-9a-f]{64}$','server input digest');
+select matches(:'c_request_key'::text,'^[0-9a-f]{64}$'::text,'server request key'::text);
+select matches(:'c_input_digest'::text,'^[0-9a-f]{64}$'::text,'server input digest'::text);
 select is(substring(:'c_project_instance_id' from 15 for 1),'7','server UUIDv7');
 select request_claim_id,project_instance_id from public.claim_vera_portable_bootstrap_request(
  'V1','VERA_PORTABLE_BOOTSTRAP_R7A1_20260731_V1',(select manifest from f),'urn:vera:template:VERA_PORTABLE_BOOTSTRAP_R7A1_20260731_V1',(select target from f),'VERA::INITIALIZE::PORTABLE_PROJECT_V1','thebrazenbeard/vera','fc761beab263f2fab010cde2fab424b2b8358bb7','CREATE_OR_VERIFY') \gset r_
