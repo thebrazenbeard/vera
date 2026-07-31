@@ -1,0 +1,145 @@
+name: Memory durability review corrections
+
+on:
+  push:
+    branches:
+      - feature/memory-cross-chat-contract-v1
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "supabase/migrations/20260731003000_add_memory_request_idempotency.sql"
+      - "supabase/migrations/20260731003100_correct_memory_request_status_semantics.sql"
+      - "supabase/tests/validate_neutral_v3_memory_durability_review_corrections.sql"
+      - "supabase/tests/exercise_neutral_v3_memory_concurrent_conflict_a.sql"
+      - "supabase/tests/exercise_neutral_v3_memory_concurrent_conflict_b.sql"
+      - ".github/workflows/memory-durability-review-corrections.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-durability-review-corrections:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PGDATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      SUPABASE_CLI_VERSION: 2.101.0
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+
+      - name: Verify pinned Supabase CLI
+        run: test "$(supabase --version)" = "$SUPABASE_CLI_VERSION"
+
+      - name: Initialize local Supabase configuration
+        run: |
+          if [ ! -f supabase/config.toml ]; then
+            supabase init
+          fi
+
+      - name: Stage migrations for explicit replay
+        run: |
+          rm -rf supabase/migrations.explicit
+          mv supabase/migrations supabase/migrations.explicit
+          mkdir -p supabase/migrations
+
+      - name: Start isolated local Supabase stack
+        run: supabase start
+
+      - name: Install observed neutral V3 live-schema fixture
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/tests/fixtures/neutral_v3_live_schema.sql
+
+      - name: Apply Memory lineage migration
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/migrations.explicit/20260730213000_harden_neutral_v3_memory_contract.sql
+
+      - name: Apply Memory governance migration
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/migrations.explicit/20260730213100_tighten_neutral_v3_memory_governance.sql
+
+      - name: Apply Memory review correction migration
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/migrations.explicit/20260730213200_close_neutral_v3_memory_review_gaps.sql
+
+      - name: Apply durable request migration
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/migrations.explicit/20260731003000_add_memory_request_idempotency.sql
+
+      - name: Apply request status correction
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/migrations.explicit/20260731003100_correct_memory_request_status_semantics.sql
+
+      - name: Prove access boundary and FAILED exact-retry recovery
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f supabase/tests/validate_neutral_v3_memory_durability_review_corrections.sql
+
+      - name: Prove concurrent changed-payload loser identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          file_a=supabase/tests/exercise_neutral_v3_memory_concurrent_conflict_a.sql
+          file_b=supabase/tests/exercise_neutral_v3_memory_concurrent_conflict_b.sql
+
+          psql "$PGDATABASE_URL" -X -qAt -v ON_ERROR_STOP=1 -f "$file_a" > /tmp/conflict-a.json &
+          pid_a=$!
+          psql "$PGDATABASE_URL" -X -qAt -v ON_ERROR_STOP=1 -f "$file_b" > /tmp/conflict-b.json &
+          pid_b=$!
+          wait "$pid_a"
+          wait "$pid_b"
+
+          class_a="$(jq -r '.result.result_class' /tmp/conflict-a.json)"
+          class_b="$(jq -r '.result.result_class' /tmp/conflict-b.json)"
+          classes="$(printf '%s\n%s\n' "$class_a" "$class_b" | sort | tr '\n' ' ')"
+          test "$classes" = "COMPLETE CONFLICT "
+
+          expected_a="$(jq -r '.expected_hash' /tmp/conflict-a.json)"
+          expected_b="$(jq -r '.expected_hash' /tmp/conflict-b.json)"
+          claim_a="$(jq -r '.result.canonical_request_hash' /tmp/conflict-a.json)"
+          claim_b="$(jq -r '.result.canonical_request_hash' /tmp/conflict-b.json)"
+          test "$claim_a" = "$expected_a"
+          test "$claim_b" = "$expected_b"
+
+          if [ "$class_a" = "COMPLETE" ]; then
+            winner_hash="$expected_a"
+            loser_hash="$expected_b"
+            stored_by_loser="$(jq -r '.result.stored_request_hash' /tmp/conflict-b.json)"
+            loser_outcome="$(jq -r '.result.outcome_code' /tmp/conflict-b.json)"
+            winner_key=memory.concurrent-conflict.a
+            loser_key=memory.concurrent-conflict.b
+          else
+            winner_hash="$expected_b"
+            loser_hash="$expected_a"
+            stored_by_loser="$(jq -r '.result.stored_request_hash' /tmp/conflict-a.json)"
+            loser_outcome="$(jq -r '.result.outcome_code' /tmp/conflict-a.json)"
+            winner_key=memory.concurrent-conflict.b
+            loser_key=memory.concurrent-conflict.a
+          fi
+
+          test "$winner_hash" != "$loser_hash"
+          test "$stored_by_loser" = "$winner_hash"
+          test "$loser_outcome" = "MVE_REQUEST_ID_PAYLOAD_CONFLICT"
+          test "$(psql "$PGDATABASE_URL" -Atc "select canonical_request_hash from public.vera_memory_requests_v3 where request_id='MREQ-concurrent-conflict-identity' and request_state='COMPLETE'")" = "$winner_hash"
+          test "$(psql "$PGDATABASE_URL" -Atc "select count(*) from public.vera_context_events_v3 where project_id='vera-memory-concurrent-conflict-test' and branch_id='branch-a' and record_key='$winner_key'")" = "1"
+          test "$(psql "$PGDATABASE_URL" -Atc "select count(*) from public.vera_context_events_v3 where project_id='vera-memory-concurrent-conflict-test' and branch_id='branch-a' and record_key='$loser_key'")" = "0"
+          test "$(psql "$PGDATABASE_URL" -Atc "select count(*) from public.vera_context_events_v3 where project_id='vera-memory-concurrent-conflict-test' and branch_id='branch-a'")" = "1"
+
+      - name: Run database lint
+        run: supabase db lint --local
+
+      - name: Stop and delete local stack
+        if: always()
+        run: supabase stop --no-backup
