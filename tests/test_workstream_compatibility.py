@@ -110,10 +110,10 @@ class WorkstreamCompatibilityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "source artifact"):
             validate_semantics(document, registry())
 
-    def test_matrix_cannot_self_certify_integration_artifact_ownership(self):
+    def test_unregistered_integration_artifact_cannot_self_certify(self):
         document = matrix()
         interface(document, "VERA-IFACE-010")["acceptance_evidence"]["source_artifacts"] = [
-            "architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json"
+            "architecture/integration/UNREGISTERED_ASSURANCE_REPORT.json"
         ]
         with self.assertRaisesRegex(ValueError, "source artifact"):
             validate_semantics(document, registry())
