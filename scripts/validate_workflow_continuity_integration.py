@@ -1,32 +1,70 @@
 #!/usr/bin/env python3
-"""Validate governed workflow-continuity registration and interface evidence."""
+"""Validate workflow-continuity registration across Integration assurance surfaces."""
+
 from __future__ import annotations
 
 import argparse
 from pathlib import Path
 from typing import Any
 
-from scripts.validate_integration_registry import load_json_strict, validate_registry
-from scripts.validate_workstream_compatibility import validate_compatibility
+from scripts.validate_integration_registry import load_json_strict
+from scripts.validate_workstream_compatibility import validate_semantics as validate_matrix_semantics
+
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_CONTRACT = "VERA_GOVERNED_WORKFLOW_CONTINUITY_V1"
-PROJECT_IDENTITY_CHECK = "Project Identity"
-REQUIRED_IDENTITY_ARTIFACTS = {
+CLASSIFICATION_VALIDATOR = "scripts/validate_identity_temporal_anchor_classification.py"
+WORKFLOW_ARTIFACTS = {
     "architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V1.json",
     "docs/GOVERNED_WORKFLOW_CONTINUITY_V1.md",
     "schemas/vera_governed_workflow_continuity_v1.schema.json",
     "scripts/validate_governed_workflow_continuity.py",
     "tests/test_governed_workflow_continuity.py",
-    "scripts/validate_identity_temporal_anchor_classification.py",
 }
-REQUIRED_INTERFACE_ARTIFACTS = {
-    "architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V1.json",
-    "scripts/validate_governed_workflow_continuity.py",
+INTERFACE_BINDINGS = {
+    "VERA-IFACE-002": {
+        "contract_field": "source_contract_ids",
+        "artifact_role": "source_artifacts",
+        "artifacts": {
+            "architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V1.json",
+            "scripts/validate_governed_workflow_continuity.py",
+        },
+        "capabilities": {
+            "GOVERNED_WORKFLOW_CONTINUITY",
+            "AUTHORITY_BOUNDARY_STOP",
+        },
+    },
+    "VERA-IFACE-003": {
+        "contract_field": "source_contract_ids",
+        "artifact_role": "source_artifacts",
+        "artifacts": {
+            "architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V1.json",
+            "scripts/validate_governed_workflow_continuity.py",
+        },
+        "capabilities": {
+            "SAFE_AUTHORIZED_ADVANCEMENT",
+            "WRITER_LEASE_BOUNDARY",
+            "ABSTENTION_ON_HARD_STOP",
+        },
+    },
+    "VERA-IFACE-010": {
+        "contract_field": "target_contract_ids",
+        "artifact_role": "target_artifacts",
+        "artifacts": {
+            "architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V1.json",
+            "scripts/validate_governed_workflow_continuity.py",
+        },
+        "capabilities": {
+            "WORKFLOW_CONTINUITY_FINDING",
+            "AUTHORITY_STOP_PRESERVATION",
+        },
+    },
 }
-REQUIRED_INTERFACES = {
-    "VERA-IFACE-002": "workstream/memory",
-    "VERA-IFACE-003": "workstream/initiatives",
+COORDINATION_EVIDENCE_CAPABILITIES = {
+    "EXACT_HEAD_HANDOFF",
+    "WRITER_LEASE_EVIDENCE",
+    "STALE_STATE_RECONCILIATION",
+    "USER_COURIER_AVOIDANCE",
 }
 
 
@@ -41,66 +79,82 @@ def _interface(matrix: dict[str, Any], interface_id: str) -> dict[str, Any]:
     )
 
 
-def validate_binding(matrix: dict[str, Any], registry: dict[str, Any]) -> None:
+def validate_workflow_continuity_integration(
+    matrix: dict[str, Any],
+    registry: dict[str, Any],
+    root: Path = ROOT,
+) -> None:
+    """Validate the new Identity behavior contract without weakening prior gates."""
+    validate_matrix_semantics(matrix, registry, root)
+
     identity = _owner(registry, "workstream/identity")
     if WORKFLOW_CONTRACT not in identity["contract_ids"]:
-        raise ValueError("Identity registry omits governed workflow-continuity contract")
-
-    observed_artifacts = set(identity["owned_artifacts"])
-    missing = REQUIRED_IDENTITY_ARTIFACTS - observed_artifacts
-    if missing:
+        raise ValueError("Identity owner omits governed workflow-continuity contract")
+    missing_artifacts = WORKFLOW_ARTIFACTS - set(identity["owned_artifacts"])
+    if missing_artifacts:
         raise ValueError(
-            "Identity registry omits governed workflow-continuity artifacts: "
-            f"{sorted(missing)}"
+            "Identity owner omits governed workflow-continuity artifacts: "
+            + ", ".join(sorted(missing_artifacts))
         )
-    if PROJECT_IDENTITY_CHECK not in identity["required_checks"]:
-        raise ValueError("Identity registry omits Project Identity workflow evidence")
+    if CLASSIFICATION_VALIDATOR not in identity["owned_artifacts"]:
+        raise ValueError("Identity owner omits temporal-anchor classification validator")
+    if "Project Identity" not in identity["required_checks"]:
+        raise ValueError("Identity owner omits Project Identity workflow evidence")
 
-    for interface_id, target_route in REQUIRED_INTERFACES.items():
+    for interface_id, binding in INTERFACE_BINDINGS.items():
         interface = _interface(matrix, interface_id)
-        if interface["source_route"] != "workstream/identity":
-            raise ValueError(f"{interface_id} source must remain workstream/identity")
-        if interface["target_route"] != target_route:
-            raise ValueError(f"{interface_id} target must remain {target_route}")
-        if WORKFLOW_CONTRACT not in interface["source_contract_ids"]:
+        if WORKFLOW_CONTRACT not in interface[binding["contract_field"]]:
             raise ValueError(f"{interface_id} omits governed workflow-continuity contract")
-
         evidence = interface["acceptance_evidence"]
-        missing_evidence = REQUIRED_INTERFACE_ARTIFACTS - set(
-            evidence["source_artifacts"]
-        )
-        if missing_evidence:
+        missing = binding["artifacts"] - set(evidence[binding["artifact_role"]])
+        if missing:
             raise ValueError(
                 f"{interface_id} omits governed workflow-continuity evidence: "
-                f"{sorted(missing_evidence)}"
+                + ", ".join(sorted(missing))
             )
-        if PROJECT_IDENTITY_CHECK not in evidence["required_checks"]:
-            raise ValueError(f"{interface_id} omits Project Identity workflow evidence")
+        missing_capabilities = binding["capabilities"] - set(interface["capabilities"])
+        if missing_capabilities:
+            raise ValueError(
+                f"{interface_id} omits governed workflow-continuity capabilities: "
+                + ", ".join(sorted(missing_capabilities))
+            )
         if interface["execution_authorized"]:
-            raise ValueError(f"{interface_id} may not grant execution authority")
+            raise ValueError(f"{interface_id} may not gain execution authority")
         if interface["canonical_memory_transfer"]:
-            raise ValueError(f"{interface_id} may not grant canonical-memory transfer")
+            raise ValueError(f"{interface_id} may not transfer canonical memory")
 
-
-def validate_contract(root: Path = ROOT) -> None:
-    root = root.resolve()
-    validate_registry(root)
-    validate_compatibility(root)
-    registry = load_json_strict(
-        root / "architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json"
+    coordination = _interface(matrix, "VERA-IFACE-009")
+    missing_coordination = (
+        COORDINATION_EVIDENCE_CAPABILITIES - set(coordination["capabilities"])
     )
+    if missing_coordination:
+        raise ValueError(
+            "VERA-IFACE-009 omits workflow-continuity coordination evidence: "
+            + ", ".join(sorted(missing_coordination))
+        )
+    if coordination["execution_authorized"]:
+        raise ValueError("VERA-IFACE-009 may not gain execution authority")
+    if coordination["canonical_memory_transfer"]:
+        raise ValueError("VERA-IFACE-009 may not transfer canonical memory")
+
+
+def validate_repository(root: Path = ROOT) -> None:
+    root = root.resolve()
     matrix = load_json_strict(
         root / "architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json"
     )
-    validate_binding(matrix, registry)
+    registry = load_json_strict(
+        root / "architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json"
+    )
+    validate_workflow_continuity_integration(matrix, registry, root)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=ROOT)
     args = parser.parse_args()
-    validate_contract(args.root)
-    print("governed workflow continuity integration: valid")
+    validate_repository(args.root.resolve())
+    print("workflow-continuity integration inventory: valid")
     return 0
 
 
