@@ -150,6 +150,38 @@ class IntegrationRegistryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "canonical source intent"):
             validate_semantics(registry)
 
+    def test_identity_temporal_anchor_artifact_omission_rejected(self):
+        registry = valid_registry()
+        identity = owner(registry, "workstream/identity")
+        identity["owned_artifacts"].remove(
+            "architecture/identity/VERA_IDENTITY_TEMPORAL_ANCHOR_V1.json"
+        )
+        with self.assertRaisesRegex(ValueError, "canonical source intent"):
+            validate_semantics(registry)
+
+    def test_identity_temporal_anchor_contract_must_remain_time_owned(self):
+        registry = valid_registry()
+        time = owner(registry, "workstream/time")
+        time["contract_ids"].remove("VERA_IDENTITY_TEMPORAL_ANCHOR_V1")
+        with self.assertRaisesRegex(ValueError, "canonical source intent"):
+            validate_semantics(registry)
+
+    def test_identity_temporal_validator_omission_rejected(self):
+        registry = valid_registry()
+        time = owner(registry, "workstream/time")
+        time["owned_artifacts"].remove(
+            "scripts/validate_identity_temporal_anchor.py"
+        )
+        with self.assertRaisesRegex(ValueError, "canonical source intent"):
+            validate_semantics(registry)
+
+    def test_identity_temporal_check_omission_rejected(self):
+        registry = valid_registry()
+        time = owner(registry, "workstream/time")
+        time["required_checks"].remove("Project Identity")
+        with self.assertRaisesRegex(ValueError, "canonical source intent"):
+            validate_semantics(registry)
+
     def test_cross_owner_artifact_collision_rejected(self):
         registry = valid_registry()
         identity = owner(registry, "workstream/identity")
