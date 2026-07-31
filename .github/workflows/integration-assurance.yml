@@ -1,0 +1,35 @@
+name: Integration Assurance
+
+on:
+  pull_request:
+    branches:
+      - integration/project-orchestration-r6a0
+  push:
+    branches:
+      - feature/integration-assurance-harness-v1
+
+permissions:
+  contents: read
+
+jobs:
+  validate-registry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned validator dependency
+        run: python -m pip install jsonschema==4.25.1
+      - name: Validate integration registry
+        run: python scripts/validate_integration_registry.py
+      - name: Run integration registry tests
+        run: python -m unittest tests.test_integration_registry -v
+      - name: Compile registry validator and tests
+        run: >-
+          python -m py_compile
+          scripts/validate_integration_registry.py
+          tests/test_integration_registry.py
