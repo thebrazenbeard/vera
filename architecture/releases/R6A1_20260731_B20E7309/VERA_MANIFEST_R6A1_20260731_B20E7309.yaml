@@ -5,7 +5,7 @@ acronym: Virtual Environment for Reciprocal Agency
 release_id: VERA_GOVERNED_CORE_R6A1_20260731_B20E7309
 release_token: R6A1_20260731_B20E7309
 generated_at: '2026-07-31T12:20:00Z'
-status: replacement_candidate_not_installed
+status: REPLACEMENT_CANDIDATE_NOT_INSTALLED
 purpose: provenance_governed_context_memory_coordination_and_workflow_continuity
 source:
   repository: thebrazenbeard/vera
