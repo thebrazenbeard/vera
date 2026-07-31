@@ -8,7 +8,10 @@ from typing import Any
 
 from jsonschema import Draft202012Validator, FormatChecker
 
-from scripts.validate_integration_registry import load_json_strict, validate_semantics as validate_registry_semantics
+from scripts.validate_integration_registry import (
+    load_json_strict,
+    validate_semantics as validate_registry_semantics,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY_HEAD = "56f09c39e0890bf6e7b8bb858d84046581b9799a"
@@ -35,53 +38,55 @@ REQUIRED_INTERFACE_PAIRS = {
 }
 EXPECTED_INTERFACE_OWNERS = {
     ("workstream/identity", "workstream/time"): (
-        "workstream/identity",
-        "workstream/time",
+        "workstream/identity", "workstream/time"
     ),
     ("workstream/identity", "workstream/memory"): (
-        "workstream/identity",
-        "workstream/memory",
+        "workstream/identity", "workstream/memory"
     ),
     ("workstream/identity", "workstream/initiatives"): (
-        "workstream/identity",
-        "workstream/initiatives",
+        "workstream/identity", "workstream/initiatives"
     ),
     ("workstream/time", "workstream/memory"): (
-        "workstream/time",
-        "workstream/memory",
+        "workstream/time", "workstream/memory"
     ),
     ("workstream/time", "workstream/coordination"): (
-        "workstream/time",
-        "workstream/coordination",
+        "workstream/time", "workstream/coordination"
     ),
     ("workstream/initiatives", "workstream/coordination"): (
-        "workstream/identity",
-        "workstream/coordination",
+        "workstream/identity", "workstream/coordination"
     ),
     ("workstream/coordination", "workstream/memory"): (
-        "workstream/memory",
-        "workstream/memory",
+        "workstream/memory", "workstream/memory"
     ),
     ("workstream/memory", "workstream/integration"): (
-        "workstream/memory",
-        "workstream/integration",
+        "workstream/memory", "workstream/integration"
     ),
     ("workstream/coordination", "workstream/integration"): (
-        "workstream/coordination",
-        "workstream/integration",
+        "workstream/coordination", "workstream/integration"
     ),
     ("workstream/integration", "workstream/identity"): (
-        "workstream/identity",
-        "workstream/identity",
+        "workstream/identity", "workstream/identity"
     ),
 }
 EXPECTED_OWNS = {
     "workstream/identity": {"AUTHORITY", "CORRECTION", "BEHAVIOR", "ROUTING"},
-    "workstream/time": {"EVENT_TIME", "STATE_TIME", "RECORD_TIME", "RETRIEVAL_TIME", "TEMPORAL_PRECISION"},
-    "workstream/memory": {"GOVERNED_SAVE", "GOVERNED_RECALL", "PROVENANCE", "LINEAGE", "REQUEST_IDENTITY"},
+    "workstream/time": {
+        "EVENT_TIME", "STATE_TIME", "RECORD_TIME", "RETRIEVAL_TIME",
+        "TEMPORAL_PRECISION",
+    },
+    "workstream/memory": {
+        "GOVERNED_SAVE", "GOVERNED_RECALL", "PROVENANCE", "LINEAGE",
+        "REQUEST_IDENTITY",
+    },
     "workstream/initiatives": {"ACTION_SELECTION", "ABSTENTION"},
-    "workstream/coordination": {"ADDRESSED_EVENTS", "ACKNOWLEDGEMENT", "REVIEW_ROUTING", "OPERATIONAL_RECEIPTS"},
-    "workstream/integration": {"COMPATIBILITY", "ASSEMBLY_EVIDENCE", "DRIFT_DETECTION", "RELEASE_ASSURANCE"},
+    "workstream/coordination": {
+        "ADDRESSED_EVENTS", "ACKNOWLEDGEMENT", "REVIEW_ROUTING",
+        "OPERATIONAL_RECEIPTS",
+    },
+    "workstream/integration": {
+        "COMPATIBILITY", "ASSEMBLY_EVIDENCE", "DRIFT_DETECTION",
+        "RELEASE_ASSURANCE",
+    },
 }
 CRITICAL_BANS = {
     "workstream/identity": {"ACTION_EXECUTION"},
@@ -90,12 +95,16 @@ CRITICAL_BANS = {
     "workstream/initiatives": {"ACTION_EXECUTION"},
     "workstream/coordination": {"CANONICAL_MEMORY", "MODEL_AUTHORITY"},
     "workstream/integration": {
-        "IDENTITY_SEMANTICS",
-        "TEMPORAL_SEMANTICS",
-        "CANONICAL_MEMORY",
-        "ACTION_SELECTION",
-        "OPERATIONAL_COORDINATION",
+        "IDENTITY_SEMANTICS", "TEMPORAL_SEMANTICS", "CANONICAL_MEMORY",
+        "ACTION_SELECTION", "OPERATIONAL_COORDINATION",
     },
+}
+# These artifacts define or validate this matrix. Registration establishes
+# ownership and review scope, but they may not serve as evidence that their own
+# compatibility claims are true.
+NON_EVIDENTIARY_SELF_REFERENCES = {
+    "architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json",
+    "scripts/validate_workstream_compatibility.py",
 }
 
 
@@ -110,13 +119,35 @@ def validate_schema(instance: Any, schema: Any) -> None:
         raise ValueError(f"compatibility matrix schema validation failed: {detail}")
 
 
-def _claim_once(claims: dict[str, str], identity: str, owner: str, kind: str) -> None:
+def _claim_once(
+    claims: dict[str, str], identity: str, owner: str, kind: str
+) -> None:
     previous = claims.get(identity)
     if previous is not None:
         raise ValueError(
             f"duplicate {kind} {identity!r}: claimed by {previous} and {owner}"
         )
     claims[identity] = owner
+
+
+def _validate_artifact_evidence(
+    *,
+    interface_id: str,
+    role: str,
+    route: str,
+    artifacts: list[str],
+    artifact_owner: dict[str, str],
+) -> None:
+    for artifact in artifacts:
+        if artifact in NON_EVIDENTIARY_SELF_REFERENCES:
+            raise ValueError(
+                f"{interface_id} {role} artifact {artifact!r} is self-referential "
+                "and cannot certify compatibility"
+            )
+        if artifact_owner.get(artifact) != route:
+            raise ValueError(
+                f"{interface_id} {role} artifact {artifact!r} is not owned by {route}"
+            )
 
 
 def validate_semantics(matrix: dict[str, Any], registry: dict[str, Any]) -> None:
@@ -137,13 +168,20 @@ def validate_semantics(matrix: dict[str, Any], registry: dict[str, Any]) -> None
 
     for route, assertion in assertions.items():
         if set(assertion["owns"]) != EXPECTED_OWNS[route]:
-            raise ValueError(f"{route} ownership domain differs from canonical matrix intent")
+            raise ValueError(
+                f"{route} ownership domain differs from canonical matrix intent"
+            )
         if not CRITICAL_BANS[route].issubset(set(assertion["does_not_own"])):
             raise ValueError(f"{route} omits a required negative ownership boundary")
         if assertion["execution_authorized"]:
             raise ValueError(f"{route} may not claim execution authority")
-        if assertion["canonical_memory_eligible"] != registry_owners[route]["canonical_memory_eligible"]:
-            raise ValueError(f"{route} canonical-memory classification differs from registry")
+        if (
+            assertion["canonical_memory_eligible"]
+            != registry_owners[route]["canonical_memory_eligible"]
+        ):
+            raise ValueError(
+                f"{route} canonical-memory classification differs from registry"
+            )
 
     contract_owner: dict[str, str] = {}
     artifact_owner: dict[str, str] = {}
@@ -186,25 +224,31 @@ def validate_semantics(matrix: dict[str, Any], registry: dict[str, Any]) -> None
         for contract_id in interface["source_contract_ids"]:
             if contract_owner.get(contract_id) != source:
                 raise ValueError(
-                    f"{interface_id} source contract {contract_id!r} is not owned by {source}"
+                    f"{interface_id} source contract {contract_id!r} "
+                    f"is not owned by {source}"
                 )
         for contract_id in interface["target_contract_ids"]:
             if contract_owner.get(contract_id) != target:
                 raise ValueError(
-                    f"{interface_id} target contract {contract_id!r} is not owned by {target}"
+                    f"{interface_id} target contract {contract_id!r} "
+                    f"is not owned by {target}"
                 )
 
         evidence = interface["acceptance_evidence"]
-        for artifact in evidence["source_artifacts"]:
-            if artifact_owner.get(artifact) != source:
-                raise ValueError(
-                    f"{interface_id} source artifact {artifact!r} is not owned by {source}"
-                )
-        for artifact in evidence["target_artifacts"]:
-            if artifact_owner.get(artifact) != target:
-                raise ValueError(
-                    f"{interface_id} target artifact {artifact!r} is not owned by {target}"
-                )
+        _validate_artifact_evidence(
+            interface_id=interface_id,
+            role="source",
+            route=source,
+            artifacts=evidence["source_artifacts"],
+            artifact_owner=artifact_owner,
+        )
+        _validate_artifact_evidence(
+            interface_id=interface_id,
+            role="target",
+            route=target,
+            artifacts=evidence["target_artifacts"],
+            artifact_owner=artifact_owner,
+        )
         allowed_check_routes = {source, target}
         for check in evidence["required_checks"]:
             if not check_owners.get(check, set()).intersection(allowed_check_routes):
@@ -224,26 +268,44 @@ def validate_semantics(matrix: dict[str, Any], registry: dict[str, Any]) -> None
         if interface["execution_authorized"]:
             raise ValueError(f"{interface_id} may not claim execution authority")
         if interface["canonical_memory_transfer"]:
-            raise ValueError(f"{interface_id} may not silently promote interface data to canonical memory")
+            raise ValueError(
+                f"{interface_id} may not silently promote interface data to canonical memory"
+            )
 
         if source == "workstream/initiatives":
             required = {"ACTION_SELECTION", "ABSTENTION", "NO_EXECUTION_AUTHORITY"}
             if not required.issubset(set(interface["capabilities"])):
-                raise ValueError("Initiatives interface must preserve selection, abstention, and no-execution")
+                raise ValueError(
+                    "Initiatives interface must preserve selection, abstention, "
+                    "and no-execution"
+                )
         if source == "workstream/coordination" and target == "workstream/memory":
-            required = {"OPERATIONAL_EVENT_REFERENCE", "DATA_NOT_INSTRUCTION", "NO_CANONICAL_PROMOTION"}
+            required = {
+                "OPERATIONAL_EVENT_REFERENCE",
+                "DATA_NOT_INSTRUCTION",
+                "NO_CANONICAL_PROMOTION",
+            }
             if not required.issubset(set(interface["capabilities"])):
-                raise ValueError("Coordination-to-Memory interface must remain operational and non-promoting")
-        if source == "workstream/integration":
-            if "NO_COMPONENT_SEMANTICS" not in interface["capabilities"]:
-                raise ValueError("Integration findings must disclaim component-semantic ownership")
+                raise ValueError(
+                    "Coordination-to-Memory interface must remain operational "
+                    "and non-promoting"
+                )
+        if source == "workstream/integration" and (
+            "NO_COMPONENT_SEMANTICS" not in interface["capabilities"]
+        ):
+            raise ValueError(
+                "Integration findings must disclaim component-semantic ownership"
+            )
 
         for finding in interface["findings"]:
-            _claim_once(finding_ids, finding["finding_id"], interface_id, "finding_id")
+            _claim_once(
+                finding_ids, finding["finding_id"], interface_id, "finding_id"
+            )
 
     if pairs != REQUIRED_INTERFACE_PAIRS:
         raise ValueError(
-            f"interface pair coverage differs from required matrix: {sorted(pairs ^ REQUIRED_INTERFACE_PAIRS)}"
+            "interface pair coverage differs from required matrix: "
+            f"{sorted(pairs ^ REQUIRED_INTERFACE_PAIRS)}"
         )
 
 
