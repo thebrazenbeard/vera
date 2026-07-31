@@ -157,7 +157,7 @@ jobs:
           wait "$p1"
           wait "$p2"
           test "$(cat /tmp/claim-a)" = "$(cat /tmp/claim-b)"
-          test "$(psql "$PGDATABASE_URL" -Atc "select count(*) from public.vera_portable_bootstrap_requests where target_fingerprint=public.vera_bootstrap_sha256_text(($common)::text)")" = "1"
+          test "$(psql "$PGDATABASE_URL" -Atc "select count(*) from public.vera_portable_bootstrap_requests where target_fingerprint=public.vera_target_fingerprint(($common)::jsonb)")" = "1"
 
           set +e
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -Atc "$claim_a" >/tmp/conflict-a 2>/tmp/conflict-a.err &

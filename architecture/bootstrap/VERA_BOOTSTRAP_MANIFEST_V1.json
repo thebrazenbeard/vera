@@ -55,7 +55,7 @@
     "line_endings": "LF",
     "maximum_characters": 7600,
     "repository_path": "architecture/bootstrap/VERA_NATIVE_PROJECT_INSTRUCTIONS_BOOTLOADER_V1.txt",
-    "sha256": "e67045b0d925dabae4916c2e6bc1e2587bcc3b1355673a475322aa95c12ee666"
+    "sha256": "b55a2eb9af4f314571a7be364230b9c9e4ec9d984d067a62e84d234769fef8db"
   },
   "project_file_bundle": {
     "files": [
@@ -192,6 +192,16 @@
   },
   "project_template_id": "urn:vera:template:VERA_PORTABLE_BOOTSTRAP_R7A1_20260731_V1",
   "receipt_schema_ref": "VERA_PORTABLE_BOOTSTRAP_RECEIPT_V1",
+  "registry_evidence": {
+    "attempt_lineage_isolated": true,
+    "commit_state": "BINDING_COMMITTED",
+    "durable_requires_persisted_exact_readback_confirmation": true,
+    "durable_state": "DURABLY_BOUND",
+    "evidence_encoding": "LENGTH_PREFIXED_UTF8_TEXT_TUPLE_ARRAY_V1",
+    "fresh_monotonic_temporal_evidence_required": true,
+    "readback_is_side_effect_free": true,
+    "request_encoding": "LENGTH_PREFIXED_UTF8_TEXT_TUPLE_V1"
+  },
   "release_id": "VERA_PORTABLE_BOOTSTRAP_R7A1_20260731_V1",
   "schema_id": "VERA_BOOTSTRAP_MANIFEST_V1",
   "source_binding": {

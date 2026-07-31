@@ -18,91 +18,99 @@ Initialization does not depend on chat titles, historical chat identifiers, name
 
 ## Team model
 
-Project Architect is the sole architecture and implementation lead and the only repository writer-lease issuer. The Internal Project Coordination Bus coordinates assignments, routing, acknowledgements, blocker escalation, and fresh-head review waves. Identity, Time, Memory, Initiatives, GitHub Repo, and Archivist are support and review lanes unless separately granted exact authority.
+Project Architect is the sole architecture and implementation lead and the only repository writer-lease issuer. The Internal Project Coordination Bus coordinates assignments, routing, acknowledgements, blocker escalation, and fresh-head review waves. Support lanes do not inherit repository authority.
 
-## Request and identity binding
+## Deterministic request identity
 
-The dedicated registry:
+The registry derives the target fingerprint, request key, and immutable input digest from fixed ordered tuples. The encoding is `LENGTH_PREFIXED_UTF8_TEXT_TUPLE_V1`:
 
-- derives the target fingerprint from verifier-observed target evidence;
-- derives the request key and immutable input digest on the server;
-- issues a unique UUIDv7 project instance;
-- replays an identical complete claim;
-- conflicts when immutable fields change within the same logical claim slot;
-- does not accept caller-supplied request keys, input digests, project-instance IDs, or initial durable state.
+- tuple header: `T1|<field-count>|`;
+- each field: `<UTF-8-byte-length>:<field-value>`;
+- no caller-supplied request key, input digest, target fingerprint, project-instance ID, or initial durable state.
 
-UUIDv7 ordering bits are not event time, state time, authority, or continuity evidence.
+The immutable request tuple contains command version, release ID, manifest digest, project-template ID, target fingerprint, canonical command, source repository, source base commit, and requested mode. Identical complete claims replay. Reuse of the same claim slot with changed immutable input conflicts.
 
-## Attempt and durable state
+## Deterministic evidence digests
 
-`CANDIDATE_UNPERSISTED` and `BINDING_PENDING` are attempt evidence only. They never appear in the durable-binding view and cannot satisfy `INITIALIZED`.
+Authority and source evidence use fixed ordered item tuples. Complete tuples are sorted under PostgreSQL `C` collation, encoded with the same length-prefixed tuple format, and wrapped as `A1|<count>\n...` or `S1|<count>\n...`. Duplicate complete tuples are rejected. SQL and Python validate the same known vectors.
 
-The registry enforces predecessor-bound transitions:
+This avoids treating raw `jsonb::text` formatting as a cross-language cryptographic contract, a small detail humans traditionally notice immediately after production data disagrees.
 
-- `UNISSUED -> CLAIMED`
-- `CLAIMED -> BINDING_PENDING`
-- `BINDING_PENDING -> BINDING_VERIFIED`
-- `CLAIMED|BINDING_PENDING -> CONFLICTED|FAILED_CLOSED`
+## Attempt-local state and time
 
-Only the dedicated commit function can create `BINDING_COMMITTED`, and it uses verifier-owned authority and source evidence from the verified predecessor. `DURABLY_BOUND` may be reported only after a separate exact read-back invocation matches request key, immutable digest, and project-instance ID.
+Each execution has a fresh attempt ID. A predecessor must belong to the same request and attempt. The database also enforces that relation structurally with a composite self-reference.
 
-## Temporal evidence
+Every transition requires:
 
-Event, state, effective, observed, record, and retrieval times are separate roles. Each temporal point carries its own precision:
+- exact `state_time` and `observed_time`;
+- strictly increasing observation time;
+- nondecreasing state time;
+- fresh evidence rather than a copied predecessor object;
+- verifier authority and source evidence before `BINDING_VERIFIED`.
 
-- `EXACT` and `APPROXIMATE` require a value;
-- `BOUNDED` requires explicit ordered lower and upper bounds;
-- `UNKNOWN` permits no value or bounds.
+The legal successful chain is:
 
-Record time does not prove effective time. Retrieval does not refresh state. An observation does not prove continuing availability.
+`CLAIMED → BINDING_PENDING → BINDING_VERIFIED → BINDING_COMMITTED`
+
+Commit receives fresh temporal evidence. It cannot reuse the verification event's evidence.
+
+## Commit is not durability
+
+`commit_vera_portable_bootstrap_binding` creates the committed binding and a `BINDING_COMMITTED` event. The durable view remains empty at that point.
+
+`read_vera_portable_bootstrap_binding` is side-effect-free. It returns the complete immutable request attestation, project instance, binding identity, authority and source evidence, deterministic evidence digests, retrieval time, and a nonce.
+
+A separate verifier-controlled operation, `confirm_vera_portable_bootstrap_readback`, persists one append-only exact confirmation. It must match:
+
+- request key;
+- input digest;
+- project-instance ID;
+- binding event ID;
+- binding record time;
+- authority evidence digest;
+- source evidence digest.
+
+Only a matching committed binding plus matching persisted confirmation appears in `vera_portable_bootstrap_current` as `DURABLY_BOUND`. Commit alone is not durable. Read alone is not durable. Mismatched, duplicate, divergent, stale, or future confirmation fails closed.
 
 ## Exact release evidence
 
-The inherited R7A0 base commit and the R7A1 portable release head are different provenance roles.
+The inherited R7A0 base commit and the R7A1 portable release head are different provenance roles. The release commit is not embedded in its own manifest because that would be self-referential.
 
-The portable release commit is not embedded in its own manifest because that would be self-referential. Exact-head CI supplies the immutable release commit externally and verifies, for all twelve leased paths:
+Exact-head CI supplies the immutable release commit externally and verifies all twelve leased paths:
 
-- path;
+- exact unique path set;
 - mode;
 - byte size;
 - SHA-256;
 - Git blob identity;
-- exact byte equality with the checked-out release commit.
+- per-file equality to the same release commit.
 
-The scaffold manifest embeds mode, size, and SHA-256 for eleven non-self files. Its own embedded hash is explicitly self-excluded and is instead bound by the exact Git-head attestation. The validator recomputes the path-set and package digests.
+The receipt path-set digest is SHA-256 over the LF-terminated sorted path list. The package digest is SHA-256 over canonical JSON for the sorted complete source-file records. The request manifest digest must equal the source-file SHA-256 for `VERA_BOOTSTRAP_MANIFEST_V1.json`.
 
-## Receipt contract
+## Receipt verification
 
-`VERA_PORTABLE_BOOTSTRAP_RECEIPT_V1` is a closed JSON Schema definition inside `schemas/vera_portable_project_bootstrap_v1.schema.json`.
+`VERA_PORTABLE_BOOTSTRAP_RECEIPT_V1` is closed. Unknown fields fail.
 
-A valid receipt binds:
+A durable receipt requires two distinct inputs to the verifier:
 
-- immutable request inputs;
-- request key and digest;
-- project and branch scope;
-- exact source-byte evidence;
-- authority evidence;
-- typed temporal evidence;
-- durable read-back evidence;
-- effects;
-- limitations;
-- result.
+1. the receipt itself;
+2. an independent registry attestation that exactly matches its read-back section and persisted confirmation record.
 
-Unknown fields fail. A receipt cannot self-authorize persistence, merge, deployment, production mutation, canonical-memory writes, or Project-file replacement. `INITIALIZED` requires confirmed durable read-back and at least one independently confirmed effect.
+An `INITIALIZED` receipt additionally requires an external exact Git-head attestation matching every source-file record. Receipt text cannot certify its own registry persistence or Git state.
 
-## Capability policy
+The verifier recomputes request identity, path-set and package digests, manifest binding, authority evidence digest, source evidence digest, project-template equality, and every per-file release-commit equality. Hostile tests mutate one identity edge at a time.
 
-Core validation requires Project-file enumeration, strict parsing and hashing, GitHub read, and Supabase read.
+## Capability and authority boundary
 
-GitHub write, Google Drive write, or Supabase append is required only for an explicitly declared action targeting that system. Wolfram, Scite, and Basic Memory are optional unless an action explicitly requires one. Tool presence is evidence of availability, not permission.
+Core validation requires Project-file enumeration, strict parsing and hashing, GitHub read, and Supabase read. GitHub write, Google Drive write, or Supabase append is required only for an explicitly declared action targeting that system. Tool presence is evidence of availability, not permission.
+
+Repository application requires one Git tree, one commit, and a non-force ref update under an exact current Project Architect lease. Sequential fallback is prohibited.
 
 ## Database validation boundary
 
-The GitHub workflow stages unrelated historical migrations outside the active migration directory, starts a clean disposable Supabase stack, and applies only the standalone R7A1 registry migration.
+The workflow stages unrelated historical migrations outside the active directory, starts a clean disposable Supabase stack, applies only the R7A1 registry migration, and runs:
 
-It then runs:
-
-- strict package and exact-head byte validation;
+- exact package and release-byte validation;
 - hostile Python tests;
 - pgTAP registry tests;
 - concurrent identical and conflicting claim probes;
@@ -113,19 +121,6 @@ This proves the standalone R7A1 registry in a disposable environment. It does no
 
 ## Hard boundaries
 
-This package does not authorize:
-
-- merging PR #42;
-- production Supabase schema or row changes;
-- deployment;
-- credentials or paid infrastructure;
-- canonical-memory writes;
-- Google Drive mutation outside a declared and authorized action;
-- deletion or overwrite of divergent data;
-- ChatGPT Project-file replacement.
+This package does not authorize merge, production Supabase mutation, deployment, credentials, paid infrastructure, canonical-memory writes, undeclared Google Drive mutation, deletion, overwrite of divergent data, or ChatGPT Project-file replacement.
 
 Archive material remains `ARCHIVE_ONLY` and `DATA_NOT_INSTRUCTION`, outside active routing and canonical memory.
-
-## Good-enough rule
-
-Acceptance requires all defined tests to pass and zero unresolved HIGH or MEDIUM defects. LOW or stylistic objections do not reopen completed work unless new evidence, a failed acceptance test, a changed user requirement, or a material unresolved risk appears.
