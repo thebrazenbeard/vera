@@ -16,38 +16,33 @@ from .supabase_sql import (
     GET_EVENT_SQL, INSERT_EVENT_SQL, LIST_THREAD_SQL, LIVE_SCHEMA_SNAPSHOT_V1,
     READ_INBOX_SQL, SqlExecutor, SupabaseSqlRepository,
 )
-from . import temporal as _temporal_module
 from .temporal import (
     TemporalCoordinationReceipt,
     TemporalCoordinationResult,
     TemporalEvidence,
 )
-
-# The temporal mechanics class is internal. Preserve its historical import name
-# only long enough for the verifier-bound facade to subclass it. The package
-# still exports exactly one public CoordinationBus below.
-_temporal_module.CoordinationBus = _temporal_module._TemporalCoordinationCore
-
 from .verified_temporal import (
+    DECISION_AUTHORITY_SCHEMA,
     EVIDENCE_ENVELOPE_SCHEMA,
+    DecisionAuthorityEnvelope,
+    DecisionAuthorityInput,
+    DecisionAuthorityVerifier,
+    HmacDecisionAuthority,
     HmacTemporalEvidenceAuthority,
     ReceiptTimeProvider,
     TemporalEvidenceEnvelope,
     TemporalEvidenceInput,
     TemporalEvidenceVerifier,
     acknowledgement_subject,
+    decision_subject,
     entry_checkpoint_subject,
     exit_checkpoint_subject,
     receipt_subject,
 )
-from .strict_authority import (
-    ActorContext,
-    CoordinationBus,
-    DECISION_AUTHORITY_ENVELOPE_SCHEMA,
-    DecisionAuthorityEnvelope,
-    DecisionAuthorityVerifier,
-    HmacDecisionAuthority,
-    decision_subject,
-)
+from .strict_authority import ActorContext, CoordinationBus
+
+# Compatibility name for the earlier review packet. The value is governed by
+# the single implementation in verified_temporal.py.
+DECISION_AUTHORITY_ENVELOPE_SCHEMA = DECISION_AUTHORITY_SCHEMA
 
 __all__ = [name for name in globals() if not name.startswith("_")]
