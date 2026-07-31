@@ -28,7 +28,7 @@ class CoordinationBusTests(unittest.TestCase):
         self.bus = CoordinationBus(self.repo)
         self.memory = ActorContext("workstream/memory", ALL_PERMISSIONS)
         self.time = ActorContext("workstream/time", ALL_PERMISSIONS)
-        self.initiative = ActorContext("workstream/initiative", ALL_PERMISSIONS)
+        self.initiative = ActorContext("workstream/initiatives", ALL_PERMISSIONS)
         self.integration = ActorContext("workstream/integration", ALL_PERMISSIONS)
 
     def issue(self):
