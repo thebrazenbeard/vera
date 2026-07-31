@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0.0",
+  "release_id": "VERA_GOVERNED_CORE_R6A1_20260731_B20E7309",
+  "release_status": "DRAFT_NOT_INSTALLABLE",
+  "repository": "thebrazenbeard/vera",
+  "source_commit": "b20e7309c6ded3c358dce00baa537d2fc1880004",
+  "source_branch": "main",
+  "authority_provenance": "UNVERIFIED_PROVENANCE",
+  "production_modification_authorized": false,
+  "canonical_memory_write_authorized": false,
+  "runtime_deployment_authorized": false,
+  "project_file_replacement_authorized": false,
+  "bindings": [
+    {"role":"project_identity","path":"architecture/identity/VERA_PROJECT_IDENTITY_V1.json"},
+    {"role":"behavior_profile","path":"architecture/identity/VERA_BEHAVIOR_PROFILE_V1.json"},
+    {"role":"governed_workflow_continuity","path":"architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V1.json"},
+    {"role":"identity_temporal_anchor","path":"architecture/identity/VERA_IDENTITY_TEMPORAL_ANCHOR_V1.json"},
+    {"role":"integration_registry","path":"architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json","git_blob_sha":"7bf771999db686176f944abff569c39ca8f85f74","canonical_sha256":"f095fa46666abb583e616658198399131a4902fc9ba572f01f4642c1dcab158f"},
+    {"role":"workstream_compatibility","path":"architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json","git_blob_sha":"dd0e160355baab0c367d84f901930b02d7e72a4a"},
+    {"role":"turn_taking","path":"docs/WORKSTREAM_TURN_TAKING_PROTOCOL_V1.md"},
+    {"role":"memory_contract","path":"docs/MEMORY_CROSS_CHAT_CONTRACT_V1.md"},
+    {"role":"temporal_contract","path":"docs/TEMPORAL_ENFORCEMENT_V1.md"},
+    {"role":"initiative_contract","path":"docs/INITIATIVE_KERNEL_V0_1.md"},
+    {"role":"coordination_contract","path":"docs/COORDINATION_BUS_V1.md"},
+    {"role":"orchestration_state","path":"docs/PROJECT_ORCHESTRATION_R6A0.md"}
+  ],
+  "required_future_files": [
+    "project_instructions",
+    "runtime_rules",
+    "governance",
+    "memory_protocol",
+    "semantic_tagging",
+    "behavior_laws",
+    "current_project_state",
+    "supersession_map",
+    "installation_and_rollback",
+    "validation_specification",
+    "validation_report",
+    "manifest",
+    "bundle_inventory",
+    "checksums"
+  ]
+}
