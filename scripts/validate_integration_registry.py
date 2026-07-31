@@ -77,9 +77,10 @@ EXPECTED_OWNER_IDENTITIES = {
             "coordination_bus/__init__.py",
             "coordination_bus/contracts.py",
             "coordination_bus/core.py",
+            "coordination_bus/in_memory.py",
+            "coordination_bus/supabase_sql.py",
             "coordination_bus/temporal.py",
             "coordination_bus/verified_temporal.py",
-            "coordination_bus/strict_authority.py",
         },
         "required_checks": {
             "Coordination bus",
