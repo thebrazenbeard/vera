@@ -1,5 +1,6 @@
 schema_version: 2.0.0
 release_id: VERA_GOVERNED_CORE_R6A1_20260731_B20E7309
+release_status: REPLACEMENT_CANDIDATE_NOT_INSTALLED
 suite: governed_reciprocal_agency_release_validation
 required_passes:
 - project instructions define V.E.R.A. as an environment, not a person
