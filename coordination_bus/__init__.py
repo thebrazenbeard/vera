@@ -4,7 +4,7 @@ from .contracts import (
     ACTOR_WORKSTREAM_ALIASES, ALL_PERMISSIONS, CANONICAL_MEMORY_ELIGIBLE,
     EVENT_STATUS_PAIRS, EVENT_TYPES, INSTRUCTION_TRUST,
     LEGACY_STORED_ADDRESSES, OBSOLETE_WORKSTREAMS, RECORD_CLASS, STATUSES,
-    WORKSTREAMS, ActorContext, CoordinationEvent, CoordinationEventDraft,
+    WORKSTREAMS, CoordinationEvent, CoordinationEventDraft,
     CoordinationReceipt, CoordinationResult, PERMISSION_ACKNOWLEDGE,
     PERMISSION_DECIDE, PERMISSION_POST, PERMISSION_READ_ANY,
     PERMISSION_READ_SELF, PERMISSION_RESOLVE, PERMISSION_REVIEW,
@@ -29,7 +29,6 @@ from .temporal import (
 _temporal_module.CoordinationBus = _temporal_module._TemporalCoordinationCore
 
 from .verified_temporal import (
-    CoordinationBus,
     EVIDENCE_ENVELOPE_SCHEMA,
     HmacTemporalEvidenceAuthority,
     ReceiptTimeProvider,
@@ -40,6 +39,15 @@ from .verified_temporal import (
     entry_checkpoint_subject,
     exit_checkpoint_subject,
     receipt_subject,
+)
+from .strict_authority import (
+    ActorContext,
+    CoordinationBus,
+    DECISION_AUTHORITY_ENVELOPE_SCHEMA,
+    DecisionAuthorityEnvelope,
+    DecisionAuthorityVerifier,
+    HmacDecisionAuthority,
+    decision_subject,
 )
 
 __all__ = [name for name in globals() if not name.startswith("_")]
