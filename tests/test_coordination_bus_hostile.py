@@ -66,11 +66,17 @@ class CoordinationBusHostileTests(unittest.TestCase):
             "record_time": "2026-07-30T23:00:00+00:00",
         }
 
-    def test_legacy_actor_alias_normalizes_but_new_singular_draft_is_rejected(self):
-        actor = ActorContext("workstream/initiative", frozenset())
-        self.assertEqual(actor.workstream, "workstream/initiatives")
+    def test_obsolete_actor_route_is_rejected_but_stored_alias_remains_readable(self):
+        with self.assertRaisesRegex(ValueError, "obsolete route"):
+            ActorContext("workstream/initiative", frozenset())
         with self.assertRaises(ValueError):
             self.draft(source_branch="workstream/initiative").validate()
+
+        event = CoordinationEvent.from_row(
+            self.stored_row("workstream/initiative")
+        )
+        self.assertEqual(event.source_branch, "workstream/initiative")
+        self.assertEqual(event.source_address_class, "LEGACY")
 
     def test_observed_legacy_stored_addresses_remain_readable(self):
         legacy = (
@@ -111,14 +117,14 @@ class CoordinationBusHostileTests(unittest.TestCase):
         self.assertEqual(result.receipt.result_class, "DENIED")
         self.assertFalse(result.receipt.database_write_confirmed)
 
-    def test_explicit_decision_permission_can_publish_decision(self):
+    def test_explicit_decision_permission_still_requires_external_authority(self):
         actor = ActorContext("workstream/memory", frozenset({PERMISSION_DECIDE}))
         result = self.bus.coordination_post(
             actor,
             self.draft(event_type="DECISION", status="APPROVED"),
         )
-        self.assertEqual(result.receipt.result_class, "COMPLETE")
-        self.assertTrue(result.receipt.database_write_confirmed)
+        self.assertEqual(result.receipt.result_class, "DENIED")
+        self.assertFalse(result.receipt.database_write_confirmed)
 
     def test_memory_shaped_payload_cannot_override_operational_classification(self):
         result = self.bus.coordination_post(
