@@ -12,7 +12,6 @@ from coordination_bus import (
     InMemoryCoordinationRepository,
     PERMISSION_DECIDE,
     PERMISSION_POST,
-    decision_subject,
 )
 from coordination_bus.contracts import ActorContext as CompatibilityActorContext
 
@@ -43,7 +42,7 @@ class DecisionAuthorityTests(unittest.TestCase):
         self.authority = HmacDecisionAuthority("project-owner", b"d" * 32)
         self.actor = ActorContext(
             "workstream/project-architecture",
-            frozenset({PERMISSION_DECIDE}),
+            frozenset(),
         )
         self.draft = decision_draft()
 
@@ -53,14 +52,18 @@ class DecisionAuthorityTests(unittest.TestCase):
             decision_authority_verifier=self.authority,
         )
 
-    def envelope(self, draft: CoordinationEventDraft | None = None):
-        subject = decision_subject(
-            self.actor.canonical_workstream,
-            draft or self.draft,
+    def envelope(
+        self,
+        draft: CoordinationEventDraft | None = None,
+        actor: ActorContext | None = None,
+    ):
+        bound_actor = actor or self.actor
+        return self.authority.issue(
+            actor_workstream=bound_actor.canonical_workstream,
+            draft=draft or self.draft,
         )
-        return self.authority.issue(subject=subject)
 
-    def test_permission_without_external_authority_is_denied(self):
+    def test_no_external_authority_is_denied(self):
         result = CoordinationBus(self.repo).coordination_post(
             self.actor,
             self.draft,
@@ -68,7 +71,19 @@ class DecisionAuthorityTests(unittest.TestCase):
         self.assertEqual(result.receipt.result_class, "DENIED")
         self.assertFalse(result.receipt.database_write_confirmed)
 
-    def test_exact_subject_authority_allows_one_decision(self):
+    def test_caller_minted_decide_permission_is_still_denied(self):
+        caller_claim = ActorContext(
+            "workstream/project-architecture",
+            frozenset({PERMISSION_DECIDE}),
+        )
+        result = CoordinationBus(self.repo).coordination_post(
+            caller_claim,
+            self.draft,
+        )
+        self.assertEqual(result.receipt.result_class, "DENIED")
+        self.assertFalse(result.receipt.database_write_confirmed)
+
+    def test_exact_subject_authority_allows_one_decision_without_permission_string(self):
         result = self.bus().coordination_post(
             self.actor,
             self.draft,
@@ -110,7 +125,7 @@ class DecisionAuthorityTests(unittest.TestCase):
         envelope = self.envelope()
         other = ActorContext(
             "workstream/integration",
-            frozenset({PERMISSION_DECIDE}),
+            frozenset(),
         )
         altered = replace(self.draft, source_branch="workstream/integration")
         result = self.bus().coordination_post(
@@ -134,7 +149,8 @@ class DecisionAuthorityTests(unittest.TestCase):
     def test_unregistered_issuer_is_denied(self):
         foreign = HmacDecisionAuthority("foreign", b"f" * 32)
         envelope = foreign.issue(
-            subject=decision_subject(self.actor.canonical_workstream, self.draft)
+            actor_workstream=self.actor.canonical_workstream,
+            draft=self.draft,
         )
         result = self.bus().coordination_post(
             self.actor,
@@ -152,15 +168,16 @@ class DecisionAuthorityTests(unittest.TestCase):
         self.assertEqual(result.receipt.result_class, "INVALID")
         self.assertFalse(result.receipt.database_write_confirmed)
 
-    def test_malformed_envelope_type_is_denied(self):
+    def test_malformed_envelope_is_denied(self):
+        valid = self.envelope()
         result = self.bus().coordination_post(
             self.actor,
             self.draft,
             decision_authority=DecisionAuthorityEnvelope(
                 schema="WRONG",
-                issuer_id="project-owner",
-                subject=decision_subject(self.actor.canonical_workstream, self.draft),
-                nonce="nonce",
+                issuer_id=valid.issuer_id,
+                actor_workstream=valid.actor_workstream,
+                subject=valid.subject,
                 verification_token="0" * 64,
             ),
         )
