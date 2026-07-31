@@ -5,8 +5,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
+import subprocess
 from pathlib import Path, PurePosixPath
-from typing import Any
+from typing import Any, Callable
 
 ROOT = Path(__file__).resolve().parents[1]
 BINDING_PATH = (
@@ -34,7 +36,8 @@ REQUIRED_ROLES = {
     "coordination_contract",
     "orchestration_state",
 }
-BLOB_BOUND_ROLES = {"integration_registry", "workstream_compatibility"}
+
+SourceReader = Callable[[str], bytes]
 
 
 def _pairs_no_duplicates(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -46,14 +49,18 @@ def _pairs_no_duplicates(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     return result
 
 
-def load_json_strict(path: Path) -> Any:
+def _loads_json_strict(text: str) -> Any:
     return json.loads(
-        path.read_text(encoding="utf-8"),
+        text,
         object_pairs_hook=_pairs_no_duplicates,
         parse_constant=lambda value: (_ for _ in ()).throw(
             ValueError(f"non-finite JSON value: {value}")
         ),
     )
+
+
+def load_json_strict(path: Path) -> Any:
+    return _loads_json_strict(path.read_text(encoding="utf-8"))
 
 
 def load_binding(path: Path = BINDING_PATH) -> dict[str, Any]:
@@ -74,10 +81,33 @@ def canonical_json_sha256(value: Any) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
-def git_blob_sha(path: Path) -> str:
-    data = path.read_bytes()
+def git_blob_sha_bytes(data: bytes) -> str:
     payload = f"blob {len(data)}\0".encode("ascii") + data
     return hashlib.sha1(payload).hexdigest()
+
+
+def git_blob_sha(path: Path) -> str:
+    return git_blob_sha_bytes(path.read_bytes())
+
+
+def read_source_commit_artifact(relative: str) -> bytes:
+    try:
+        completed = subprocess.run(
+            ["git", "show", f"{SOURCE_COMMIT}:{relative}"],
+            cwd=ROOT,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except (OSError, subprocess.CalledProcessError) as error:
+        detail = getattr(error, "stderr", b"")
+        if isinstance(detail, bytes):
+            detail = detail.decode("utf-8", errors="replace").strip()
+        raise ValueError(
+            f"declared source commit artifact is unavailable: {relative!r}"
+            + (f" ({detail})" if detail else "")
+        ) from error
+    return completed.stdout
 
 
 def validate_repository_artifact(root: Path, relative: str) -> Path:
@@ -118,8 +148,14 @@ def validate_repository_artifact(root: Path, relative: str) -> Path:
     return current
 
 
-def validate(document: dict[str, Any], root: Path = ROOT) -> None:
+def validate(
+    document: dict[str, Any],
+    root: Path = ROOT,
+    source_reader: SourceReader | None = None,
+) -> None:
     root = root.resolve()
+    source_reader = source_reader or read_source_commit_artifact
+
     if document.get("release_id") != RELEASE_ID:
         raise ValueError("release_id mismatch")
     if document.get("release_status") != NONINSTALLABLE_STATUS:
@@ -161,18 +197,32 @@ def validate(document: dict[str, Any], root: Path = ROOT) -> None:
     for role, entry in by_role.items():
         artifact = validate_repository_artifact(root, entry["path"])
         declared_blob = entry.get("git_blob_sha")
-        if role in BLOB_BOUND_ROLES and not isinstance(declared_blob, str):
-            raise ValueError(f"{role} must declare a Git blob SHA")
-        if declared_blob is not None and git_blob_sha(artifact) != declared_blob:
-            raise ValueError(f"{role} Git blob SHA does not match bound bytes")
+        if not isinstance(declared_blob, str) or not re.fullmatch(
+            r"[0-9a-f]{40}", declared_blob
+        ):
+            raise ValueError(f"{role} must declare a valid Git blob SHA")
+
+        current_bytes = artifact.read_bytes()
+        if git_blob_sha_bytes(current_bytes) != declared_blob:
+            raise ValueError(f"{role} Git blob SHA does not match candidate bytes")
+
+        source_bytes = source_reader(entry["path"])
+        if git_blob_sha_bytes(source_bytes) != declared_blob:
+            raise ValueError(
+                f"{role} Git blob SHA does not match declared source commit bytes"
+            )
+        if current_bytes != source_bytes:
+            raise ValueError(f"{role} candidate bytes differ from declared source commit")
 
     registry = by_role["integration_registry"]
-    registry_document = load_json_strict(root / registry["path"])
+    registry_document = _loads_json_strict(
+        source_reader(registry["path"]).decode("utf-8")
+    )
     actual_registry_sha256 = canonical_json_sha256(registry_document)
     if registry.get("canonical_sha256") != REGISTRY_SHA256:
         raise ValueError("registry canonical SHA-256 differs from release intent")
     if actual_registry_sha256 != registry.get("canonical_sha256"):
-        raise ValueError("registry canonical SHA-256 does not match bound bytes")
+        raise ValueError("registry canonical SHA-256 does not match source bytes")
 
     future = document.get("required_future_files")
     if future not in (None, []):
