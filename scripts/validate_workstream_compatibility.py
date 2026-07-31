@@ -9,12 +9,15 @@ from typing import Any
 from jsonschema import Draft202012Validator, FormatChecker
 
 from scripts.validate_integration_registry import (
+    canonical_json_sha256,
     load_json_strict,
+    validate_repository_artifact,
+    validate_schema as validate_registry_schema,
     validate_semantics as validate_registry_semantics,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-REGISTRY_HEAD = "b73551173632d98e4a8dfe673120a3df1ac0a0a0"
+REGISTRY_PREDECESSOR_HEAD = "b73551173632d98e4a8dfe673120a3df1ac0a0a0"
 EXTERNAL_AUTHORITY = "EXTERNAL_EXPLICIT_AUTHORIZATION"
 REQUIRED_ROUTES = {
     "workstream/identity",
@@ -124,6 +127,46 @@ IDENTITY_TIME_BINDING = {
         "Temporal pilot",
     },
 }
+MEMORY_DURABILITY_BINDINGS = {
+    "VERA-IFACE-002": {
+        "artifacts": {
+            "supabase/migrations/20260731003000_add_memory_request_idempotency.sql",
+            "supabase/migrations/20260731003100_correct_memory_request_status_semantics.sql",
+        },
+        "checks": {
+            "Memory durability single path",
+            "Memory durability review corrections",
+        },
+    },
+    "VERA-IFACE-004": {
+        "artifacts": {
+            "supabase/tests/validate_neutral_v3_memory_request_status_semantics.sql",
+        },
+        "checks": {"Memory durability review corrections"},
+    },
+    "VERA-IFACE-007": {
+        "artifacts": {
+            "supabase/tests/validate_neutral_v3_memory_durability_review_corrections.sql",
+        },
+        "checks": {"Memory durability review corrections"},
+    },
+    "VERA-IFACE-008": {
+        "artifacts": {
+            "supabase/migrations/20260731003000_add_memory_request_idempotency.sql",
+            "supabase/migrations/20260731003100_correct_memory_request_status_semantics.sql",
+            "supabase/tests/validate_neutral_v3_memory_idempotency.sql",
+            "supabase/tests/validate_neutral_v3_memory_durability_review_corrections.sql",
+            "supabase/tests/verify_neutral_v3_memory_receipt_recovery.sql",
+        },
+        "checks": {
+            "Memory cross-chat contract",
+            "Memory durability single path",
+            "Memory durability review corrections",
+            "Integration Assurance",
+            "Temporal pilot",
+        },
+    },
+}
 NON_EVIDENTIARY_SELF_REFERENCES = {
     "architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json",
     "scripts/validate_workstream_compatibility.py",
@@ -154,6 +197,7 @@ def _claim_once(
 
 def _validate_artifact_evidence(
     *,
+    root: Path,
     interface_id: str,
     role: str,
     route: str,
@@ -170,14 +214,25 @@ def _validate_artifact_evidence(
             raise ValueError(
                 f"{interface_id} {role} artifact {artifact!r} is not owned by {route}"
             )
+        validate_repository_artifact(root, artifact)
 
 
-def validate_semantics(matrix: dict[str, Any], registry: dict[str, Any]) -> None:
-    validate_registry_semantics(registry)
+def validate_semantics(
+    matrix: dict[str, Any],
+    registry: dict[str, Any],
+    root: Path = ROOT,
+) -> None:
+    root = root.resolve()
+    validate_registry_semantics(registry, root)
     if matrix["registry_id"] != registry["registry_id"]:
         raise ValueError("matrix registry_id does not match the validated registry")
-    if matrix["registry_source_head"] != REGISTRY_HEAD:
-        raise ValueError("matrix is not bound to the accepted immutable registry head")
+    if matrix["registry_predecessor_head"] != REGISTRY_PREDECESSOR_HEAD:
+        raise ValueError("matrix predecessor registry lineage has drifted")
+    expected_digest = canonical_json_sha256(registry)
+    if matrix["active_registry_sha256"] != expected_digest:
+        raise ValueError(
+            "matrix active registry digest does not match the checked-out registry"
+        )
     if matrix["merge_authority"] != EXTERNAL_AUTHORITY:
         raise ValueError("CI or matrix state cannot supply merge authority")
     if matrix["production_authority"] != EXTERNAL_AUTHORITY:
@@ -258,6 +313,7 @@ def validate_semantics(matrix: dict[str, Any], registry: dict[str, Any]) -> None
 
         evidence = interface["acceptance_evidence"]
         _validate_artifact_evidence(
+            root=root,
             interface_id=interface_id,
             role="source",
             route=source,
@@ -265,6 +321,7 @@ def validate_semantics(matrix: dict[str, Any], registry: dict[str, Any]) -> None
             artifact_owner=artifact_owner,
         )
         _validate_artifact_evidence(
+            root=root,
             interface_id=interface_id,
             role="target",
             route=target,
@@ -292,6 +349,35 @@ def validate_semantics(matrix: dict[str, Any], registry: dict[str, Any]) -> None
                         f"{interface_id} Identity-to-Time temporal-anchor binding "
                         f"differs at {field}"
                     )
+
+        memory_binding = MEMORY_DURABILITY_BINDINGS.get(interface_id)
+        if memory_binding is not None:
+            memory_artifacts = set(evidence["source_artifacts"]) | set(
+                evidence["target_artifacts"]
+            )
+            if not memory_binding["artifacts"].issubset(memory_artifacts):
+                raise ValueError(
+                    f"{interface_id} omits accepted Memory durability artifacts"
+                )
+            if not memory_binding["checks"].issubset(set(evidence["required_checks"])):
+                raise ValueError(
+                    f"{interface_id} omits accepted Memory durability checks"
+                )
+        if interface_id == "VERA-IFACE-008":
+            if set(evidence["source_artifacts"]) != MEMORY_DURABILITY_BINDINGS[
+                interface_id
+            ]["artifacts"]:
+                raise ValueError(
+                    "VERA-IFACE-008 Memory receipt evidence differs from accepted "
+                    "durability and recovery inventory"
+                )
+            if interface["findings"][0]["code"] != (
+                "MEMORY_RECEIPT_ASSURANCE_ADAPTER_NOT_ASSEMBLED"
+            ):
+                raise ValueError(
+                    "VERA-IFACE-008 must report the unresolved assembly adapter, "
+                    "not a closed component gate"
+                )
 
         expected_authority, expected_permission = EXPECTED_INTERFACE_OWNERS[pair]
         if interface["authority_owner"] != expected_authority:
@@ -347,17 +433,22 @@ def validate_semantics(matrix: dict[str, Any], registry: dict[str, Any]) -> None
 
 
 def validate_compatibility(root: Path = ROOT) -> None:
+    root = root.resolve()
     matrix = load_json_strict(
         root / "architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json"
     )
-    schema = load_json_strict(
+    matrix_schema = load_json_strict(
         root / "schemas/vera_workstream_compatibility_v1.schema.json"
     )
     registry = load_json_strict(
         root / "architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json"
     )
-    validate_schema(matrix, schema)
-    validate_semantics(matrix, registry)
+    registry_schema = load_json_strict(
+        root / "schemas/vera_integration_registry_v1.schema.json"
+    )
+    validate_registry_schema(registry, registry_schema)
+    validate_schema(matrix, matrix_schema)
+    validate_semantics(matrix, registry, root)
 
 
 def main() -> int:
