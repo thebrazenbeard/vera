@@ -83,7 +83,7 @@
         "operation": {"const": "IDENTITY_VERSION_TEMPORAL_ANCHOR"},
         "subject_hash_algorithm": {"const": "SHA-256"},
         "subject_hash": {
-          "const": "bc5a31e0fdb8a7cb67cd3140f62b8b7fcf5e279f6e43577a5b9af135b1b57f77"
+          "const": "0af3d0d6d8018287abdd5763c4b8bc93bbaf2cf9b60050d8acb30eddf45d1f42"
         }
       }
     },
