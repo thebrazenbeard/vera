@@ -85,8 +85,6 @@ def validate_workflow_continuity_integration(
     root: Path = ROOT,
 ) -> None:
     """Validate the new Identity behavior contract without weakening prior gates."""
-    validate_matrix_semantics(matrix, registry, root)
-
     identity = _owner(registry, "workstream/identity")
     if WORKFLOW_CONTRACT not in identity["contract_ids"]:
         raise ValueError("Identity owner omits governed workflow-continuity contract")
@@ -136,6 +134,11 @@ def validate_workflow_continuity_integration(
         raise ValueError("VERA-IFACE-009 may not gain execution authority")
     if coordination["canonical_memory_transfer"]:
         raise ValueError("VERA-IFACE-009 may not transfer canonical memory")
+
+    # Run the full inherited registry and matrix gates after the focused checks so
+    # hostile omissions receive a workflow-specific diagnostic without bypassing
+    # any existing authority, ownership, artifact, or digest validation.
+    validate_matrix_semantics(matrix, registry, root)
 
 
 def validate_repository(root: Path = ROOT) -> None:
