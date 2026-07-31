@@ -14,7 +14,7 @@ from scripts.validate_integration_registry import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-REGISTRY_HEAD = "56f09c39e0890bf6e7b8bb858d84046581b9799a"
+REGISTRY_HEAD = "b73551173632d98e4a8dfe673120a3df1ac0a0a0"
 EXTERNAL_AUTHORITY = "EXTERNAL_EXPLICIT_AUTHORIZATION"
 REQUIRED_ROUTES = {
     "workstream/identity",
@@ -99,9 +99,31 @@ CRITICAL_BANS = {
         "ACTION_SELECTION", "OPERATIONAL_COORDINATION",
     },
 }
-# These artifacts define or validate this matrix. Registration establishes
-# ownership and review scope, but they may not serve as evidence that their own
-# compatibility claims are true.
+IDENTITY_TIME_BINDING = {
+    "source_contract_ids": {
+        "VERA_PROJECT_IDENTITY_V1",
+        "VERA_BEHAVIOR_PROFILE_V1",
+    },
+    "target_contract_ids": {
+        "TEMPORAL_ENFORCEMENT_V1",
+        "TEMPORAL_ROLE_PRECISION_V1",
+        "VERA_IDENTITY_TEMPORAL_ANCHOR_V1",
+    },
+    "source_artifacts": {
+        "architecture/identity/VERA_PROJECT_IDENTITY_V1.json",
+        "architecture/identity/VERA_IDENTITY_TEMPORAL_ANCHOR_V1.json",
+    },
+    "target_artifacts": {
+        "protocol/temporal_enforcement.py",
+        "protocol/temporal_role_precision.py",
+        "scripts/validate_identity_temporal_anchor.py",
+    },
+    "required_checks": {
+        "Project Identity",
+        "Temporal enforcement kernel",
+        "Temporal pilot",
+    },
+}
 NON_EVIDENTIARY_SELF_REFERENCES = {
     "architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json",
     "scripts/validate_workstream_compatibility.py",
@@ -255,6 +277,21 @@ def validate_semantics(matrix: dict[str, Any], registry: dict[str, Any]) -> None
                 raise ValueError(
                     f"{interface_id} check {check!r} is not declared by either endpoint"
                 )
+
+        if pair == ("workstream/identity", "workstream/time"):
+            observed = {
+                "source_contract_ids": set(interface["source_contract_ids"]),
+                "target_contract_ids": set(interface["target_contract_ids"]),
+                "source_artifacts": set(evidence["source_artifacts"]),
+                "target_artifacts": set(evidence["target_artifacts"]),
+                "required_checks": set(evidence["required_checks"]),
+            }
+            for field, expected in IDENTITY_TIME_BINDING.items():
+                if observed[field] != expected:
+                    raise ValueError(
+                        f"{interface_id} Identity-to-Time temporal-anchor binding "
+                        f"differs at {field}"
+                    )
 
         expected_authority, expected_permission = EXPECTED_INTERFACE_OWNERS[pair]
         if interface["authority_owner"] != expected_authority:
