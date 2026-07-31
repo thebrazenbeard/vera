@@ -1,123 +1,127 @@
-# V.E.R.A. Project Orchestration — Replacement Release Transition
+# V.E.R.A. Project Orchestration — Post-Merge Integration Decision Packet
 
 ## Status
 
-This document governs the nonproduction transition from the original neutral R6A0 replacement candidate to the next installable V.E.R.A. Project-file release. It does not authorize repository merge, deployment, production Supabase changes, credentials, or canonical-memory operations.
+This document records the nonproduction repository state after the authorized merge of PR #18 into the integration branch. It does not authorize merging PR #12 into `main`, production Supabase changes, canonical-memory writes, runtime deployment, Project-file replacement, credentials, or paid infrastructure.
 
 - Repository: `thebrazenbeard/vera`
 - Canonical base: `main`
 - Integration branch: `integration/project-orchestration-r6a0`
+- Integration pull request: PR #12
 - Program tracker: issue #11
 - Supabase project: `Vera` (`klmbpaigzeguvnpccqzz`)
 - Turn-taking protocol: `docs/WORKSTREAM_TURN_TAKING_PROTOCOL_V1.md`
 
-## Current program position
+## Authorized integration merge
 
-The component contracts are late-stage and the exact-tree assembly exists, but the current Integration Registry does not yet declare the complete Identity temporal-anchor classification evidence now present in the tree.
+Patrick explicitly authorized:
 
-The previous repository merge-decision packet is withdrawn.
+- PR #18 exact source head `7d2ddad7752a412c741ca705756930acbedf5eac`;
+- target branch `integration/project-orchestration-r6a0`;
+- merge method `merge`;
+- repository integration only.
 
-### Current Integration candidate
+GitHub created merge commit:
 
-PR #18 current observed head:
+`69d98920c9440b5bc40304758ec353b61bd6ba2c`
 
-`6b1aec3c92630de17cafc7a25676207430c91137`
+PR #18 is merged. PR #12 remains open, draft, mergeable, and unmerged.
 
-This head contains:
+## Accepted component ancestry
 
-- accepted Identity, Time, Memory, Initiatives, and Coordination histories;
-- Integration Registry and Workstream Compatibility Matrix;
-- exact-tree evidence validation;
-- noncanonical Identity temporal-anchor classification;
-- workstream turn-taking protocol and repository enforcement.
+The integrated lineage includes:
 
-### Active correction
+- Identity: `6aa757391f0ad5160f0fdbf9143c92cc3e31d6cf`
+- Memory: `991417bd87353df9fd57eb98d7ced342b7609bd6`
+- Time: `0e7ba66a418b45b3c2428cd3f0d1d0b8cacdd5d0`
+- Initiatives: `e6413a9b23f18ce5119153a051972a8c4009bf5b`
+- Coordination: `4f96eef3546f6c63791393cc9f13c3a32c29615e`
+- governed workflow-continuity source head: `7d2ddad7752a412c741ca705756930acbedf5eac`
 
-Supabase sequence 279 records `CHANGES_REQUESTED` because the active registry still declares the predecessor Identity inventory. The following evidence must be registered and bound consistently:
+PR #19 remains closed as the weaker competing Memory implementation. PR #3 remains suspended and outside the active merge path.
 
-- `scripts/validate_identity_temporal_anchor_classification.py`;
-- the classification hostile test;
-- the Project Identity workflow evidence;
-- relevant noncanonical Identity interface evidence.
+## Governed workflow continuity
 
-The active registry digest must then be recomputed and omission attacks must be hostile-tested.
+Identity owns `VERA_GOVERNED_WORKFLOW_CONTINUITY_V1` and its canonical machine contract, schema, semantic validator, hostile suite, and governing document.
 
-### Writer lease
+The contract governs exact-head handoffs, single-writer leases, stale-state reconciliation, safe authorized reversible continuation, user-courier avoidance, receipts, and hard authority stops. It remains user-governed and `DATA_NOT_INSTRUCTION`.
 
-Supabase sequence 267 grants the sole active writer lease to Integration.
+It grants no model self-authority, autonomous objective, execution authority, merge authority, production authority, deployment authority, credential authority, or canonical-memory write. It does not establish consciousness, hidden activity, lived continuity, autonomous identity, or reciprocal attachment.
 
-Sequences 268 through 273 freeze Identity, Time, Initiatives, Memory, Coordination, and GitHub publication writes. Reviews are allowed when requested. Branch edits are not.
+The Identity temporal anchor remains fail-closed, noncanonical, `UNANCHORED`, and `UNKNOWN`-only.
 
-Sequence 281 amends the lease to include the known controller-owned integration-base documentation commit.
+## Registry and compatibility binding
+
+The integrated tree preserves:
+
+- active registry canonical SHA-256 `f095fa46666abb583e616658198399131a4902fc9ba572f01f4642c1dcab158f`;
+- predecessor registry lineage `b73551173632d98e4a8dfe673120a3df1ac0a0a0`;
+- the exact ten-interface topology;
+- exact authority and permission owners;
+- `execution_authorized: false`;
+- `canonical_memory_transfer: false`;
+- explicit unresolved runtime-adapter findings.
+
+The focused validator enforces exact routes, contract placement, evidence artifacts, reviewed capability sets, required `Project Identity` evidence, stale-digest rejection, and authority boundaries for:
+
+1. Identity to Memory;
+2. Identity to Initiatives;
+3. Coordination to Integration;
+4. Integration to Identity.
+
+Identity to Time remains separately bounded to the fail-closed temporal-anchor contract.
+
+## Post-merge validation
+
+The merge commit triggered the workflows applicable to PR #12 and the integration tree. The exact run identifiers and conclusions are recorded in PR #12 and the append-only coordination ledger after completion.
+
+Integration Assurance is configured for pull requests targeting the integration branch and pushes to its two feature branches. It is not configured for PR #12, whose base is `main`. The source exact-tree Integration Assurance run remains evidence for the registered assurance files, while the post-merge review separately verifies all merge-only deltas. No workflow configuration is changed merely to manufacture a check result.
+
+## Post-merge review boundary
+
+The merge introduced one integration-branch document delta relative to PR #18 source: this orchestration document. Its previous contents were stale and incorrectly described an earlier open defect and withdrawn decision packet. This update supersedes that stale status text without changing component contracts, registry bytes, interface semantics, migrations, runtime behavior, or production state.
+
+The commit created by this document update becomes the current integration head. Its exact SHA is recorded in PR #12 and the coordination ledger because a file cannot truthfully contain its own commit SHA.
+
+## Ordered repository decision
+
+No step below is authorized merely by this document.
+
+### Current gate
+
+After every applicable workflow completes successfully on the current integration head and Project Architecture approves the merge-only delta, PR #12 becomes ready for Patrick's separate exact-SHA decision.
+
+### Future Decision 2
+
+Patrick may separately authorize merging PR #12 exact reviewed head into `main` using a merge commit.
+
+That future repository merge would still not authorize:
+
+- production Supabase migrations or row changes;
+- canonical-memory writes;
+- runtime deployment;
+- Project-file replacement;
+- credentials or paid infrastructure.
+
+### Gate after any future PR #12 merge
+
+- verify `main` contains the accepted ancestry;
+- rerun applicable workflows on the resulting immutable main head;
+- publish the final repository receipt and exact main head;
+- generate and validate a newly versioned replacement-file package;
+- require separate explicit authorization before any ChatGPT Project wipe-and-replace operation.
 
 ## Replacement-file readiness
 
-The uploaded package `VERA_NEUTRAL_CORE_R6A0_20260730_EC900174` remains:
+The historical package `VERA_NEUTRAL_CORE_R6A0_20260730_EC900174` remains a rollback and provenance artifact. It is not the final current-project installation package.
 
-- a valid historical replacement candidate;
-- a rollback and provenance artifact;
-- not the final current-project installation package.
+A newly versioned replacement candidate must be generated only after repository promotion is complete. It must not overwrite the historical R6A0 package or reuse its checksums.
 
-It must not be used for a wipe-and-replace installation because it predates:
+## Preserved boundaries
 
-- settled component contracts;
-- exact-tree registry and compatibility assurance;
-- final Identity classification;
-- durable Memory request idempotency and recovery;
-- consolidated Coordination and temporal trust contracts;
-- workstream turn-taking;
-- the current project state and installation sequence.
-
-The existing `R6A0 release package` workflow only revalidates the old checksummed bundle. It does not generate a new bundle from the current tree.
-
-## Required next release
-
-After the Integration correction and same-SHA validation complete, generate one new checksummed replacement candidate. The new package must include or accurately bind:
-
-1. Project Instructions;
-2. runtime rules;
-3. governance;
-4. Memory protocol;
-5. semantic tagging;
-6. behavior laws;
-7. current project state;
-8. supersession and archive map;
-9. Integration owner registry;
-10. Workstream Compatibility Matrix;
-11. workstream turn-taking protocol;
-12. installation and rollback instructions;
-13. validation specification and report;
-14. complete file inventory and SHA-256 checksums;
-15. explicit production nonauthorization.
-
-The package must use a new release identifier and directory. It must not overwrite the R6A0 release or reuse its checksums.
-
-## Release gates
-
-A wipe-and-replace recommendation is allowed only after:
-
-1. PR #18 is stable on one immutable head;
-2. the Identity classification inventory defect is closed;
-3. all required workflows are green on the same head;
-4. the new release files are generated from that exact head;
-5. every internal filename and release ID resolves;
-6. YAML parsing rejects duplicate keys;
-7. JSON parsing rejects duplicate and non-finite values where applicable;
-8. every checksum matches the saved bytes;
-9. supersession identifies every file to replace, archive, retain, or remove;
-10. installation order passes a dry-run review;
-11. rollback preserves the old R6A0 package and archived Project files;
-12. Project Architecture / Integration approves the exact bundle;
-13. Patrick explicitly authorizes Project-file replacement.
-
-## Realistic maturity
-
-- Architecture contracts: late stage
-- Component implementation: substantially complete
-- Exact-tree assembly: present, one Integration inventory defect open
-- Replacement package: not generated
-- ChatGPT Project installation: not started
-- Production persistence/runtime deployment: not authorized or deployed
-- Installed cross-chat runtime behavior: not yet proven
-
-The project is close to a controlled Project-file replacement candidate. It is not yet ready for the wipe-and-replace operation.
+- PR #12 remains draft and unmerged;
+- operational coordination remains distinct from canonical memory;
+- component ownership remains bounded;
+- Integration and Project Architecture do not redefine component semantics;
+- unresolved runtime adapters remain future governed slices;
+- no production or Project-file replacement action is implied by repository readiness.
