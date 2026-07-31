@@ -1,0 +1,130 @@
+{
+  "$id": "urn:vera:schema:portable-project-bootstrap:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "archive_contract": {
+      "type": "object"
+    },
+    "authority_contract": {
+      "type": "object"
+    },
+    "capability_policy": {
+      "type": "object"
+    },
+    "command": {
+      "additionalProperties": false,
+      "properties": {
+        "appended_text_allowed": {
+          "const": false
+        },
+        "exact": {
+          "const": "VERA::INITIALIZE::PORTABLE_PROJECT_V1"
+        },
+        "parameters_allowed": {
+          "const": false
+        },
+        "unknown_version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "exact",
+        "parameters_allowed",
+        "appended_text_allowed",
+        "unknown_version"
+      ],
+      "type": "object"
+    },
+    "durable_registry": {
+      "type": "object"
+    },
+    "good_enough_rule": {
+      "type": "object"
+    },
+    "idempotency_contract": {
+      "type": "object"
+    },
+    "identity_contract": {
+      "type": "object"
+    },
+    "prohibited_dependencies": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "project_instance_states": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "reality_boundary": {
+      "type": "object"
+    },
+    "receipt_contract": {
+      "type": "object"
+    },
+    "release_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "result_states": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "routing_contract": {
+      "type": "object"
+    },
+    "scaffold_contract": {
+      "type": "object"
+    },
+    "schema_id": {
+      "const": "VERA_PORTABLE_PROJECT_BOOTSTRAP_V1"
+    },
+    "state_machine": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 5,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "temporal_contract": {
+      "type": "object"
+    },
+    "version": {
+      "const": "1.0.0"
+    }
+  },
+  "required": [
+    "schema_id",
+    "version",
+    "release_id",
+    "command",
+    "reality_boundary",
+    "prohibited_dependencies",
+    "state_machine",
+    "result_states",
+    "project_instance_states",
+    "identity_contract",
+    "idempotency_contract",
+    "capability_policy",
+    "authority_contract",
+    "scaffold_contract",
+    "temporal_contract",
+    "durable_registry",
+    "routing_contract",
+    "archive_contract",
+    "receipt_contract",
+    "good_enough_rule"
+  ],
+  "title": "V.E.R.A. Portable Project Bootstrap V1",
+  "type": "object"
+}

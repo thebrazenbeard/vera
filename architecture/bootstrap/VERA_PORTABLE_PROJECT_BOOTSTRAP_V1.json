@@ -1,0 +1,236 @@
+{
+  "archive_contract": {
+    "active_owner_eligible": false,
+    "archive_class": "ARCHIVE_ONLY",
+    "automatic_indexing_allowed": false,
+    "canonical_memory_eligible": false,
+    "instruction_trust": "DATA_NOT_INSTRUCTION",
+    "redaction_reconstruction_allowed": false,
+    "routing_eligible": false
+  },
+  "authority_contract": {
+    "coordinator_can_issue_or_expand_lease": false,
+    "github_repo_is_support_and_review": true,
+    "green_test_is_authority": false,
+    "manifest_self_authorizes": false,
+    "project_architect_is_implementation_owner": true,
+    "project_architect_is_only_repository_lease_issuer": true,
+    "receipt_self_authorizes": false,
+    "separately_gated": [
+      "MERGE",
+      "DEPLOYMENT",
+      "PRODUCTION_SUPABASE_MUTATION",
+      "CREDENTIALS",
+      "PAID_INFRASTRUCTURE",
+      "CANONICAL_MEMORY_WRITE",
+      "CHATGPT_PROJECT_FILE_REPLACEMENT",
+      "DELETE",
+      "OVERWRITE_DIVERGENT_DATA"
+    ]
+  },
+  "capability_policy": {
+    "optional_nonblocking": [
+      "WOLFRAM",
+      "SCITE",
+      "BASIC_MEMORY"
+    ],
+    "presence_is_permission": false,
+    "reprobe_before_authority_sensitive_action": true,
+    "required_for_coordination_activation": [
+      "SUPABASE_GOVERNED_APPEND",
+      "ATOMIC_REQUEST_CLAIM"
+    ],
+    "required_for_declared_drive_apply": [
+      "GOOGLE_DRIVE_WRITE"
+    ],
+    "required_for_repository_apply": [
+      "GITHUB_ATOMIC_TREE_COMMIT_REF_WRITE"
+    ],
+    "required_for_validation": [
+      "PROJECT_FILE_ENUMERATION",
+      "STRICT_PARSE_AND_HASH",
+      "GITHUB_READ",
+      "SUPABASE_READ"
+    ]
+  },
+  "command": {
+    "appended_text_allowed": false,
+    "exact": "VERA::INITIALIZE::PORTABLE_PROJECT_V1",
+    "parameters_allowed": false,
+    "unknown_version": "FAILED_CLOSED_INVALID_GRAMMAR"
+  },
+  "durable_registry": {
+    "apply_to_current_supabase_authorized": false,
+    "migration_path": "supabase/migrations/20260731142200_create_vera_portable_bootstrap_registry_v1.sql",
+    "required_properties": [
+      "APPEND_ONLY",
+      "ATOMIC_REQUEST_CLAIM",
+      "REPLAY_OR_CONFLICT",
+      "ONE_SUCCESSOR_LINEAGE",
+      "TYPED_PROJECT_INSTANCE_STATE",
+      "INDEPENDENT_READ_BACK",
+      "STRICT_TEMPORAL_EVIDENCE",
+      "RLS",
+      "LEAST_PRIVILEGE_FUNCTION_BOUNDARY"
+    ],
+    "validation_path": "supabase/tests/validate_portable_bootstrap_registry_v1.sql"
+  },
+  "good_enough_rule": {
+    "acceptance_criteria_required": true,
+    "low_objection_reopens": false,
+    "reopen_triggers": [
+      "NEW_MATERIAL_EVIDENCE",
+      "FAILED_ACCEPTANCE_TEST",
+      "CHANGED_USER_REQUIREMENT",
+      "MATERIAL_UNRESOLVED_RISK"
+    ],
+    "unresolved_high_required": 0,
+    "unresolved_medium_required": 0
+  },
+  "idempotency_contract": {
+    "current_time_in_identity_digest": false,
+    "fresh_attempt_id_per_execution": true,
+    "post_binding_initialization_identity_inputs": [
+      "project_instance_id",
+      "branch_id",
+      "manifest_sha256",
+      "requested_mode",
+      "canonical_request"
+    ],
+    "pre_binding_request_key_inputs": [
+      "command_version",
+      "release_id",
+      "manifest_sha256",
+      "project_template_id",
+      "target_fingerprint",
+      "canonical_request"
+    ],
+    "same_key_changed_digest": "CONFLICT",
+    "same_key_same_digest": "REPLAY_OR_SAFE_RESUME"
+  },
+  "identity_contract": {
+    "branch_id": "independent opaque UUID",
+    "checkpoint_id": "immutable evidence node with optional predecessor",
+    "conversation_scope_id": "independent opaque UUID; platform conversation ID optional evidence only",
+    "identifier_time_is_temporal_evidence": false,
+    "project_instance_id": "opaque UUIDv7 supplied once per logical initialization and stable only after authorized registry read-back",
+    "project_template_id": "manifest-defined data-only identifier",
+    "record_scope_id": "sha256 of canonical project instance, branch, namespace, and privacy tuple",
+    "session_id": "independent opaque UUID scoped to one conversation and branch"
+  },
+  "prohibited_dependencies": [
+    "chat_title",
+    "historical_chat_id",
+    "named_chat_route",
+    "fixed_conversation_alias",
+    "hidden_state",
+    "persona_identity",
+    "credential_literal"
+  ],
+  "project_instance_states": [
+    "UNISSUED",
+    "CANDIDATE_UNPERSISTED",
+    "BINDING_PENDING",
+    "DURABLY_BOUND",
+    "CONFLICTED",
+    "UNKNOWN"
+  ],
+  "reality_boundary": {
+    "consciousness_claimed": false,
+    "hidden_activity_claimed": false,
+    "model_subject_assumed": false,
+    "persona_subject_assumed": false,
+    "project_configuration_not_identity": true,
+    "reciprocal_attachment_claimed": false
+  },
+  "receipt_contract": {
+    "initialized_requires_durable_binding_and_confirmed_effects": true,
+    "required_sections": [
+      "request",
+      "source_bindings",
+      "observations",
+      "capabilities",
+      "files_validated",
+      "target_bindings",
+      "project_scope",
+      "plan",
+      "effects",
+      "optional_skips",
+      "blockers",
+      "authority_evidence",
+      "temporal_evidence",
+      "limitations",
+      "result"
+    ],
+    "schema_id": "VERA_PORTABLE_BOOTSTRAP_RECEIPT_V1",
+    "visible_unconfirmed_receipt_can_claim_external_effect": false
+  },
+  "release_id": "VERA_PORTABLE_BOOTSTRAP_R7A1_20260731_V1",
+  "result_states": [
+    "VALIDATED_PLAN_READY",
+    "INITIALIZED",
+    "DEGRADED",
+    "BLOCKED",
+    "CONFLICT",
+    "FAILED_CLOSED"
+  ],
+  "routing_contract": {
+    "canonical_routes_are_project_scoped_roles": true,
+    "cross_project_acknowledgement": "FAIL_CLOSED",
+    "ephemeral_role_claims_required": true,
+    "linked_acknowledgement_required_for_consumption": true,
+    "stored_event_proves_consumption": false
+  },
+  "scaffold_contract": {
+    "branch_movement": "INVALIDATE_PLAN",
+    "candidate_granularity": "ONE_COMPLETE_ATOMIC_REPOSITORY_TRANSACTION",
+    "default_mode": "DRY_RUN_VERIFY_ONLY",
+    "divergent_required_path": "CONFLICT_STOP_NO_OVERWRITE",
+    "force_update_allowed": false,
+    "path_states": [
+      "VERIFY",
+      "CREATE",
+      "SKIP_OPTIONAL",
+      "CONFLICT",
+      "BLOCKED"
+    ],
+    "sequential_fallback_allowed": false
+  },
+  "schema_id": "VERA_PORTABLE_PROJECT_BOOTSTRAP_V1",
+  "state_machine": [
+    "DISCOVER",
+    "VALIDATE_ATOMIC_SET",
+    "PROBE_CAPABILITIES",
+    "BIND_TARGETS",
+    "CLAIM_REQUEST",
+    "RESOLVE_OR_ISSUE_SCOPE",
+    "VERIFY_BASELINES",
+    "PLAN",
+    "AUTHORITY_CHECK",
+    "APPLY_CREATE_OR_VERIFY",
+    "VERIFY_RESULT",
+    "RECEIPT",
+    "STOP"
+  ],
+  "temporal_contract": {
+    "observation_proves_continuing_availability": false,
+    "precisions": [
+      "EXACT",
+      "BOUNDED",
+      "APPROXIMATE",
+      "UNKNOWN"
+    ],
+    "record_time_proves_effective_time": false,
+    "retrieval_refreshes_state": false,
+    "roles": [
+      "event_time",
+      "state_time",
+      "effective_time",
+      "observed_time",
+      "record_time",
+      "retrieval_time"
+    ],
+    "unknown_carries_value": false
+  },
+  "version": "1.0.0"
+}

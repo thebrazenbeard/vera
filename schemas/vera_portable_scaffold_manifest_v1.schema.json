@@ -1,0 +1,101 @@
+{
+  "$id": "urn:vera:schema:portable-scaffold-manifest:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "atomic_candidate": {
+      "type": "object"
+    },
+    "files": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "activation_class": {
+            "type": "string"
+          },
+          "conflict_policy": {
+            "const": "STOP_NO_OVERWRITE"
+          },
+          "mode": {
+            "const": "100644"
+          },
+          "path": {
+            "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$",
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "store_class": {
+            "type": "string"
+          },
+          "write_authority": {
+            "const": "EXACT_PROJECT_ARCHITECT_LEASE"
+          }
+        },
+        "required": [
+          "path",
+          "store_class",
+          "required",
+          "activation_class",
+          "conflict_policy",
+          "mode",
+          "write_authority"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "release_id": {
+      "type": "string"
+    },
+    "rollback": {
+      "type": "object"
+    },
+    "runtime_project_file_output": {
+      "type": "object"
+    },
+    "schema_id": {
+      "const": "VERA_PORTABLE_SCAFFOLD_MANIFEST_V1"
+    },
+    "source_commit": {
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "source_repository": {
+      "const": "thebrazenbeard/vera"
+    },
+    "stores": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "target_branch_policy": {
+      "type": "object"
+    },
+    "version": {
+      "const": "1.0.0"
+    },
+    "write_policy": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_id",
+    "version",
+    "release_id",
+    "source_repository",
+    "source_commit",
+    "target_branch_policy",
+    "write_policy",
+    "stores",
+    "files",
+    "runtime_project_file_output",
+    "atomic_candidate",
+    "rollback"
+  ],
+  "title": "V.E.R.A. Portable Scaffold Manifest V1",
+  "type": "object"
+}
