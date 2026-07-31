@@ -88,10 +88,15 @@ EXPECTED_OWNER_IDENTITIES = {
         },
     },
     "workstream/integration": {
-        "contract_ids": {"VERA_INTEGRATION_ASSURANCE_V1"},
+        "contract_ids": {
+            "VERA_INTEGRATION_ASSURANCE_V1",
+            "VERA_WORKSTREAM_COMPATIBILITY_V1",
+        },
         "owned_artifacts": {
             "architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json",
+            "architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json",
             "scripts/validate_integration_registry.py",
+            "scripts/validate_workstream_compatibility.py",
         },
         "required_checks": {"Integration Assurance"},
     },
