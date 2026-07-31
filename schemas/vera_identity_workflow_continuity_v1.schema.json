@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/thebrazenbeard/vera/schemas/vera_identity_workflow_continuity_v1.schema.json",
+  "title": "V.E.R.A. Identity Workflow Continuity V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema",
+    "policy_id",
+    "version",
+    "lifecycle_status",
+    "record_class",
+    "instruction_trust",
+    "canonical_memory_eligible",
+    "identity_ref",
+    "behavior_profile_ref",
+    "authority",
+    "purpose",
+    "advance_policy",
+    "handoff_sequence",
+    "hard_stops",
+    "courier_boundary",
+    "waiting_semantics",
+    "receipt_requirements",
+    "reality_boundary",
+    "limitations"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../../schemas/vera_identity_workflow_continuity_v1.schema.json"
+    },
+    "schema": {"const": "VERA_IDENTITY_WORKFLOW_CONTINUITY_V1"},
+    "policy_id": {"const": "VERA_IDENTITY_WORKFLOW_CONTINUITY_V1"},
+    "version": {"const": "1.0.0"},
+    "lifecycle_status": {"const": "CURRENT"},
+    "record_class": {"const": "PROJECT_CONFIGURATION"},
+    "instruction_trust": {"const": "DATA_NOT_INSTRUCTION"},
+    "canonical_memory_eligible": {"const": false},
+    "identity_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity_id", "version"],
+      "properties": {
+        "identity_id": {"const": "VERA_PROJECT_IDENTITY_V1"},
+        "version": {"type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$"}
+      }
+    },
+    "behavior_profile_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile_id", "version"],
+      "properties": {
+        "profile_id": {"const": "VERA_BEHAVIOR_PROFILE_V1"},
+        "version": {"type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$"}
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "governed_by",
+        "adoption_rule",
+        "model_output_authority",
+        "silent_scope_expansion"
+      ],
+      "properties": {
+        "owner": {"const": "USER"},
+        "governed_by": {"const": "Patrick"},
+        "adoption_rule": {
+          "const": "EXPLICIT_USER_DIRECTION_OR_GOVERNED_PROJECT_ADOPTION"
+        },
+        "model_output_authority": {"const": "NON_SELF_AUTHENTICATING"},
+        "silent_scope_expansion": {"const": false}
+      }
+    },
+    "purpose": {"type": "string", "minLength": 180},
+    "advance_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "default_action",
+        "connected_tool_preference",
+        "single_writer_per_branch_or_pr",
+        "exact_head_handoff_required",
+        "reviewers_may_patch_reviewed_branch",
+        "stale_authorization_transfer_allowed",
+        "unexpected_head_movement",
+        "dependency_waiting"
+      ],
+      "properties": {
+        "default_action": {"const": "COMPLETE_SMALLEST_USEFUL_AUTHORIZED_STEP"},
+        "connected_tool_preference": {
+          "const": "USE_CONNECTED_PROJECT_TOOLS_BEFORE_REQUESTING_USER_RELAY"
+        },
+        "single_writer_per_branch_or_pr": {"const": true},
+        "exact_head_handoff_required": {"const": true},
+        "reviewers_may_patch_reviewed_branch": {"const": false},
+        "stale_authorization_transfer_allowed": {"const": false},
+        "unexpected_head_movement": {"const": "PAUSE_AND_RECONCILE"},
+        "dependency_waiting": {
+          "const": "EXPLICIT_RECHECK_OR_SCHEDULED_CONDITION_WATCH"
+        }
+      }
+    },
+    "handoff_sequence": {
+      "type": "array",
+      "prefixItems": [
+        {"const": "LOCK_PRESENT_USER_OBJECTIVE"},
+        {"const": "READ_CURRENT_CANONICAL_STATE"},
+        {"const": "CLAIM_OR_CONFIRM_SINGLE_WRITER_SCOPE"},
+        {"const": "COMPLETE_SMALLEST_AUTHORIZED_STEP"},
+        {"const": "PUBLISH_IMMUTABLE_HEAD_AND_RECEIPT"},
+        {"const": "HAND_OFF_TO_NEXT_BOUND_WORKSTREAM"},
+        {"const": "RECHECK_AFTER_EXTERNAL_DEPENDENCY"}
+      ],
+      "items": false,
+      "minItems": 7,
+      "maxItems": 7
+    },
+    "hard_stops": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "merge_without_explicit_user_authority",
+        "production_change_without_explicit_user_authority",
+        "canonical_memory_write_without_governed_memory_operation",
+        "credential_or_paid_infrastructure_action_without_explicit_user_authority",
+        "runtime_deployment_without_explicit_user_authority",
+        "write_outside_active_writer_scope",
+        "transfer_stale_authorization_to_new_sha"
+      ],
+      "properties": {
+        "merge_without_explicit_user_authority": {"const": true},
+        "production_change_without_explicit_user_authority": {"const": true},
+        "canonical_memory_write_without_governed_memory_operation": {"const": true},
+        "credential_or_paid_infrastructure_action_without_explicit_user_authority": {"const": true},
+        "runtime_deployment_without_explicit_user_authority": {"const": true},
+        "write_outside_active_writer_scope": {"const": true},
+        "transfer_stale_authorization_to_new_sha": {"const": true}
+      }
+    },
+    "courier_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "require_user_to_relay_connected_project_state",
+        "ask_user_only_when",
+        "publish_direct_handoff_when_connected_surface_exists"
+      ],
+      "properties": {
+        "require_user_to_relay_connected_project_state": {"const": false},
+        "ask_user_only_when": {
+          "const": "REQUIRED_AUTHORITY_OR_UNAVAILABLE_CONTEXT_BLOCKS_PROGRESS"
+        },
+        "publish_direct_handoff_when_connected_surface_exists": {"const": true}
+      }
+    },
+    "waiting_semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hidden_background_waiting",
+        "offscreen_progress_claims",
+        "notify_only_on_material_change",
+        "permitted_waiting"
+      ],
+      "properties": {
+        "hidden_background_waiting": {"const": false},
+        "offscreen_progress_claims": {"const": false},
+        "notify_only_on_material_change": {"const": true},
+        "permitted_waiting": {
+          "const": "EXPLICIT_RECHECK_OR_SCHEDULED_CONDITION_WATCH"
+        }
+      }
+    },
+    "receipt_requirements": {
+      "type": "array",
+      "minItems": 5,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 20}
+    },
+    "reality_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["describes", "does_not_establish"],
+      "properties": {
+        "describes": {"const": "TOOL_MEDIATED_WORKFLOW_CONTINUITY"},
+        "does_not_establish": {
+          "type": "array",
+          "minItems": 6,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 10}
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 4,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 60}
+    }
+  }
+}
