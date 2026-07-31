@@ -1,5 +1,5 @@
 begin;
-select plan(10);
+select plan(12);
 select has_table('public','vera_portable_bootstrap_requests','request table exists');
 select has_table('public','vera_portable_bootstrap_events','event table exists');
 select has_function('public','claim_vera_portable_bootstrap_request','claim function exists');
