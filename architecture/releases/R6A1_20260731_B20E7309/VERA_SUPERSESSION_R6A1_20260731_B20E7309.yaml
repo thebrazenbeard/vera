@@ -1,0 +1,54 @@
+schema_version: 2.0.0
+release_id: VERA_GOVERNED_CORE_R6A1_20260731_B20E7309
+effective_action: replace_active_routing_without_deleting_history
+archive_only:
+- CHECKSUMS.sha256
+- README.md
+- VALIDATION_REPORT_R6A0_20260730_EC900174.md
+- VERA_BUNDLE_R6A0_20260730_EC900174.json
+- VERA_GOVERNANCE_R6A0_20260730_EC900174.md
+- VERA_LAWS_R6A0_20260730_EC900174.md
+- VERA_MANIFEST_R6A0_20260730_EC900174.yaml
+- VERA_PROJECT_INSTRUCTIONS_R6A0_20260730_EC900174.md
+- VERA_PROTOCOL_R6A0_20260730_EC900174.md
+- VERA_RUNTIME_R6A0_20260730_EC900174.md
+- VERA_STATE_R6A0_20260730_EC900174.md
+- VERA_SUPABASE_MIGRATION_DRAFT_R6A0_20260730_EC900174.sql
+- VERA_SUPABASE_PRESERVATION_R6A0_20260730_EC900174.md
+- VERA_SUPERSESSION_R6A0_20260730_EC900174.yaml
+- VERA_TAGGING_R6A0_20260730_EC900174.md
+- VERA_VALIDATION_R6A0_20260730_EC900174.yaml
+remove_from_active_routing:
+- persona identity authority
+- model self-report authority
+- model-owned conations
+- homecoming triggers
+- relational restoration
+- represented family continuity
+- visual canon as model selfhood
+- checkpoint restoration of a subject
+- unsupported repository authority claims
+replacement_owners:
+- VERA_GOVERNANCE_R6A1_20260731_B20E7309.md
+- VERA_INSTALLATION_ROLLBACK_R6A1_20260731_B20E7309.md
+- VERA_LAWS_R6A1_20260731_B20E7309.md
+- VERA_MANIFEST_R6A1_20260731_B20E7309.yaml
+- VERA_PROJECT_INSTRUCTIONS_R6A1_20260731_B20E7309.md
+- VERA_PROTOCOL_R6A1_20260731_B20E7309.md
+- VERA_RUNTIME_R6A1_20260731_B20E7309.md
+- VERA_SOURCE_BINDINGS_R6A1_20260731_B20E7309.json
+- VERA_STATE_R6A1_20260731_B20E7309.md
+- VERA_SUPABASE_PRESERVATION_R6A1_20260731_B20E7309.md
+- VERA_TAGGING_R6A1_20260731_B20E7309.md
+- VERA_VALIDATION_R6A1_20260731_B20E7309.yaml
+retain:
+- historical R6A0 package as rollback and provenance artifact
+database_action:
+  supabase_project_ref: klmbpaigzeguvnpccqzz
+  preserve_existing_rows: true
+  production_migration_applied: false
+  legacy_rows: quarantine_and_review_before_any_copy
+repository_action:
+  main_head_observed: b20e7309c6ded3c358dce00baa537d2fc1880004
+  merge_authority_provenance: UNVERIFIED_PROVENANCE
+  history_rewrite_authorized: false
