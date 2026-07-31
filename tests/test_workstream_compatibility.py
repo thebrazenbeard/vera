@@ -74,6 +74,16 @@ class WorkstreamCompatibilityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "interface pair coverage"):
             validate_semantics(document, registry())
 
+    def test_duplicate_directional_interface_pair_rejected(self):
+        document = matrix()
+        duplicate = deepcopy(document["interfaces"][0])
+        duplicate["interface_id"] = "VERA-IFACE-011"
+        duplicate["required_adapter"] = "DUPLICATE_PAIR_ADAPTER_V1"
+        duplicate["findings"][0]["finding_id"] = "VIC-F011"
+        document["interfaces"].append(duplicate)
+        with self.assertRaisesRegex(ValueError, "duplicates directional interface pair"):
+            validate_semantics(document, registry())
+
     def test_duplicate_interface_id_rejected(self):
         document = matrix()
         document["interfaces"][1]["interface_id"] = document["interfaces"][0]["interface_id"]
@@ -128,6 +138,18 @@ class WorkstreamCompatibilityTests(unittest.TestCase):
         document = matrix()
         interface(document, "VERA-IFACE-004")["acceptance_evidence"]["required_checks"] = ["Initiative kernel"]
         with self.assertRaisesRegex(ValueError, "not declared by either endpoint"):
+            validate_semantics(document, registry())
+
+    def test_authority_owner_substitution_rejected(self):
+        document = matrix()
+        interface(document, "VERA-IFACE-006")["authority_owner"] = "workstream/initiatives"
+        with self.assertRaisesRegex(ValueError, "authority owner must be workstream/identity"):
+            validate_semantics(document, registry())
+
+    def test_permission_owner_substitution_rejected(self):
+        document = matrix()
+        interface(document, "VERA-IFACE-004")["permission_owner"] = "workstream/time"
+        with self.assertRaisesRegex(ValueError, "permission owner must be workstream/memory"):
             validate_semantics(document, registry())
 
     def test_initiatives_cannot_claim_execution(self):
