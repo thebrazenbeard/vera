@@ -25,15 +25,12 @@ class StrictActorConstructionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "workstream must be one of"):
             ActorContext("workstream/unknown", frozenset())
 
-    def test_internal_compatibility_actor_cannot_bypass_public_bus(self):
-        actor = CompatibilityActorContext(
-            "workstream/initiative",
-            frozenset({PERMISSION_POST}),
-        )
-        bus = CoordinationBus(InMemoryCoordinationRepository())
-        result = bus.coordination_post(actor, status_draft())
-        self.assertEqual(result.receipt.result_class, "INVALID")
-        self.assertFalse(result.receipt.database_write_confirmed)
+    def test_storage_compatibility_actor_rejects_obsolete_new_construction(self):
+        with self.assertRaisesRegex(ValueError, "STRICT_ACTOR_OBSOLETE_ROUTE"):
+            CompatibilityActorContext(
+                "workstream/initiative",
+                frozenset({PERMISSION_POST}),
+            )
 
 
 class DecisionAuthorityTests(unittest.TestCase):
