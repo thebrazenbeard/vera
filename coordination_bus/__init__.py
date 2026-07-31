@@ -16,11 +16,18 @@ from .supabase_sql import (
     GET_EVENT_SQL, INSERT_EVENT_SQL, LIST_THREAD_SQL, LIVE_SCHEMA_SNAPSHOT_V1,
     READ_INBOX_SQL, SqlExecutor, SupabaseSqlRepository,
 )
+from . import temporal as _temporal_module
 from .temporal import (
     TemporalCoordinationReceipt,
     TemporalCoordinationResult,
     TemporalEvidence,
 )
+
+# The temporal mechanics class is internal. Preserve its historical import name
+# only long enough for the verifier-bound facade to subclass it. The package
+# still exports exactly one public CoordinationBus below.
+_temporal_module.CoordinationBus = _temporal_module._TemporalCoordinationCore
+
 from .verified_temporal import (
     CoordinationBus,
     EVIDENCE_ENVELOPE_SCHEMA,
