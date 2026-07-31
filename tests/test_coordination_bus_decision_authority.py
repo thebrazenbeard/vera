@@ -18,7 +18,7 @@ from coordination_bus.contracts import ActorContext as CompatibilityActorContext
 
 class StrictActorConstructionTests(unittest.TestCase):
     def test_obsolete_actor_route_is_rejected_at_construction(self):
-        with self.assertRaisesRegex(ValueError, "obsolete route"):
+        with self.assertRaisesRegex(ValueError, "STRICT_ACTOR_OBSOLETE_ROUTE"):
             ActorContext("workstream/initiative", frozenset())
 
     def test_unknown_actor_route_is_rejected_at_construction(self):
