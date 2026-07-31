@@ -19,6 +19,9 @@ from scripts.validate_integration_registry import (
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY_PREDECESSOR_HEAD = "b73551173632d98e4a8dfe673120a3df1ac0a0a0"
 EXTERNAL_AUTHORITY = "EXTERNAL_EXPLICIT_AUTHORIZATION"
+IDENTITY_CLASSIFICATION_VALIDATOR = (
+    "scripts/validate_identity_temporal_anchor_classification.py"
+)
 REQUIRED_ROUTES = {
     "workstream/identity",
     "workstream/time",
@@ -126,6 +129,10 @@ IDENTITY_TIME_BINDING = {
         "Temporal enforcement kernel",
         "Temporal pilot",
     },
+}
+IDENTITY_MEMORY_CLASSIFICATION_BINDING = {
+    "artifact": IDENTITY_CLASSIFICATION_VALIDATOR,
+    "check": "Project Identity",
 }
 MEMORY_DURABILITY_BINDINGS = {
     "VERA-IFACE-002": {
@@ -349,6 +356,23 @@ def validate_semantics(
                         f"{interface_id} Identity-to-Time temporal-anchor binding "
                         f"differs at {field}"
                     )
+
+        if interface_id == "VERA-IFACE-002":
+            if (
+                IDENTITY_MEMORY_CLASSIFICATION_BINDING["artifact"]
+                not in evidence["source_artifacts"]
+            ):
+                raise ValueError(
+                    "VERA-IFACE-002 omits the Identity temporal-anchor "
+                    "classification validator"
+                )
+            if (
+                IDENTITY_MEMORY_CLASSIFICATION_BINDING["check"]
+                not in evidence["required_checks"]
+            ):
+                raise ValueError(
+                    "VERA-IFACE-002 omits the Project Identity classification check"
+                )
 
         memory_binding = MEMORY_DURABILITY_BINDINGS.get(interface_id)
         if memory_binding is not None:
