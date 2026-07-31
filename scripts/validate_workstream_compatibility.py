@@ -33,6 +33,48 @@ REQUIRED_INTERFACE_PAIRS = {
     ("workstream/coordination", "workstream/integration"),
     ("workstream/integration", "workstream/identity"),
 }
+EXPECTED_INTERFACE_OWNERS = {
+    ("workstream/identity", "workstream/time"): (
+        "workstream/identity",
+        "workstream/time",
+    ),
+    ("workstream/identity", "workstream/memory"): (
+        "workstream/identity",
+        "workstream/memory",
+    ),
+    ("workstream/identity", "workstream/initiatives"): (
+        "workstream/identity",
+        "workstream/initiatives",
+    ),
+    ("workstream/time", "workstream/memory"): (
+        "workstream/time",
+        "workstream/memory",
+    ),
+    ("workstream/time", "workstream/coordination"): (
+        "workstream/time",
+        "workstream/coordination",
+    ),
+    ("workstream/initiatives", "workstream/coordination"): (
+        "workstream/identity",
+        "workstream/coordination",
+    ),
+    ("workstream/coordination", "workstream/memory"): (
+        "workstream/memory",
+        "workstream/memory",
+    ),
+    ("workstream/memory", "workstream/integration"): (
+        "workstream/memory",
+        "workstream/integration",
+    ),
+    ("workstream/coordination", "workstream/integration"): (
+        "workstream/coordination",
+        "workstream/integration",
+    ),
+    ("workstream/integration", "workstream/identity"): (
+        "workstream/identity",
+        "workstream/identity",
+    ),
+}
 EXPECTED_OWNS = {
     "workstream/identity": {"AUTHORITY", "CORRECTION", "BEHAVIOR", "ROUTING"},
     "workstream/time": {"EVENT_TIME", "STATE_TIME", "RECORD_TIME", "RETRIEVAL_TIME", "TEMPORAL_PRECISION"},
@@ -131,7 +173,15 @@ def validate_semantics(matrix: dict[str, Any], registry: dict[str, Any]) -> None
             raise ValueError(f"{interface_id} references an undeclared route")
         if "workstream/initiative" in (source, target):
             raise ValueError("obsolete singular Initiatives route is forbidden")
-        pairs.add((source, target))
+
+        pair = (source, target)
+        if pair not in REQUIRED_INTERFACE_PAIRS:
+            raise ValueError(f"{interface_id} is not a required directional interface")
+        if pair in pairs:
+            raise ValueError(
+                f"{interface_id} duplicates directional interface pair {pair!r}"
+            )
+        pairs.add(pair)
 
         for contract_id in interface["source_contract_ids"]:
             if contract_owner.get(contract_id) != source:
@@ -162,10 +212,15 @@ def validate_semantics(matrix: dict[str, Any], registry: dict[str, Any]) -> None
                     f"{interface_id} check {check!r} is not declared by either endpoint"
                 )
 
-        if interface["authority_owner"] not in REQUIRED_ROUTES:
-            raise ValueError(f"{interface_id} authority owner is not a bounded route")
-        if interface["permission_owner"] not in REQUIRED_ROUTES:
-            raise ValueError(f"{interface_id} permission owner is not a bounded route")
+        expected_authority, expected_permission = EXPECTED_INTERFACE_OWNERS[pair]
+        if interface["authority_owner"] != expected_authority:
+            raise ValueError(
+                f"{interface_id} authority owner must be {expected_authority}"
+            )
+        if interface["permission_owner"] != expected_permission:
+            raise ValueError(
+                f"{interface_id} permission owner must be {expected_permission}"
+            )
         if interface["execution_authorized"]:
             raise ValueError(f"{interface_id} may not claim execution authority")
         if interface["canonical_memory_transfer"]:
