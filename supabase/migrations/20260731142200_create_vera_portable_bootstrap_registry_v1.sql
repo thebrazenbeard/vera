@@ -10,7 +10,7 @@ create table public.vera_portable_bootstrap_requests (
   project_template_id text not null,
   target_fingerprint text not null check (target_fingerprint ~ '^[0-9a-f]{64}$'),
   canonical_request text not null,
-  project_instance_id uuid not null check (get_byte(uuid_send(project_instance_id), 6) >> 4 = 7),
+  project_instance_id uuid not null check ((get_byte(uuid_send(project_instance_id), 6)::integer >> 4) = 7),
   initial_state text not null check (initial_state in ('CANDIDATE_UNPERSISTED','BINDING_PENDING','DURABLY_BOUND','CONFLICTED','UNKNOWN')),
   record_time timestamptz not null default clock_timestamp()
 );
