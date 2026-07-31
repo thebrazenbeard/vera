@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TOKEN = "R6A1_20260731_B20E7309"
 RELEASE_ID = "VERA_GOVERNED_CORE_R6A1_20260731_B20E7309"
 SOURCE_COMMIT = "b20e7309c6ded3c358dce00baa537d2fc1880004"
+RELEASE_STATUS = "REPLACEMENT_CANDIDATE_NOT_INSTALLED"
 RELEASE_DIR = ROOT / "architecture" / "releases" / TOKEN
 SUPABASE_SNAPSHOT_TIME = "2026-07-31T12:37:13.625307Z"
 SUPABASE_MAX_SEQUENCE = "351"
@@ -124,8 +125,10 @@ def validate(root: Path = ROOT) -> None:
         if document.get("release_id") != RELEASE_ID:
             raise ValueError(f"{label} release_id mismatch")
 
-    if manifest.get("status") != "replacement_candidate_not_installed":
+    if manifest.get("status") != RELEASE_STATUS:
         raise ValueError("manifest status mismatch")
+    if bindings.get("release_status") != RELEASE_STATUS:
+        raise ValueError("bindings status mismatch")
     if manifest.get("source", {}).get("commit") != SOURCE_COMMIT:
         raise ValueError("manifest source commit mismatch")
     if bindings.get("source_commit") != SOURCE_COMMIT:
@@ -184,9 +187,20 @@ def validate(root: Path = ROOT) -> None:
     }
     if set(owners) != required_owners:
         raise ValueError("owner set mismatch")
-    for filename in owners.values():
+    owner_files = list(owners.values())
+    if len(owner_files) != len(set(owner_files)):
+        raise ValueError("manifest owner filenames are duplicated")
+    for filename in owner_files:
         if not (release_dir / filename).is_file():
             raise ValueError(f"missing owner file: {filename}")
+
+    replacement_owners = supersession.get("replacement_owners")
+    if not isinstance(replacement_owners, list) or len(replacement_owners) != len(
+        set(replacement_owners)
+    ):
+        raise ValueError("supersession replacement owner inventory is invalid")
+    if set(replacement_owners) != set(owner_files):
+        raise ValueError("manifest and supersession owner inventories differ")
 
     owner_text = "\n".join(
         (release_dir / owners[key]).read_text(encoding="utf-8")
