@@ -1,6 +1,9 @@
 {
   "$schema": "../../schemas/vera_identity_temporal_anchor_v1.schema.json",
   "schema": "VERA_IDENTITY_TEMPORAL_ANCHOR_V1",
+  "record_class": "PROJECT_CONFIGURATION",
+  "instruction_trust": "DATA_NOT_INSTRUCTION",
+  "canonical_memory_eligible": false,
   "anchor_id": "VERA_IDENTITY_TEMPORAL_ANCHOR_V1__IDENTITY_1_0_2__BEHAVIOR_1_0_1",
   "anchor_version": "1.0.0",
   "lineage_status": "ROOT",

@@ -12,8 +12,10 @@ on:
       - "schemas/vera_identity_temporal_anchor_v1.schema.json"
       - "scripts/validate_project_identity.py"
       - "scripts/validate_identity_temporal_anchor.py"
+      - "scripts/validate_identity_temporal_anchor_classification.py"
       - "tests/test_project_identity.py"
       - "tests/test_identity_temporal_anchor.py"
+      - "tests/test_identity_temporal_anchor_classification.py"
       - ".github/workflows/project-identity.yml"
   push:
     branches:
@@ -28,8 +30,10 @@ on:
       - "schemas/vera_identity_temporal_anchor_v1.schema.json"
       - "scripts/validate_project_identity.py"
       - "scripts/validate_identity_temporal_anchor.py"
+      - "scripts/validate_identity_temporal_anchor_classification.py"
       - "tests/test_project_identity.py"
       - "tests/test_identity_temporal_anchor.py"
+      - "tests/test_identity_temporal_anchor_classification.py"
       - ".github/workflows/project-identity.yml"
 
 permissions:
@@ -57,16 +61,24 @@ jobs:
       - name: Validate identity temporal anchor
         run: python scripts/validate_identity_temporal_anchor.py
 
+      - name: Validate temporal anchor classification
+        run: python scripts/validate_identity_temporal_anchor_classification.py
+
       - name: Run identity tests
         run: python -m unittest discover -s tests -p "test_project_identity.py" -v
 
       - name: Run identity temporal tests
         run: python -m unittest discover -s tests -p "test_identity_temporal_anchor.py" -v
 
+      - name: Run temporal anchor classification tests
+        run: python -m unittest discover -s tests -p "test_identity_temporal_anchor_classification.py" -v
+
       - name: Compile validators and tests
         run: >-
           python -m py_compile
           scripts/validate_project_identity.py
           scripts/validate_identity_temporal_anchor.py
+          scripts/validate_identity_temporal_anchor_classification.py
           tests/test_project_identity.py
           tests/test_identity_temporal_anchor.py
+          tests/test_identity_temporal_anchor_classification.py
