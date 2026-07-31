@@ -1,4 +1,4 @@
-"""Single public verifier-bound temporal evidence contract for coordination bus v1."""
+"""Single public verifier-bound evidence contract for coordination bus v1."""
 
 from __future__ import annotations
 
@@ -9,8 +9,9 @@ import json
 from typing import Any, Callable, Mapping, Protocol, runtime_checkable
 
 from .contracts import (
-    ActorContext, PERMISSION_ACKNOWLEDGE, PERMISSION_READ_SELF,
-    PERMISSION_STATUS, canonicalize, validate_text,
+    ActorContext, CoordinationEventDraft, PERMISSION_ACKNOWLEDGE,
+    PERMISSION_READ_SELF, PERMISSION_STATUS, canonicalize, validate_text,
+    validate_workstream,
 )
 from .core import _receipted
 from .temporal import (
@@ -20,6 +21,7 @@ from .temporal import (
 )
 
 EVIDENCE_ENVELOPE_SCHEMA = "VERA_TEMPORAL_EVIDENCE_ENVELOPE_V1"
+DECISION_AUTHORITY_SCHEMA = "VERA_DECISION_AUTHORITY_ENVELOPE_V1"
 
 
 def _canonical_bytes(value: Any) -> bytes:
@@ -141,7 +143,108 @@ class HmacTemporalEvidenceAuthority:
             return False
 
 
+@dataclass(frozen=True)
+class DecisionAuthorityEnvelope:
+    """Opaque single-use authority bound to one exact DECISION draft."""
+
+    schema: str
+    issuer_id: str
+    actor_workstream: str
+    subject: str
+    verification_token: str
+
+    def canonical_body(self) -> dict[str, Any]:
+        return {
+            "schema": self.schema,
+            "issuer_id": self.issuer_id,
+            "actor_workstream": self.actor_workstream,
+            "subject": self.subject,
+        }
+
+    def as_dict(self) -> dict[str, Any]:
+        return canonicalize(asdict(self))
+
+
+@runtime_checkable
+class DecisionAuthorityVerifier(Protocol):
+    def verify(
+        self,
+        envelope: DecisionAuthorityEnvelope,
+        *,
+        expected_actor_workstream: str,
+        expected_subject: str,
+    ) -> bool:
+        ...
+
+
+class HmacDecisionAuthority:
+    """Reference host-owned issuer/verifier for exact, single-use decisions."""
+
+    def __init__(self, issuer_id: str, secret: bytes) -> None:
+        validate_text(issuer_id, "issuer_id")
+        if not isinstance(secret, bytes) or len(secret) < 32:
+            raise ValueError("secret must be at least 32 bytes")
+        self.issuer_id = issuer_id
+        self._secret = secret
+        self._used_tokens: set[str] = set()
+
+    def issue(
+        self,
+        *,
+        actor_workstream: str,
+        draft: CoordinationEventDraft,
+    ) -> DecisionAuthorityEnvelope:
+        subject = decision_subject(actor_workstream, draft)
+        unsigned = DecisionAuthorityEnvelope(
+            schema=DECISION_AUTHORITY_SCHEMA,
+            issuer_id=self.issuer_id,
+            actor_workstream=actor_workstream,
+            subject=subject,
+            verification_token="",
+        )
+        token = hmac.new(
+            self._secret,
+            _canonical_bytes(unsigned.canonical_body()),
+            sha256,
+        ).hexdigest()
+        return replace(unsigned, verification_token=token)
+
+    def verify(
+        self,
+        envelope: DecisionAuthorityEnvelope,
+        *,
+        expected_actor_workstream: str,
+        expected_subject: str,
+    ) -> bool:
+        try:
+            if not isinstance(envelope, DecisionAuthorityEnvelope):
+                return False
+            if envelope.schema != DECISION_AUTHORITY_SCHEMA:
+                return False
+            if envelope.issuer_id != self.issuer_id:
+                return False
+            if envelope.actor_workstream != expected_actor_workstream:
+                return False
+            if envelope.subject != expected_subject:
+                return False
+            expected = hmac.new(
+                self._secret,
+                _canonical_bytes(envelope.canonical_body()),
+                sha256,
+            ).hexdigest()
+            if not hmac.compare_digest(expected, envelope.verification_token):
+                return False
+            replay_key = f"{envelope.issuer_id}:{envelope.verification_token}"
+            if replay_key in self._used_tokens:
+                return False
+            self._used_tokens.add(replay_key)
+            return True
+        except (TypeError, ValueError):
+            return False
+
+
 TemporalEvidenceInput = TemporalEvidence | TemporalEvidenceEnvelope | None
+DecisionAuthorityInput = DecisionAuthorityEnvelope | None
 ReceiptTimeProvider = Callable[[str, str], TemporalEvidenceInput]
 
 
@@ -208,6 +311,37 @@ def exit_checkpoint_subject(
     })
 
 
+def decision_subject(
+    actor_workstream: str,
+    draft: CoordinationEventDraft,
+) -> str:
+    """Bind authority to every field that can alter a DECISION's meaning."""
+
+    validate_workstream(actor_workstream, "actor_workstream")
+    draft.validate()
+    if draft.event_type != "DECISION":
+        raise ValueError("decision authority may bind only a DECISION draft")
+    if draft.source_branch != actor_workstream:
+        raise ValueError("decision source_branch must equal actor workstream")
+    return _subject("coordination-decision-v1", {
+        "operation": "coordination_post",
+        "actor_workstream": actor_workstream,
+        "thread_key": draft.thread_key,
+        "source_branch": draft.source_branch,
+        "target_branch": draft.target_branch,
+        "event_type": draft.event_type,
+        "status": draft.status,
+        "objective": draft.objective,
+        "summary": draft.summary,
+        "active_issue": draft.active_issue,
+        "requested_perspective": draft.requested_perspective,
+        "supersedes_event_id": draft.supersedes_event_id,
+        "acknowledges_event_id": draft.acknowledges_event_id,
+        "payload": canonicalize(draft.payload),
+        "reference_data": canonicalize(draft.reference_data),
+    })
+
+
 def receipt_subject(result: Any) -> str:
     receipt = result.receipt
     body = {
@@ -232,10 +366,12 @@ class CoordinationBus(_TemporalCoordinationCore):
         *,
         evidence_verifier: TemporalEvidenceVerifier | None = None,
         receipt_time_provider: ReceiptTimeProvider | None = None,
+        decision_authority_verifier: DecisionAuthorityVerifier | None = None,
     ) -> None:
         super().__init__(repository, receipt_time_provider=None)
         self._evidence_verifier = evidence_verifier
         self._trusted_receipt_time_provider = receipt_time_provider
+        self._decision_authority_verifier = decision_authority_verifier
 
     def _verified_claim(
         self,
@@ -274,6 +410,32 @@ class CoordinationBus(_TemporalCoordinationCore):
             )
         return value.evidence
 
+    def _verify_decision_authority(
+        self,
+        value: DecisionAuthorityInput,
+        *,
+        actor_workstream: str,
+        draft: CoordinationEventDraft,
+    ) -> None:
+        if not isinstance(value, DecisionAuthorityEnvelope):
+            raise PermissionError(
+                "DECISION requires a verifier-issued DecisionAuthorityEnvelope"
+            )
+        verifier = self._decision_authority_verifier
+        if verifier is None:
+            raise PermissionError(
+                "DECISION requires an injected trusted decision-authority verifier"
+            )
+        subject = decision_subject(actor_workstream, draft)
+        if not verifier.verify(
+            value,
+            expected_actor_workstream=actor_workstream,
+            expected_subject=subject,
+        ):
+            raise PermissionError(
+                "decision-authority verification failed for actor and draft subject"
+            )
+
     def _wrap(self, result: Any, **kwargs: Any) -> TemporalCoordinationResult:
         wrapped = super()._wrap(result, **kwargs)
         provider = self._trusted_receipt_time_provider
@@ -300,6 +462,30 @@ class CoordinationBus(_TemporalCoordinationCore):
             wrapped,
             receipt=replace(wrapped.receipt, receipt_time=receipt_time),
         )
+
+    @_receipted("coordination_post")
+    def coordination_post(
+        self,
+        actor: ActorContext,
+        draft: CoordinationEventDraft,
+        *,
+        decision_authority: DecisionAuthorityInput = None,
+    ) -> TemporalCoordinationResult:
+        actor.validate()
+        draft.validate()
+        if draft.event_type == "DECISION":
+            if draft.source_branch != actor.canonical_workstream:
+                raise PermissionError("source_branch must equal actor workstream")
+            self._verify_decision_authority(
+                decision_authority,
+                actor_workstream=actor.canonical_workstream,
+                draft=draft,
+            )
+            return self._append("coordination_post", actor, draft)
+        if decision_authority is not None:
+            raise ValueError("decision authority may be supplied only for DECISION")
+        self._authorize_generic_post(actor, draft)
+        return self._append("coordination_post", actor, draft)
 
     @_receipted("coordination_entry_checkpoint")
     def entry_checkpoint(
