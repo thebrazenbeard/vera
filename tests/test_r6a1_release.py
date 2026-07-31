@@ -98,6 +98,39 @@ class R6A1ReleaseTests(unittest.TestCase):
         finally:
             temporary.cleanup()
 
+    def test_manifest_status_drift_rejected(self):
+        temporary, root = self.copy()
+        try:
+            path = root / "architecture" / "releases" / TOKEN / f"VERA_MANIFEST_{TOKEN}.yaml"
+            path.write_text(
+                path.read_text(encoding="utf-8").replace(
+                    "status: REPLACEMENT_CANDIDATE_NOT_INSTALLED",
+                    "status: replacement_candidate_not_installed",
+                ),
+                encoding="utf-8",
+            )
+            self.rehash(root)
+            with self.assertRaisesRegex(ValueError, "manifest status"):
+                validate(root)
+        finally:
+            temporary.cleanup()
+
+    def test_owner_inventory_mismatch_rejected(self):
+        temporary, root = self.copy()
+        try:
+            path = root / "architecture" / "releases" / TOKEN / f"VERA_SUPERSESSION_{TOKEN}.yaml"
+            path.write_text(
+                path.read_text(encoding="utf-8").replace(
+                    "- VERA_SUPERSESSION_R6A1_20260731_B20E7309.yaml\n", ""
+                ),
+                encoding="utf-8",
+            )
+            self.rehash(root)
+            with self.assertRaisesRegex(ValueError, "owner inventories differ"):
+                validate(root)
+        finally:
+            temporary.cleanup()
+
     def test_stale_supabase_coordination_count_rejected(self):
         temporary, root = self.copy()
         try:
