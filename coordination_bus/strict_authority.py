@@ -19,7 +19,6 @@ from .contracts import (
     ActorContext as _CompatibilityActorContext,
     CoordinationEventDraft,
     OBSOLETE_WORKSTREAMS,
-    PERMISSION_DECIDE,
     canonicalize,
     validate_text,
 )
@@ -202,7 +201,6 @@ class CoordinationBus(_VerifierBoundCoordinationBus):
         draft.validate()
 
         if draft.event_type == "DECISION":
-            actor.require(PERMISSION_DECIDE)
             subject = decision_subject(actor.canonical_workstream, draft)
             verifier = self._decision_authority_verifier
             if verifier is None:
