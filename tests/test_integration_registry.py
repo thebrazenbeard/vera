@@ -108,10 +108,31 @@ class IntegrationRegistryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "canonical source intent"):
             validate_semantics(registry)
 
-    def test_false_coordination_artifact_path_rejected(self):
+    def test_false_coordination_artifact_substitution_rejected(self):
         registry = valid_registry()
         coordination = owner(registry, "workstream/coordination")
         coordination["owned_artifacts"][0] = "protocol/coordination_bus.py"
+        with self.assertRaisesRegex(ValueError, "canonical source intent"):
+            validate_semantics(registry)
+
+    def test_deleted_coordination_artifact_rejected(self):
+        registry = valid_registry()
+        coordination = owner(registry, "workstream/coordination")
+        index = coordination["owned_artifacts"].index(
+            "coordination_bus/in_memory.py"
+        )
+        coordination["owned_artifacts"][index] = (
+            "coordination_bus/strict_authority.py"
+        )
+        with self.assertRaisesRegex(ValueError, "canonical source intent"):
+            validate_semantics(registry)
+
+    def test_active_coordination_artifact_omission_rejected(self):
+        registry = valid_registry()
+        coordination = owner(registry, "workstream/coordination")
+        coordination["owned_artifacts"].remove(
+            "coordination_bus/supabase_sql.py"
+        )
         with self.assertRaisesRegex(ValueError, "canonical source intent"):
             validate_semantics(registry)
 
