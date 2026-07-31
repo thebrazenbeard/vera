@@ -1,6 +1,7 @@
 {
   "schema_version": "2.0.0",
   "release_id": "VERA_GOVERNED_CORE_R6A1_20260731_B20E7309",
+  "release_status": "REPLACEMENT_CANDIDATE_NOT_INSTALLED",
   "source_commit": "b20e7309c6ded3c358dce00baa537d2fc1880004",
   "files": [
     "CHECKSUMS.sha256",
