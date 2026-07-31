@@ -72,7 +72,7 @@ begin
   if status_receipt->>'request_state' <> 'IN_PROGRESS'
      or status_receipt->>'result_class' <> 'PARTIAL'
      or status_receipt->>'outcome_code' <> 'MVE_REQUEST_IN_PROGRESS_RECOVERABLE'
-     or status_receipt->'stored_result' is not null then
+     or coalesce(status_receipt->'stored_result', 'null'::jsonb) <> 'null'::jsonb then
     raise exception 'request status validation failed: IN_PROGRESS retrieval claims completion: %',
       status_receipt;
   end if;
