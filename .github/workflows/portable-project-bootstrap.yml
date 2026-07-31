@@ -54,6 +54,47 @@ jobs:
       - name: Install pinned validation dependency
         run: python -m pip install jsonschema==4.23.0
 
+      - name: Emit exact candidate bindings
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          paths = [
+              ".github/workflows/portable-project-bootstrap.yml",
+              "architecture/bootstrap/VERA_BOOTSTRAP_MANIFEST_V1.json",
+              "architecture/bootstrap/VERA_NATIVE_PROJECT_INSTRUCTIONS_BOOTLOADER_V1.txt",
+              "architecture/bootstrap/VERA_PORTABLE_PROJECT_BOOTSTRAP_V1.json",
+              "architecture/bootstrap/VERA_PORTABLE_SCAFFOLD_MANIFEST_V1.json",
+              "docs/PORTABLE_PROJECT_BOOTSTRAP_V1.md",
+              "schemas/vera_portable_project_bootstrap_v1.schema.json",
+              "schemas/vera_portable_scaffold_manifest_v1.schema.json",
+              "scripts/validate_portable_project_bootstrap.py",
+              "supabase/migrations/20260731142200_create_vera_portable_bootstrap_registry_v1.sql",
+              "supabase/tests/validate_portable_bootstrap_registry_v1.sql",
+              "tests/test_portable_project_bootstrap.py",
+          ]
+          self_excluded = "architecture/bootstrap/VERA_PORTABLE_SCAFFOLD_MANIFEST_V1.json"
+          bindings = []
+          for path in paths:
+              data = Path(path).read_bytes()
+              item = {
+                  "path": path,
+                  "mode": "100644",
+                  "size": len(data),
+                  "sha256": hashlib.sha256(data).hexdigest(),
+              }
+              print("CANDIDATE_BINDING=" + json.dumps(item, sort_keys=True, separators=(",", ":")))
+              if path != self_excluded:
+                  bindings.append(item)
+          package = hashlib.sha256(
+              json.dumps(bindings, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("ascii")
+          ).hexdigest()
+          print("CANDIDATE_EMBEDDED_PACKAGE_SHA256=" + package)
+          PY
+
       - name: Validate portable bootstrap and exact release bytes
         run: >-
           python scripts/validate_portable_project_bootstrap.py
