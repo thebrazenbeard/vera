@@ -64,6 +64,55 @@ class IdentityTemporalAnchorTests(unittest.TestCase):
                 "temporal anchor identity version does not match canonical identity",
                 errors,
             )
+            self.assertIn(
+                "temporal anchor subject hash does not bind exact versions",
+                errors,
+            )
+
+    def test_anchor_id_must_bind_exact_versions(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self.copy_contract(root)
+            errors = self.mutate_json(
+                root,
+                self.artifacts[0],
+                lambda anchor: anchor.__setitem__(
+                    "anchor_id", "VERA_IDENTITY_TEMPORAL_ANCHOR_V1"
+                ),
+            )
+            self.assertIn(
+                "temporal anchor ID must bind the exact identity and behavior versions",
+                errors,
+            )
+
+    def test_root_anchor_rejects_invented_predecessor(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self.copy_contract(root)
+            errors = self.mutate_json(
+                root,
+                self.artifacts[0],
+                lambda anchor: anchor.__setitem__(
+                    "predecessor_anchor_ref", "INVENTED_PREDECESSOR"
+                ),
+            )
+            self.assertIn("ROOT temporal anchor forbids a predecessor reference", errors)
+
+    def test_subject_hash_mutation_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self.copy_contract(root)
+
+            def mutation(anchor: dict[str, object]) -> None:
+                binding = anchor["subject_binding"]
+                assert isinstance(binding, dict)
+                binding["subject_hash"] = "0" * 64
+
+            errors = self.mutate_json(root, self.artifacts[0], mutation)
+            self.assertIn(
+                "temporal anchor subject hash does not bind exact versions",
+                errors,
+            )
 
     def test_unknown_state_time_cannot_claim_effectiveness(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -74,10 +123,7 @@ class IdentityTemporalAnchorTests(unittest.TestCase):
                 self.artifacts[0],
                 lambda anchor: anchor.__setitem__("version_effectiveness", "ANCHORED"),
             )
-            self.assertIn(
-                "UNKNOWN state_time requires version_effectiveness UNANCHORED",
-                errors,
-            )
+            self.assertIn("Temporal Anchor V1 must remain UNANCHORED", errors)
 
     def test_unknown_temporal_evidence_forbids_timestamps(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -92,7 +138,34 @@ class IdentityTemporalAnchorTests(unittest.TestCase):
                 state["value"] = "2026-07-31T01:00:00+00:00"
 
             errors = self.mutate_json(root, self.artifacts[0], mutation)
-            self.assertTrue(any("UNKNOWN" in error and "timestamp" in error for error in errors))
+            self.assertIn("state_time UNKNOWN evidence forbids timestamps and bounds", errors)
+
+    def test_arbitrary_external_source_cannot_self_certify_exact_time(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self.copy_contract(root)
+
+            def mutation(anchor: dict[str, object]) -> None:
+                roles = anchor["temporal_roles"]
+                assert isinstance(roles, dict)
+                state = roles["state_time"]
+                assert isinstance(state, dict)
+                state.update({
+                    "precision": "EXACT",
+                    "source": "EXTERNAL_ADOPTION_EVIDENCE",
+                    "temporal_claim": True,
+                    "value": "2026-07-31T01:00:00+00:00",
+                    "lower_bound": None,
+                    "upper_bound": None,
+                })
+                anchor["version_effectiveness"] = "ANCHORED"
+
+            errors = self.mutate_json(root, self.artifacts[0], mutation)
+            self.assertIn(
+                "state_time Temporal Anchor V1 forbids caller-certified non-UNKNOWN evidence",
+                errors,
+            )
+            self.assertIn("Temporal Anchor V1 must remain UNANCHORED", errors)
 
     def test_retrieval_time_cannot_substitute_for_state_time(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -112,36 +185,26 @@ class IdentityTemporalAnchorTests(unittest.TestCase):
                     "lower_bound": None,
                     "upper_bound": None,
                 })
-                anchor["version_effectiveness"] = "ANCHORED"
 
             errors = self.mutate_json(root, self.artifacts[0], mutation)
             self.assertIn(
-                "UNKNOWN state_time requires version_effectiveness UNANCHORED",
+                "retrieval_time Temporal Anchor V1 forbids caller-certified non-UNKNOWN evidence",
                 errors,
             )
 
-    def test_reversed_bounded_state_time_is_rejected(self) -> None:
+    def test_backdating_policy_cannot_be_weakened(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             self.copy_contract(root)
-
-            def mutation(anchor: dict[str, object]) -> None:
-                roles = anchor["temporal_roles"]
-                assert isinstance(roles, dict)
-                state = roles["state_time"]
-                assert isinstance(state, dict)
-                state.update({
-                    "precision": "BOUNDED",
-                    "source": "EXTERNAL_ADOPTION_EVIDENCE",
-                    "temporal_claim": True,
-                    "value": "2026-07-31T01:00:00+00:00",
-                    "lower_bound": "2026-07-31T02:00:00+00:00",
-                    "upper_bound": "2026-07-31T03:00:00+00:00",
-                })
-                anchor["version_effectiveness"] = "ANCHORED"
-
-            errors = self.mutate_json(root, self.artifacts[0], mutation)
-            self.assertTrue(any("inconsistent inclusive bounds" in error for error in errors))
+            errors = self.mutate_json(
+                root,
+                self.artifacts[0],
+                lambda anchor: anchor.__setitem__("backdating_policy", "ALLOW_IF_PLAUSIBLE"),
+            )
+            self.assertIn(
+                "identity backdating must remain forbidden without verified state_time",
+                errors,
+            )
 
     def test_lived_continuity_must_remain_forbidden(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
