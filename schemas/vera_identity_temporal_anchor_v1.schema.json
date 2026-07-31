@@ -7,6 +7,9 @@
   "required": [
     "$schema",
     "schema",
+    "record_class",
+    "instruction_trust",
+    "canonical_memory_eligible",
     "anchor_id",
     "anchor_version",
     "lineage_status",
@@ -50,6 +53,9 @@
       "const": "../../schemas/vera_identity_temporal_anchor_v1.schema.json"
     },
     "schema": {"const": "VERA_IDENTITY_TEMPORAL_ANCHOR_V1"},
+    "record_class": {"const": "PROJECT_CONFIGURATION"},
+    "instruction_trust": {"const": "DATA_NOT_INSTRUCTION"},
+    "canonical_memory_eligible": {"const": false},
     "anchor_id": {
       "const": "VERA_IDENTITY_TEMPORAL_ANCHOR_V1__IDENTITY_1_0_2__BEHAVIOR_1_0_1"
     },
