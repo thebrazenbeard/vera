@@ -23,7 +23,7 @@ class StrictActorConstructionTests(unittest.TestCase):
             ActorContext("workstream/initiative", frozenset())
 
     def test_unknown_actor_route_is_rejected_at_construction(self):
-        with self.assertRaisesRegex(ValueError, "unsupported workstream"):
+        with self.assertRaisesRegex(ValueError, "workstream must be one of"):
             ActorContext("workstream/unknown", frozenset())
 
     def test_internal_compatibility_actor_cannot_bypass_public_bus(self):
