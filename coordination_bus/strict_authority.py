@@ -8,7 +8,7 @@ compatibility actors. Temporal and decision authority verification live only in
 
 from __future__ import annotations
 
-from .contracts import CoordinationEventDraft, PERMISSION_DECIDE
+from .contracts import CoordinationEventDraft
 from .core import _receipted
 from .strict_contract import ActorContext
 from .verified_temporal import (
@@ -33,8 +33,6 @@ class CoordinationBus(_VerifierBoundCoordinationBus):
             raise TypeError(
                 "actor must be constructed through coordination_bus.ActorContext"
             )
-        if draft.event_type == "DECISION":
-            actor.require(PERMISSION_DECIDE)
         return super().coordination_post(
             actor,
             draft,
