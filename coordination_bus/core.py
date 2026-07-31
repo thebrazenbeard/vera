@@ -7,8 +7,8 @@ from typing import Any, Callable, Mapping, Sequence, TypeVar, cast
 
 from .contracts import (
     ActorContext, CoordinationEvent, CoordinationEventDraft, CoordinationRepository,
-    CoordinationResult, Operation, PERMISSION_ACKNOWLEDGE, PERMISSION_DECIDE,
-    PERMISSION_POST, PERMISSION_READ_ANY, PERMISSION_READ_SELF, PERMISSION_RESOLVE,
+    CoordinationResult, Operation, PERMISSION_ACKNOWLEDGE, PERMISSION_POST,
+    PERMISSION_READ_ANY, PERMISSION_READ_SELF, PERMISSION_RESOLVE,
     PERMISSION_REVIEW, PERMISSION_STATUS, RepositoryConflict, ResultClass,
     make_result, validate_text, validate_workstream,
 )
@@ -296,8 +296,9 @@ class CoordinationBus:
                 raise PermissionError("resolution target must be other participant")
             return
         if draft.event_type == "DECISION":
-            actor.require(PERMISSION_DECIDE)
-            return
+            raise PermissionError(
+                "DECISION requires an externally verified decision-authority capability"
+            )
         actor.require(PERMISSION_POST)
 
     def _lineage(self, draft: CoordinationEventDraft) -> None:
