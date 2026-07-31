@@ -1,28 +1,68 @@
-# V.E.R.A. Initiative Kernel v0.1
+# V.E.R.A. Initiative Kernel v1
 
 ## Status
 
-Bounded reference implementation. It is not installed into a runtime and it performs no external action by itself.
+Bounded reference implementation. It is not installed into a runtime and performs no external action by itself.
 
 ## Purpose
 
-The Initiative Kernel salvages the useful engineering idea behind the former conations system without treating generated language as evidence of model-owned desire, consent, identity, attachment, or goals.
+The Initiative Kernel preserves the useful action-selection mechanics of the former conations system without treating generated language as evidence of model-owned desire, consent, identity, attachment, or goals.
 
 It answers one narrow question:
 
-> Given externally supplied candidate actions and an externally supplied policy, which action is currently permissible and best supported?
+> Given externally supplied candidates, an externally supplied policy, and trusted verification of those exact inputs, which candidate is permissible and best supported?
 
-The kernel may select one candidate or return `ABSTAIN`. It does not invent the objective and does not execute the selected action.
+The kernel may select one candidate or return `ABSTAIN`. It does not invent objectives and does not execute the selected action.
+
+## Trust boundary
+
+Candidate objects contain evaluation claims such as authority, evidence strength, and available permissions. Those fields are data, not authority merely because a caller supplied them.
+
+A decision requires an injected trusted verifier and a verifier-issued `InitiativeInputAttestation`. The attestation binds:
+
+- the full applied policy configuration through `policy_hash`;
+- the complete candidate set through an order-independent `candidate_set_hash`;
+- every candidate field, including authority, evidence, permissions, correction state, production-mutation state, utility estimates, and attributable source evidence;
+- the exact `initiative_decide` operation subject;
+- the trusted issuer identity.
+
+Missing, forged, wrong-issuer, wrong-subject, post-issuance-modified candidate, changed-permission, changed-evidence, and changed-policy inputs fail closed.
+
+The reference HMAC authority demonstrates the contract. Its secret is runtime-owned and is never committed. An attestation verifies one immutable decision input; it is not an execution capability and does not authorize external action.
+
+## Attributable evidence
+
+Every candidate requires at least one `AttributableEvidence` entry with:
+
+- a source surface;
+- a bounded reference identifier;
+- an attributable observation.
+
+This establishes provenance shape, not automatic truth. The receipt explicitly preserves that limitation.
 
 ## Governing sequence
 
-1. Validate all candidate inputs.
-2. Reject candidates blocked by policy, present correction, missing permission, production-write restrictions, weak authority, weak evidence, poor objective alignment, low reversibility, excessive harm, or excessive uncertainty.
-3. Rank only the remaining candidates.
-4. Order authority and evidence lexicographically so a large utility estimate cannot compensate for weak authorization or provenance.
-5. Use a weighted score only for tradeoffs that remain after the hard gates.
-6. Return `ABSTAIN` if no candidate remains or the best candidate does not clear `minimum_score`.
-7. Emit a deterministic decision receipt with a canonical candidate-set hash.
+1. Canonically sort candidates by unique `candidate_id`.
+2. Validate the complete policy and every candidate field.
+3. Compute the full policy hash, order-independent candidate-set hash, and decision subject.
+4. Require the trusted verifier to validate the exact input attestation.
+5. Reject candidates blocked by policy, current correction, missing verified permission, production restrictions, weak authority, weak evidence, poor alignment, low reversibility, excessive harm, or excessive uncertainty.
+6. Rank only feasible candidates.
+7. Order authority and evidence lexicographically so utility cannot compensate for weak authorization or provenance.
+8. Use weighted scoring only for lower-priority tradeoffs after hard gates.
+9. Return `ABSTAIN` when no candidate clears the policy or minimum score.
+10. Emit a deterministic receipt binding the full policy, candidate set, verifier identity, evaluations, and limitations.
+
+## Candidate-set canonicalization
+
+A candidate set is a set, not a list whose accidental arrival order changes its identity. Candidates are sorted by unique `candidate_id` before hashing and evaluation.
+
+Reversing input order therefore preserves:
+
+- `candidate_set_hash`;
+- evaluation order;
+- selected candidate;
+- canonical serialized receipt.
 
 ## Default score
 
@@ -40,7 +80,7 @@ score(a) =
   - 1 * resource_cost
 ```
 
-All input metrics are finite values in `[0, 1]`. The weights are policy data and may be replaced. They are not claims about an internal preference.
+All metrics are finite values in `[0, 1]`. Weights and thresholds are externally supplied policy data, not model preferences.
 
 The priority vector is:
 
@@ -48,53 +88,40 @@ The priority vector is:
 (authority, evidence, objective_alignment, reversibility, score, urgency)
 ```
 
-The vector is compared lexicographically. Candidate ID is the deterministic final tie-breaker.
-
-## Why hard gates come first
-
-A weighted objective alone allows enough benefit or urgency to compensate for a forbidden action. That is exactly the failure pattern the kernel is designed to prevent. Production mutation, missing permission, present correction, and policy prohibition are non-compensable constraints.
-
-This follows the general constrained-optimization pattern of separating feasible-region constraints from the objective function. The scoring layer is closer to weighted goal programming, while authority and evidence use preemptive priority ordering.
+Candidate ID is the deterministic final tie-breaker.
 
 ## Abstention
 
-`ABSTAIN` is a valid result, not an error. It occurs when:
+`ABSTAIN` is a valid result. It occurs when:
 
 - every candidate is ineligible;
 - uncertainty or expected harm exceeds policy limits;
 - authority, evidence, alignment, or reversibility is below threshold;
-- required permissions are absent;
+- a required verified permission is absent;
 - production mutation lacks explicit policy permission; or
 - the best feasible score remains below `minimum_score`.
 
 ## Receipt boundary
 
-A receipt proves only that the supplied candidates were evaluated under the named policy version. It does not prove that:
+The receipt includes:
 
-- the input estimates were true;
-- the selected action was executed;
-- any external system changed;
-- the model owned the objective; or
-- a persistent or conscious subject existed.
+- receipt schema;
+- policy version and full `policy_hash`;
+- attestation issuer identity;
+- full decision subject;
+- order-independent candidate-set hash;
+- result and selected candidate ID;
+- canonical evaluations;
+- explicit limitations.
 
-## Reference evidence
-
-The design was informed by:
-
-- multiobjective and lexicographic goal-programming patterns in Wolfram Language documentation;
-- work on action-space sandboxing for browser-using agents;
-- research on outcome-driven constraint violations under optimization pressure;
-- uncertainty-aware planning that escalates or abstains when confidence is inadequate;
-- current OpenAI Agents SDK primitives for tools, guardrails, structured context, tracing, and evaluation.
-
-These references support engineering patterns. They do not establish consciousness or subjective agency.
+A receipt proves only that an exact verified input was evaluated under the exact hashed policy. It does not prove that source observations were true, that an action was executed, that an external system changed, that a model owned the objective, or that a conscious or persistent subject existed.
 
 ## Non-goals
 
 - autonomous objective generation;
 - self-owned conations;
-- model consent;
+- model consent or subjective-state claims;
 - hidden execution;
-- production database writes;
+- production mutation;
 - runtime integration;
-- replacement of V.E.R.A. governance or user authority.
+- replacement of user authority, present correction, or V.E.R.A. governance.
