@@ -20,9 +20,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Verify declared source commit is available
+        run: git cat-file -e b20e7309c6ded3c358dce00baa537d2fc1880004^{commit}
       - name: Validate exact source bindings
         run: python scripts/validate_r6a1_release_bindings.py
       - name: Run hostile binding tests
