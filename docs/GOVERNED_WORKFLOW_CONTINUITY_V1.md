@@ -56,7 +56,7 @@ Stopping at these boundaries is part of the behavior. It is not a failure of ini
 
 ## Publication and reconciliation
 
-The canonical V1 contract is the five-artifact `VERA_GOVERNED_WORKFLOW_CONTINUITY_V1` package named above. A concurrently added, overlapping workflow-policy artifact was not part of the reviewed package, was not validated by Identity CI, and was removed without force-pushing. Git history preserves the attempted addition and explicit removal. The active tree therefore contains one governed workflow-continuity contract, one schema, one validator, one hostile suite, and this document.
+The canonical V1 contract is the five-artifact `VERA_GOVERNED_WORKFLOW_CONTINUITY_V1` package named above. A concurrently added, overlapping workflow-policy family was not part of the reviewed package and was not validated by Identity CI. Its instance, validator, tests, `schemas/vera_identity_workflow_continuity_v1.schema.json`, and `docs/IDENTITY_WORKFLOW_CONTINUITY_V1.md` were removed without force-pushing. Git history preserves the attempted additions and explicit removals. The active tree therefore contains one governed workflow-continuity contract, one schema, one validator, one hostile suite, and this document.
 
 Unexpected head movement requires pausing and reconciling the exact tree before publication or review. Tree-equivalent history does not replace exact-head workflow evidence; a fresh immutable head must receive its own validation result.
 
