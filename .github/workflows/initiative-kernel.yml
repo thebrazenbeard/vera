@@ -1,0 +1,26 @@
+name: Initiative kernel
+
+on:
+  pull_request:
+    paths:
+      - "protocol/initiative_kernel.py"
+      - "tests/test_initiative_kernel.py"
+      - "docs/INITIATIVE_KERNEL_V0_1.md"
+      - ".github/workflows/initiative-kernel.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run initiative kernel tests
+        run: python -m unittest discover -s tests -p "test_initiative_kernel.py" -v
+      - name: Compile reference implementation
+        run: python -m py_compile protocol/initiative_kernel.py tests/test_initiative_kernel.py
