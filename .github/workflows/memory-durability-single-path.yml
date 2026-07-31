@@ -11,6 +11,7 @@ on:
       - "supabase/migrations/**memory_request*"
       - "supabase/tests/**memory_request*"
       - "supabase/tests/exercise_neutral_v3_memory_concurrent_save.sql"
+      - ".github/workflows/memory-cross-chat-contract.yml"
       - ".github/workflows/memory-durability-single-path.yml"
 
 permissions:
@@ -24,6 +25,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Require one canonical durability path
         run: |
+          set -euo pipefail
+          workflow=.github/workflows/memory-cross-chat-contract.yml
           test -f supabase/migrations/20260731003000_add_memory_request_idempotency.sql
           test -f supabase/migrations/20260731003100_correct_memory_request_status_semantics.sql
           test -f supabase/tests/validate_neutral_v3_memory_idempotency.sql
@@ -32,3 +35,11 @@ jobs:
           test ! -e supabase/migrations/20260730213300_add_neutral_v3_memory_request_durability.sql
           test ! -e supabase/tests/exercise_neutral_v3_memory_concurrent_save.sql
           test ! -e supabase/tests/validate_neutral_v3_memory_request_durability.sql
+          grep -q '20260731003000_add_memory_request_idempotency.sql' "$workflow"
+          grep -q '20260731003100_correct_memory_request_status_semantics.sql' "$workflow"
+          grep -q 'validate_neutral_v3_memory_idempotency.sql' "$workflow"
+          grep -q 'validate_neutral_v3_memory_request_status_semantics.sql' "$workflow"
+          grep -q 'verify_neutral_v3_memory_receipt_recovery.sql' "$workflow"
+          ! grep -q '20260730213300_add_neutral_v3_memory_request_durability.sql' "$workflow"
+          ! grep -q 'exercise_neutral_v3_memory_concurrent_save.sql' "$workflow"
+          ! grep -q 'validate_neutral_v3_memory_request_durability.sql' "$workflow"
