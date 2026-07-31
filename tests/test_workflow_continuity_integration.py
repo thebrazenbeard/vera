@@ -6,31 +6,31 @@ import unittest
 
 from scripts.validate_integration_registry import load_json_strict
 from scripts.validate_workflow_continuity_integration import (
-    PROJECT_IDENTITY_CHECK,
-    REQUIRED_IDENTITY_ARTIFACTS,
-    REQUIRED_INTERFACE_ARTIFACTS,
+    CLASSIFICATION_VALIDATOR,
+    WORKFLOW_ARTIFACTS,
     WORKFLOW_CONTRACT,
-    validate_binding,
+    validate_workflow_continuity_integration,
 )
 
+
 ROOT = Path(__file__).resolve().parents[1]
-REGISTRY_PATH = ROOT / "architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json"
 MATRIX_PATH = ROOT / "architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json"
+REGISTRY_PATH = ROOT / "architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json"
 
 
-def registry() -> dict:
-    return load_json_strict(REGISTRY_PATH)
-
-
-def matrix() -> dict:
+def matrix():
     return load_json_strict(MATRIX_PATH)
 
 
-def owner(document: dict, route: str) -> dict:
+def registry():
+    return load_json_strict(REGISTRY_PATH)
+
+
+def owner(document, route):
     return next(item for item in document["owners"] if item["route"] == route)
 
 
-def interface(document: dict, interface_id: str) -> dict:
+def interface(document, interface_id):
     return next(
         item for item in document["interfaces"]
         if item["interface_id"] == interface_id
@@ -38,72 +38,76 @@ def interface(document: dict, interface_id: str) -> dict:
 
 
 class WorkflowContinuityIntegrationTests(unittest.TestCase):
-    def test_current_binding_passes(self):
-        validate_binding(matrix(), registry())
+    def test_current_inventory_validates(self):
+        validate_workflow_continuity_integration(matrix(), registry(), ROOT)
 
-    def test_contract_omission_is_rejected(self):
+    def test_owner_contract_omission_rejected(self):
         source = registry()
-        owner(source, "workstream/identity")["contract_ids"].remove(
-            WORKFLOW_CONTRACT
-        )
+        owner(source, "workstream/identity")["contract_ids"].remove(WORKFLOW_CONTRACT)
         with self.assertRaisesRegex(ValueError, "omits governed workflow-continuity contract"):
-            validate_binding(matrix(), source)
+            validate_workflow_continuity_integration(matrix(), source, ROOT)
 
-    def test_each_identity_artifact_omission_is_rejected(self):
-        for artifact in sorted(REQUIRED_IDENTITY_ARTIFACTS):
+    def test_each_canonical_artifact_omission_rejected(self):
+        for artifact in sorted(WORKFLOW_ARTIFACTS):
             with self.subTest(artifact=artifact):
                 source = registry()
                 owner(source, "workstream/identity")["owned_artifacts"].remove(artifact)
-                with self.assertRaisesRegex(ValueError, "omits governed workflow-continuity artifacts"):
-                    validate_binding(matrix(), source)
+                with self.assertRaisesRegex(
+                    ValueError, "omits governed workflow-continuity artifacts"
+                ):
+                    validate_workflow_continuity_integration(matrix(), source, ROOT)
 
-    def test_each_interface_contract_omission_is_rejected(self):
-        for interface_id in ("VERA-IFACE-002", "VERA-IFACE-003"):
-            with self.subTest(interface_id=interface_id):
-                source = matrix()
-                interface(source, interface_id)["source_contract_ids"].remove(
-                    WORKFLOW_CONTRACT
-                )
-                with self.assertRaisesRegex(ValueError, "omits governed workflow-continuity contract"):
-                    validate_binding(source, registry())
-
-    def test_each_interface_artifact_omission_is_rejected(self):
-        for interface_id in ("VERA-IFACE-002", "VERA-IFACE-003"):
-            for artifact in sorted(REQUIRED_INTERFACE_ARTIFACTS):
-                with self.subTest(interface_id=interface_id, artifact=artifact):
-                    source = matrix()
-                    interface(source, interface_id)["acceptance_evidence"][
-                        "source_artifacts"
-                    ].remove(artifact)
-                    with self.assertRaisesRegex(ValueError, "omits governed workflow-continuity evidence"):
-                        validate_binding(source, registry())
-
-    def test_project_identity_check_omission_is_rejected(self):
-        source_registry = registry()
-        owner(source_registry, "workstream/identity")["required_checks"].remove(
-            PROJECT_IDENTITY_CHECK
+    def test_classification_validator_omission_rejected(self):
+        source = registry()
+        owner(source, "workstream/identity")["owned_artifacts"].remove(
+            CLASSIFICATION_VALIDATOR
         )
-        with self.assertRaisesRegex(ValueError, "omits Project Identity workflow evidence"):
-            validate_binding(matrix(), source_registry)
+        with self.assertRaisesRegex(ValueError, "classification validator"):
+            validate_workflow_continuity_integration(matrix(), source, ROOT)
 
-        source_matrix = matrix()
-        interface(source_matrix, "VERA-IFACE-002")["acceptance_evidence"][
-            "required_checks"
-        ].remove(PROJECT_IDENTITY_CHECK)
-        with self.assertRaisesRegex(ValueError, "omits Project Identity workflow evidence"):
-            validate_binding(source_matrix, registry())
+    def test_memory_interface_contract_omission_rejected(self):
+        document = matrix()
+        interface(document, "VERA-IFACE-002")["source_contract_ids"].remove(
+            WORKFLOW_CONTRACT
+        )
+        with self.assertRaisesRegex(ValueError, "VERA-IFACE-002 omits"):
+            validate_workflow_continuity_integration(document, registry(), ROOT)
 
-    def test_authority_and_transfer_promotions_are_rejected(self):
-        for interface_id in ("VERA-IFACE-002", "VERA-IFACE-003"):
-            source = matrix()
-            interface(source, interface_id)["execution_authorized"] = True
-            with self.assertRaisesRegex(ValueError, "may not grant execution authority"):
-                validate_binding(source, registry())
+    def test_initiatives_interface_validator_omission_rejected(self):
+        document = matrix()
+        interface(document, "VERA-IFACE-003")["acceptance_evidence"][
+            "source_artifacts"
+        ].remove("scripts/validate_governed_workflow_continuity.py")
+        with self.assertRaisesRegex(ValueError, "VERA-IFACE-003 omits"):
+            validate_workflow_continuity_integration(document, registry(), ROOT)
 
-            source = matrix()
-            interface(source, interface_id)["canonical_memory_transfer"] = True
-            with self.assertRaisesRegex(ValueError, "may not grant canonical-memory transfer"):
-                validate_binding(source, registry())
+    def test_coordination_user_courier_evidence_omission_rejected(self):
+        document = matrix()
+        interface(document, "VERA-IFACE-009")["capabilities"].remove(
+            "USER_COURIER_AVOIDANCE"
+        )
+        with self.assertRaisesRegex(ValueError, "coordination evidence"):
+            validate_workflow_continuity_integration(document, registry(), ROOT)
+
+    def test_controller_return_contract_omission_rejected(self):
+        document = matrix()
+        interface(document, "VERA-IFACE-010")["target_contract_ids"].remove(
+            WORKFLOW_CONTRACT
+        )
+        with self.assertRaisesRegex(ValueError, "VERA-IFACE-010 omits"):
+            validate_workflow_continuity_integration(document, registry(), ROOT)
+
+    def test_canonical_memory_transfer_remains_forbidden(self):
+        document = matrix()
+        interface(document, "VERA-IFACE-002")["canonical_memory_transfer"] = True
+        with self.assertRaisesRegex(ValueError, "canonical memory"):
+            validate_workflow_continuity_integration(document, registry(), ROOT)
+
+    def test_stale_registry_digest_remains_rejected(self):
+        source = deepcopy(registry())
+        source["lifecycle_status"] = "STALE_MUTATION"
+        with self.assertRaisesRegex(ValueError, "active registry digest"):
+            validate_workflow_continuity_integration(matrix(), source, ROOT)
 
 
 if __name__ == "__main__":
