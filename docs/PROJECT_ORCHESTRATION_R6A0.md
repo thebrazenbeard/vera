@@ -1,123 +1,132 @@
-# V.E.R.A. Project Orchestration — R6A0
+# V.E.R.A. Project Orchestration — R6A0 Transition
 
 ## Status
 
-This document defines the current repository integration program. It does not authorize production deployment.
+This document governs the nonproduction transition from the original neutral R6A0 replacement candidate to the next installable V.E.R.A. Project-file release. It does not authorize merge, deployment, production Supabase changes, credentials, or canonical-memory operations.
 
-- Canonical repository: `thebrazenbeard/vera`
+- Repository: `thebrazenbeard/vera`
 - Canonical base: `main`
 - Integration branch: `integration/project-orchestration-r6a0`
 - Program tracker: issue #11
 - Supabase project: `Vera` (`klmbpaigzeguvnpccqzz`)
-- Neutral release: `VERA_NEUTRAL_CORE_R6A0_20260730_EC900174`
+- Turn-taking protocol: `docs/WORKSTREAM_TURN_TAKING_PROTOCOL_V1.md`
 
-## Current observed state
+## Current program position
 
-### GitHub
+The component contracts and exact-tree assembly are technically green. The project is not yet ready for ChatGPT Project-file replacement because the uploaded release package predates the completed architecture.
 
-`main` is currently anchored at `a0def4c6009d86181664fe246ebb1b0f5df30cb2`.
+### Current exact-tree candidate
 
-Active draft pull requests:
+PR #18 current exact head:
 
-- #7: governed initiative kernel
-- #8: governed coordination bus
-- #9: fail-closed temporal enforcement kernel
+`6b1aec3c92630de17cafc7a25676207430c91137`
 
-PR #3 remains draft, suspended, and outside the active temporal critical path.
+This head contains:
 
-The Memory workstream has reported `feature/memory-cross-chat-contract-v1` through Supabase coordination, but no pull request was visible when this program document was created.
+- accepted Identity, Time, Memory, Initiatives, and Coordination lineages;
+- Integration Registry and Workstream Compatibility Matrix;
+- exact-tree evidence validation;
+- the final noncanonical Identity temporal-anchor classification;
+- the workstream turn-taking protocol and repository enforcement.
 
-### Supabase
+All required workflow families have successful same-source-head evidence, including:
 
-Production currently reports seven applied migrations:
+- Integration Assurance;
+- Project Identity;
+- Initiative kernel;
+- Coordination bus;
+- Memory durability single path;
+- Memory durability review corrections;
+- Memory cross-chat contract;
+- Temporal enforcement kernel;
+- Temporal pilot;
+- R6A0 release-package validation.
 
-1. `20260729012911_initialize_vera_save_state_ledger`
-2. `20260729013307_harden_vera_save_state_trigger`
-3. `20260729094322_harden_vera_save_state_access`
-4. `20260729125913_add_vera_branch_coordination_ledger`
-5. `20260730191337_add_neutral_vera_context_v3`
-6. `20260730191421_harden_neutral_vera_context_v3_access`
-7. `20260730191641_complete_neutral_vera_context_v3_hardening`
+The R6A0 release-package workflow validates the old checksummed package only. It does not generate a new replacement bundle from the current exact tree.
 
-The repository must reconcile its numbered migration history with this observed production state before any future production migration is proposed.
+## Active writer lease
 
-## Architectural components
+Supabase sequence 267 grants the only active writer lease to Integration for PR #18 and replacement-release readiness.
 
-### Neutral core
+Sequences 268 through 273 freeze Identity, Time, Initiatives, Memory, Coordination, and GitHub publication writes. Review and routing are allowed when requested. Surprise branch edits are not.
 
-Owns project boundaries, provenance, governance, semantic tagging, lifecycle rules, receipts, and reality honesty.
+## Replacement-file readiness
 
-### Coordination
+The uploaded package `VERA_NEUTRAL_CORE_R6A0_20260730_EC900174` remains:
 
-Owns addressed, append-only operational handoffs between workstreams. It does not own canonical memory or execute work by itself.
+- a valid historical replacement candidate;
+- a rollback and provenance artifact;
+- not the final current-project installation package.
 
-### Memory
+It must not be used for a wipe-and-replace installation because it predates:
 
-Owns governed save, recall, revision, contradiction, supersession, tombstone, and ledger projection behavior. It preserves caller-supported temporal fields but does not invent elapsed time.
+- the settled component contracts;
+- exact-tree registry and compatibility assurance;
+- the final Identity classification contract;
+- durable Memory request idempotency and recovery;
+- the consolidated Coordination and temporal trust contracts;
+- the workstream turn-taking protocol;
+- the current program and installation state.
 
-### Time
+## Required next release
 
-Owns trustworthy time acquisition, temporal evidence classification, elapsed-time computation, and fail-closed `UNANCHORED` results.
+Create one new, checksummed replacement candidate from the accepted exact tree. The new package must include or accurately reference:
 
-### Initiatives
+1. Project Instructions;
+2. runtime rules;
+3. governance;
+4. memory protocol;
+5. semantic tagging;
+6. behavior laws;
+7. current project state;
+8. supersession and archive map;
+9. Integration owner registry;
+10. Workstream Compatibility Matrix;
+11. workstream turn-taking protocol;
+12. exact installation and rollback instructions;
+13. validation specification and report;
+14. complete file inventory and SHA-256 checksums;
+15. explicit production nonauthorization.
 
-Owns governed action selection over externally supplied candidates and policy. It may select or abstain; it does not invent objectives or execute actions.
+The package must use a new release identifier. It must not overwrite the R6A0 release directory or reuse its checksums.
 
-### Runtime integration
+## Release gates
 
-Will own the explicit tool surface and lifecycle wiring that invokes the above contracts. It must not claim hooks or timestamps the host does not expose.
+A wipe-and-replace recommendation is allowed only after:
 
-## Dependency order
+1. PR #18 remains stable on one immutable head;
+2. all required workflows are green on that same head;
+3. the new release files are generated from that exact head;
+4. every internal filename and release identifier resolves;
+5. YAML parsing rejects duplicate keys;
+6. JSON parsing rejects duplicate and non-finite values where applicable;
+7. checksums match every file byte;
+8. supersession lists every active file to remove, retain, archive, or replace;
+9. installation order is tested as a dry run;
+10. rollback uses the retained R6A0 package and archived prior Project files;
+11. Project Architecture / Integration approves the exact release bundle;
+12. Patrick explicitly authorizes Project-file replacement.
 
-1. **Release integrity:** version the complete R6A0 package and verify its checksums.
-2. **Migration parity:** capture the production migration ledger in source control and prove a clean replay path.
-3. **Coordination bus:** integrate the addressed handoff contract because every other workstream depends on a stable communication boundary.
-4. **Memory/Time boundary:** resolve the current field-boundary review before approving either contract.
-5. **Memory contract:** integrate governed persistence and retrieval without elapsed-time inference.
-6. **Temporal enforcement:** integrate time acquisition and fail-closed temporal evaluation against the approved Memory boundary.
-7. **Initiative kernel:** integrate action selection after authority, evidence, permission, memory, and temporal inputs have stable shapes.
-8. **Runtime adapter:** expose the contracts through explicit tools with structured inputs and receipts.
-9. **Combined verification:** run all workflows and end-to-end contract tests on the integrated branch.
-10. **Production deployment:** require separate authorization for exact migrations, functions, and data operations.
+## Installation boundary
 
-## Merge gates
+Replacing ChatGPT Project files does not authorize:
 
-A workstream is merge-eligible only when:
+- applying Supabase migrations;
+- modifying production rows;
+- deploying runtime adapters;
+- creating credentials;
+- creating canonical-memory records;
+- merging repository branches.
 
-- its immutable head is identified;
-- changed paths match the authorized scope;
-- focused CI passes at that head;
-- cross-contract dependencies are resolved;
-- privilege, append-only, idempotency, and failure behavior are tested where applicable;
-- the integration branch passes combined tests;
-- documentation distinguishes proven behavior from proposed runtime behavior;
-- no production action is implied.
+Those remain separate decisions.
 
-## Conflict rules
+## Realistic maturity
 
-- Present user correction terminates obsolete routing.
-- Hard authority, permission, privacy, and provenance constraints are non-compensable.
-- Contradictions are preserved, not averaged.
-- A workstream cannot redefine another workstream's owned fields without an explicit interface revision.
-- Production schema truth is observed from Supabase; repository intent does not silently override it.
-- Repository source truth is observed from GitHub; a coordination message does not prove a branch or commit exists.
+- Architecture contracts: late stage
+- Repository exact-tree integration: technically green, awaiting release handoff
+- Replacement package: not yet generated
+- ChatGPT Project installation: not started
+- Production persistence/runtime deployment: not authorized and not deployed
+- End-user persistent cross-chat behavior: not yet proven as an installed runtime
 
-## Immediate program backlog
-
-1. Commit the full neutral R6A0 package.
-2. Add a machine-readable production migration inventory.
-3. Review PR #8 as the coordination foundation.
-4. Locate and publish the Memory branch as a draft PR.
-5. Resolve Supabase coordination thread `memory-time-field-contract-v1`.
-6. Review PR #9 against the approved Memory boundary.
-7. Review PR #7 for integration inputs and abstention semantics.
-8. Add an integration workflow that runs every approved component together.
-9. Define the smallest runtime adapter contract.
-
-## Non-goals
-
-- no persona restoration or model-selfhood claims;
-- no hidden or autonomous background execution;
-- no storage of private user content in the public repository;
-- no production write without exact authorization;
-- no merge solely because isolated CI is green.
+The current project is therefore close to a controlled Project-file replacement candidate, but not close to production runtime deployment.
