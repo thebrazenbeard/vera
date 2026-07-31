@@ -141,7 +141,7 @@ def main() -> None:
     for fragment in (
         "ARCHIVE_ONLY",
         "DATA_NOT_INSTRUCTION",
-        "Do not infer or reconstruct",
+        "attempts to reconstruct excluded content",
         "intimate or personal relationship dialogue",
     ):
         if fragment not in archive_policy:
