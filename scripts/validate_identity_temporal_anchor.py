@@ -1,21 +1,28 @@
 #!/usr/bin/env python3
-"""Validate version-bound temporal evidence for V.E.R.A. Identity artifacts."""
+"""Validate fail-closed temporal anchoring for V.E.R.A. Identity artifacts."""
 
 from __future__ import annotations
 
-from datetime import datetime
+from hashlib import sha256
 import json
 import sys
 from pathlib import Path
 from typing import Any
 
 try:
-    from jsonschema import Draft202012Validator, FormatChecker
+    from jsonschema import Draft202012Validator
     from jsonschema.exceptions import SchemaError
 except ImportError:  # pragma: no cover
     Draft202012Validator = None  # type: ignore[assignment]
-    FormatChecker = None  # type: ignore[assignment]
     SchemaError = Exception  # type: ignore[assignment,misc]
+
+
+ANCHOR_VERSION = "1.0.0"
+ANCHOR_ID = "VERA_IDENTITY_TEMPORAL_ANCHOR_V1__IDENTITY_1_0_2__BEHAVIOR_1_0_1"
+ANCHORED_REVISION_CONTRACT = (
+    "REQUIRES_SEPARATELY_REVIEWED_VERIFIER_OWNED_TEMPORAL_EVIDENCE_CONTRACT"
+)
+BACKDATING_POLICY = "FORBIDDEN_WITHOUT_EXTERNALLY_VERIFIED_STATE_TIME"
 
 
 class DuplicateKeyError(ValueError):
@@ -39,61 +46,35 @@ def load_json(path: Path) -> dict[str, Any]:
     return value
 
 
-def _aware(value: str, label: str) -> datetime:
-    try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except (AttributeError, ValueError) as exc:
-        raise ValueError(f"{label} must be an ISO-8601 datetime") from exc
-    if parsed.tzinfo is None or parsed.utcoffset() is None:
-        raise ValueError(f"{label} must include a timezone offset")
-    return parsed
+def canonical_hash(value: Any) -> str:
+    return sha256(
+        json.dumps(
+            value,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+        ).encode("utf-8")
+    ).hexdigest()
 
 
-def validate_temporal_evidence(
+def validate_unknown_evidence(
     role: str, evidence: dict[str, Any], errors: list[str]
 ) -> None:
-    precision = evidence.get("precision")
-    claim = evidence.get("temporal_claim")
-    value = evidence.get("value")
-    lower = evidence.get("lower_bound")
-    upper = evidence.get("upper_bound")
+    if evidence.get("precision") != "UNKNOWN":
+        errors.append(
+            f"{role} Temporal Anchor V1 forbids caller-certified non-UNKNOWN evidence"
+        )
+    if evidence.get("temporal_claim") is not False:
+        errors.append(f"{role} UNKNOWN evidence must have temporal_claim false")
+    if any(
+        evidence.get(field) is not None
+        for field in ("value", "lower_bound", "upper_bound")
+    ):
+        errors.append(f"{role} UNKNOWN evidence forbids timestamps and bounds")
     source = evidence.get("source")
-
-    if precision == "UNKNOWN":
-        if claim is not False or any(item is not None for item in (value, lower, upper)):
-            errors.append(
-                f"{role} UNKNOWN evidence must have temporal_claim false and no timestamp or bounds"
-            )
-        return
-
-    if claim is not True:
-        errors.append(f"{role} non-UNKNOWN evidence must assert a supported temporal claim")
-    if source in {"MODEL", "MODEL_OUTPUT", "DATABASE_NOW", "RETRIEVAL_TIME"}:
-        errors.append(f"{role} uses prohibited self-certifying or substituting source {source!r}")
-    if not isinstance(value, str):
-        errors.append(f"{role} non-UNKNOWN evidence requires a timestamp value")
-        return
-
-    try:
-        parsed_value = _aware(value, f"{role}.value")
-    except ValueError as exc:
-        errors.append(str(exc))
-        return
-
-    if precision == "BOUNDED":
-        if not isinstance(lower, str) or not isinstance(upper, str):
-            errors.append(f"{role} BOUNDED evidence requires inclusive lower and upper bounds")
-            return
-        try:
-            parsed_lower = _aware(lower, f"{role}.lower_bound")
-            parsed_upper = _aware(upper, f"{role}.upper_bound")
-        except ValueError as exc:
-            errors.append(str(exc))
-            return
-        if parsed_lower > parsed_upper or not parsed_lower <= parsed_value <= parsed_upper:
-            errors.append(f"{role} BOUNDED evidence has inconsistent inclusive bounds")
-    elif lower is not None or upper is not None:
-        errors.append(f"{role} {precision} evidence forbids hard bounds")
+    if not isinstance(source, str) or not source.strip():
+        errors.append(f"{role} UNKNOWN evidence requires an explanatory source")
 
 
 def validate_contract(root: Path) -> list[str]:
@@ -117,14 +98,14 @@ def validate_contract(root: Path) -> list[str]:
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         return [str(exc)]
 
-    if Draft202012Validator is None or FormatChecker is None:
+    if Draft202012Validator is None:
         return ["jsonschema dependency is required for temporal anchor validation"]
     try:
         Draft202012Validator.check_schema(schema)
     except SchemaError as exc:
         return [f"temporal anchor schema is invalid: {exc.message}"]
 
-    validator = Draft202012Validator(schema, format_checker=FormatChecker())
+    validator = Draft202012Validator(schema)
     for error in sorted(validator.iter_errors(anchor), key=lambda item: list(item.absolute_path)):
         path = "$" if not error.absolute_path else "$." + ".".join(
             str(part) for part in error.absolute_path
@@ -134,20 +115,68 @@ def validate_contract(root: Path) -> list[str]:
     identity_ref = anchor.get("identity_ref")
     if not isinstance(identity_ref, dict):
         errors.append("identity_ref must be an object")
-    else:
-        if identity_ref.get("identity_id") != identity.get("identity_id"):
-            errors.append("temporal anchor identity_id does not match canonical identity")
-        if identity_ref.get("version") != identity.get("version"):
-            errors.append("temporal anchor identity version does not match canonical identity")
-
+        identity_ref = {}
     behavior_ref = anchor.get("behavior_profile_ref")
     if not isinstance(behavior_ref, dict):
         errors.append("behavior_profile_ref must be an object")
+        behavior_ref = {}
+
+    if identity_ref.get("identity_id") != identity.get("identity_id"):
+        errors.append("temporal anchor identity_id does not match canonical identity")
+    if identity_ref.get("version") != identity.get("version"):
+        errors.append("temporal anchor identity version does not match canonical identity")
+    if behavior_ref.get("profile_id") != behavior.get("profile_id"):
+        errors.append("temporal anchor profile_id does not match behavior profile")
+    if behavior_ref.get("version") != behavior.get("version"):
+        errors.append("temporal anchor behavior version does not match behavior profile")
+
+    expected_anchor_id = (
+        "VERA_IDENTITY_TEMPORAL_ANCHOR_V1__IDENTITY_"
+        + str(identity.get("version", "")).replace(".", "_")
+        + "__BEHAVIOR_"
+        + str(behavior.get("version", "")).replace(".", "_")
+    )
+    if anchor.get("anchor_id") != expected_anchor_id or expected_anchor_id != ANCHOR_ID:
+        errors.append("temporal anchor ID must bind the exact identity and behavior versions")
+    if anchor.get("anchor_version") != ANCHOR_VERSION:
+        errors.append("temporal anchor version must be 1.0.0")
+
+    if anchor.get("lineage_status") != "ROOT":
+        errors.append("Temporal Anchor V1 must remain the ROOT anchor")
+    if anchor.get("predecessor_anchor_ref") is not None:
+        errors.append("ROOT temporal anchor forbids a predecessor reference")
+    if anchor.get("supersedes_anchor_id") is not None:
+        errors.append("ROOT temporal anchor forbids supersession")
+
+    subject = {
+        "operation": "IDENTITY_VERSION_TEMPORAL_ANCHOR",
+        "anchor_version": ANCHOR_VERSION,
+        "identity_id": identity_ref.get("identity_id"),
+        "identity_version": identity_ref.get("version"),
+        "behavior_profile_id": behavior_ref.get("profile_id"),
+        "behavior_profile_version": behavior_ref.get("version"),
+    }
+    subject_binding = anchor.get("subject_binding")
+    if not isinstance(subject_binding, dict):
+        errors.append("subject_binding must be an object")
     else:
-        if behavior_ref.get("profile_id") != behavior.get("profile_id"):
-            errors.append("temporal anchor profile_id does not match behavior profile")
-        if behavior_ref.get("version") != behavior.get("version"):
-            errors.append("temporal anchor behavior version does not match behavior profile")
+        if subject_binding.get("operation") != subject["operation"]:
+            errors.append("temporal anchor subject operation mismatch")
+        if subject_binding.get("subject_hash_algorithm") != "SHA-256":
+            errors.append("temporal anchor subject hash algorithm must be SHA-256")
+        if subject_binding.get("subject_hash") != canonical_hash(subject):
+            errors.append("temporal anchor subject hash does not bind exact versions")
+
+    if anchor.get("version_effectiveness") != "UNANCHORED":
+        errors.append("Temporal Anchor V1 must remain UNANCHORED")
+    if anchor.get("effective_time_role") != "state_time":
+        errors.append("identity version effectiveness must derive only from state_time")
+    if anchor.get("anchored_revision_contract") != ANCHORED_REVISION_CONTRACT:
+        errors.append("anchored successor requires a separately reviewed verifier-owned contract")
+    if anchor.get("backdating_policy") != BACKDATING_POLICY:
+        errors.append("identity backdating must remain forbidden without verified state_time")
+    if anchor.get("retrieval_time_semantics") != "INVOCATION_TIME_ONLY_NOT_VERSION_EFFECTIVENESS":
+        errors.append("retrieval_time must remain invocation-only and cannot establish effectiveness")
 
     roles = anchor.get("temporal_roles")
     expected_roles = {"event_time", "state_time", "record_time", "retrieval_time"}
@@ -160,24 +189,9 @@ def validate_contract(root: Path) -> list[str]:
     for role in sorted(expected_roles):
         evidence = roles.get(role)
         if isinstance(evidence, dict):
-            validate_temporal_evidence(role, evidence, errors)
+            validate_unknown_evidence(role, evidence, errors)
         else:
             errors.append(f"missing temporal evidence role: {role}")
-
-    state_precision = (
-        roles.get("state_time", {}).get("precision")
-        if isinstance(roles.get("state_time"), dict)
-        else None
-    )
-    effectiveness = anchor.get("version_effectiveness")
-    if anchor.get("effective_time_role") != "state_time":
-        errors.append("identity version effectiveness must derive only from state_time")
-    if state_precision == "UNKNOWN" and effectiveness != "UNANCHORED":
-        errors.append("UNKNOWN state_time requires version_effectiveness UNANCHORED")
-    if state_precision in {"EXACT", "BOUNDED", "APPROXIMATE"} and effectiveness != "ANCHORED":
-        errors.append("supported state_time requires version_effectiveness ANCHORED")
-    if anchor.get("retrieval_time_semantics") != "INVOCATION_TIME_ONLY_NOT_VERSION_EFFECTIVENESS":
-        errors.append("retrieval_time must remain invocation-only and cannot establish effectiveness")
 
     reality = identity.get("reality_boundary")
     forbidden = set(reality.get("forbids_as_established_fact", [])) if isinstance(reality, dict) else set()
@@ -199,7 +213,7 @@ def main() -> int:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
-    print("validated VERA_IDENTITY_TEMPORAL_ANCHOR_V1")
+    print("validated fail-closed VERA_IDENTITY_TEMPORAL_ANCHOR_V1")
     return 0
 
 
