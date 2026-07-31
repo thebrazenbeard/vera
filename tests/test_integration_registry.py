@@ -19,6 +19,10 @@ def valid_registry():
     return load_json_strict(FIXTURES / "valid.json")
 
 
+def owner(registry, route):
+    return next(item for item in registry["owners"] if item["route"] == route)
+
+
 class IntegrationRegistryTests(unittest.TestCase):
     def test_valid_registry_passes(self):
         registry = load_json_strict(REGISTRY)
@@ -34,8 +38,8 @@ class IntegrationRegistryTests(unittest.TestCase):
         registry = valid_registry()
         attack = load_json_strict(FIXTURES / "missing-owner.json")
         registry["owners"] = [
-            owner for owner in registry["owners"]
-            if owner["route"] != attack["remove_route"]
+            item for item in registry["owners"]
+            if item["route"] != attack["remove_route"]
         ]
         with self.assertRaisesRegex(ValueError, "required set"):
             validate_semantics(registry)
@@ -55,38 +59,29 @@ class IntegrationRegistryTests(unittest.TestCase):
 
     def test_coordination_canonical_memory_eligibility_rejected(self):
         registry = valid_registry()
-        coordination = next(
-            owner for owner in registry["owners"]
-            if owner["route"] == "workstream/coordination"
-        )
-        coordination["canonical_memory_eligible"] = True
+        owner(registry, "workstream/coordination")[
+            "canonical_memory_eligible"
+        ] = True
         with self.assertRaisesRegex(ValueError, "operational and non-memory"):
             validate_semantics(registry)
 
     def test_initiatives_execution_authority_rejected(self):
         registry = valid_registry()
-        initiatives = next(
-            owner for owner in registry["owners"]
-            if owner["route"] == "workstream/initiatives"
-        )
-        initiatives["execution_authorized"] = True
+        owner(registry, "workstream/initiatives")["execution_authorized"] = True
         with self.assertRaisesRegex(ValueError, "execution authority"):
             validate_semantics(registry)
 
     def test_ci_cannot_supply_merge_or_production_authority(self):
         attack = load_json_strict(FIXTURES / "ci-implies-authority.json")
         registry = valid_registry()
-        owner = next(
-            item for item in registry["owners"] if item["route"] == attack["route"]
-        )
-        owner["merge_authority"] = attack["merge_authority"]
+        target = owner(registry, attack["route"])
+        target["merge_authority"] = attack["merge_authority"]
         with self.assertRaisesRegex(ValueError, "merge authority"):
             validate_semantics(registry)
+
         registry = valid_registry()
-        owner = next(
-            item for item in registry["owners"] if item["route"] == attack["route"]
-        )
-        owner["production_authority"] = attack["production_authority"]
+        target = owner(registry, attack["route"])
+        target["production_authority"] = attack["production_authority"]
         with self.assertRaisesRegex(ValueError, "production authority"):
             validate_semantics(registry)
 
@@ -102,6 +97,52 @@ class IntegrationRegistryTests(unittest.TestCase):
         registry = valid_registry()
         registry["owners"][0]["authority_owner"] = "MODEL_SELF_ASSERTION"
         with self.assertRaisesRegex(ValueError, "declared workstream route"):
+            validate_semantics(registry)
+
+    def test_false_memory_artifact_path_rejected(self):
+        registry = valid_registry()
+        memory = owner(registry, "workstream/memory")
+        memory["owned_artifacts"][0] = (
+            "supabase/drafts/20260730_memory_cross_chat_contract_v1.sql"
+        )
+        with self.assertRaisesRegex(ValueError, "canonical source intent"):
+            validate_semantics(registry)
+
+    def test_false_coordination_artifact_path_rejected(self):
+        registry = valid_registry()
+        coordination = owner(registry, "workstream/coordination")
+        coordination["owned_artifacts"][0] = "protocol/coordination_bus.py"
+        with self.assertRaisesRegex(ValueError, "canonical source intent"):
+            validate_semantics(registry)
+
+    def test_memory_workflow_name_is_case_exact(self):
+        registry = valid_registry()
+        memory = owner(registry, "workstream/memory")
+        memory["required_checks"][0] = "Memory Cross-Chat Contract"
+        with self.assertRaisesRegex(ValueError, "canonical source intent"):
+            validate_semantics(registry)
+
+    def test_coordination_workflow_name_is_case_exact(self):
+        registry = valid_registry()
+        coordination = owner(registry, "workstream/coordination")
+        coordination["required_checks"][0] = "Coordination Bus"
+        with self.assertRaisesRegex(ValueError, "canonical source intent"):
+            validate_semantics(registry)
+
+    def test_cross_owner_artifact_collision_rejected(self):
+        registry = valid_registry()
+        identity = owner(registry, "workstream/identity")
+        integration = owner(registry, "workstream/integration")
+        integration["owned_artifacts"][0] = identity["owned_artifacts"][0]
+        with self.assertRaisesRegex(ValueError, "owned_artifact collision"):
+            validate_semantics(registry)
+
+    def test_cross_owner_contract_collision_rejected(self):
+        registry = valid_registry()
+        identity = owner(registry, "workstream/identity")
+        integration = owner(registry, "workstream/integration")
+        integration["contract_ids"][0] = identity["contract_ids"][0]
+        with self.assertRaisesRegex(ValueError, "contract_id collision"):
             validate_semantics(registry)
 
 
