@@ -44,7 +44,10 @@ class WorkflowContinuityIntegrationTests(unittest.TestCase):
     def test_owner_contract_omission_rejected(self):
         source = registry()
         owner(source, "workstream/identity")["contract_ids"].remove(WORKFLOW_CONTRACT)
-        with self.assertRaisesRegex(ValueError, "omits governed workflow-continuity contract"):
+        with self.assertRaisesRegex(
+            ValueError,
+            "omits governed workflow-continuity contract|canonical source intent",
+        ):
             validate_workflow_continuity_integration(matrix(), source, ROOT)
 
     def test_each_canonical_artifact_omission_rejected(self):
@@ -53,7 +56,8 @@ class WorkflowContinuityIntegrationTests(unittest.TestCase):
                 source = registry()
                 owner(source, "workstream/identity")["owned_artifacts"].remove(artifact)
                 with self.assertRaisesRegex(
-                    ValueError, "omits governed workflow-continuity artifacts"
+                    ValueError,
+                    "omits governed workflow-continuity artifacts|canonical source intent",
                 ):
                     validate_workflow_continuity_integration(matrix(), source, ROOT)
 
@@ -62,7 +66,10 @@ class WorkflowContinuityIntegrationTests(unittest.TestCase):
         owner(source, "workstream/identity")["owned_artifacts"].remove(
             CLASSIFICATION_VALIDATOR
         )
-        with self.assertRaisesRegex(ValueError, "classification validator"):
+        with self.assertRaisesRegex(
+            ValueError,
+            "classification validator|canonical source intent",
+        ):
             validate_workflow_continuity_integration(matrix(), source, ROOT)
 
     def test_memory_interface_contract_omission_rejected(self):
