@@ -6,7 +6,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.validate_r6a1_release_bindings import ROOT, load_binding, validate
+from scripts.validate_r6a1_release_bindings import (
+    ROOT,
+    git_blob_sha,
+    load_binding,
+    validate,
+)
 
 
 class R6A1ReleaseBindingTests(unittest.TestCase):
@@ -78,27 +83,39 @@ class R6A1ReleaseBindingTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "invalid binding path"):
             validate(changed)
 
+    def test_every_role_requires_blob_binding(self) -> None:
+        changed = copy.deepcopy(self.valid)
+        changed["bindings"][0].pop("git_blob_sha")
+        with self.assertRaisesRegex(ValueError, "valid Git blob SHA"):
+            validate(changed)
+
     def test_declared_blob_substitution_rejected(self) -> None:
         changed = copy.deepcopy(self.valid)
-        registry = next(
-            item for item in changed["bindings"] if item["role"] == "integration_registry"
-        )
-        registry["git_blob_sha"] = "0" * 40
+        changed["bindings"][0]["git_blob_sha"] = "0" * 40
         with self.assertRaisesRegex(ValueError, "Git blob SHA"):
             validate(changed)
 
     def test_bound_byte_mutation_rejected(self) -> None:
         temporary, root = self.copy_bound_tree()
         try:
-            compatibility = next(
-                item
-                for item in self.valid["bindings"]
-                if item["role"] == "workstream_compatibility"
-            )
-            path = root / compatibility["path"]
+            entry = self.valid["bindings"][0]
+            path = root / entry["path"]
             path.write_text(path.read_text(encoding="utf-8") + "\n", encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "Git blob SHA"):
+            with self.assertRaisesRegex(ValueError, "candidate bytes"):
                 validate(copy.deepcopy(self.valid), root=root)
+        finally:
+            temporary.cleanup()
+
+    def test_candidate_and_digest_cannot_collude_against_source_commit(self) -> None:
+        temporary, root = self.copy_bound_tree()
+        try:
+            changed = copy.deepcopy(self.valid)
+            entry = changed["bindings"][0]
+            path = root / entry["path"]
+            path.write_text(path.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+            entry["git_blob_sha"] = git_blob_sha(path)
+            with self.assertRaisesRegex(ValueError, "declared source commit bytes"):
+                validate(changed, root=root)
         finally:
             temporary.cleanup()
 
@@ -112,8 +129,8 @@ class R6A1ReleaseBindingTests(unittest.TestCase):
             validate(changed)
 
     def test_duplicate_json_key_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "duplicate.json"
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "duplicate.json"
             path.write_text(
                 '{"release_id":"a","release_id":"b"}', encoding="utf-8"
             )
@@ -121,8 +138,8 @@ class R6A1ReleaseBindingTests(unittest.TestCase):
                 load_binding(path)
 
     def test_non_finite_json_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "nan.json"
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "nan.json"
             path.write_text('{"value":NaN}', encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "non-finite"):
                 load_binding(path)
