@@ -6,10 +6,14 @@ on:
       - "architecture/identity/**"
       - "docs/PROJECT_IDENTITY_V1.md"
       - "docs/IDENTITY_INTEGRATION_V1.md"
+      - "docs/IDENTITY_TEMPORAL_ANCHOR_V1.md"
       - "schemas/vera_project_identity_v1.schema.json"
       - "schemas/vera_behavior_profile_v1.schema.json"
+      - "schemas/vera_identity_temporal_anchor_v1.schema.json"
       - "scripts/validate_project_identity.py"
+      - "scripts/validate_identity_temporal_anchor.py"
       - "tests/test_project_identity.py"
+      - "tests/test_identity_temporal_anchor.py"
       - ".github/workflows/project-identity.yml"
   push:
     branches:
@@ -18,10 +22,14 @@ on:
       - "architecture/identity/**"
       - "docs/PROJECT_IDENTITY_V1.md"
       - "docs/IDENTITY_INTEGRATION_V1.md"
+      - "docs/IDENTITY_TEMPORAL_ANCHOR_V1.md"
       - "schemas/vera_project_identity_v1.schema.json"
       - "schemas/vera_behavior_profile_v1.schema.json"
+      - "schemas/vera_identity_temporal_anchor_v1.schema.json"
       - "scripts/validate_project_identity.py"
+      - "scripts/validate_identity_temporal_anchor.py"
       - "tests/test_project_identity.py"
+      - "tests/test_identity_temporal_anchor.py"
       - ".github/workflows/project-identity.yml"
 
 permissions:
@@ -46,8 +54,19 @@ jobs:
       - name: Validate identity contracts
         run: python scripts/validate_project_identity.py
 
+      - name: Validate identity temporal anchor
+        run: python scripts/validate_identity_temporal_anchor.py
+
       - name: Run identity tests
         run: python -m unittest discover -s tests -p "test_project_identity.py" -v
 
-      - name: Compile validator and tests
-        run: python -m py_compile scripts/validate_project_identity.py tests/test_project_identity.py
+      - name: Run identity temporal tests
+        run: python -m unittest discover -s tests -p "test_identity_temporal_anchor.py" -v
+
+      - name: Compile validators and tests
+        run: >-
+          python -m py_compile
+          scripts/validate_project_identity.py
+          scripts/validate_identity_temporal_anchor.py
+          tests/test_project_identity.py
+          tests/test_identity_temporal_anchor.py
