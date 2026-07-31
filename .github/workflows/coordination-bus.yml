@@ -1,0 +1,26 @@
+name: Coordination bus
+
+on:
+  pull_request:
+    paths:
+      - "coordination_bus/**"
+      - "tests/test_coordination_bus*.py"
+      - "docs/COORDINATION_BUS*.md"
+      - ".github/workflows/coordination-bus.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run coordination bus tests
+        run: python -m unittest discover -s tests -p "test_coordination_bus*.py" -v
+      - name: Compile reference implementation
+        run: python -m py_compile coordination_bus/*.py tests/test_coordination_bus*.py
