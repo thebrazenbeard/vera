@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import closing
 from dataclasses import dataclass
 import json
 from pathlib import Path
@@ -22,7 +23,9 @@ class JournalStateError(JournalError):
 
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
-TERMINAL_LOCAL_STATES = frozenset({"COMPLETE", "FAILED", "CANCELLED"})
+TERMINAL_LOCAL_STATES = frozenset(
+    {"COMPLETE", "FAILED", "CANCELLED"}
+)
 ALL_LOCAL_STATES = frozenset(
     {"RECEIVED", "EFFECT_STARTED", *TERMINAL_LOCAL_STATES}
 )
@@ -40,11 +43,10 @@ class LocalJob:
 
 
 class JobJournal:
-    """Durable local idempotency and ambiguous-outcome journal.
+    """Durable local idempotency journal.
 
     An EFFECT_STARTED row is never automatically replayed. Recovery code must
-    reconcile control-plane state and operation-specific evidence before any
-    further side effect.
+    reconcile control-plane state and operation-specific evidence first.
     """
 
     def __init__(self, path: str | Path):
@@ -66,26 +68,22 @@ class JobJournal:
         return connection
 
     def _initialize(self) -> None:
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             connection.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS pccc_local_meta (
                     singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
                     schema_version TEXT NOT NULL
                 );
-
                 INSERT INTO pccc_local_meta(singleton, schema_version)
                 VALUES (1, 'VERA_PCCC_LOCAL_JOURNAL_V1')
                 ON CONFLICT(singleton) DO NOTHING;
-
                 CREATE TABLE IF NOT EXISTS pccc_local_jobs (
                     job_id TEXT PRIMARY KEY,
-                    immutable_digest TEXT NOT NULL
-                        CHECK (
-                            length(immutable_digest) = 64
-                            AND immutable_digest
-                                NOT GLOB '*[^0-9a-f]*'
-                        ),
+                    immutable_digest TEXT NOT NULL CHECK (
+                        length(immutable_digest) = 64
+                        AND immutable_digest NOT GLOB '*[^0-9a-f]*'
+                    ),
                     state TEXT NOT NULL CHECK (
                         state IN (
                             'RECEIVED',
@@ -103,30 +101,41 @@ class JobJournal:
                         strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
                     ),
                     CHECK (
-                        (state IN ('COMPLETE', 'FAILED', 'CANCELLED')
-                            AND receipt_json IS NOT NULL)
+                        (
+                            state IN ('COMPLETE', 'FAILED', 'CANCELLED')
+                            AND receipt_json IS NOT NULL
+                        )
                         OR
-                        (state IN ('RECEIVED', 'EFFECT_STARTED')
-                            AND receipt_json IS NULL)
+                        (
+                            state IN ('RECEIVED', 'EFFECT_STARTED')
+                            AND receipt_json IS NULL
+                        )
                     )
                 );
                 """
             )
-            version = connection.execute(
-                "SELECT schema_version FROM pccc_local_meta WHERE singleton = 1"
+            row = connection.execute(
+                "SELECT schema_version FROM pccc_local_meta "
+                "WHERE singleton = 1"
             ).fetchone()
             if (
-                version is None
-                or version["schema_version"] != "VERA_PCCC_LOCAL_JOURNAL_V1"
+                row is None
+                or row["schema_version"]
+                != "VERA_PCCC_LOCAL_JOURNAL_V1"
             ):
                 raise JournalError("unsupported local journal schema")
 
     @staticmethod
-    def _identity(job_id: str, immutable_digest: str) -> tuple[str, str]:
+    def _identity(
+        job_id: str,
+        immutable_digest: str,
+    ) -> tuple[str, str]:
         try:
             canonical_job_id = str(UUID(job_id))
         except (TypeError, ValueError) as exc:
-            raise JournalError("job_id must be a canonical UUID") from exc
+            raise JournalError(
+                "job_id must be a canonical UUID"
+            ) from exc
         if (
             not isinstance(immutable_digest, str)
             or not _SHA256.fullmatch(immutable_digest)
@@ -157,7 +166,7 @@ class JobJournal:
             job_id,
             immutable_digest,
         )
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute(
                 "SELECT * FROM pccc_local_jobs WHERE job_id = ?",
@@ -165,13 +174,9 @@ class JobJournal:
             ).fetchone()
             if row is None:
                 connection.execute(
-                    """
-                    INSERT INTO pccc_local_jobs(
-                        job_id,
-                        immutable_digest,
-                        state
-                    ) VALUES (?, ?, 'RECEIVED')
-                    """,
+                    "INSERT INTO pccc_local_jobs("
+                    "job_id, immutable_digest, state"
+                    ") VALUES (?, ?, 'RECEIVED')",
                     (job_id, immutable_digest),
                 )
                 row = connection.execute(
@@ -191,8 +196,10 @@ class JobJournal:
         try:
             job_id = str(UUID(job_id))
         except (TypeError, ValueError) as exc:
-            raise JournalError("job_id must be a canonical UUID") from exc
-        with self._connect() as connection:
+            raise JournalError(
+                "job_id must be a canonical UUID"
+            ) from exc
+        with closing(self._connect()) as connection:
             row = connection.execute(
                 "SELECT * FROM pccc_local_jobs WHERE job_id = ?",
                 (job_id,),
@@ -208,7 +215,7 @@ class JobJournal:
             job_id,
             immutable_digest,
         )
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute(
                 "SELECT * FROM pccc_local_jobs WHERE job_id = ?",
@@ -216,7 +223,9 @@ class JobJournal:
             ).fetchone()
             if row is None:
                 connection.execute("ROLLBACK")
-                raise JournalStateError("job must be journaled before effect")
+                raise JournalStateError(
+                    "job must be journaled before effect"
+                )
             if row["immutable_digest"] != immutable_digest:
                 connection.execute("ROLLBACK")
                 raise JournalConflict(
@@ -224,15 +233,11 @@ class JobJournal:
                 )
             if row["state"] == "RECEIVED":
                 connection.execute(
-                    """
-                    UPDATE pccc_local_jobs
-                    SET state = 'EFFECT_STARTED',
-                        updated_at = strftime(
-                            '%Y-%m-%dT%H:%M:%SZ',
-                            'now'
-                        )
-                    WHERE job_id = ?
-                    """,
+                    "UPDATE pccc_local_jobs SET "
+                    "state = 'EFFECT_STARTED', "
+                    "updated_at = strftime("
+                    "'%Y-%m-%dT%H:%M:%SZ', 'now'"
+                    ") WHERE job_id = ?",
                     (job_id,),
                 )
             elif row["state"] != "EFFECT_STARTED":
@@ -272,11 +277,15 @@ class JobJournal:
                 sort_keys=True,
             )
         except (TypeError, ValueError) as exc:
-            raise JournalError("receipt is not canonical JSON") from exc
+            raise JournalError(
+                "receipt is not canonical JSON"
+            ) from exc
         if len(receipt_json.encode("utf-8")) > MAX_RECEIPT_BYTES:
-            raise JournalError("receipt exceeds local journal size limit")
+            raise JournalError(
+                "receipt exceeds local journal size limit"
+            )
 
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute(
                 "SELECT * FROM pccc_local_jobs WHERE job_id = ?",
@@ -284,7 +293,9 @@ class JobJournal:
             ).fetchone()
             if row is None:
                 connection.execute("ROLLBACK")
-                raise JournalStateError("job must be journaled before terminal")
+                raise JournalStateError(
+                    "job must be journaled before terminal"
+                )
             if row["immutable_digest"] != immutable_digest:
                 connection.execute("ROLLBACK")
                 raise JournalConflict(
@@ -302,16 +313,11 @@ class JobJournal:
                     "terminal result already exists and differs"
                 )
             connection.execute(
-                """
-                UPDATE pccc_local_jobs
-                SET state = ?,
-                    receipt_json = ?,
-                    updated_at = strftime(
-                        '%Y-%m-%dT%H:%M:%SZ',
-                        'now'
-                    )
-                WHERE job_id = ?
-                """,
+                "UPDATE pccc_local_jobs SET "
+                "state = ?, receipt_json = ?, "
+                "updated_at = strftime("
+                "'%Y-%m-%dT%H:%M:%SZ', 'now'"
+                ") WHERE job_id = ?",
                 (state, receipt_json, job_id),
             )
             row = connection.execute(
@@ -323,14 +329,11 @@ class JobJournal:
             return self._row(row)
 
     def recover_incomplete(self) -> tuple[LocalJob, ...]:
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             rows = connection.execute(
-                """
-                SELECT *
-                FROM pccc_local_jobs
-                WHERE state IN ('RECEIVED', 'EFFECT_STARTED')
-                ORDER BY created_at, job_id
-                """
+                "SELECT * FROM pccc_local_jobs "
+                "WHERE state IN ('RECEIVED', 'EFFECT_STARTED') "
+                "ORDER BY created_at, job_id"
             ).fetchall()
             return tuple(self._row(row) for row in rows)
 
