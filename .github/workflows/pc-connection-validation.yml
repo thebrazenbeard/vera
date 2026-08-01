@@ -1,0 +1,74 @@
+name: PC Connection Bridge validation
+
+on:
+  pull_request:
+    paths:
+      - "pc_connection/**"
+      - "docs/PC_CONNECTION_BRIDGE_V1.md"
+      - "schemas/vera_pc_connection_*.schema.json"
+      - "supabase/migrations/*pc_connection*.sql"
+      - "supabase/tests/*pc_connection*.sql"
+      - "tests/pc_connection/**"
+      - ".github/workflows/pc-connection-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scaffold-unit:
+    name: scaffold unit (${{ matrix.os }}, py${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile package and tests
+        run: python -m compileall -q pc_connection tests/pc_connection
+      - name: Run scaffold unit tests
+        run: python -m unittest discover -s tests/pc_connection -p "test_*.py" -v
+
+  boundary-evidence:
+    name: authorization boundary evidence
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verify forbidden capability declarations
+        run: |
+          python - <<'PY'
+          from pc_connection import FORBIDDEN_CAPABILITIES, PHASE_ONE_OPERATIONS
+
+          forbidden_operations = {
+              "RUN_COMMAND",
+              "RUN_APPROVED_COMMAND",
+              "START_PROCESS",
+              "MODEL_EXECUTION",
+              "TRAINING",
+          }
+          overlap = PHASE_ONE_OPERATIONS & forbidden_operations
+          if overlap:
+              raise SystemExit(f"forbidden phase-one operations: {sorted(overlap)}")
+
+          required_boundaries = {
+              "ARBITRARY_SHELL",
+              "INBOUND_LISTENER",
+              "ADMIN_INSTALL",
+              "AUTOMATIC_UPDATE",
+              "MODEL_EXECUTION",
+              "TRAINING",
+              "PRODUCTION_MIGRATION",
+              "CREDENTIAL_CREATION",
+              "CANONICAL_MEMORY_WRITE",
+          }
+          if FORBIDDEN_CAPABILITIES != required_boundaries:
+              raise SystemExit("authorization boundary declaration drift")
+          PY
