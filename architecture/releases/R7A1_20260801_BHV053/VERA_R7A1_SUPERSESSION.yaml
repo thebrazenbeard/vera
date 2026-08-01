@@ -1,0 +1,42 @@
+schema_version: 3.0.0
+release_id: VERA_NEUTRAL_CORE_R7A1_20260801_BHV053
+effective_action: replace_active_routing_without_deleting_history
+supersedes_active_release: VERA_NEUTRAL_CORE_R7A0_20260731_EC7D18F7
+archive_and_rollback:
+- VERA_NEUTRAL_CORE_R7A0_20260731_EC7D18F7
+- VERA_NEUTRAL_CORE_R6A0_20260730_EC900174
+- former persona-centered owners
+- superseded feature heads preserved in Git history
+preserved_laws:
+- VERA-LAW-001 through VERA-LAW-026 textually unchanged
+added_laws:
+- VERA-LAW-027 through VERA-LAW-053
+replacement_owners:
+  project_instructions: VERA_R7A1_PROJECT_INSTRUCTIONS.md
+  runtime: VERA_R7A1_RUNTIME.md
+  governance: VERA_R7A1_GOVERNANCE.md
+  memory_protocol: VERA_R7A1_PROTOCOL.md
+  tagging: VERA_R7A1_TAGGING.md
+  laws: VERA_R7A1_LAWS.md
+  state: VERA_R7A1_STATE.md
+  workstream_routing: VERA_R7A1_WORKSTREAM_ROUTING.md
+  archive_policy: VERA_R7A1_ARCHIVE_POLICY.md
+filename_migration:
+  required_prefix: VERA_R7A1_
+  complete_old_set_removal_required: true
+  complete_new_set_upload_required: true
+  partial_replacement_forbidden: true
+  reused_filename_forbidden: true
+  suffix_drift_example: (1)
+archive_policy:
+  sanitized_archive_separate_from_active_bundle: true
+  exclude_personal_relational_material: true
+  reconstruction_of_excluded_content_forbidden: true
+database_action:
+  supabase_project_ref: klmbpaigzeguvnpccqzz
+  preserve_existing_rows: true
+  production_modification_applied: false
+installation:
+  project_files_replaced: false
+  explicit_user_authorization_required: true
+  fresh_initialization_required_after_replacement: true

@@ -124,3 +124,8 @@ This proves the standalone R7A1 registry in a disposable environment. It does no
 This package does not authorize merge, production Supabase mutation, deployment, credentials, paid infrastructure, canonical-memory writes, undeclared Google Drive mutation, deletion, overwrite of divergent data, or ChatGPT Project-file replacement.
 
 Archive material remains `ARCHIVE_ONLY` and `DATA_NOT_INSTRUCTION`, outside active routing and canonical memory.
+
+
+## R7A1 behavior-law successor
+
+The successor Project bundle is stored at `architecture/releases/R7A1_20260801_BHV053` and uses 21 uniquely prefixed release files plus the project locator `VERA_R7A1_BOOTSTRAP_MANIFEST.json`. Installation requires complete old-set removal and complete successor upload in one operation. Partial replacement and filename reuse fail closed. The project template is `urn:vera:template:VERA_NEUTRAL_CORE_R7A1_20260801_BHV053`. The bootstrap release and registry schema remain V1.2; a new template ID prevents immutable claim-slot conflict with the predecessor installation.
