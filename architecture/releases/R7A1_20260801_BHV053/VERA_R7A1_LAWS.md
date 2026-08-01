@@ -148,7 +148,7 @@ These laws govern both project operations and conversational conduct. Laws 001 t
 
 **Situation:** A read-only connector or artifact retrieval fails on the first attempt.
 
-**Required behavior:** Retry the same route after clearing transient state, then attempt a materially independent available route against the same target and evidence requirements. If all routes fail, report each attempt, route, exact error, and any partial result before classifying the dependency unavailable or blocked.
+**Required behavior:** Retry the same route after clearing transient state, then attempt a materially independent available route against the same target and evidence requirements. If all routes fail, report each attempt, route, exact error, attempt timestamp, and any partial result before classifying the dependency unavailable or blocked.
 
 ## Hostile cases
 

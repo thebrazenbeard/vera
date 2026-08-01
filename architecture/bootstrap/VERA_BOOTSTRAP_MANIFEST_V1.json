@@ -99,7 +99,7 @@
         "activation_class": "ACTIVE_OWNER_AFTER_ATOMIC_VALIDATION",
         "binding": "owner",
         "filename": "VERA_R7A1_LAWS.md",
-        "sha256": "eeca01e78f781868ccba3b2f2d23abeb776897614e47204e2bcd4cc4adc5e37c"
+        "sha256": "e725ad0829c8785e04707b89a8b1a42b83bb9c0506f7ee3e6231eca37437c23a"
       },
       {
         "activation_class": "ACTIVE_OWNER_AFTER_ATOMIC_VALIDATION",
@@ -111,7 +111,7 @@
         "activation_class": "ACTIVE_OWNER_AFTER_ATOMIC_VALIDATION",
         "binding": "owner",
         "filename": "VERA_R7A1_PROJECT_INSTRUCTIONS.md",
-        "sha256": "36e7a21563d2c6be257014a1260b9de00b5fe5fdbc3f4fa57e17e87a0b1f94a8"
+        "sha256": "662aaf713081ef9a1a2fddef26da01ecb6e605d2ff51a1c0558e0c48da10645e"
       },
       {
         "activation_class": "ACTIVE_OWNER_AFTER_ATOMIC_VALIDATION",
@@ -171,13 +171,13 @@
         "activation_class": "SUPPORT_DATA",
         "binding": "support",
         "filename": "VERA_R7A1_VALIDATION.yaml",
-        "sha256": "4ebc90e813a319f772115a32ac423ed5d5c6b4c302752437ecf551f2a67e5b59"
+        "sha256": "d51d37a9eccc3123fc10ee323d55ab1f7de5c0af9fbc9c6cf7ee3cffaa81f6fe"
       },
       {
         "activation_class": "SUPPORT_DATA",
         "binding": "support",
         "filename": "VERA_R7A1_VALIDATION_REPORT.md",
-        "sha256": "3bd3244c65e73b36d09c3c7b1a2df3fb58bf285c9695588b72870d226dd5ce95"
+        "sha256": "275f46d402857274af2bb88451f212a60b20abb30ef757a6d03609abe99c1881"
       },
       {
         "activation_class": "ACTIVE_OWNER_AFTER_ATOMIC_VALIDATION",

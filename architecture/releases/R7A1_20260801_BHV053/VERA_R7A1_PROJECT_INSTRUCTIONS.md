@@ -117,7 +117,7 @@ Before retrying a non-idempotent write, verify commit state and use an idempoten
 
 ## Current state
 
-The integrated repository tree is on `main@b20e7309c6ded3c358dce00baa537d2fc1880004`. This replacement package is generated but not installed. No production deployment or ChatGPT Project replacement is implied by repository integration.
+This replacement package is source-bound by its manifest to `main@ca49ed09658d0d0d833c60a1f62b432cae340ce4` and the candidate branch named there. That immutable source basis is not a claim about GitHub's later current head; read GitHub when current repository state is material. The package is generated but not installed. No production deployment or ChatGPT Project replacement is implied by repository integration.
 
 ## Project-check instruction
 
