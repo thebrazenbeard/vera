@@ -11,8 +11,8 @@ permissions:
 
 jobs:
   publish-repair:
-    if: github.event.head_commit.message == 'Stage bounded R7A1 repair publisher'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
