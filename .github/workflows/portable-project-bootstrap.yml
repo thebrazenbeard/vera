@@ -5,69 +5,190 @@ on:
     branches:
       - main
     paths:
+      - "architecture/bootstrap/**"
+      - "architecture/releases/R7A1_20260801_BHV053/**"
+      - "schemas/vera_portable_*"
+      - "scripts/validate_portable_project_bootstrap.py"
+      - "scripts/validate_r7a1_behavior_successor.py"
+      - "tests/test_portable_project_bootstrap.py"
+      - "tests/test_r7a1_behavior_successor.py"
+      - "docs/PORTABLE_PROJECT_BOOTSTRAP_V1.md"
+      - "supabase/migrations/20260731142200_create_vera_portable_bootstrap_registry_v1.sql"
+      - "supabase/tests/validate_portable_bootstrap_registry_v1.sql"
       - ".github/workflows/portable-project-bootstrap.yml"
+  push:
+    branches:
+      - feature/r7a1-behavior-laws-successor-v1
+  workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: read
+  contents: read
 
 jobs:
-  publish-r7a1-retry-receipt-repair:
-    if: github.event.pull_request.head.ref == 'feature/r7a1-behavior-laws-successor-v1'
+  validate-bootstrap:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
+    env:
+      PGDATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      SUPABASE_CLI_VERSION: 2.101.0
+      BASE_SHA: fc761beab263f2fab010cde2fab424b2b8358bb7
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out declared exact head
+        uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 20
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
 
-      - name: Recover SHA-bound retry-receipt repair
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Verify exact head and ancestry
+        shell: bash
         run: |
           set -euo pipefail
-          gh api 'repos/${{ github.repository }}/issues/43/comments?per_page=100' > /tmp/comments.json
+          expected="${{ github.event.pull_request.head.sha || github.sha }}"
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$expected"
+          git merge-base --is-ancestor "$BASE_SHA" "$actual"
+          echo "RELEASE_COMMIT=$actual" >> "$GITHUB_ENV"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pinned validation dependency
+        run: python -m pip install jsonschema==4.23.0 PyYAML==6.0.2
+
+      - name: Emit exact candidate bindings
+        shell: bash
+        run: |
           python - <<'PY'
-          import base64
-          import gzip
           import hashlib
           import json
-          import re
           from pathlib import Path
 
-          comments = json.loads(Path('/tmp/comments.json').read_text())
-          matches = []
-          pattern = re.compile(r'<!-- VERA_R7A1_RETRY_RECEIPT_REPAIR_V6 part=1/1 -->\s*([A-Za-z0-9+/=\s]+)\Z')
-          for item in comments:
-              if item.get('user', {}).get('login') != 'thebrazenbeard':
-                  continue
-              match = pattern.search(item.get('body') or '')
-              if match:
-                  matches.append(''.join(match.group(1).split()))
-          if len(matches) != 1:
-              raise SystemExit(f'expected one repair payload, found {len(matches)}')
-          compressed = base64.b64decode(matches[0], validate=True)
-          compressed_expected = 'b6e1a5cb89fd54e10c0a3eb725be7c872eb0a0dac4ffe87cef4808843b1c4544'
-          if hashlib.sha256(compressed).hexdigest() != compressed_expected:
-              raise SystemExit('compressed repair SHA-256 mismatch')
-          script = gzip.decompress(compressed)
-          script_expected = 'fd95b98a55dcc22e2e2c8cd2c0631a4f6987d8cb3c3f971d5d9ccc6408e9812a'
-          if hashlib.sha256(script).hexdigest() != script_expected:
-              raise SystemExit('repair script SHA-256 mismatch')
-          Path('/tmp/repair_r7a1_retry_v6.py').write_bytes(script)
+          paths = [
+              ".github/workflows/portable-project-bootstrap.yml",
+              "architecture/bootstrap/VERA_BOOTSTRAP_MANIFEST_V1.json",
+              "architecture/bootstrap/VERA_NATIVE_PROJECT_INSTRUCTIONS_BOOTLOADER_V1.txt",
+              "architecture/bootstrap/VERA_PORTABLE_PROJECT_BOOTSTRAP_V1.json",
+              "architecture/bootstrap/VERA_PORTABLE_SCAFFOLD_MANIFEST_V1.json",
+              "docs/PORTABLE_PROJECT_BOOTSTRAP_V1.md",
+              "schemas/vera_portable_project_bootstrap_v1.schema.json",
+              "schemas/vera_portable_scaffold_manifest_v1.schema.json",
+              "scripts/validate_portable_project_bootstrap.py",
+              "supabase/migrations/20260731142200_create_vera_portable_bootstrap_registry_v1.sql",
+              "supabase/tests/validate_portable_bootstrap_registry_v1.sql",
+              "tests/test_portable_project_bootstrap.py",
+          ]
+          self_excluded = "architecture/bootstrap/VERA_PORTABLE_SCAFFOLD_MANIFEST_V1.json"
+          bindings = []
+          for path in paths:
+              data = Path(path).read_bytes()
+              item = {
+                  "path": path,
+                  "mode": "100644",
+                  "size": len(data),
+                  "sha256": hashlib.sha256(data).hexdigest(),
+              }
+              print("CANDIDATE_BINDING=" + json.dumps(item, sort_keys=True, separators=(",", ":")))
+              if path != self_excluded:
+                  bindings.append(item)
+          package = hashlib.sha256(
+              json.dumps(bindings, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("ascii")
+          ).hexdigest()
+          print("CANDIDATE_EMBEDDED_PACKAGE_SHA256=" + package)
           PY
 
-      - name: Restore canonical workflow, repair, validate, and commit
+      - name: Validate portable bootstrap and exact release bytes
+        run: >-
+          python scripts/validate_r7a1_behavior_successor.py
+          --release-commit "$RELEASE_COMMIT"
+          --require-release-binding
+
+      - name: Validate uniquely named R7A1 successor Project bundle
+        run: test "$(find architecture/releases/R7A1_20260801_BHV053 -maxdepth 1 -type f | wc -l)" -eq 21
+
+      - name: Run hostile unit tests
+        run: python -m unittest tests.test_r7a1_behavior_successor
+
+      - name: Compile validator
+        run: python -m py_compile scripts/validate_portable_project_bootstrap.py scripts/validate_r7a1_behavior_successor.py tests/test_portable_project_bootstrap.py tests/test_r7a1_behavior_successor.py
+
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+
+      - name: Verify pinned Supabase CLI
+        run: test "$(supabase --version)" = "$SUPABASE_CLI_VERSION"
+
+      - name: Initialize local Supabase configuration
+        run: |
+          if [ ! -f supabase/config.toml ]; then
+            supabase init
+          fi
+
+      - name: Stage unrelated repository migrations aside
+        shell: bash
         run: |
           set -euo pipefail
-          git checkout beff9534fa21ed573d294f4d00a91ee571868f60 -- .github/workflows/portable-project-bootstrap.yml
-          python /tmp/repair_r7a1_retry_v6.py
-          python scripts/validate_r7a1_behavior_successor.py
-          python -m unittest tests.test_r7a1_behavior_successor
-          git config user.name 'V.E.R.A. Project Architect'
-          git config user.email 'actions@users.noreply.github.com'
-          git add -A
-          git diff --cached --quiet && { echo 'No repair changes found'; exit 1; }
-          git commit -m 'Enforce normalized retry receipt contract'
-          git push origin HEAD:feature/r7a1-behavior-laws-successor-v1
+          rm -rf /tmp/vera_repository_migrations
+          mv supabase/migrations /tmp/vera_repository_migrations
+          mkdir -p supabase/migrations
+          test -f /tmp/vera_repository_migrations/20260731142200_create_vera_portable_bootstrap_registry_v1.sql
+
+      - name: Start clean disposable Supabase stack
+        run: supabase start
+
+      - name: Install pgTAP
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -c "create extension if not exists pgtap"
+
+      - name: Apply only the standalone bootstrap registry migration
+        run: >-
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
+          -f /tmp/vera_repository_migrations/20260731142200_create_vera_portable_bootstrap_registry_v1.sql
+
+      - name: Validate bootstrap registry with pgTAP
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/validate_portable_bootstrap_registry_v1.sql
+
+      - name: Probe concurrent identical and conflicting claims
+        shell: bash
+        run: |
+          set -euo pipefail
+          common="jsonb_build_object('target_class','CHATGPT_PROJECT','target_locator_digest',repeat('9',64),'verifier_role','workstream/project-architecture','observed_at','2026-07-31T16:00:00Z')"
+          claim_a="select request_claim_id from public.claim_vera_portable_bootstrap_request('V1','VERA_PORTABLE_BOOTSTRAP_R7A1_20260731_V1',repeat('8',64),'urn:vera:template:VERA_NEUTRAL_CORE_R7A1_20260801_BHV053',$common,'VERA::INITIALIZE::PORTABLE_PROJECT_V1','thebrazenbeard/vera','$BASE_SHA','CREATE_OR_VERIFY')"
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -Atc "$claim_a" >/tmp/claim-a &
+          p1=$!
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -Atc "$claim_a" >/tmp/claim-b &
+          p2=$!
+          wait "$p1"
+          wait "$p2"
+          test "$(cat /tmp/claim-a)" = "$(cat /tmp/claim-b)"
+          test "$(psql "$PGDATABASE_URL" -Atc "select count(*) from public.vera_portable_bootstrap_requests where target_fingerprint=public.vera_target_fingerprint(($common)::jsonb)")" = "1"
+
+          set +e
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -Atc "$claim_a" >/tmp/conflict-a 2>/tmp/conflict-a.err &
+          c1=$!
+          claim_b="select request_claim_id from public.claim_vera_portable_bootstrap_request('V1','VERA_PORTABLE_BOOTSTRAP_R7A1_20260731_V1',repeat('7',64),'urn:vera:template:VERA_NEUTRAL_CORE_R7A1_20260801_BHV053',$common,'VERA::INITIALIZE::PORTABLE_PROJECT_V1','thebrazenbeard/vera','$BASE_SHA','CREATE_OR_VERIFY')"
+          psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -Atc "$claim_b" >/tmp/conflict-b 2>/tmp/conflict-b.err &
+          c2=$!
+          wait "$c1"; s1=$?
+          wait "$c2"; s2=$?
+          set -e
+          test "$s1" -eq 0
+          test "$s2" -ne 0
+          grep -q "REQUEST_ID_REUSE_CONFLICT" /tmp/conflict-b.err
+
+      - name: Run database lint
+        run: supabase db lint --local
+
+      - name: State isolated coverage boundary
+        run: |
+          echo "This workflow proves the standalone R7A1 registry migration in a clean disposable stack."
+          echo "It does not prove replay of every historical migration or production application."
+
+      - name: Stop and delete local stack
+        if: always()
+        run: |
+          if command -v supabase >/dev/null 2>&1; then
+            supabase stop --no-backup
+          fi
