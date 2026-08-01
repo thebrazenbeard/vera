@@ -20,9 +20,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 2
+          fetch-depth: 20
 
-      - name: Recover exact repair payload
+      - name: Recover SHA-bound deterministic repair script
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -30,53 +30,42 @@ jobs:
           gh api 'repos/${{ github.repository }}/issues/43/comments?per_page=100' > /tmp/comments.json
           python - <<'PY'
           import base64
+          import gzip
           import hashlib
           import json
           import re
-          import tarfile
           from pathlib import Path
 
           comments = json.loads(Path('/tmp/comments.json').read_text())
           parts = {}
-          pattern = re.compile(r'<!-- VERA_R7A1_REPAIR_PAYLOAD part=(\d)/5 -->\s*([A-Za-z0-9+/=\s]+)\Z')
+          pattern = re.compile(r'<!-- VERA_R7A1_REPAIR_SCRIPT_V2 part=(\d)/3 -->\s*([A-Za-z0-9+/=\s]+)\Z')
           for item in comments:
               if item.get('user', {}).get('login') != 'thebrazenbeard':
                   continue
               match = pattern.search(item.get('body') or '')
               if match:
                   parts[int(match.group(1))] = ''.join(match.group(2).split())
-          if sorted(parts) != [1, 2, 3, 4, 5]:
-              raise SystemExit(f'incomplete repair payload parts: {sorted(parts)}')
-          payload = base64.b64decode(''.join(parts[index] for index in range(1, 6)), validate=True)
-          expected = '46c2c904d2a543fbf7c077b39390a979a3766523044ebb9bbad00df7b65283ec'
-          actual = hashlib.sha256(payload).hexdigest()
-          if actual != expected:
-              raise SystemExit(f'payload SHA-256 mismatch: {actual}')
-          archive = Path('/tmp/r7a1-repair.tgz')
-          archive.write_bytes(payload)
-          allowed = {
-              'architecture/releases/R7A1_20260801_BHV053/VERA_R7A1_LAWS.md',
-              'architecture/releases/R7A1_20260801_BHV053/VERA_R7A1_PROJECT_INSTRUCTIONS.md',
-              'architecture/releases/R7A1_20260801_BHV053/VERA_R7A1_VALIDATION.yaml',
-              'architecture/releases/R7A1_20260801_BHV053/VERA_R7A1_VALIDATION_REPORT.md',
-              'architecture/releases/R7A1_20260801_BHV053/VERA_R7A1_CHECKSUMS.sha256',
-              'architecture/bootstrap/VERA_BOOTSTRAP_MANIFEST_V1.json',
-              'architecture/bootstrap/VERA_PORTABLE_SCAFFOLD_MANIFEST_V1.json',
-              'scripts/validate_r7a1_behavior_successor.py',
-              'tests/test_r7a1_behavior_successor.py',
-          }
-          with tarfile.open(archive, 'r:gz') as tf:
-              names = {member.name for member in tf.getmembers() if member.isfile()}
-              if names != allowed:
-                  raise SystemExit(f'payload path mismatch: {sorted(names)}')
-              tf.extractall('.', filter='data')
+          if sorted(parts) != [1, 2, 3]:
+              raise SystemExit(f'incomplete repair script parts: {sorted(parts)}')
+          compressed = base64.b64decode(''.join(parts[index] for index in range(1, 4)), validate=True)
+          compressed_expected = 'f68640baa58f71008c02b046577b2ed6b4511e8acccbbe17fcdfbde282eb1421'
+          compressed_actual = hashlib.sha256(compressed).hexdigest()
+          if compressed_actual != compressed_expected:
+              raise SystemExit(f'compressed script SHA-256 mismatch: {compressed_actual}')
+          script = gzip.decompress(compressed)
+          script_expected = '3c60613b0b524d712c712ed953dc3a7e58b845f1acf7f18026933254d1d9bc33'
+          script_actual = hashlib.sha256(script).hexdigest()
+          if script_actual != script_expected:
+              raise SystemExit(f'script SHA-256 mismatch: {script_actual}')
+          Path('/tmp/repair_r7a1_behaviors_1055.py').write_bytes(script)
           PY
 
-      - name: Validate and publish corrected exact head
+      - name: Restore canonical workflow, repair, validate, and publish
         run: |
           set -euo pipefail
-          git checkout HEAD^ -- .github/workflows/portable-project-bootstrap.yml
-          rm .github/workflows/r7a1-repair-publisher.yml
+          git checkout a13ea60acd7ba4b0c373f83986120034bb9389ad -- .github/workflows/portable-project-bootstrap.yml
+          rm -f .github/workflows/r7a1-repair-publisher.yml
+          python /tmp/repair_r7a1_behaviors_1055.py
           python scripts/validate_r7a1_behavior_successor.py
           python -m unittest tests.test_r7a1_behavior_successor
           git config user.name 'V.E.R.A. Project Architect'
