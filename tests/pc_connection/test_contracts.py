@@ -29,7 +29,7 @@ def valid_authorization() -> dict:
         "parameters_digest": "0" * 64,
         "artifact_manifest_digest": "0" * 64,
         "read_roots_digest": "1" * 64,
-        "write_root_id": "PCCC_WRITE_ROOT",
+        "write_root_id": "NONE",
         "authorization_id": "00000000-0000-7000-8000-000000000013",
         "authorization_revision": 1,
         "issued_at": "2026-08-01T20:00:00.000000Z",
@@ -60,7 +60,7 @@ def valid_job() -> dict:
         "parameters_digest": "0" * 64,
         "artifact_manifest_digest": "0" * 64,
         "read_roots_digest": "1" * 64,
-        "write_root_id": "PCCC_WRITE_ROOT",
+        "write_root_id": "NONE",
         "authorization_id": "00000000-0000-7000-8000-000000000004",
         "authorization_revision": 1,
         "not_before": "2026-08-01T20:00:00.000000Z",
@@ -185,8 +185,8 @@ class AuthorizationTests(unittest.TestCase):
         )
         self.assertEqual(
             envelope.digest(),
-            "960fb094000b30e23b6e1efbc7f2ae38"
-            "dadc38848aabaeb4677e30b6f81ac279",
+            "7c68c7d618be45b23149b04b4713447c"
+            "8e190ef186c30d1cfad33b7c7774133c",
         )
 
     def test_signature_and_key_fields_are_unknown(self) -> None:
@@ -219,13 +219,30 @@ class AuthorizationTests(unittest.TestCase):
         ):
             AuthorizationEnvelope.from_mapping(value)
 
+    def test_enabled_operation_requires_no_write_scope(self) -> None:
+        value = valid_authorization()
+        value["write_root_id"] = "PCCC_WRITE_ROOT"
+        with self.assertRaisesRegex(ContractError, "write_root_id NONE"):
+            AuthorizationEnvelope.from_mapping(value)
+
+    def test_remote_operations_are_recognized_but_denied(self) -> None:
+        for operation in ("UPLOAD_ARTIFACT", "DOWNLOAD_ARTIFACT"):
+            value = valid_authorization()
+            value["operation"] = operation
+            with self.subTest(operation=operation):
+                with self.assertRaisesRegex(
+                    ContractError,
+                    "EXEC_OPERATION_DENIED",
+                ):
+                    AuthorizationEnvelope.from_mapping(value)
+
 
 class JobTests(unittest.TestCase):
     def test_known_protocol_vector(self) -> None:
         self.assertEqual(
             JobEnvelope.from_mapping(valid_job()).digest(),
-            "6dd5b58c3b4c01b768f8011fe8cc67c4"
-            "ece34ae093569c8e0c4b613e9701292d",
+            "759fff9b5be4d3e44de761e1a5cacb9c"
+            "41f6bb860debe5aff2e15944af5b0c5f",
         )
 
     def test_changed_field_changes_digest(self) -> None:
@@ -240,7 +257,16 @@ class JobTests(unittest.TestCase):
     def test_direct_command_execution_is_rejected(self) -> None:
         value = valid_job()
         value["operation_id"] = "RUN_COMMAND"
-        with self.assertRaisesRegex(ContractError, "phase one"):
+        with self.assertRaisesRegex(ContractError, "recognized"):
+            JobEnvelope.from_mapping(value)
+
+    def test_job_remote_transfer_is_denied(self) -> None:
+        value = valid_job()
+        value["operation_id"] = "UPLOAD_ARTIFACT"
+        with self.assertRaisesRegex(
+            ContractError,
+            "EXEC_OPERATION_DENIED",
+        ):
             JobEnvelope.from_mapping(value)
 
 
@@ -272,15 +298,11 @@ class ArtifactTests(unittest.TestCase):
         ]
         with self.assertRaisesRegex(
             ContractError,
-            "capability-disabled",
+            "EXEC_OPERATION_DENIED",
         ):
             ArtifactManifest.from_mapping(copy.deepcopy(value))
 
-    def test_credentials_executables_and_oversize_are_rejected(self) -> None:
-        value = valid_artifact()
-        value["privacy_class"] = "CREDENTIAL_PROHIBITED"
-        with self.assertRaisesRegex(ContractError, "credentials"):
-            ArtifactManifest.from_mapping(value)
+    def test_executable_and_oversize_are_rejected(self) -> None:
         value = valid_artifact()
         value["execution_class"] = "EXECUTABLE_UNTRUSTED"
         with self.assertRaisesRegex(ContractError, "executable"):
