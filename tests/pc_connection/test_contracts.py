@@ -1,37 +1,42 @@
 from __future__ import annotations
 
+import copy
 import unittest
 
 from pc_connection.contracts import (
+    ArtifactAuthorization,
     ArtifactManifest,
+    ArtifactSource,
     AuthorizationEnvelope,
-    CHUNK_SIZE_BYTES,
     ContractError,
+    DestinationPolicy,
+    JobEnvelope,
+    MAX_ARTIFACT_BYTES,
+    RetentionPolicy,
 )
 
 
 def valid_authorization() -> dict:
     return {
-        "schema_version": "VERA_PCCC_AUTHORIZATION_ENVELOPE_V1",
-        "envelope_id": "11111111-1111-4111-8111-111111111111",
-        "job_id": "22222222-2222-4222-8222-222222222222",
-        "issuer_id": "issuer:pccc",
-        "issuer_key_id": "key:issuer:1",
-        "subject_user_id": "user:patrick",
-        "host_id": "host:windows:1",
-        "operation": "HASH_FILE",
-        "operation_version": "1.0.0",
-        "parameters_digest": "1" * 64,
-        "artifact_manifest_digest": "2" * 64,
-        "read_roots_digest": "3" * 64,
-        "write_root_id": "PCCC_WRITE_ROOT_V1",
-        "authorization_id": "33333333-3333-4333-8333-333333333333",
+        "schema_version": "VERA_PCCC_AUTHORIZATION_V1",
+        "envelope_id": "00000000-0000-7000-8000-000000000011",
+        "job_id": "00000000-0000-7000-8000-000000000012",
+        "issuer_id": "issuer/pccc-owner",
+        "subject_user_id": "user/patrick-a-sims",
+        "host_id": "00000000-0000-7000-8000-000000000003",
+        "operation": "PING",
+        "operation_version": 1,
+        "parameters_digest": "0" * 64,
+        "artifact_manifest_digest": "0" * 64,
+        "read_roots_digest": "1" * 64,
+        "write_root_id": "PCCC_WRITE_ROOT",
+        "authorization_id": "00000000-0000-7000-8000-000000000013",
         "authorization_revision": 1,
-        "issued_at": "2026-08-01T20:00:00Z",
-        "not_before": "2026-08-01T20:00:00Z",
-        "expires_at": "2026-08-01T20:15:00Z",
-        "nonce": "nonce-0123456789",
-        "max_attempts": 3,
+        "issued_at": "2026-08-01T20:00:00.000000Z",
+        "not_before": "2026-08-01T20:00:00.000000Z",
+        "expires_at": "2026-08-01T20:15:00.000000Z",
+        "nonce": "00000000-0000-7000-8000-000000000014",
+        "max_attempts": 1,
         "lease_ttl_seconds": 90,
         "protocol_min_version": "1.0.0",
         "agent_min_version": "0.1.0",
@@ -40,115 +45,249 @@ def valid_authorization() -> dict:
     }
 
 
-def valid_artifact() -> dict:
-    length = CHUNK_SIZE_BYTES + 1
-    digest = "a" * 64
+def valid_job() -> dict:
     return {
-        "schema_version": "VERA_PCCC_ARTIFACT_MANIFEST_V1",
-        "manifest_id": "44444444-4444-4444-8444-444444444444",
-        "artifact_id": "55555555-5555-4555-8555-555555555555",
-        "filename": "evidence.json",
-        "byte_length": length,
-        "sha256": digest,
-        "content_id": f"sha256:{digest}:{length}",
-        "media_type": "application/json",
-        "content_class": "REPORT",
-        "privacy": "PROJECT",
-        "source_store": "LOCAL_ONLY",
-        "target_store": "SUPABASE_STORAGE",
-        "created_at": "2026-08-01T20:00:00Z",
-        "chunk_size_bytes": CHUNK_SIZE_BYTES,
-        "chunk_count": 2,
-        "executable": False,
-        "archive": False,
-        "retention_class": "PROJECT",
+        "schema_version": "VERA_PCCC_JOB_V1",
+        "envelope_id": "00000000-0000-7000-8000-000000000001",
+        "request_id": "00000000-0000-7000-8000-000000000002",
+        "idempotency_key": "example-submit-001",
+        "project_id": "vera-reciprocal-agency-environment",
+        "requester_principal_id": "user/patrick-a-sims",
+        "requester_principal_type": "USER",
+        "host_id": "00000000-0000-7000-8000-000000000003",
+        "operation_id": "PING",
+        "operation_version": 1,
+        "parameters_digest": "0" * 64,
+        "artifact_manifest_digest": "0" * 64,
+        "read_roots_digest": "1" * 64,
+        "write_root_id": "PCCC_WRITE_ROOT",
+        "authorization_id": "00000000-0000-7000-8000-000000000004",
+        "authorization_revision": 1,
+        "not_before": "2026-08-01T20:00:00.000000Z",
+        "expires_at": "2026-08-01T20:15:00.000000Z",
+        "timeout_seconds": 30,
+        "max_attempts": 1,
+        "lease_ttl_seconds": 90,
+        "retry_class": "PURE_READ",
+        "protocol_min_version": "1.0.0",
+        "agent_min_version": "0.1.0",
+        "required_local_policy_digest": "2" * 64,
+        "required_capability_digest": "3" * 64,
+        "issuer_revocation_epoch": 0,
+        "host_revocation_epoch": 0,
+        "nonce": "00000000-0000-7000-8000-000000000005",
+        "trace_correlation_id": (
+            "00000000-0000-7000-8000-000000000006"
+        ),
     }
 
 
-class AuthorizationEnvelopeTests(unittest.TestCase):
-    def test_valid_authorization_has_stable_digest(self) -> None:
-        envelope = AuthorizationEnvelope.from_mapping(valid_authorization())
-        self.assertEqual(len(envelope.digest()), 64)
-        self.assertEqual(envelope.digest(), envelope.digest())
+def valid_artifact() -> dict:
+    digest = "a" * 64
+    value = {
+        "schema_version": "VERA_PCCC_ARTIFACT_MANIFEST_V1",
+        "manifest_id": "00000000-0000-7000-8000-000000000021",
+        "manifest_digest_algorithm": "SHA-256",
+        "manifest_sha256": "0" * 64,
+        "artifact_id": "00000000-0000-7000-8000-000000000022",
+        "content_id": f"urn:sha256:{digest}:1024",
+        "logical_name": "evidence",
+        "declared_filename": "evidence.json",
+        "byte_length": 1024,
+        "sha256": digest,
+        "content_class": "TEST_EVIDENCE",
+        "privacy_class": "PROJECT",
+        "execution_class": "NON_EXECUTABLE",
+        "archive_class": "NOT_ARCHIVE",
+        "media_type_declared": "application/json",
+        "source": {
+            "store": "LOCAL_ONLY",
+            "locator": r"VERA_ROOT\evidence.json",
+            "immutable_locator_version": "sha256:a",
+        },
+        "destination_policy": {
+            "store": "LOCAL_ONLY",
+            "backend_profile_id": "LOCAL_ONLY",
+            "backend_profile_digest": "b" * 64,
+            "remote_transfer_enabled": False,
+            "relative_path": r"artifacts\store\evidence.json",
+        },
+        "authorization": {
+            "authorization_id": (
+                "00000000-0000-7000-8000-000000000023"
+            ),
+            "revision": 1,
+            "allowed_host_id": (
+                "00000000-0000-7000-8000-000000000003"
+            ),
+            "allowed_job_id": (
+                "00000000-0000-7000-8000-000000000012"
+            ),
+            "allowed_operations": ["HASH_FILE"],
+            "max_bytes": 1024,
+            "issued_at": "2026-08-01T20:00:00.000000Z",
+            "expires_at": "2026-08-01T20:15:00.000000Z",
+        },
+        "retention": {
+            "class": "PROJECT",
+            "retain_until": "2027-08-01T20:00:00.000000Z",
+        },
+        "created_at": "2026-08-01T20:00:00.000000Z",
+    }
+    provisional = ArtifactManifest(
+        schema_version=value["schema_version"],
+        manifest_id=value["manifest_id"],
+        manifest_digest_algorithm=value["manifest_digest_algorithm"],
+        manifest_sha256=value["manifest_sha256"],
+        artifact_id=value["artifact_id"],
+        content_id=value["content_id"],
+        logical_name=value["logical_name"],
+        declared_filename=value["declared_filename"],
+        byte_length=value["byte_length"],
+        sha256=value["sha256"],
+        content_class=value["content_class"],
+        privacy_class=value["privacy_class"],
+        execution_class=value["execution_class"],
+        archive_class=value["archive_class"],
+        media_type_declared=value["media_type_declared"],
+        source=ArtifactSource(**value["source"]),
+        destination_policy=DestinationPolicy(
+            **value["destination_policy"]
+        ),
+        authorization=ArtifactAuthorization(
+            authorization_id=value["authorization"]["authorization_id"],
+            revision=value["authorization"]["revision"],
+            allowed_host_id=value["authorization"]["allowed_host_id"],
+            allowed_job_id=value["authorization"]["allowed_job_id"],
+            allowed_operations=tuple(
+                value["authorization"]["allowed_operations"]
+            ),
+            max_bytes=value["authorization"]["max_bytes"],
+            issued_at=value["authorization"]["issued_at"],
+            expires_at=value["authorization"]["expires_at"],
+        ),
+        retention=RetentionPolicy(
+            retention_class=value["retention"]["class"],
+            retain_until=value["retention"]["retain_until"],
+        ),
+        created_at=value["created_at"],
+    )
+    value["manifest_sha256"] = (
+        provisional.computed_manifest_sha256()
+    )
+    return value
 
-    def test_unknown_field_is_rejected(self) -> None:
+
+class AuthorizationTests(unittest.TestCase):
+    def test_known_vector(self) -> None:
+        envelope = AuthorizationEnvelope.from_mapping(
+            valid_authorization()
+        )
+        self.assertEqual(
+            envelope.digest(),
+            "960fb094000b30e23b6e1efbc7f2ae38"
+            "dadc38848aabaeb4677e30b6f81ac279",
+        )
+
+    def test_signature_and_key_fields_are_unknown(self) -> None:
+        for field in (
+            "issuer_key_id",
+            "signature",
+            "device_proof",
+        ):
+            value = valid_authorization()
+            value[field] = "forbidden"
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(
+                    ContractError,
+                    "unknown fields",
+                ):
+                    AuthorizationEnvelope.from_mapping(value)
+
+    def test_uuidv4_and_second_precision_are_rejected(self) -> None:
         value = valid_authorization()
-        value["model_says_authorized"] = True
-        with self.assertRaisesRegex(ContractError, "unknown fields"):
+        value["job_id"] = (
+            "22222222-2222-4222-8222-222222222222"
+        )
+        with self.assertRaisesRegex(ContractError, "UUIDv7"):
+            AuthorizationEnvelope.from_mapping(value)
+        value = valid_authorization()
+        value["issued_at"] = "2026-08-01T20:00:00Z"
+        with self.assertRaisesRegex(
+            ContractError,
+            "six fractional",
+        ):
             AuthorizationEnvelope.from_mapping(value)
 
-    def test_missing_field_is_rejected(self) -> None:
-        value = valid_authorization()
-        del value["host_id"]
-        with self.assertRaisesRegex(ContractError, "missing fields"):
-            AuthorizationEnvelope.from_mapping(value)
 
-    def test_operation_outside_phase_one_is_rejected(self) -> None:
-        value = valid_authorization()
-        value["operation"] = "RUN_COMMAND"
-        with self.assertRaisesRegex(ContractError, "phase-one"):
-            AuthorizationEnvelope.from_mapping(value)
+class JobTests(unittest.TestCase):
+    def test_known_protocol_vector(self) -> None:
+        self.assertEqual(
+            JobEnvelope.from_mapping(valid_job()).digest(),
+            "6dd5b58c3b4c01b768f8011fe8cc67c4"
+            "ece34ae093569c8e0c4b613e9701292d",
+        )
 
-    def test_authorization_cannot_exceed_one_hour(self) -> None:
-        value = valid_authorization()
-        value["expires_at"] = "2026-08-01T21:00:01Z"
-        with self.assertRaisesRegex(ContractError, "one hour"):
-            AuthorizationEnvelope.from_mapping(value)
+    def test_changed_field_changes_digest(self) -> None:
+        first = JobEnvelope.from_mapping(valid_job()).digest()
+        value = valid_job()
+        value["host_revocation_epoch"] = 1
+        self.assertNotEqual(
+            first,
+            JobEnvelope.from_mapping(value).digest(),
+        )
 
-    def test_changed_meaning_field_changes_digest(self) -> None:
-        first = AuthorizationEnvelope.from_mapping(valid_authorization())
-        changed = valid_authorization()
-        changed["host_revocation_epoch"] = 1
-        second = AuthorizationEnvelope.from_mapping(changed)
-        self.assertNotEqual(first.digest(), second.digest())
-
-    def test_boolean_is_not_accepted_as_integer(self) -> None:
-        value = valid_authorization()
-        value["max_attempts"] = True
-        with self.assertRaisesRegex(ContractError, "integer"):
-            AuthorizationEnvelope.from_mapping(value)
+    def test_direct_command_execution_is_rejected(self) -> None:
+        value = valid_job()
+        value["operation_id"] = "RUN_COMMAND"
+        with self.assertRaisesRegex(ContractError, "phase one"):
+            JobEnvelope.from_mapping(value)
 
 
-class ArtifactManifestTests(unittest.TestCase):
-    def test_valid_manifest_binds_bytes_and_chunks(self) -> None:
+class ArtifactTests(unittest.TestCase):
+    def test_valid_local_manifest(self) -> None:
         manifest = ArtifactManifest.from_mapping(valid_artifact())
-        self.assertEqual(manifest.chunk_count, 2)
-        self.assertEqual(len(manifest.digest()), 64)
+        self.assertEqual(
+            manifest.manifest_sha256,
+            manifest.computed_manifest_sha256(),
+        )
 
-    def test_content_id_mismatch_is_rejected(self) -> None:
+    def test_self_digest_mismatch_is_rejected(self) -> None:
         value = valid_artifact()
-        value["content_id"] = f"sha256:{'b' * 64}:{value['byte_length']}"
-        with self.assertRaisesRegex(ContractError, "content_id"):
+        value["manifest_sha256"] = "f" * 64
+        with self.assertRaisesRegex(
+            ContractError,
+            "manifest_sha256",
+        ):
             ArtifactManifest.from_mapping(value)
 
-    def test_path_separator_is_rejected(self) -> None:
+    def test_remote_backend_and_operations_are_disabled(self) -> None:
         value = valid_artifact()
-        value["filename"] = r"..\escape.json"
-        with self.assertRaisesRegex(ContractError, "basename"):
+        value["destination_policy"]["store"] = "SUPABASE_STORAGE"
+        with self.assertRaisesRegex(ContractError, "LOCAL_ONLY"):
             ArtifactManifest.from_mapping(value)
-
-    def test_reserved_device_name_is_rejected(self) -> None:
         value = valid_artifact()
-        value["filename"] = "CON.txt"
-        with self.assertRaisesRegex(ContractError, "reserved"):
+        value["authorization"]["allowed_operations"] = [
+            "UPLOAD_ARTIFACT"
+        ]
+        with self.assertRaisesRegex(
+            ContractError,
+            "capability-disabled",
+        ):
+            ArtifactManifest.from_mapping(copy.deepcopy(value))
+
+    def test_credentials_executables_and_oversize_are_rejected(self) -> None:
+        value = valid_artifact()
+        value["privacy_class"] = "CREDENTIAL_PROHIBITED"
+        with self.assertRaisesRegex(ContractError, "credentials"):
             ArtifactManifest.from_mapping(value)
-
-    def test_executable_artifact_is_rejected(self) -> None:
         value = valid_artifact()
-        value["executable"] = True
+        value["execution_class"] = "EXECUTABLE_UNTRUSTED"
         with self.assertRaisesRegex(ContractError, "executable"):
             ArtifactManifest.from_mapping(value)
-
-    def test_chunk_count_mismatch_is_rejected(self) -> None:
         value = valid_artifact()
-        value["chunk_count"] = 1
-        with self.assertRaisesRegex(ContractError, "chunk_count"):
-            ArtifactManifest.from_mapping(value)
-
-    def test_unknown_manifest_field_is_rejected(self) -> None:
-        value = valid_artifact()
-        value["provider_says_safe"] = True
-        with self.assertRaisesRegex(ContractError, "unknown fields"):
+        value["byte_length"] = MAX_ARTIFACT_BYTES + 1
+        with self.assertRaisesRegex(ContractError, "byte_length"):
             ArtifactManifest.from_mapping(value)
 
 
