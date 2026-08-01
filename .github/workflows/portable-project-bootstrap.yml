@@ -1,9 +1,11 @@
 name: Portable project bootstrap
 
 on:
-  push:
+  pull_request:
     branches:
-      - feature/r7a1-behavior-laws-successor-v1
+      - main
+    paths:
+      - ".github/workflows/portable-project-bootstrap.yml"
 
 permissions:
   contents: write
@@ -11,11 +13,13 @@ permissions:
 
 jobs:
   publish-r7a1-repair:
+    if: github.event.pull_request.head.ref == 'feature/r7a1-behavior-laws-successor-v1'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 2
 
       - name: Recover exact repair payload
