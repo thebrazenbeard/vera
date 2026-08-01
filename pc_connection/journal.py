@@ -10,8 +10,6 @@ from typing import Any
 from pc_connection import PHASE_ONE_OPERATIONS
 from pc_connection.canonical import sha256_domain_text_tuple
 from pc_connection.validation import (
-    ContractError,
-    canonical_scalar,
     sha256_hex,
     uint,
     utc_microseconds,
@@ -104,8 +102,6 @@ class VerifiedJournalPath:
         root_alias: str,
         verification_receipt_digest: str,
     ) -> "VerifiedJournalPath":
-        """Internal factory for the future native Windows verifier."""
-
         return cls(
             path=path,
             root_alias=root_alias,
@@ -154,32 +150,32 @@ class AttemptIdentity:
             self.claim_generation,
             "claim_generation",
             minimum=1,
-            maximum=18_446_744_073_709_551_615,
+            maximum=9_223_372_036_854_775_807,
         )
         uint(
             self.lease_fence,
             "lease_fence",
             minimum=1,
-            maximum=18_446_744_073_709_551_615,
+            maximum=9_223_372_036_854_775_807,
         )
         sha256_hex(self.job_digest, "job_digest")
         uint(
             self.authorization_revision,
             "authorization_revision",
             minimum=1,
-            maximum=18_446_744_073_709_551_615,
+            maximum=9_223_372_036_854_775_807,
         )
         uint(
             self.issuer_revocation_epoch,
             "issuer_revocation_epoch",
             minimum=0,
-            maximum=18_446_744_073_709_551_615,
+            maximum=9_223_372_036_854_775_807,
         )
         uint(
             self.host_revocation_epoch,
             "host_revocation_epoch",
             minimum=0,
-            maximum=18_446_744_073_709_551_615,
+            maximum=9_223_372_036_854_775_807,
         )
         if self.operation_id not in PHASE_ONE_OPERATIONS:
             raise JournalError("operation is not enabled in phase one")
@@ -484,23 +480,26 @@ class JobJournal:
 
     @staticmethod
     def _same_identity(row: sqlite3.Row, identity: AttemptIdentity) -> bool:
-        return tuple(row[key] for key in (
-            "job_id",
-            "attempt_id",
-            "host_id",
-            "claim_generation",
-            "lease_id",
-            "lease_fence",
-            "job_digest",
-            "authorization_id",
-            "authorization_revision",
-            "issuer_revocation_epoch",
-            "host_revocation_epoch",
-            "operation_id",
-            "operation_version",
-            "retry_class",
-            "side_effect_class",
-        )) == identity.as_tuple()
+        return tuple(
+            row[key]
+            for key in (
+                "job_id",
+                "attempt_id",
+                "host_id",
+                "claim_generation",
+                "lease_id",
+                "lease_fence",
+                "job_digest",
+                "authorization_id",
+                "authorization_revision",
+                "issuer_revocation_epoch",
+                "host_revocation_epoch",
+                "operation_id",
+                "operation_version",
+                "retry_class",
+                "side_effect_class",
+            )
+        ) == identity.as_tuple()
 
     def record_claim(
         self,
@@ -556,7 +555,7 @@ class JobJournal:
             )
             connection.execute(
                 "INSERT INTO pccc_local_attempts VALUES ("
-                "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?"
+                "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?"
                 ")",
                 (
                     *identity.as_tuple(),
@@ -755,7 +754,11 @@ class JobJournal:
             assert row is not None
             return self._projection_from_row(row)
 
-    def start_preparation(self, identity: AttemptIdentity, **event: Any) -> AttemptProjection:
+    def start_preparation(
+        self,
+        identity: AttemptIdentity,
+        **event: Any,
+    ) -> AttemptProjection:
         return self._transition(
             identity,
             allowed_states={JournalState.CLAIMED},
@@ -764,7 +767,11 @@ class JobJournal:
             **event,
         )
 
-    def commit_effect_start(self, identity: AttemptIdentity, **event: Any) -> AttemptProjection:
+    def commit_effect_start(
+        self,
+        identity: AttemptIdentity,
+        **event: Any,
+    ) -> AttemptProjection:
         current = self.get(identity.job_id, identity.attempt_id)
         if current is not None and current.local_state in {
             JournalState.EFFECT_STARTED,
@@ -799,7 +806,10 @@ class JobJournal:
         allowed = (
             {JournalState.PREPARING}
             if identity.side_effect_class == "NONE"
-            else {JournalState.EFFECT_STARTED, JournalState.RECOVERY_REQUIRED}
+            else {
+                JournalState.EFFECT_STARTED,
+                JournalState.RECOVERY_REQUIRED,
+            }
         )
         return self._transition(
             identity,
@@ -810,7 +820,11 @@ class JobJournal:
             **event,
         )
 
-    def require_recovery(self, identity: AttemptIdentity, **event: Any) -> AttemptProjection:
+    def require_recovery(
+        self,
+        identity: AttemptIdentity,
+        **event: Any,
+    ) -> AttemptProjection:
         return self._transition(
             identity,
             allowed_states={
@@ -883,7 +897,11 @@ class JobJournal:
             **event,
         )
 
-    def abandon(self, identity: AttemptIdentity, **event: Any) -> AttemptProjection:
+    def abandon(
+        self,
+        identity: AttemptIdentity,
+        **event: Any,
+    ) -> AttemptProjection:
         return self._transition(
             identity,
             allowed_states=set(JournalState) - TERMINAL_STATES,
@@ -892,7 +910,11 @@ class JobJournal:
             **event,
         )
 
-    def get(self, job_id: str, attempt_id: str) -> AttemptProjection | None:
+    def get(
+        self,
+        job_id: str,
+        attempt_id: str,
+    ) -> AttemptProjection | None:
         uuid_v7(job_id, "job_id")
         uuid_v7(attempt_id, "attempt_id")
         with closing(self._connect()) as connection:
@@ -907,7 +929,8 @@ class JobJournal:
         with closing(self._connect()) as connection:
             rows = connection.execute(
                 "SELECT * FROM pccc_local_attempts "
-                "WHERE local_state NOT IN ('TERMINAL_CONFIRMED','ABANDONED') "
+                "WHERE local_state NOT IN "
+                "('TERMINAL_CONFIRMED','ABANDONED') "
                 "ORDER BY created_at, job_id, attempt_id"
             ).fetchall()
             return tuple(self._projection_from_row(row) for row in rows)
@@ -925,7 +948,10 @@ class JobJournal:
                     (attempt["job_id"], attempt["attempt_id"]),
                 ).fetchall()
                 predecessor = ZERO_SHA256
-                for expected_sequence, event in enumerate(events, start=1):
+                for expected_sequence, event in enumerate(
+                    events,
+                    start=1,
+                ):
                     if (
                         event["event_sequence"] != expected_sequence
                         or event["predecessor_event_digest"] != predecessor
