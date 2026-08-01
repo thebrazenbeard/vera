@@ -1,0 +1,49 @@
+from __future__ import annotations
+
+BRIDGE_ID = "VERA_PC_CONNECTION_BRIDGE_V1"
+VERSION = "0.1.0.dev0"
+
+READ_ONLY_ROOTS = (
+    r"C:\VERA",
+    r"C:\Users\patri\VERA",
+)
+WRITABLE_ROOT = r"C:\VERA\PCCC"
+
+PHASE_ONE_OPERATIONS = frozenset(
+    {
+        "PING",
+        "GET_HOST_STATUS",
+        "GET_GPU_STATUS",
+        "LIST_PATH",
+        "STAT_PATH",
+        "HASH_FILE",
+        "READ_TEXT",
+        "SEARCH_TEXT",
+        "GET_PROCESS_STATUS",
+        "UPLOAD_ARTIFACT",
+        "DOWNLOAD_ARTIFACT",
+    }
+)
+
+FORBIDDEN_CAPABILITIES = frozenset(
+    {
+        "ARBITRARY_SHELL",
+        "INBOUND_LISTENER",
+        "ADMIN_INSTALL",
+        "AUTOMATIC_UPDATE",
+        "MODEL_EXECUTION",
+        "TRAINING",
+        "PRODUCTION_MIGRATION",
+        "CREDENTIAL_CREATION",
+        "CANONICAL_MEMORY_WRITE",
+    }
+)
+
+__all__ = [
+    "BRIDGE_ID",
+    "VERSION",
+    "READ_ONLY_ROOTS",
+    "WRITABLE_ROOT",
+    "PHASE_ONE_OPERATIONS",
+    "FORBIDDEN_CAPABILITIES",
+]
