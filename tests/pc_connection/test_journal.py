@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import closing
 from pathlib import Path
 import sqlite3
 import tempfile
@@ -167,13 +168,12 @@ class JobJournalTests(unittest.TestCase):
                 expected_receipt_digest="b" * 64,
                 **event(5),
             )
-        self.assertEqual(
-            self.journal.get(
-                self.identity.job_id,
-                self.identity.attempt_id,
-            ).local_state,
-            JournalState.COMPLETING,
+        current = self.journal.get(
+            self.identity.job_id,
+            self.identity.attempt_id,
         )
+        assert current is not None
+        self.assertEqual(current.local_state, JournalState.COMPLETING)
 
     def test_effect_start_is_unreachable_for_enabled_phase_one(self) -> None:
         self.journal.record_claim(self.identity, **event(1))
@@ -200,7 +200,7 @@ class JobJournalTests(unittest.TestCase):
 
     def test_event_tampering_is_detected_on_restart(self) -> None:
         self.journal.record_claim(self.identity, **event(1))
-        with sqlite3.connect(self.journal.path) as connection:
+        with closing(sqlite3.connect(self.journal.path)) as connection:
             connection.execute(
                 "UPDATE pccc_local_events SET payload_digest=?",
                 ("e" * 64,),
