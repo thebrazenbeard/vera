@@ -1,123 +1,216 @@
 from __future__ import annotations
 
-import math
 from pathlib import Path
+import sqlite3
 import tempfile
 import unittest
 
 from pc_connection.journal import (
+    AttemptIdentity,
     JobJournal,
     JournalConflict,
-    JournalError,
+    JournalCorrupt,
+    JournalState,
     JournalStateError,
+    VerifiedJournalPath,
 )
 
-JOB_ID = "66666666-6666-4666-8666-666666666666"
-DIGEST = "d" * 64
+
+def identity(**changes) -> AttemptIdentity:
+    values = {
+        "job_id": "00000000-0000-7000-8000-000000000101",
+        "attempt_id": "00000000-0000-7000-8000-000000000102",
+        "host_id": "00000000-0000-7000-8000-000000000103",
+        "claim_generation": 1,
+        "lease_id": "00000000-0000-7000-8000-000000000104",
+        "lease_fence": 1,
+        "job_digest": "1" * 64,
+        "authorization_id": "00000000-0000-7000-8000-000000000105",
+        "authorization_revision": 1,
+        "issuer_revocation_epoch": 0,
+        "host_revocation_epoch": 0,
+        "operation_id": "PING",
+        "operation_version": 1,
+        "retry_class": "PURE_READ",
+        "side_effect_class": "NONE",
+    }
+    values.update(changes)
+    return AttemptIdentity(**values)
+
+
+def event(number: int) -> dict:
+    return {
+        "local_event_id": (
+            f"00000000-0000-7000-8000-{number:012d}"
+        ),
+        "payload_digest": f"{number % 10}" * 64,
+        "server_time_anchor": "2026-08-01T20:00:00.000000Z",
+        "local_monotonic_ns": number,
+        "record_time": (
+            f"2026-08-01T20:00:{number:02d}.000000Z"
+        ),
+    }
 
 
 class JobJournalTests(unittest.TestCase):
     def setUp(self) -> None:
         self.tempdir = tempfile.TemporaryDirectory()
-        self.path = Path(self.tempdir.name) / "state" / "journal.db"
-        self.journal = JobJournal(self.path)
+        verified = VerifiedJournalPath.for_test(
+            Path(self.tempdir.name)
+        )
+        self.journal = JobJournal(verified)
+        self.identity = identity()
 
     def tearDown(self) -> None:
         self.tempdir.cleanup()
 
-    def test_identical_begin_is_idempotent(self) -> None:
-        first = self.journal.begin(JOB_ID, DIGEST)
-        second = self.journal.begin(JOB_ID, DIGEST)
-        self.assertEqual(first.job_id, second.job_id)
-        self.assertEqual(first.state, "RECEIVED")
-        self.assertEqual(second.state, "RECEIVED")
+    def test_arbitrary_path_is_rejected(self) -> None:
+        with self.assertRaisesRegex(Exception, "VerifiedJournalPath"):
+            JobJournal(Path(self.tempdir.name) / "other.db")  # type: ignore[arg-type]
 
-    def test_changed_digest_conflicts(self) -> None:
-        self.journal.begin(JOB_ID, DIGEST)
-        with self.assertRaisesRegex(JournalConflict, "changed"):
-            self.journal.begin(JOB_ID, "e" * 64)
-
-    def test_effect_started_is_idempotent(self) -> None:
-        self.journal.begin(JOB_ID, DIGEST)
-        first = self.journal.mark_effect_started(JOB_ID, DIGEST)
-        second = self.journal.mark_effect_started(JOB_ID, DIGEST)
-        self.assertEqual(first.state, "EFFECT_STARTED")
-        self.assertEqual(second.state, "EFFECT_STARTED")
-
-    def test_effect_started_requires_existing_job(self) -> None:
-        with self.assertRaisesRegex(JournalStateError, "journaled"):
-            self.journal.mark_effect_started(JOB_ID, DIGEST)
-
-    def test_terminal_exact_retry_returns_stored_result(self) -> None:
-        self.journal.begin(JOB_ID, DIGEST)
-        receipt = {"result": "ok", "sequence": 7}
-        first = self.journal.record_terminal(
-            JOB_ID,
-            DIGEST,
-            "COMPLETE",
-            receipt,
+    def test_exact_claim_replay_is_idempotent(self) -> None:
+        first = self.journal.record_claim(
+            self.identity,
+            **event(1),
         )
-        second = self.journal.record_terminal(
-            JOB_ID,
-            DIGEST,
-            "COMPLETE",
-            receipt,
+        second = self.journal.record_claim(
+            self.identity,
+            **event(2),
         )
         self.assertEqual(first, second)
-        self.assertEqual(first.receipt, receipt)
+        self.assertEqual(first.local_state, JournalState.CLAIMED)
+        self.assertEqual(first.state_version, 1)
 
-    def test_terminal_divergence_conflicts(self) -> None:
-        self.journal.begin(JOB_ID, DIGEST)
-        self.journal.record_terminal(
-            JOB_ID,
-            DIGEST,
-            "COMPLETE",
-            {"result": "first"},
+    def test_changed_attempt_identity_conflicts(self) -> None:
+        self.journal.record_claim(self.identity, **event(1))
+        changed = identity(lease_fence=2)
+        with self.assertRaisesRegex(
+            JournalConflict,
+            "IDENTITY_CONFLICT",
+        ):
+            self.journal.record_claim(changed, **event(2))
+
+    def test_side_effect_free_result_path(self) -> None:
+        projection = self.journal.record_claim(
+            self.identity,
+            **event(1),
         )
-        with self.assertRaisesRegex(JournalConflict, "differs"):
-            self.journal.record_terminal(
-                JOB_ID,
-                DIGEST,
-                "FAILED",
-                {"result": "second"},
-            )
-
-    def test_nonfinite_receipt_is_rejected(self) -> None:
-        self.journal.begin(JOB_ID, DIGEST)
-        with self.assertRaisesRegex(JournalError, "canonical JSON"):
-            self.journal.record_terminal(
-                JOB_ID,
-                DIGEST,
-                "FAILED",
-                {"value": math.nan},
-            )
-
-    def test_recovery_does_not_replay_incomplete_effect(self) -> None:
-        other = "77777777-7777-4777-8777-777777777777"
-        self.journal.begin(JOB_ID, DIGEST)
-        self.journal.begin(other, "e" * 64)
-        self.journal.mark_effect_started(other, "e" * 64)
-        incomplete = self.journal.recover_incomplete()
+        projection = self.journal.start_preparation(
+            self.identity,
+            **event(2),
+        )
+        projection = self.journal.record_result(
+            self.identity,
+            result_digest="a" * 64,
+            **event(3),
+        )
         self.assertEqual(
-            [(job.job_id, job.state) for job in incomplete],
-            [(JOB_ID, "RECEIVED"), (other, "EFFECT_STARTED")],
+            projection.local_state,
+            JournalState.RESULT_OBSERVED,
+        )
+        projection = self.journal.submit_completion(
+            self.identity,
+            receipt_id="00000000-0000-7000-8000-000000000106",
+            receipt_digest="b" * 64,
+            server_request_id=(
+                "00000000-0000-7000-8000-000000000107"
+            ),
+            **event(4),
+        )
+        self.assertEqual(
+            projection.local_state,
+            JournalState.COMPLETING,
+        )
+        projection = self.journal.confirm_terminal_readback(
+            self.identity,
+            server_readback_receipt_id=(
+                "00000000-0000-7000-8000-000000000108"
+            ),
+            server_readback_digest="c" * 64,
+            expected_result_digest="a" * 64,
+            expected_receipt_digest="b" * 64,
+            **event(5),
+        )
+        self.assertEqual(
+            projection.local_state,
+            JournalState.TERMINAL_CONFIRMED,
         )
 
-    def test_terminal_job_is_not_recovered_as_incomplete(self) -> None:
-        self.journal.begin(JOB_ID, DIGEST)
-        self.journal.record_terminal(
-            JOB_ID,
-            DIGEST,
-            "CANCELLED",
-            {"cancelled": True},
+    def test_terminal_confirmation_requires_exact_readback(self) -> None:
+        self.journal.record_claim(self.identity, **event(1))
+        self.journal.start_preparation(self.identity, **event(2))
+        self.journal.record_result(
+            self.identity,
+            result_digest="a" * 64,
+            **event(3),
         )
-        self.assertEqual(self.journal.recover_incomplete(), ())
+        self.journal.submit_completion(
+            self.identity,
+            receipt_id="00000000-0000-7000-8000-000000000106",
+            receipt_digest="b" * 64,
+            server_request_id=(
+                "00000000-0000-7000-8000-000000000107"
+            ),
+            **event(4),
+        )
+        with self.assertRaisesRegex(
+            JournalConflict,
+            "SERVER_DIVERGENCE",
+        ):
+            self.journal.confirm_terminal_readback(
+                self.identity,
+                server_readback_receipt_id=(
+                    "00000000-0000-7000-8000-000000000108"
+                ),
+                server_readback_digest="c" * 64,
+                expected_result_digest="d" * 64,
+                expected_receipt_digest="b" * 64,
+                **event(5),
+            )
+        self.assertEqual(
+            self.journal.get(
+                self.identity.job_id,
+                self.identity.attempt_id,
+            ).local_state,
+            JournalState.COMPLETING,
+        )
 
-    def test_boolean_or_malformed_identity_is_rejected(self) -> None:
-        with self.assertRaisesRegex(JournalError, "UUID"):
-            self.journal.begin("not-a-uuid", DIGEST)
-        with self.assertRaisesRegex(JournalError, "SHA-256"):
-            self.journal.begin(JOB_ID, "D" * 64)
+    def test_effect_start_is_unreachable_for_enabled_phase_one(self) -> None:
+        self.journal.record_claim(self.identity, **event(1))
+        self.journal.start_preparation(self.identity, **event(2))
+        with self.assertRaisesRegex(
+            JournalStateError,
+            "side-effect-free",
+        ):
+            self.journal.commit_effect_start(
+                self.identity,
+                **event(3),
+            )
+
+    def test_restart_returns_incomplete_attempt_without_replay(self) -> None:
+        self.journal.record_claim(self.identity, **event(1))
+        self.journal.start_preparation(self.identity, **event(2))
+        reopened = JobJournal(self.journal.verified_path)
+        incomplete = reopened.recover_incomplete()
+        self.assertEqual(len(incomplete), 1)
+        self.assertEqual(
+            incomplete[0].local_state,
+            JournalState.PREPARING,
+        )
+
+    def test_event_tampering_is_detected_on_restart(self) -> None:
+        self.journal.record_claim(self.identity, **event(1))
+        with sqlite3.connect(self.journal.path) as connection:
+            connection.execute(
+                "UPDATE pccc_local_events SET payload_digest=?",
+                ("e" * 64,),
+            )
+            connection.commit()
+        with self.assertRaisesRegex(
+            JournalCorrupt,
+            "EVENT_CHAIN_INVALID",
+        ):
+            JobJournal(self.journal.verified_path)
 
 
 if __name__ == "__main__":
