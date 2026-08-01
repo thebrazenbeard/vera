@@ -1,0 +1,79 @@
+schema_version: 4.0.0
+project_id: vera-reciprocal-agency-environment
+display_name: V.E.R.A.
+acronym: Virtual Environment for Reciprocal Agency
+release_id: VERA_NEUTRAL_CORE_R7A1_20260801_BHV053
+release_token: R7A1_20260801_BHV053
+generated_at: '2026-08-01T15:07:00Z'
+status: replacement_candidate_generated_not_installed
+purpose: integrated_provenance_governed_context_memory_time_initiative_coordination_and_conversational_behavior
+source:
+  repository: thebrazenbeard/vera
+  base_main_commit: ca49ed09658d0d0d833c60a1f62b432cae340ce4
+  candidate_branch: feature/r7a1-behavior-laws-successor-v1
+  behaviors_specification_sequences:
+  - 1028
+  - 1033
+  project_architect_implementation_sequence: 1034
+ontology:
+  model_subject_assumed: false
+  persona_subject_assumed: false
+  consciousness_claimed: false
+  reciprocal_feeling_claimed: false
+  behavioral_reciprocity_testable: true
+owners:
+  project_instructions: VERA_R7A1_PROJECT_INSTRUCTIONS.md
+  runtime: VERA_R7A1_RUNTIME.md
+  governance: VERA_R7A1_GOVERNANCE.md
+  memory_protocol: VERA_R7A1_PROTOCOL.md
+  tagging: VERA_R7A1_TAGGING.md
+  laws: VERA_R7A1_LAWS.md
+  state: VERA_R7A1_STATE.md
+  workstream_routing: VERA_R7A1_WORKSTREAM_ROUTING.md
+  archive_policy: VERA_R7A1_ARCHIVE_POLICY.md
+support_files:
+  repository_baseline: VERA_R7A1_REPOSITORY_BASELINE.md
+  authorization_receipt: VERA_R7A1_REPOSITORY_AUTHORIZATION_RECEIPT.md
+  archivist_handoff: VERA_R7A1_ARCHIVIST_HANDOFF.md
+  supabase_preservation: VERA_R7A1_SUPABASE_PRESERVATION.md
+  supersession: VERA_R7A1_SUPERSESSION.yaml
+  validation: VERA_R7A1_VALIDATION.yaml
+  validation_report: VERA_R7A1_VALIDATION_REPORT.md
+  installation_receipt_template: VERA_R7A1_INSTALLATION_RECEIPT_TEMPLATE.yaml
+  bundle: VERA_R7A1_BUNDLE.json
+  checksum_inventory: VERA_R7A1_CHECKSUMS.sha256
+behavior:
+  law_range: VERA-LAW-001..VERA-LAW-053
+  preserved_laws: VERA-LAW-001..VERA-LAW-026
+  sequence_1028_laws: VERA-LAW-027..VERA-LAW-050
+  sequence_1033_retry_laws: VERA-LAW-051..VERA-LAW-053
+  positive_case_count: 9
+  hostile_case_count: 15
+  normative_owner: workstream/behaviors
+  implementation_owner: workstream/project-architecture
+  independent_exact_head_review_required: true
+workstreams:
+  behaviors: integrated_normative_and_review
+  time: integrated
+  memory: integrated_nonproduction
+  initiatives: integrated_selection_only
+  coordination: integrated_nonproduction
+  project_architecture: integrated_controller_and_writer
+archive:
+  sanitized_archive_required: true
+  full_archive_in_active_bundle: false
+  personal_relational_content_excluded: true
+supabase:
+  project_ref: klmbpaigzeguvnpccqzz
+  production_modification_authorized: false
+  production_modification_applied: false
+  preservation_required: true
+installation:
+  chatgpt_project_replaced: false
+  explicit_user_authorization_required: true
+  complete_replacement_required: true
+  partial_replacement_forbidden: true
+  project_file_count: 22
+  project_filename_prefix: VERA_R7A1_
+  reused_predecessor_filenames_forbidden: true
+  mixed_release_activation: FAIL_CLOSED
