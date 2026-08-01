@@ -171,13 +171,13 @@
         "activation_class": "SUPPORT_DATA",
         "binding": "support",
         "filename": "VERA_R7A1_VALIDATION.yaml",
-        "sha256": "8d4f3914b938a1d46ba261ac2717dd1c416fb40ee32130ab877ac5f59b9cccfb"
+        "sha256": "7ddf2abd5fb743a9f0066d0dc48dd9349ae004f86b5baca293956099c6ec884d"
       },
       {
         "activation_class": "SUPPORT_DATA",
         "binding": "support",
         "filename": "VERA_R7A1_VALIDATION_REPORT.md",
-        "sha256": "eac8cf4a3cf5b2636d5d15e3f0fdfa3c2ea8e8e738fc924db8dabd7ddb95a13b"
+        "sha256": "2e590ef6d7c16bd199d8d6c64d4c5d9be16546d1596a255be6a5dcc67c3bb3c5"
       },
       {
         "activation_class": "ACTIVE_OWNER_AFTER_ATOMIC_VALIDATION",

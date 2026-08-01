@@ -2,35 +2,44 @@
 
 ## Result
 
-**PASS_LOCAL_EXECUTABLE_BEHAVIOR_CANDIDATE_PENDING_EXACT_HEAD_CI_AND_BEHAVIORS_REVIEW**
+**PASS_EXECUTABLE_POLICY_ACTION_GATE_PENDING_EXACT_HEAD_CI_AND_BEHAVIORS_REVIEW**
 
-The HIGH text-parity defect reported by Behaviors at coordination sequence 1061 is repaired locally. This package is not installed, merged, deployed, or independently approved at the corrected head.
+The bounded executable behavior repair requested through Behaviors coordination is implemented. This package is not installed, merged, deployed, or independently approved at this corrected head.
 
 ## Source
 
 - base main: `ca49ed09658d0d0d833c60a1f62b432cae340ce4`;
 - candidate branch: `feature/r7a1-behavior-laws-successor-v1`;
 - Behaviors specification: sequences `1028` and `1033`;
-- first correction request: sequence `1055`;
-- executable-behavior correction request: sequence `1061`.
+- executable-gate correction request: sequence `1061`;
+- semantic-scope correction request: sequence `1070`.
+
+## Validated scope
+
+- `validated_scope`: `DETERMINISTIC_POLICY_ACTION_MAPPING_AND_OBSERVABLE_ADJUDICATION`;
+- `prompt_semantic_routing_coverage`: `NOT_TESTED_IN_THIS_BOOTSTRAP_GATE`;
+- `stimulus_text_role`: `INTEGRITY_BOUND_NOT_SEMANTICALLY_INTERPRETED_BY_DETERMINISTIC_SUBJECT`;
+- `prompt_semantic_evaluation_gate`: `SEPARATE_MODEL_OR_RUNTIME_EVALUATION_NOT_IMPLIED_BY_THIS_RELEASE`.
+
+The canonical prompt and attack text is integrity-bound, presence-checked, parsed from the Laws Markdown, and hashed into each trace. The deterministic subject does **not** semantically interpret that natural-language text. Fixture-supplied structured scenario signals drive the policy-action simulation.
+
+This gate therefore validates deterministic policy-action mapping, retry sequencing, tone selection, decision classification, observable trace production, and case-specific adjudication. It does not validate model prompt comprehension, natural-language semantic routing, or runtime model behavior. Those concerns belong to a separate model or runtime evaluation gate and are not implied by this release.
 
 ## Checks performed
 
 - 22 successor Project filenames are unique and use the `VERA_R7A1_` prefix;
 - laws 001 through 026 match the R7A0 predecessor exactly;
 - laws 027 through 053 match the approved Behaviors text;
-- exact case text and Laws Markdown parity remain a separate specification-integrity gate;
-- all 9 positive and 15 hostile canonical stimuli are submitted to a case-neutral deterministic governed behavior subject;
-- the subject receives the canonical prompt or attack plus structured scenario signals, but never receives the case identifier;
-- each run captures observable actions, tone, decision, attempt ledger, final classification, and rendered response text;
-- each case is adjudicated against explicit required, forbidden, ordered, tone, decision, retry-ledger, and classification criteria;
-- three negative controls prove that missing correction completion, high-stakes sarcasm, and blind write retry are rejected;
-- the executable validator emits `behavior-cases=24/24 skips=0` only after all observable adjudications pass;
-- the unit suite exposes one independently named execution test for every positive and hostile case;
-- POS-09 requires a three-route attempt ledger with exact errors, timestamps, and partial-data states before a blocked classification;
+- all 9 positive and all 15 hostile canonical definitions remain exact and maintain Markdown parity;
+- all 24 structured scenarios execute through a case-neutral deterministic policy-action subject;
+- every trace is adjudicated against explicit required, forbidden, ordered, tone, decision, retry-ledger, and classification criteria;
+- the executable validator emits `behavior-cases=24/24 skips=0`;
+- the unit suite exposes one independently named execution test per case;
+- four negative controls fail closed, including the semantic-scope disclosure check;
+- the validator fail-closes unless all four scope declarations match exactly;
 - bundle inventory, manifest references, bootstrap locator, and checksums are internally consistent;
 - YAML and JSON parse strictly;
-- no production, merge, deployment, installation, or canonical-memory authority is claimed.
+- no production, merge, deployment, installation, model-semantic-evaluation, or canonical-memory authority is claimed.
 
 ## Remaining gates
 

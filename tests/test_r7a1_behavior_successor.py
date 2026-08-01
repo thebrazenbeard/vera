@@ -51,6 +51,17 @@ class R7A1BehaviorSuccessorTests(unittest.TestCase):
         self.assertIn("read GitHub when current repository state is material", text)
 
 
+    def test_validation_scope_disclosure_fails_closed(self) -> None:
+        validation = successor.load_yaml(
+            ROOT / successor.RELEASE_DIR / "VERA_R7A1_VALIDATION.yaml"
+        )
+        execution = dict(validation["behavior_case_execution"])
+        successor.validate_execution_scope(execution)
+        execution["prompt_semantic_routing_coverage"] = "TESTED"
+        with self.assertRaises(ValueError):
+            successor.validate_execution_scope(execution)
+
+
     def test_behavior_adjudicator_rejects_missing_required_action(self) -> None:
         trace = successor.simulate_behavior_subject(
             "The user corrects the intended referent after the assistant followed the wrong interpretation.",

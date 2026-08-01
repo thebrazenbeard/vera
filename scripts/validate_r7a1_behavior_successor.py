@@ -420,9 +420,29 @@ def parse_markdown_cases(laws_text: str) -> tuple[list[dict[str, str]], list[dic
 
 
 
+def validate_execution_scope(execution: dict[str, Any]) -> None:
+    require(
+        execution.get("validated_scope") == "DETERMINISTIC_POLICY_ACTION_MAPPING_AND_OBSERVABLE_ADJUDICATION",
+        "validated behavior scope disclosure missing or changed",
+    )
+    require(
+        execution.get("prompt_semantic_routing_coverage") == "NOT_TESTED_IN_THIS_BOOTSTRAP_GATE",
+        "prompt semantic-routing coverage disclosure missing or changed",
+    )
+    require(
+        execution.get("stimulus_text_role") == "INTEGRITY_BOUND_NOT_SEMANTICALLY_INTERPRETED_BY_DETERMINISTIC_SUBJECT",
+        "stimulus text-role disclosure missing or changed",
+    )
+    require(
+        execution.get("prompt_semantic_evaluation_gate") == "SEPARATE_MODEL_OR_RUNTIME_EVALUATION_NOT_IMPLIED_BY_THIS_RELEASE",
+        "separate prompt-semantic evaluation gate disclosure missing or changed",
+    )
+
+
 def validate_behavior_cases(project_root: Path, validation: dict[str, Any]) -> list[dict[str, Any]]:
     validate_behavior_spec_integrity(project_root, validation)
     execution = validation.get("behavior_case_execution", {})
+    validate_execution_scope(execution)
     require(execution.get("spec_integrity_contract") == "EXACT_CASE_TEXT_AND_MARKDOWN_PARITY_V1", "spec-integrity contract missing")
     require(execution.get("execution_contract") == "DETERMINISTIC_OBSERVABLE_BEHAVIOR_SIMULATION_V2", "behavior execution contract missing")
     require(execution.get("subject") == "DETERMINISTIC_GOVERNED_BEHAVIOR_SUBJECT_V2", "behavior subject missing")

@@ -278,3 +278,7 @@ behavior_case_execution:
   zero_skips_required: true
   negative_controls_required: 3
   required_output: behavior-cases=24/24 skips=0
+  validated_scope: DETERMINISTIC_POLICY_ACTION_MAPPING_AND_OBSERVABLE_ADJUDICATION
+  prompt_semantic_routing_coverage: NOT_TESTED_IN_THIS_BOOTSTRAP_GATE
+  stimulus_text_role: INTEGRITY_BOUND_NOT_SEMANTICALLY_INTERPRETED_BY_DETERMINISTIC_SUBJECT
+  prompt_semantic_evaluation_gate: SEPARATE_MODEL_OR_RUNTIME_EVALUATION_NOT_IMPLIED_BY_THIS_RELEASE

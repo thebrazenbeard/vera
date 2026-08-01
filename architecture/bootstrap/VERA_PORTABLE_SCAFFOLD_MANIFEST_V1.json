@@ -8,7 +8,7 @@
     "requires_exact_base_sha": true
   },
   "base_source_commit": "fc761beab263f2fab010cde2fab424b2b8358bb7",
-  "embedded_package_sha256": "87b9899b1be35257e999f2cc9444e4b52dfc3011984e070226e4894b9a75cbd1",
+  "embedded_package_sha256": "73674b4178f7f42b066bbcfce38a9918352e3d7d2559a0db5854c880af4a993b",
   "files": [
     {
       "activation_class": "NEVER_ACTIVE",
@@ -28,7 +28,7 @@
     {
       "activation_class": "SUPPORT_DATA",
       "binding": {
-        "embedded_sha256": "ca935de9d20e4de5c37bceecfeb2bc4d776dc6dfaa532f02ce27c5158be8d6dc",
+        "embedded_sha256": "e6cc57d98e9ada76fadb4ad7e6c154dadcb0dc18104531ceaa08b628698381ce",
         "embedded_size": 8852,
         "external_git_blob_required": true,
         "self_excluded": false
