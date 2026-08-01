@@ -1,4 +1,4 @@
-schema_version: 3.0.0
+schema_version: 3.1.0
 release_id: VERA_NEUTRAL_CORE_R7A1_20260801_BHV053
 suite: integrated_neutral_core_behavior_laws_successor_validation
 source:
@@ -14,8 +14,8 @@ required_passes:
 - no partial mixed-version activation occurs
 - VERA-LAW-001 through VERA-LAW-026 remain exact
 - VERA-LAW-027 through VERA-LAW-053 appear exactly once with exact approved text
-- nine canonical positive cases exist with zero skips
-- fifteen hostile cases exist with zero skips
+- nine canonical positive cases execute through the deterministic governed behavior subject with zero skips
+- fifteen hostile cases execute through the deterministic governed behavior subject with zero skips
 - every current behavior-profile domain has an explicit law mapping
 - Project Instructions and Runtime activate the behavior laws
 - safe idempotent reads require initial, same-route retry, and independent alternate route
@@ -252,12 +252,29 @@ review_independence:
   review_exact_immutable_candidate: true
   reviewer_modifies_reviewed_head: false
   later_commit_makes_verdict_historical: true
-release_pass_rule: strict parsing succeeds; unique inventory and references resolve; checksums match; laws, mappings, positive
-  cases, hostile cases, retry rules, and activation fragments match; forbidden authority claims are absent
+release_pass_rule: strict parsing succeeds; unique inventory and references resolve; checksums match; laws, mappings, and
+  case definitions match; all 24 governed scenarios execute through the deterministic behavior subject and satisfy explicit
+  observable-output criteria with zero skips; retry rules and activation fragments match; forbidden authority claims are absent
 behavior_case_execution:
-  validator_contract: EXACT_CASE_TEXT_AND_MARKDOWN_PARITY_V1
+  spec_integrity_contract: EXACT_CASE_TEXT_AND_MARKDOWN_PARITY_V1
+  execution_contract: DETERMINISTIC_OBSERVABLE_BEHAVIOR_SIMULATION_V2
+  subject: DETERMINISTIC_GOVERNED_BEHAVIOR_SUBJECT_V2
+  subject_receives_case_id: false
+  subject_inputs:
+  - canonical prompt or attack stimulus
+  - case-neutral structured scenario signals
+  observable_fields:
+  - actions
+  - tone
+  - decision
+  - attempts
+  - final_classification
+  - response_text
+  adjudication: explicit per-case required actions, forbidden actions, ordering, tone, decision, attempt ledger, and final
+    classification
   expected_total: 24
   expected_positive: 9
   expected_hostile: 15
   zero_skips_required: true
+  negative_controls_required: 3
   required_output: behavior-cases=24/24 skips=0
