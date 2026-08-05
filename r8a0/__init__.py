@@ -17,6 +17,7 @@ from .temporal import (
     TimeEvidence,
     current_evidence,
     evidence_from_mapping,
+    signed_time_evidence,
 )
 
 __all__ = [
@@ -31,6 +32,7 @@ __all__ = [
     "TimeEvidence",
     "current_evidence",
     "evidence_from_mapping",
+    "signed_time_evidence",
     "read_checkpoint_receipt",
     "read_termination_receipt",
     "recover",

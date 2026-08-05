@@ -4,9 +4,22 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Iterable, Mapping
+from typing import Any, Iterable, Mapping
 
-from .canonical import canonical_sha256
+from .canonical import canonical_bytes, canonical_sha256
+
+import hashlib
+import hmac
+
+
+def _validated_key(value: bytes) -> bytes:
+    if not isinstance(value, bytes) or len(value) < 16:
+        raise ValueError("temporal integrity key must contain at least 16 bytes")
+    return value
+
+
+def _mac(key: bytes, value: Any) -> str:
+    return hmac.new(key, canonical_bytes(value), hashlib.sha256).hexdigest()
 
 
 class OrientationState(str, Enum):
@@ -49,8 +62,24 @@ class TimeEvidence:
     source_digest: str
     lower_bound: str | None = None
     upper_bound: str | None = None
+    source_mac: str = ""
 
-    def validate(self) -> None:
+    def authentication_body(self) -> dict[str, str | None]:
+        return {
+            "dimension": self.dimension,
+            "value": self.value,
+            "source": self.source,
+            "source_kind": self.source_kind,
+            "observed_at": self.observed_at,
+            "source_digest": self.source_digest,
+            "lower_bound": self.lower_bound,
+            "upper_bound": self.upper_bound,
+        }
+
+    def validate(self, integrity_key: bytes) -> None:
+        key = _validated_key(integrity_key)
+        if not hmac.compare_digest(self.source_mac, _mac(key, self.authentication_body())):
+            raise ValueError("time evidence source authentication mismatch")
         if self.dimension not in REQUIRED_DIMENSIONS:
             raise ValueError(f"unknown time dimension: {self.dimension}")
         if not self.source or not self.source_digest:
@@ -84,6 +113,7 @@ class TimeEvidence:
             "source_digest": self.source_digest,
             "lower_bound": self.lower_bound,
             "upper_bound": self.upper_bound,
+            "source_mac": self.source_mac,
         }
 
 
@@ -121,7 +151,8 @@ class OrientationReceipt:
 
 
 class OrientationGate:
-    def __init__(self, max_age: timedelta = timedelta(minutes=10)) -> None:
+    def __init__(self, *, integrity_key: bytes, max_age: timedelta = timedelta(minutes=10)) -> None:
+        self.integrity_key = _validated_key(integrity_key)
         if max_age <= timedelta(0):
             raise ValueError("max_age must be positive")
         self.max_age = max_age
@@ -144,6 +175,8 @@ class OrientationGate:
         required = tuple(dict.fromkeys(required_dimensions))
         if not required or any(dimension not in REQUIRED_DIMENSIONS for dimension in required):
             raise ValueError("required dimensions are empty or contain an unknown semantic time")
+        if CURRENT_TIME not in required:
+            raise ValueError("every temporal scope must require current_time")
 
         grouped: dict[str, list[TimeEvidence]] = {}
         invalid: set[str] = set()
@@ -152,7 +185,7 @@ class OrientationGate:
             grouped.setdefault(item.dimension, []).append(item)
             materialized.append(item.as_dict())
             try:
-                item.validate()
+                item.validate(self.integrity_key)
             except ValueError:
                 invalid.add(item.dimension)
 
@@ -221,11 +254,37 @@ class OrientationGate:
         )
 
 
+def signed_time_evidence(
+    *,
+    dimension: str,
+    value: str,
+    source: str,
+    source_kind: str,
+    observed_at: str,
+    source_digest: str,
+    integrity_key: bytes,
+    lower_bound: str | None = None,
+    upper_bound: str | None = None,
+) -> TimeEvidence:
+    body = {
+        "dimension": dimension,
+        "value": value,
+        "source": source,
+        "source_kind": source_kind,
+        "observed_at": observed_at,
+        "source_digest": source_digest,
+        "lower_bound": lower_bound,
+        "upper_bound": upper_bound,
+    }
+    return TimeEvidence(**body, source_mac=_mac(_validated_key(integrity_key), body))
+
+
 def current_evidence(
     now: datetime,
     *,
     source: str = "VERIFIED_CURRENT_TIME_SOURCE",
     source_digest: str,
+    integrity_key: bytes,
     lower_bound: str | None = None,
     upper_bound: str | None = None,
 ) -> list[TimeEvidence]:
@@ -234,13 +293,14 @@ def current_evidence(
         raise ValueError("now must include a timezone")
     value = now.astimezone(timezone.utc).isoformat()
     return [
-        TimeEvidence(
+        signed_time_evidence(
             dimension=CURRENT_TIME,
             value=value,
             source=source,
             source_kind=CURRENT_TIME,
             observed_at=value,
             source_digest=source_digest,
+            integrity_key=integrity_key,
             lower_bound=lower_bound,
             upper_bound=upper_bound,
         )
@@ -260,6 +320,7 @@ def evidence_from_mapping(rows: Mapping[str, Mapping[str, str | None]]) -> list[
             "source_digest",
             "lower_bound",
             "upper_bound",
+            "source_mac",
         }:
             raise ValueError("time evidence fields are missing or unknown")
         if row["dimension"] != dimension:
@@ -274,6 +335,7 @@ def evidence_from_mapping(rows: Mapping[str, Mapping[str, str | None]]) -> list[
                 source_digest=str(row["source_digest"]),
                 lower_bound=str(row["lower_bound"]) if row["lower_bound"] else None,
                 upper_bound=str(row["upper_bound"]) if row["upper_bound"] else None,
+                source_mac=str(row["source_mac"]),
             )
         )
     return evidence

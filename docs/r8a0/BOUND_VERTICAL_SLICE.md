@@ -9,12 +9,11 @@ This package implements the owner-authorized repository slice on branch
    current-chat, project-interaction, durable-state, event, record, and retrieval
    time. Missing dimensions never become `DEGRADED_BOUNDED`. A degraded result is
    available only for an explicitly narrower response scope whose required evidence
-   has both lower and upper bounds.
+   has both lower and upper bounds. Every scope includes authenticated current-time evidence, and all temporal source records carry an integrity MAC verified by the runtime-held key.
 2. **Governed memory admission/readback** supports exactly three memory classes.
    Authority and privacy decisions bind the exact request and are authenticated with
    a runtime-held integrity key. Stored records, admission receipts, and replay
-   operations are independently authenticated before use. Class-specific retrieval
-   language is contract-exact.
+   operations are independently authenticated before use. Project and governed-identity IDs bind the request, policy decisions, record, receipt, replay, readback, and memory head. Class-specific retrieval language is contract-exact.
 3. **Checkpoint/terminate/restart recovery** uses a checkpoint-and-terminate process
    that atomically persists both the checkpoint receipt and the termination receipt,
    then exits. A fresh recovery process re-reads and authenticates both receipts,
@@ -22,7 +21,7 @@ This package implements the owner-authorized repository slice on branch
    authority, and memory state, requires a nonempty successor runtime ID distinct
    from the terminated runtime, verifies that recovery occurs in a different OS
    process, and emits an authenticated resumption receipt binding both runtime and
-   process identities. It does not claim uninterrupted consciousness or separate
+   process identities. Recovery also requires independently expected project and governed-identity IDs and rejects foreign-scope checkpoints. It does not claim uninterrupted consciousness or separate
    enduring personhood for the new runtime context.
 
 ## Verification

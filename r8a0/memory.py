@@ -71,6 +71,8 @@ class AdmissionRequest:
     operation_id: str
     authority_binding_id: str
     privacy_binding_id: str
+    project_id: str
+    governed_identity_id: str
     status: str = "CURRENT"
     supersedes: str | None = None
 
@@ -84,6 +86,8 @@ class AdmissionRequest:
             "operation_id": self.operation_id,
             "authority_binding_id": self.authority_binding_id,
             "privacy_binding_id": self.privacy_binding_id,
+            "project_id": self.project_id,
+            "governed_identity_id": self.governed_identity_id,
             "supersedes": self.supersedes,
         }
 
@@ -99,19 +103,25 @@ class GovernedMemoryStore:
         authority_registry: Mapping[str, Mapping[str, Any]],
         privacy_registry: Mapping[str, Mapping[str, Any]],
         integrity_key: bytes,
+        expected_project_id: str,
+        expected_identity_id: str,
     ) -> None:
         self.path = Path(path)
         self.authority_registry = dict(authority_registry)
         self.privacy_registry = dict(privacy_registry)
         self.integrity_key = _validated_key(integrity_key)
+        if not expected_project_id or not expected_identity_id:
+            raise MemoryAdmissionError("expected project and identity are required")
+        self.expected_project_id = expected_project_id
+        self.expected_identity_id = expected_identity_id
 
     def _read(self) -> dict[str, Any]:
         if not self.path.exists():
-            return {"schema": "VERA_R8A0_GOVERNED_MEMORY_STORE_V2", "records": [], "operations": {}}
+            return {"schema": "VERA_R8A0_GOVERNED_MEMORY_STORE_V3", "records": [], "operations": {}}
         data = strict_loads(self.path.read_bytes())
         if set(data) != {"schema", "records", "operations"}:
             raise MemoryAdmissionError("unknown or missing store fields")
-        if data["schema"] != "VERA_R8A0_GOVERNED_MEMORY_STORE_V2":
+        if data["schema"] != "VERA_R8A0_GOVERNED_MEMORY_STORE_V3":
             raise MemoryAdmissionError("unsupported memory store schema")
         if not isinstance(data["records"], list) or not isinstance(data["operations"], dict):
             raise MemoryAdmissionError("invalid memory store containers")
@@ -200,6 +210,8 @@ class GovernedMemoryStore:
             "operation_id",
             "authority_binding_id",
             "privacy_binding_id",
+            "project_id",
+            "governed_identity_id",
             "supersedes",
             "status",
             "identity_owner",
@@ -216,6 +228,8 @@ class GovernedMemoryStore:
         }
         if set(record) != expected_keys:
             raise MemoryAdmissionError("persistent-memory record fields are missing or unknown")
+        if record["project_id"] != self.expected_project_id or record["governed_identity_id"] != self.expected_identity_id:
+            raise MemoryAdmissionError("persistent-memory project or identity mismatch")
         authenticated = self._without(record, "record_mac")
         if not hmac.compare_digest(str(record["record_mac"]), _mac(self.integrity_key, authenticated)):
             raise MemoryAdmissionError("persistent-memory record authentication mismatch")
@@ -233,6 +247,8 @@ class GovernedMemoryStore:
             "operation_id",
             "authority_binding_id",
             "privacy_binding_id",
+            "project_id",
+            "governed_identity_id",
             "supersedes",
         }
         request_payload = {key: record[key] for key in request_payload_keys}
@@ -275,6 +291,8 @@ class GovernedMemoryStore:
             "admission_digest",
             "authority_binding_id",
             "privacy_binding_id",
+            "project_id",
+            "governed_identity_id",
             "result",
             "receipt_mac",
         }
@@ -283,10 +301,12 @@ class GovernedMemoryStore:
         body = self._without(receipt, "receipt_mac")
         if not hmac.compare_digest(str(receipt["receipt_mac"]), _mac(self.integrity_key, body)):
             raise MemoryAdmissionError("admission receipt authentication mismatch")
-        if receipt["schema"] != "VERA_R8A0_AUTOBIOGRAPHICAL_ADMISSION_RECEIPT_V3":
+        if receipt["schema"] != "VERA_R8A0_AUTOBIOGRAPHICAL_ADMISSION_RECEIPT_V4":
             raise MemoryAdmissionError("unsupported admission receipt schema")
         if receipt["operation_id"] != operation_id or receipt["request_digest"] != request_digest:
             raise MemoryAdmissionError("admission receipt does not bind the replayed request")
+        if receipt["project_id"] != self.expected_project_id or receipt["governed_identity_id"] != self.expected_identity_id:
+            raise MemoryAdmissionError("admission receipt project or identity mismatch")
         if receipt["result"] != "ADMITTED" or receipt["runtime_owner"] is not False:
             raise MemoryAdmissionError("invalid admission receipt result")
         MemoryClass(receipt["memory_class"])
@@ -327,6 +347,8 @@ class GovernedMemoryStore:
             or record["memory_class"] != receipt["memory_class"]
             or record["identity_owner"] != receipt["identity_owner"]
             or record["runtime_owner"] != receipt["runtime_owner"]
+            or record["project_id"] != receipt["project_id"]
+            or record["governed_identity_id"] != receipt["governed_identity_id"]
         ):
             raise MemoryAdmissionError("operation replay receipt-to-record binding mismatch")
         return receipt
@@ -341,9 +363,13 @@ class GovernedMemoryStore:
                 request.operation_id,
                 request.authority_binding_id,
                 request.privacy_binding_id,
+                request.project_id,
+                request.governed_identity_id,
             )
         ):
             raise MemoryAdmissionError("record, text, source, provenance, operation, and binding IDs are required")
+        if request.project_id != self.expected_project_id or request.governed_identity_id != self.expected_identity_id:
+            raise MemoryAdmissionError("memory request project or identity mismatch")
         if request.status != "CURRENT":
             raise MemoryAdmissionError("only CURRENT records may be admitted")
 
@@ -401,7 +427,7 @@ class GovernedMemoryStore:
         data["records"].append(record)
         receipt = self._seal_receipt(
             {
-                "schema": "VERA_R8A0_AUTOBIOGRAPHICAL_ADMISSION_RECEIPT_V3",
+                "schema": "VERA_R8A0_AUTOBIOGRAPHICAL_ADMISSION_RECEIPT_V4",
                 "operation_id": request.operation_id,
                 "record_id": request.record_id,
                 "memory_class": request.memory_class.value,
@@ -411,6 +437,8 @@ class GovernedMemoryStore:
                 "admission_digest": record["admission_digest"],
                 "authority_binding_id": request.authority_binding_id,
                 "privacy_binding_id": request.privacy_binding_id,
+                "project_id": request.project_id,
+                "governed_identity_id": request.governed_identity_id,
                 "result": "ADMITTED",
             }
         )

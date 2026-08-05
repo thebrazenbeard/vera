@@ -143,7 +143,7 @@ def write_checkpoint(
 
     receipt = _signed_receipt(
         {
-            "schema": "VERA_R8A0_CHECKPOINT_WRITE_RECEIPT_V2",
+            "schema": "VERA_R8A0_CHECKPOINT_WRITE_RECEIPT_V3",
             "result": "CHECKPOINT_COMMITTED",
             "checkpoint_path": str(destination.resolve()),
             "checkpoint_digest": checkpoint_digest,
@@ -153,6 +153,8 @@ def write_checkpoint(
             "self_model_head_digest": state.self_model_head_digest,
             "authority_state_digest": state.authority_state_digest,
             "runtime_id": state.runtime_id,
+            "project_id": state.project_id,
+            "identity_id": state.identity_id,
         },
         key,
     )
@@ -169,7 +171,7 @@ def read_checkpoint_receipt(path: str | Path, *, receipt_key: bytes) -> dict[str
     body = _verify_signed_receipt(
         receipt,
         key=key,
-        expected_schema="VERA_R8A0_CHECKPOINT_WRITE_RECEIPT_V2",
+        expected_schema="VERA_R8A0_CHECKPOINT_WRITE_RECEIPT_V3",
         required_body_fields={
             "schema",
             "result",
@@ -181,6 +183,8 @@ def read_checkpoint_receipt(path: str | Path, *, receipt_key: bytes) -> dict[str
             "self_model_head_digest",
             "authority_state_digest",
             "runtime_id",
+            "project_id",
+            "identity_id",
         },
     )
     if body["result"] != "CHECKPOINT_COMMITTED":
@@ -257,6 +261,8 @@ def recover(
     termination_receipt_path: str | Path,
     expected_checkpoint_receipt_mac: str,
     expected_termination_receipt_mac: str,
+    expected_project_id: str,
+    expected_identity_id: str,
     expected_predecessor_checkpoint_digest: str,
     expected_memory_head_digest: str,
     expected_self_model_head_digest: str,
@@ -265,9 +271,11 @@ def recover(
     receipt_key: bytes,
 ) -> dict[str, Any]:
     key = _validated_key(receipt_key)
+    if not expected_project_id or not expected_identity_id:
+        raise RecoveryError("expected project and identity are required")
     if not isinstance(successor_runtime_id, str) or not successor_runtime_id.strip():
         raise RecoveryError("successor runtime ID is required")
-    orientation = OrientationGate().evaluate(
+    orientation = OrientationGate(integrity_key=key).evaluate(
         orientation_evidence,
         now=orientation_now,
         source_mode=orientation_source_mode,
@@ -325,6 +333,10 @@ def recover(
     }
     if set(payload) != required:
         raise RecoveryError("checkpoint payload fields are missing or unknown")
+    if payload["project_id"] != expected_project_id or payload["identity_id"] != expected_identity_id:
+        raise RecoveryError("checkpoint project or identity mismatch")
+    if checkpoint_receipt["project_id"] != expected_project_id or checkpoint_receipt["identity_id"] != expected_identity_id:
+        raise RecoveryError("checkpoint receipt project or identity mismatch")
     if payload["runtime_id"] != termination_receipt["runtime_id"]:
         raise RecoveryError("termination runtime does not match checkpoint runtime")
     if successor_runtime_id == payload["runtime_id"]:
