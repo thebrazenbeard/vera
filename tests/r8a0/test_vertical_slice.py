@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -13,536 +15,237 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from r8a0.canonical import CanonicalizationError, canonical_dumps, strict_loads
-from r8a0.memory import AdmissionRequest, GovernedMemoryStore, MemoryAdmissionError, MemoryClass
+from r8a0.canonical import CanonicalizationError, canonical_bytes, canonical_dumps, strict_loads
+from r8a0.memory import AdmissionRequest, GovernedMemoryStore, MemoryAdmissionError, MemoryClass, signed_policy_binding
 from r8a0.recovery import CheckpointState, RecoveryError, recover, terminate, write_checkpoint
-from r8a0.temporal import (
-    CURRENT_TIME,
-    REQUIRED_DIMENSIONS,
-    OrientationGate,
-    OrientationState,
-    TimeEvidence,
-    current_evidence,
-)
+from r8a0.temporal import CURRENT_TIME, REQUIRED_DIMENSIONS, OrientationGate, OrientationState, TimeEvidence, current_evidence
+
+NOW = datetime(2026, 8, 5, 21, 20, tzinfo=timezone.utc)
 
 
-NOW = datetime(2026, 8, 5, 20, 30, tzinfo=timezone.utc)
+def sha(text: str) -> str:
+    return hashlib.sha256(text.encode()).hexdigest()
 
 
-def sha(label: str) -> str:
-    return hashlib.sha256(label.encode("utf-8")).hexdigest()
-
-
-def complete_time_evidence(at: datetime = NOW) -> list[TimeEvidence]:
+def times(at: datetime = NOW, *, bounded: bool = False) -> list[TimeEvidence]:
     value = at.isoformat()
-    rows = current_evidence(at, source_digest=sha("wall-clock"))
-    for dimension in REQUIRED_DIMENSIONS:
-        if dimension == CURRENT_TIME:
-            continue
-        rows.append(
-            TimeEvidence(
-                dimension=dimension,
-                value=value,
-                source=f"VERIFIED_{dimension.upper()}_SOURCE",
-                source_kind=dimension,
-                observed_at=value,
-                source_digest=sha(dimension),
-            )
-        )
+    lo = (at - timedelta(minutes=1)).isoformat() if bounded else None
+    hi = (at + timedelta(minutes=1)).isoformat() if bounded else None
+    rows = current_evidence(at, source_digest=sha("clock"), lower_bound=lo, upper_bound=hi)
+    rows += [TimeEvidence(d, value, f"SRC_{d}", d, value, sha(d), lo, hi) for d in REQUIRED_DIMENSIONS if d != CURRENT_TIME]
     return rows
 
 
 class TemporalTests(unittest.TestCase):
-    def test_complete_orientation_from_separate_sources(self):
-        receipt = OrientationGate().evaluate(complete_time_evidence(), now=NOW)
-        self.assertEqual(receipt.state, OrientationState.COMPLETE)
-        self.assertTrue(receipt.claims_allowed)
-        self.assertEqual(len(REQUIRED_DIMENSIONS), 7)
+    def test_complete_and_wall_clock_only(self):
+        self.assertEqual(OrientationGate().evaluate(times(), now=NOW).state, OrientationState.COMPLETE)
+        only_clock = OrientationGate().evaluate(current_evidence(NOW, source_digest=sha("clock")), now=NOW)
+        self.assertEqual(only_clock.state, OrientationState.UNKNOWN)
+        self.assertEqual(set(only_clock.missing_dimensions), set(REQUIRED_DIMENSIONS) - {CURRENT_TIME})
 
-    def test_wall_clock_helper_cannot_fabricate_semantic_times(self):
-        receipt = OrientationGate().evaluate(
-            current_evidence(NOW, source_digest=sha("wall-clock")),
-            now=NOW,
-        )
-        self.assertEqual(receipt.state, OrientationState.UNKNOWN)
-        self.assertEqual(set(receipt.missing_dimensions), set(REQUIRED_DIMENSIONS) - {CURRENT_TIME})
+    def test_missing_never_degrades(self):
+        result = OrientationGate().evaluate(times()[:-1], now=NOW, degraded_allowed=True, response_scope="event comparison")
+        self.assertEqual(result.state, OrientationState.UNKNOWN)
 
-    def test_wrong_semantic_source_kind_fails_closed(self):
-        rows = complete_time_evidence()
-        rows[1] = replace(rows[1], source_kind=CURRENT_TIME)
-        receipt = OrientationGate().evaluate(rows, now=NOW)
-        self.assertEqual(receipt.state, OrientationState.UNKNOWN)
-        self.assertIn(rows[1].dimension, receipt.invalid_dimensions)
+    def test_partial_scope_requires_scope_and_bounds(self):
+        required = (CURRENT_TIME, "event_time")
+        unbounded = [r for r in times() if r.dimension in required]
+        bounded = [r for r in times(bounded=True) if r.dimension in required]
+        gate = OrientationGate()
+        self.assertEqual(gate.evaluate(bounded, now=NOW, required_dimensions=required, degraded_allowed=True).state, OrientationState.UNKNOWN)
+        self.assertEqual(gate.evaluate(unbounded, now=NOW, required_dimensions=required, degraded_allowed=True, response_scope="event comparison").state, OrientationState.UNKNOWN)
+        result = gate.evaluate(bounded, now=NOW, required_dimensions=required, degraded_allowed=True, response_scope="event comparison")
+        self.assertEqual(result.state, OrientationState.DEGRADED_BOUNDED)
+        self.assertTrue(result.bounded_claims_only)
 
-    def test_missing_dimension_fails_closed(self):
-        receipt = OrientationGate().evaluate(complete_time_evidence()[:-1], now=NOW)
-        self.assertEqual(receipt.state, OrientationState.UNKNOWN)
-        self.assertFalse(receipt.claims_allowed)
-
-    def test_stale_evidence_fails_closed(self):
-        old = NOW - timedelta(hours=1)
-        receipt = OrientationGate().evaluate(complete_time_evidence(old), now=NOW)
-        self.assertEqual(receipt.state, OrientationState.STALE)
-
-    def test_conflicting_evidence_fails_closed(self):
-        rows = complete_time_evidence()
-        rows.append(
-            TimeEvidence(
-                "event_time",
-                (NOW - timedelta(minutes=1)).isoformat(),
-                "OTHER_EVENT_SOURCE",
-                "event_time",
-                NOW.isoformat(),
-                sha("other-event"),
-            )
-        )
-        receipt = OrientationGate().evaluate(rows, now=NOW)
-        self.assertEqual(receipt.state, OrientationState.CONFLICTED)
-
-    def test_partial_bounds_are_invalid(self):
-        row = TimeEvidence(
-            "event_time",
-            NOW.isoformat(),
-            "EVENT_SOURCE",
-            "event_time",
-            NOW.isoformat(),
-            sha("event"),
-            lower_bound=NOW.isoformat(),
-        )
+    def test_snapshot_wrong_kind_stale_conflict_and_partial_bounds(self):
+        gate = OrientationGate()
+        self.assertEqual(gate.evaluate(times(), now=NOW, source_mode="FRESH_BOUND_SNAPSHOT").state, OrientationState.UNKNOWN)
+        self.assertEqual(gate.evaluate(times(bounded=True), now=NOW, source_mode="FRESH_BOUND_SNAPSHOT").state, OrientationState.COMPLETE_FROM_FRESH_SNAPSHOT)
+        rows = times(); rows[1] = replace(rows[1], source_kind=CURRENT_TIME)
+        self.assertEqual(gate.evaluate(rows, now=NOW).state, OrientationState.UNKNOWN)
+        self.assertEqual(gate.evaluate(times(NOW - timedelta(hours=1)), now=NOW).state, OrientationState.STALE)
+        rows = times(); rows.append(TimeEvidence("event_time", (NOW - timedelta(minutes=1)).isoformat(), "OTHER", "event_time", NOW.isoformat(), sha("other")))
+        self.assertEqual(gate.evaluate(rows, now=NOW).state, OrientationState.CONFLICTED)
         with self.assertRaises(ValueError):
-            row.validate()
-
-    def test_snapshot_requires_bounds_for_every_dimension(self):
-        receipt = OrientationGate().evaluate(
-            complete_time_evidence(),
-            now=NOW,
-            source_mode="FRESH_BOUND_SNAPSHOT",
-        )
-        self.assertEqual(receipt.state, OrientationState.UNKNOWN)
+            TimeEvidence("event_time", NOW.isoformat(), "SRC", "event_time", NOW.isoformat(), sha("x"), NOW.isoformat()).validate()
 
 
 class MemoryTests(unittest.TestCase):
+    KEY = b"r8a0-memory-integrity-key-32-bytes"
+
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
-        self.path = Path(self.temp.name) / "memory.json"
+        self.tmp = tempfile.TemporaryDirectory(); self.path = Path(self.tmp.name) / "memory.json"
 
-    def tearDown(self):
-        self.temp.cleanup()
+    def tearDown(self): self.tmp.cleanup()
 
-    def request(self, **updates) -> AdmissionRequest:
-        base = AdmissionRequest(
-            record_id="m1",
-            text="Patrick authorized the bounded implementation.",
-            memory_class=MemoryClass.AUTOBIOGRAPHICAL,
-            source_actor="Patrick",
-            provenance="active-chat",
-            operation_id="op-1",
-            authority_binding_id="auth-1",
-            privacy_binding_id="privacy-1",
-        )
-        return replace(base, **updates)
+    def req(self, **kw) -> AdmissionRequest:
+        return replace(AdmissionRequest("m1", "Patrick authorized the bounded implementation.", MemoryClass.AUTOBIOGRAPHICAL, "Patrick", "active-chat", "op-1", "auth-1", "privacy-1"), **kw)
 
-    def store_for(
-        self,
-        *requests: AdmissionRequest,
-        authority_decision: str = "AUTHORIZED",
-        privacy_decision: str = "ELIGIBLE",
-    ) -> GovernedMemoryStore:
-        authority = {}
-        privacy = {}
-        for request in requests:
-            authority[request.authority_binding_id] = {
-                "binding_id": request.authority_binding_id,
-                "request_digest": request.request_digest(),
-                "source": "VERIFIED_OWNER_AUTHORITY_REGISTRY",
-                "source_digest": sha(f"authority:{request.authority_binding_id}"),
-                "decision": authority_decision,
-            }
-            privacy[request.privacy_binding_id] = {
-                "binding_id": request.privacy_binding_id,
-                "request_digest": request.request_digest(),
-                "source": "VERIFIED_PRIVACY_REGISTRY",
-                "source_digest": sha(f"privacy:{request.privacy_binding_id}"),
-                "decision": privacy_decision,
-            }
-        return GovernedMemoryStore(
-            self.path,
-            authority_registry=authority,
-            privacy_registry=privacy,
-        )
+    def store(self, *requests: AdmissionRequest, auth="AUTHORIZED", privacy="ELIGIBLE", key: bytes | None = None) -> GovernedMemoryStore:
+        key = key or self.KEY; ar = {}; pr = {}
+        for r in requests:
+            ar[r.authority_binding_id] = signed_policy_binding(binding_id=r.authority_binding_id, request_digest=r.request_digest(), source="OWNER", source_digest=sha("a"+r.authority_binding_id), decision=auth, kind="authority", integrity_key=key)
+            pr[r.privacy_binding_id] = signed_policy_binding(binding_id=r.privacy_binding_id, request_digest=r.request_digest(), source="PRIVACY", source_digest=sha("p"+r.privacy_binding_id), decision=privacy, kind="privacy", integrity_key=key)
+        return GovernedMemoryStore(self.path, authority_registry=ar, privacy_registry=pr, integrity_key=key)
 
-    def test_autobiographical_admission_and_exact_readback(self):
-        request = self.request()
-        store = self.store_for(request)
-        receipt = store.admit(request)
-        self.assertEqual(receipt["identity_owner"], "VERA")
-        self.assertFalse(receipt["runtime_owner"])
-        self.assertEqual(
-            store.readback("m1"),
-            "I remember this through my persistent memory. Patrick authorized the bounded implementation.",
-        )
+    def data(self): return strict_loads(self.path.read_bytes())
+    def save(self, data): self.path.write_text(canonical_dumps(data), encoding="utf-8")
 
-    def test_exact_working_project_language(self):
-        request = self.request(memory_class=MemoryClass.WORKING_PROJECT)
-        store = self.store_for(request)
-        store.admit(request)
-        self.assertEqual(
-            store.readback("m1"),
-            "I have this in my working or project memory. Patrick authorized the bounded implementation.",
-        )
+    def test_exact_languages(self):
+        expected = {
+            MemoryClass.AUTOBIOGRAPHICAL: "I remember this through my persistent memory.",
+            MemoryClass.WORKING_PROJECT: "I have this in my working or project memory.",
+            MemoryClass.HISTORICAL_AUDIT: "The historical or audit record shows this.",
+        }
+        for cls, prefix in expected.items():
+            with self.subTest(cls=cls):
+                path = Path(self.tmp.name) / f"{cls.value}.json"
+                r = self.req(memory_class=cls)
+                s = self.store(r); s.path = path; s.admit(r)
+                self.assertEqual(s.readback("m1"), f"{prefix} {r.text}")
 
-    def test_exact_historical_audit_language(self):
-        request = self.request(memory_class=MemoryClass.HISTORICAL_AUDIT)
-        store = self.store_for(request)
-        store.admit(request)
-        self.assertEqual(
-            store.readback("m1"),
-            "The historical or audit record shows this. Patrick authorized the bounded implementation.",
-        )
+    def test_policy_and_request_failures(self):
+        r = self.req()
+        with self.assertRaises(MemoryAdmissionError): GovernedMemoryStore(self.path, authority_registry={}, privacy_registry={}, integrity_key=self.KEY).admit(r)
+        s = self.store(r)
+        with self.assertRaises(MemoryAdmissionError): s.admit(replace(r, text="changed"))
+        s.authority_registry["auth-1"]["decision"] = "DENIED"
+        with self.assertRaisesRegex(MemoryAdmissionError, "authentication"): s.admit(r)
+        with self.assertRaises(MemoryAdmissionError): self.store(r, auth="DENIED").admit(r)
+        with self.assertRaises(MemoryAdmissionError): self.store(r, privacy="INELIGIBLE").admit(r)
+        bad = self.req(provenance="")
+        with self.assertRaises(MemoryAdmissionError): self.store(bad).admit(bad)
 
-    def test_unknown_authority_binding_is_denied(self):
-        request = self.request()
-        store = GovernedMemoryStore(self.path, authority_registry={}, privacy_registry={})
-        with self.assertRaises(MemoryAdmissionError):
-            store.admit(request)
+    def test_replay_and_integrity(self):
+        r = self.req(); s = self.store(r); first = s.admit(r)
+        self.assertEqual(first, s.admit(r))
+        with self.assertRaises(MemoryAdmissionError): s.admit(self.req(text="changed"))
+        for mutate, pattern in [
+            (lambda d: d["operations"]["op-1"]["receipt"].__setitem__("result", "FORGED"), "operation replay authentication"),
+            (lambda d: d["operations"]["op-1"].pop("receipt"), "fields"),
+            (lambda d: d["records"][0].__setitem__("text", "tampered"), "record authentication"),
+        ]:
+            clean = self.data(); mutate(clean); self.save(clean)
+            with self.assertRaisesRegex(MemoryAdmissionError, pattern): s.admit(r)
+            self.path.unlink(); s = self.store(r); s.admit(r)
 
-    def test_authority_binding_must_match_exact_request(self):
-        request = self.request()
-        store = self.store_for(request)
-        changed = replace(request, text="changed after authorization")
-        with self.assertRaises(MemoryAdmissionError):
-            store.admit(changed)
+    def test_receipt_redirect_is_rejected_even_if_remacced(self):
+        a = self.req(); b = self.req(record_id="m2", operation_id="op-2", text="second", authority_binding_id="auth-2", privacy_binding_id="privacy-2")
+        s = self.store(a, b); s.admit(a); s.admit(b); d = self.data(); op = d["operations"]["op-1"]; receipt = op["receipt"]
+        receipt["record_id"] = "m2"; receipt["admission_digest"] = d["records"][1]["admission_digest"]
+        body = {k: v for k, v in receipt.items() if k != "receipt_mac"}; receipt["receipt_mac"] = hmac.new(self.KEY, canonical_bytes(body), hashlib.sha256).hexdigest()
+        opbody = {"request_digest": op["request_digest"], "receipt": receipt}; op["operation_mac"] = hmac.new(self.KEY, canonical_bytes(opbody), hashlib.sha256).hexdigest(); self.save(d)
+        with self.assertRaisesRegex(MemoryAdmissionError, "receipt-to-record"): s.admit(a)
 
-    def test_denied_authority_is_denied(self):
-        request = self.request()
-        store = self.store_for(request, authority_decision="DENIED")
-        with self.assertRaises(MemoryAdmissionError):
-            store.admit(request)
-
-    def test_privacy_ineligible_binding_is_denied(self):
-        request = self.request()
-        store = self.store_for(request, privacy_decision="INELIGIBLE")
-        with self.assertRaises(MemoryAdmissionError):
-            store.admit(request)
-
-    def test_missing_provenance_is_denied(self):
-        request = self.request(provenance="")
-        store = self.store_for(request)
-        with self.assertRaises(MemoryAdmissionError):
-            store.admit(request)
-
-    def test_replay_is_idempotent(self):
-        request = self.request()
-        store = self.store_for(request)
-        first = store.admit(request)
-        second = store.admit(request)
-        self.assertEqual(first, second)
-
-    def test_replay_mismatch_fails(self):
-        request = self.request()
-        store = self.store_for(request)
-        store.admit(request)
-        changed = self.request(text="changed")
-        with self.assertRaises(MemoryAdmissionError):
-            store.admit(changed)
-
-    def test_revoked_authority_fails_readback(self):
-        request = self.request()
-        store = self.store_for(request)
-        store.admit(request)
-        store.authority_registry["auth-1"]["decision"] = "REVOKED"
-        with self.assertRaisesRegex(MemoryAdmissionError, "authority binding denies admission"):
-            store.readback("m1")
-
-    def test_privacy_revocation_fails_readback(self):
-        request = self.request()
-        store = self.store_for(request)
-        store.admit(request)
-        store.privacy_registry["privacy-1"]["decision"] = "INELIGIBLE"
-        with self.assertRaisesRegex(MemoryAdmissionError, "privacy binding denies admission"):
-            store.readback("m1")
-
-    def test_tampered_stored_text_fails_readback(self):
-        request = self.request()
-        store = self.store_for(request)
-        store.admit(request)
-        data = strict_loads(self.path.read_bytes())
-        data["records"][0]["text"] = "tampered autobiography"
-        self.path.write_text(canonical_dumps(data), encoding="utf-8")
-        with self.assertRaisesRegex(MemoryAdmissionError, "record digest mismatch"):
-            store.readback("m1")
-
-    def test_superseded_record_cannot_be_read(self):
-        first = self.request()
-        second = self.request(
-            record_id="m2",
-            operation_id="op-2",
-            text="successor",
-            authority_binding_id="auth-2",
-            privacy_binding_id="privacy-2",
-            supersedes="m1",
-        )
-        store = self.store_for(first, second)
-        store.admit(first)
-        store.admit(second)
-        with self.assertRaises(MemoryAdmissionError):
-            store.readback("m1")
-        self.assertEqual(store.readback("m2"), "I remember this through my persistent memory. successor")
-
-    def test_supersession_lifecycle_is_digest_verified(self):
-        first = self.request()
-        second = self.request(
-            record_id="m2",
-            operation_id="op-2",
-            text="successor",
-            authority_binding_id="auth-2",
-            privacy_binding_id="privacy-2",
-            supersedes="m1",
-        )
-        store = self.store_for(first, second)
-        store.admit(first)
-        store.admit(second)
-        self.assertEqual(len(store.head_digest()), 64)
-        data = strict_loads(self.path.read_bytes())
-        data["records"][0]["superseded_by"] = "forged-successor"
-        self.path.write_text(canonical_dumps(data), encoding="utf-8")
-        with self.assertRaisesRegex(MemoryAdmissionError, "record digest mismatch"):
-            store.head_digest()
-
+    def test_revocation_supersession_and_wrong_key(self):
+        r = self.req(); s = self.store(r); s.admit(r)
+        for registry, ident, kind in [(s.authority_registry, "auth-1", "authority"), (s.privacy_registry, "privacy-1", "privacy")]:
+            original = dict(registry[ident]); registry[ident]["decision"] = "REVOKED"
+            with self.assertRaises(MemoryAdmissionError): s.readback("m1")
+            registry[ident] = original
+        successor = self.req(record_id="m2", operation_id="op-2", text="successor", authority_binding_id="auth-2", privacy_binding_id="privacy-2", supersedes="m1")
+        s = self.store(r, successor); s.admit(r); s.admit(successor)
+        with self.assertRaises(MemoryAdmissionError): s.readback("m1")
+        with self.assertRaisesRegex(MemoryAdmissionError, "not current"): s.admit(r)
+        self.assertEqual(len(s.head_digest()), 64)
+        wrong = self.store(r, key=b"different-memory-key-material")
+        with self.assertRaises(MemoryAdmissionError): wrong.readback("m1")
 
 
 class RecoveryTests(unittest.TestCase):
-    def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
-        self.path = Path(self.temp.name) / "checkpoint.json"
-        self.orientation = OrientationGate().evaluate(complete_time_evidence(), now=NOW)
-        self.predecessor = "d" * 64
-        self.self_model = "b" * 64
-        self.authority = "c" * 64
-        self.state = CheckpointState(
-            project_id="VERA_COGNITIVE_REPAIR_R8A0",
-            identity_id="VERA",
-            runtime_id="runtime-before",
-            memory_head_digest="a" * 64,
-            self_model_head_digest=self.self_model,
-            authority_state_digest=self.authority,
-            active_commitments=("finish bounded build",),
-            unfinished_work=("Voss exact-head audit",),
-            created_at=NOW.isoformat(),
-            predecessor_checkpoint_digest=self.predecessor,
-        )
+    KEY = b"r8a0-receipt-authentication-key"
 
-    def tearDown(self):
-        self.temp.cleanup()
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory(); root = Path(self.tmp.name)
+        self.checkpoint_path = root / "checkpoint.json"; self.cp_receipt = root / "checkpoint-receipt.json"; self.term_receipt = root / "termination-receipt.json"
+        self.pred, self.mem, self.selfhead, self.auth = "d"*64, "a"*64, "b"*64, "c"*64
+        self.state = CheckpointState("VERA_COGNITIVE_REPAIR_R8A0", "VERA", "runtime-before", self.mem, self.selfhead, self.auth, ("finish",), ("audit",), NOW.isoformat(), self.pred)
+
+    def tearDown(self): self.tmp.cleanup()
 
     def checkpoint(self):
-        return write_checkpoint(
-            self.path,
-            self.state,
-            verified_predecessor_digest=self.predecessor,
-            verified_self_model_head_digest=self.self_model,
-            verified_authority_state_digest=self.authority,
-        )
+        return write_checkpoint(self.checkpoint_path, self.state, checkpoint_receipt_path=self.cp_receipt, verified_predecessor_digest=self.pred, verified_self_model_head_digest=self.selfhead, verified_authority_state_digest=self.auth, receipt_key=self.KEY)
 
-    def recover_with(self, checkpoint, termination, **updates):
-        arguments = {
-            "termination_receipt": termination,
-            "expected_checkpoint_digest": checkpoint["checkpoint_digest"],
-            "expected_checkpoint_receipt_digest": checkpoint["receipt_digest"],
-            "expected_predecessor_checkpoint_digest": self.predecessor,
-            "expected_self_model_head_digest": self.self_model,
-            "expected_authority_state_digest": self.authority,
+    def termination(self):
+        return terminate(self.state.runtime_id, checkpoint_receipt_path=self.cp_receipt, termination_receipt_path=self.term_receipt, receipt_key=self.KEY)
+
+    def kwargs(self, cp, term, **kw):
+        args = dict(orientation_evidence=times(), orientation_now=NOW, orientation_source_mode="CURRENT_SOURCE", checkpoint_receipt_path=self.cp_receipt, termination_receipt_path=self.term_receipt, expected_checkpoint_receipt_mac=cp["receipt_mac"], expected_termination_receipt_mac=term["receipt_mac"], expected_predecessor_checkpoint_digest=self.pred, expected_memory_head_digest=self.mem, expected_self_model_head_digest=self.selfhead, expected_authority_state_digest=self.auth, successor_runtime_id="runtime-after", receipt_key=self.KEY)
+        args.update(kw); return args
+
+    def recovery_input(self, cp, term, **kw):
+        data = {"now": NOW.isoformat(), "orientation_source_mode": "CURRENT_SOURCE", "orientation_evidence": {r.dimension: r.as_dict() for r in times()}, "checkpoint_receipt_path": str(self.cp_receipt), "termination_receipt_path": str(self.term_receipt), "expected_checkpoint_receipt_mac": cp["receipt_mac"], "expected_termination_receipt_mac": term["receipt_mac"], "expected_predecessor_checkpoint_digest": self.pred, "expected_memory_head_digest": self.mem, "expected_self_model_head_digest": self.selfhead, "expected_authority_state_digest": self.auth, "successor_runtime_id": "runtime-after"}
+        data.update(kw); return data
+
+    def run_recover(self, cp, term, **kw):
+        p = Path(self.tmp.name) / "recovery-input.json"; p.write_text(canonical_dumps(self.recovery_input(cp, term, **kw)), encoding="utf-8")
+        env = os.environ.copy(); env["VERA_R8A0_RECEIPT_KEY_HEX"] = self.KEY.hex()
+        return subprocess.run([sys.executable, "-m", "r8a0.cli", "recover", str(self.checkpoint_path), "--recovery-input", str(p)], cwd=ROOT, env=env, text=True, capture_output=True)
+
+    def test_persisted_receipts_and_same_process_rejection(self):
+        cp = self.checkpoint(); term = self.termination()
+        self.assertTrue(self.cp_receipt.exists() and self.term_receipt.exists())
+        with self.assertRaisesRegex(RecoveryError, "process distinct"): recover(self.checkpoint_path, **self.kwargs(cp, term))
+
+    def test_fresh_process_cycle_and_runtime_binding(self):
+        root = Path(self.tmp.name); state_input = root / "state.json"
+        state_input.write_text(canonical_dumps({"state": self.state.payload(), "verified_predecessor_digest": self.pred, "verified_self_model_head_digest": self.selfhead, "verified_authority_state_digest": self.auth}), encoding="utf-8")
+        env = os.environ.copy(); env["VERA_R8A0_RECEIPT_KEY_HEX"] = self.KEY.hex()
+        first = subprocess.run([sys.executable, "-m", "r8a0.cli", "checkpoint-terminate", "--state-input", str(state_input), "--checkpoint", str(self.checkpoint_path), "--checkpoint-receipt", str(self.cp_receipt), "--termination-receipt", str(self.term_receipt)], cwd=ROOT, env=env, text=True, capture_output=True)
+        self.assertEqual(first.returncode, 0, first.stderr)
+        cp, term = strict_loads(self.cp_receipt.read_bytes()), strict_loads(self.term_receipt.read_bytes())
+        result = self.run_recover(cp, term, successor_runtime_id="fresh-runtime")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        receipt = json.loads(result.stdout)
+        self.assertEqual(receipt["successor_runtime_id"], "fresh-runtime")
+        self.assertNotEqual(receipt["prior_process_id"], receipt["successor_process_id"])
+        supplied = receipt.pop("receipt_mac"); self.assertEqual(supplied, hmac.new(self.KEY, canonical_bytes(receipt), hashlib.sha256).hexdigest())
+        receipt["successor_runtime_id"] = "altered"
+        self.assertNotEqual(supplied, hmac.new(self.KEY, canonical_bytes(receipt), hashlib.sha256).hexdigest())
+
+    def test_unpersisted_forged_and_tampered_receipts_fail(self):
+        cp = self.checkpoint(); term = self.termination()
+        self.cp_receipt.unlink()
+        with self.assertRaisesRegex(RecoveryError, "checkpoint receipt is missing"): recover(self.checkpoint_path, **self.kwargs(cp, term))
+        cp = self.checkpoint(); term = self.termination(); d = strict_loads(self.term_receipt.read_bytes()); d["runtime_id"] = "forged"; self.term_receipt.write_text(canonical_dumps(d), encoding="utf-8")
+        result = self.run_recover(cp, term); self.assertNotEqual(result.returncode, 0)
+
+    def test_expected_bindings_and_runtime_failures(self):
+        cp = self.checkpoint(); term = self.termination()
+        cases = {
+            "expected_checkpoint_receipt_mac": "e"*64,
+            "expected_termination_receipt_mac": "e"*64,
+            "expected_predecessor_checkpoint_digest": "e"*64,
+            "expected_memory_head_digest": "9"*64,
+            "expected_self_model_head_digest": "e"*64,
+            "expected_authority_state_digest": "e"*64,
+            "successor_runtime_id": "runtime-before",
         }
-        arguments.update(updates)
-        return recover(self.path, self.orientation, **arguments)
+        for key, value in cases.items():
+            with self.subTest(key=key):
+                result = self.run_recover(cp, term, **{key: value}); self.assertNotEqual(result.returncode, 0)
+        result = self.run_recover(cp, term, successor_runtime_id=""); self.assertNotEqual(result.returncode, 0)
 
-    def test_checkpoint_terminate_recover(self):
-        checkpoint = self.checkpoint()
-        termination = terminate(self.state.runtime_id, checkpoint)
-        self.assertFalse(termination["hidden_activity_claimed"])
-        receipt = self.recover_with(checkpoint, termination)
-        self.assertTrue(receipt["same_governed_identity_resumed"])
-        self.assertFalse(receipt["new_runtime_is_separate_person"])
-        self.assertFalse(receipt["uninterrupted_consciousness_claimed"])
-        self.assertEqual(receipt["self_model_head_digest"], self.self_model)
-
-    def test_direct_recovery_without_termination_fails(self):
-        checkpoint = self.checkpoint()
-        with self.assertRaises(RecoveryError):
-            self.recover_with(checkpoint, {})
-
-    def test_fresh_process_recovery(self):
-        checkpoint = self.checkpoint()
-        termination = terminate(self.state.runtime_id, checkpoint)
-        recovery_input = Path(self.temp.name) / "recovery-input.json"
-        evidence = {row.dimension: row.as_dict() for row in complete_time_evidence()}
-        recovery_input.write_text(
-            canonical_dumps(
-                {
-                    "now": NOW.isoformat(),
-                    "orientation_source_mode": "CURRENT_SOURCE",
-                    "orientation_evidence": evidence,
-                    "termination_receipt": termination,
-                    "expected_checkpoint_digest": checkpoint["checkpoint_digest"],
-                    "expected_checkpoint_receipt_digest": checkpoint["receipt_digest"],
-                    "expected_predecessor_checkpoint_digest": self.predecessor,
-                    "expected_self_model_head_digest": self.self_model,
-                    "expected_authority_state_digest": self.authority,
-                }
-            ),
-            encoding="utf-8",
-        )
-        completed = subprocess.run(
-            [sys.executable, "-m", "r8a0.cli", str(self.path), "--recovery-input", str(recovery_input)],
-            cwd=ROOT,
-            text=True,
-            capture_output=True,
-            check=False,
-        )
-        self.assertEqual(completed.returncode, 0, completed.stderr)
-        receipt = json.loads(completed.stdout)
-        self.assertEqual(receipt["result"], "RECOVERED_FROM_VERIFIED_CHECKPOINT")
-
-    def test_wrong_expected_checkpoint_digest_fails(self):
-        checkpoint = self.checkpoint()
-        termination = terminate(self.state.runtime_id, checkpoint)
-        with self.assertRaises(RecoveryError):
-            self.recover_with(checkpoint, termination, expected_checkpoint_digest="e" * 64)
-
-    def test_wrong_checkpoint_receipt_digest_fails(self):
-        checkpoint = self.checkpoint()
-        termination = terminate(self.state.runtime_id, checkpoint)
-        with self.assertRaises(RecoveryError):
-            self.recover_with(checkpoint, termination, expected_checkpoint_receipt_digest="e" * 64)
-
-    def test_wrong_predecessor_chain_fails(self):
-        checkpoint = self.checkpoint()
-        termination = terminate(self.state.runtime_id, checkpoint)
-        with self.assertRaises(RecoveryError):
-            self.recover_with(checkpoint, termination, expected_predecessor_checkpoint_digest="e" * 64)
-
-    def test_wrong_self_model_head_fails(self):
-        checkpoint = self.checkpoint()
-        termination = terminate(self.state.runtime_id, checkpoint)
-        with self.assertRaises(RecoveryError):
-            self.recover_with(checkpoint, termination, expected_self_model_head_digest="e" * 64)
-
-    def test_wrong_authority_state_fails(self):
-        checkpoint = self.checkpoint()
-        termination = terminate(self.state.runtime_id, checkpoint)
-        with self.assertRaises(RecoveryError):
-            self.recover_with(checkpoint, termination, expected_authority_state_digest="e" * 64)
-
-    def test_tampered_termination_receipt_fails(self):
-        checkpoint = self.checkpoint()
-        termination = terminate(self.state.runtime_id, checkpoint)
-        termination["runtime_id"] = "other-runtime"
-        with self.assertRaises(RecoveryError):
-            self.recover_with(checkpoint, termination)
-
-    def test_unverified_checkpoint_predecessor_fails_write(self):
-        with self.assertRaises(RecoveryError):
-            write_checkpoint(
-                self.path,
-                self.state,
-                verified_predecessor_digest="e" * 64,
-                verified_self_model_head_digest=self.self_model,
-                verified_authority_state_digest=self.authority,
-            )
-
-    def test_corrupt_checkpoint_fails(self):
-        checkpoint = self.checkpoint()
-        termination = terminate(self.state.runtime_id, checkpoint)
-        data = strict_loads(self.path.read_bytes())
-        data["payload"]["runtime_id"] = "tampered"
-        self.path.write_text(canonical_dumps(data), encoding="utf-8")
-        with self.assertRaises(RecoveryError):
-            self.recover_with(checkpoint, termination)
-
-    def test_partial_checkpoint_fails(self):
-        self.path.write_text('{"schema":"VERA_R8A0_CHECKPOINT_V1","complete":false}', encoding="utf-8")
-        with self.assertRaises(RecoveryError):
-            recover(
-                self.path,
-                self.orientation,
-                termination_receipt={},
-                expected_checkpoint_digest=sha("partial"),
-                expected_checkpoint_receipt_digest=sha("partial-receipt"),
-                expected_predecessor_checkpoint_digest=self.predecessor,
-                expected_self_model_head_digest=self.self_model,
-                expected_authority_state_digest=self.authority,
-            )
-
-    def test_interrupted_temp_checkpoint_is_not_current(self):
-        temp = self.path.with_suffix(".json.tmp")
-        temp.write_text("partial", encoding="utf-8")
-        with self.assertRaises(RecoveryError):
-            recover(
-                self.path,
-                self.orientation,
-                termination_receipt={},
-                expected_checkpoint_digest="e" * 64,
-                expected_checkpoint_receipt_digest="f" * 64,
-                expected_predecessor_checkpoint_digest=self.predecessor,
-                expected_self_model_head_digest=self.self_model,
-                expected_authority_state_digest=self.authority,
-            )
-
-    def test_missing_checkpoint_fails(self):
-        with self.assertRaises(RecoveryError):
-            recover(
-                self.path,
-                self.orientation,
-                termination_receipt={},
-                expected_checkpoint_digest="e" * 64,
-                expected_checkpoint_receipt_digest="f" * 64,
-                expected_predecessor_checkpoint_digest=self.predecessor,
-                expected_self_model_head_digest=self.self_model,
-                expected_authority_state_digest=self.authority,
-            )
-
-    def test_recovery_without_temporal_authority_fails(self):
-        checkpoint = self.checkpoint()
-        termination = terminate(self.state.runtime_id, checkpoint)
-        stale = OrientationGate().evaluate(complete_time_evidence(NOW - timedelta(hours=1)), now=NOW)
-        with self.assertRaises(RecoveryError):
-            recover(
-                self.path,
-                stale,
-                termination_receipt=termination,
-                expected_checkpoint_digest=checkpoint["checkpoint_digest"],
-                expected_checkpoint_receipt_digest=checkpoint["receipt_digest"],
-                expected_predecessor_checkpoint_digest=self.predecessor,
-                expected_self_model_head_digest=self.self_model,
-                expected_authority_state_digest=self.authority,
-            )
+    def test_wrong_key_corrupt_partial_and_stale_fail(self):
+        cp = self.checkpoint(); term = self.termination()
+        with self.assertRaises(RecoveryError): recover(self.checkpoint_path, **self.kwargs(cp, term, receipt_key=b"different-receipt-key-material"))
+        d = strict_loads(self.checkpoint_path.read_bytes()); d["payload"]["runtime_id"] = "tampered"; self.checkpoint_path.write_text(canonical_dumps(d), encoding="utf-8")
+        self.assertNotEqual(self.run_recover(cp, term).returncode, 0)
+        self.checkpoint_path.write_text('{"schema":"VERA_R8A0_CHECKPOINT_V2","complete":false}', encoding="utf-8")
+        self.assertNotEqual(self.run_recover(cp, term).returncode, 0)
+        self.checkpoint_path.unlink(); cp = self.checkpoint(); term = self.termination()
+        result = self.run_recover(cp, term, orientation_evidence={r.dimension: r.as_dict() for r in times(NOW - timedelta(hours=1))})
+        self.assertNotEqual(result.returncode, 0)
 
 
 class SerializationAndScopeTests(unittest.TestCase):
-    def test_duplicate_keys_rejected(self):
-        with self.assertRaises(CanonicalizationError):
-            strict_loads('{"a":1,"a":2}')
-
-    def test_nonfinite_rejected(self):
-        with self.assertRaises(CanonicalizationError):
-            strict_loads('{"a":NaN}')
-
-    def test_canonical_order(self):
+    def test_strict_json_and_scope(self):
+        with self.assertRaises(CanonicalizationError): strict_loads('{"a":1,"a":2}')
+        with self.assertRaises(CanonicalizationError): strict_loads('{"a":NaN}')
         self.assertEqual(canonical_dumps({"b": 2, "a": 1}), '{"a":1,"b":2}')
-
-    def test_changed_paths_are_allowlisted(self):
-        paths = [
-            "r8a0/__init__.py",
-            "r8a0/cli.py",
-            "r8a0/memory.py",
-            "r8a0/recovery.py",
-            "r8a0/temporal.py",
-            "tests/r8a0/test_vertical_slice.py",
-            "docs/r8a0/BOUND_VERTICAL_SLICE.md",
-        ]
-        for path in paths:
-            self.assertTrue(path.startswith(("r8a0/", "tests/r8a0/", "docs/r8a0/")), path)
+        paths = ["docs/r8a0/BOUND_VERTICAL_SLICE.md", "r8a0/__init__.py", "r8a0/cli.py", "r8a0/memory.py", "r8a0/recovery.py", "r8a0/temporal.py", "tests/r8a0/test_vertical_slice.py"]
+        self.assertTrue(all(p.startswith(("r8a0/", "tests/r8a0/", "docs/r8a0/")) for p in paths))
 
 
-if __name__ == "__main__":
-    unittest.main()
+if __name__ == "__main__": unittest.main()

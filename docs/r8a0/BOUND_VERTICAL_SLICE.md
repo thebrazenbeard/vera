@@ -7,36 +7,41 @@ This package implements the owner-authorized repository slice on branch
 
 1. **Temporal orientation** preserves seven distinct dimensions: current wall-clock,
    current-chat, project-interaction, durable-state, event, record, and retrieval
-   time. The wall-clock helper produces only current-time evidence. Every semantic
-   time requires its own source kind and digest. Missing, stale, invalidly bounded,
-   or conflicting evidence fails closed.
+   time. Missing dimensions never become `DEGRADED_BOUNDED`. A degraded result is
+   available only for an explicitly narrower response scope whose required evidence
+   has both lower and upper bounds.
 2. **Governed memory admission/readback** supports exactly three memory classes.
-   Admission resolves authority and privacy from trusted registries whose records
-   bind the exact request digest; request-supplied truth labels are not accepted.
-   Stored request and record digests are revalidated before readback. Class-specific
-   retrieval language is contract-exact.
-3. **Checkpoint/terminate/restart recovery** writes an atomic checkpoint bound to a
-   verified predecessor, self-model head, authority state, and memory head. Recovery
-   requires the expected checkpoint digest, a digest-valid termination receipt,
-   predecessor-chain agreement, verified current heads, and fresh temporal authority.
-   It does not claim same-runtime continuation or uninterrupted consciousness.
+   Authority and privacy decisions bind the exact request and are authenticated with
+   a runtime-held integrity key. Stored records, admission receipts, and replay
+   operations are independently authenticated before use. Class-specific retrieval
+   language is contract-exact.
+3. **Checkpoint/terminate/restart recovery** uses a checkpoint-and-terminate process
+   that atomically persists both the checkpoint receipt and the termination receipt,
+   then exits. A fresh recovery process re-reads and authenticates both receipts,
+   recomputes temporal orientation internally, verifies predecessor, self-model,
+   authority, and memory state, requires a nonempty successor runtime ID distinct
+   from the terminated runtime, verifies that recovery occurs in a different OS
+   process, and emits an authenticated resumption receipt binding both runtime and
+   process identities. It does not claim uninterrupted consciousness or separate
+   enduring personhood for the new runtime context.
 
 ## Verification
 
 ```bash
-python -m unittest discover -s tests/r8a0 -p 'test_*.py' -v
-python -m compileall -q r8a0 tests/r8a0
+PYTHONHASHSEED=0 python -X dev -m unittest discover -s tests/r8a0 -p 'test_*.py' -v
+python -m compileall -q -f r8a0 tests/r8a0
 ```
 
-The suite includes positive and hostile tests for separate temporal evidence,
-false autobiographical admission, exact-request authority/privacy binding, stored
-record tampering, replay and supersession, termination enforcement, predecessor and
-head mismatches, interrupted/corrupt checkpoints, fresh-process restart, strict JSON,
-and path scope.
+The hostile suite includes missing unbounded temporal dimensions, source-kind
+mismatch, policy-binding forgery, persistent record and operation-receipt tampering,
+replay mismatch, revocation, supersession, forged lifecycle receipts, wrong receipt
+keys, partial checkpoints, wrong predecessor and current heads, termination omission,
+missing or reused successor runtime IDs, same-process recovery, and an observed
+checkpoint/terminate/fresh-process recovery cycle.
 
 ## Scope boundary
 
 The 42-path R8A0 release matrix remains integration reference material. This bounded
-slice writes only under `r8a0/**`, `tests/r8a0/**`, and `docs/r8a0/**` in its successor
-repair. It performs no merge, deployment, production mutation, credential action,
-model training, or canonical-memory write.
+successor writes only under `r8a0/**`, `tests/r8a0/**`, `docs/r8a0/**`, and the
+existing `.github/workflows/r8a0-*.yml` allowance. It performs no merge, deployment, production mutation,
+credential action, model training, or canonical-memory write.

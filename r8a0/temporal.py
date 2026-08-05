@@ -57,7 +57,7 @@ class TimeEvidence:
             raise ValueError("source and source digest are required")
         if self.source_kind != self.dimension:
             raise ValueError("time evidence source kind does not match its semantic dimension")
-        if len(self.source_digest) != 64 or any(c not in "0123456789abcdef" for c in self.source_digest.lower()):
+        if len(self.source_digest) != 64 or any(c not in "0123456789abcdef" for c in self.source_digest):
             raise ValueError("source digest must be lowercase hexadecimal SHA-256")
         value = parse_time(self.value)
         observed = parse_time(self.observed_at)
@@ -98,6 +98,9 @@ class OrientationReceipt:
     invalid_dimensions: tuple[str, ...]
     claims_allowed: bool
     source_mode: str
+    required_dimensions: tuple[str, ...]
+    response_scope: str | None
+    bounded_claims_only: bool
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -111,6 +114,9 @@ class OrientationReceipt:
             "invalid_dimensions": list(self.invalid_dimensions),
             "claims_allowed": self.claims_allowed,
             "source_mode": self.source_mode,
+            "required_dimensions": list(self.required_dimensions),
+            "response_scope": self.response_scope,
+            "bounded_claims_only": self.bounded_claims_only,
         }
 
 
@@ -128,15 +134,16 @@ class OrientationGate:
         required_dimensions: Iterable[str] = REQUIRED_DIMENSIONS,
         source_mode: str = "CURRENT_SOURCE",
         degraded_allowed: bool = False,
+        response_scope: str | None = None,
     ) -> OrientationReceipt:
         if now.tzinfo is None:
             raise ValueError("now must include a timezone")
         if source_mode not in SOURCE_MODES:
             raise ValueError("unsupported source mode")
         now = now.astimezone(timezone.utc)
-        required = tuple(required_dimensions)
-        if any(dimension not in REQUIRED_DIMENSIONS for dimension in required):
-            raise ValueError("required dimensions contain an unknown semantic time")
+        required = tuple(dict.fromkeys(required_dimensions))
+        if not required or any(dimension not in REQUIRED_DIMENSIONS for dimension in required):
+            raise ValueError("required dimensions are empty or contain an unknown semantic time")
 
         grouped: dict[str, list[TimeEvidence]] = {}
         invalid: set[str] = set()
@@ -165,21 +172,38 @@ class OrientationGate:
                 if source_mode == "FRESH_BOUND_SNAPSHOT" and not (row.lower_bound and row.upper_bound):
                     invalid.add(dimension)
 
+        full_scope = set(required) == set(REQUIRED_DIMENSIONS)
+        bounded_scope = all(
+            any(row.lower_bound and row.upper_bound for row in grouped.get(dimension, ()))
+            for dimension in required
+        )
+
         if conflicted:
             state = OrientationState.CONFLICTED
         elif invalid:
             state = OrientationState.UNKNOWN
         elif missing:
-            state = OrientationState.DEGRADED_BOUNDED if degraded_allowed else OrientationState.UNKNOWN
+            state = OrientationState.UNKNOWN
         elif stale:
             state = OrientationState.STALE
         elif source_mode == "FRESH_BOUND_SNAPSHOT":
-            state = OrientationState.COMPLETE_FROM_FRESH_SNAPSHOT
-        else:
+            if full_scope:
+                state = OrientationState.COMPLETE_FROM_FRESH_SNAPSHOT
+            elif degraded_allowed and response_scope and bounded_scope:
+                state = OrientationState.DEGRADED_BOUNDED
+            else:
+                state = OrientationState.UNKNOWN
+        elif full_scope:
             state = OrientationState.COMPLETE
+        elif degraded_allowed and response_scope and bounded_scope:
+            state = OrientationState.DEGRADED_BOUNDED
+        else:
+            state = OrientationState.UNKNOWN
+
         claims_allowed = state in {
             OrientationState.COMPLETE,
             OrientationState.COMPLETE_FROM_FRESH_SNAPSHOT,
+            OrientationState.DEGRADED_BOUNDED,
         }
         return OrientationReceipt(
             state=state,
@@ -191,6 +215,9 @@ class OrientationGate:
             invalid_dimensions=tuple(sorted(invalid)),
             claims_allowed=claims_allowed,
             source_mode=source_mode,
+            required_dimensions=required,
+            response_scope=response_scope.strip() if isinstance(response_scope, str) and response_scope.strip() else None,
+            bounded_claims_only=state is OrientationState.DEGRADED_BOUNDED,
         )
 
 
@@ -199,13 +226,10 @@ def current_evidence(
     *,
     source: str = "VERIFIED_CURRENT_TIME_SOURCE",
     source_digest: str,
+    lower_bound: str | None = None,
+    upper_bound: str | None = None,
 ) -> list[TimeEvidence]:
-    """Return only current wall-clock evidence.
-
-    Semantic event, record, retrieval, project, durable-state, and chat times must be
-    supplied from their own provenance-bearing sources. They are deliberately not
-    inferred from the wall clock merely because humans enjoy convenient lies.
-    """
+    """Return only current wall-clock evidence."""
     if now.tzinfo is None:
         raise ValueError("now must include a timezone")
     value = now.astimezone(timezone.utc).isoformat()
@@ -217,22 +241,39 @@ def current_evidence(
             source_kind=CURRENT_TIME,
             observed_at=value,
             source_digest=source_digest,
+            lower_bound=lower_bound,
+            upper_bound=upper_bound,
         )
     ]
 
 
 def evidence_from_mapping(rows: Mapping[str, Mapping[str, str | None]]) -> list[TimeEvidence]:
     """Build evidence from explicit, separately sourced semantic-time records."""
-    return [
-        TimeEvidence(
-            dimension=dimension,
-            value=str(row["value"]),
-            source=str(row["source"]),
-            source_kind=str(row["source_kind"]),
-            observed_at=str(row["observed_at"]),
-            source_digest=str(row["source_digest"]),
-            lower_bound=str(row["lower_bound"]) if row.get("lower_bound") else None,
-            upper_bound=str(row["upper_bound"]) if row.get("upper_bound") else None,
+    evidence: list[TimeEvidence] = []
+    for dimension, row in rows.items():
+        if set(row) != {
+            "dimension",
+            "value",
+            "source",
+            "source_kind",
+            "observed_at",
+            "source_digest",
+            "lower_bound",
+            "upper_bound",
+        }:
+            raise ValueError("time evidence fields are missing or unknown")
+        if row["dimension"] != dimension:
+            raise ValueError("time evidence mapping key does not match row dimension")
+        evidence.append(
+            TimeEvidence(
+                dimension=dimension,
+                value=str(row["value"]),
+                source=str(row["source"]),
+                source_kind=str(row["source_kind"]),
+                observed_at=str(row["observed_at"]),
+                source_digest=str(row["source_digest"]),
+                lower_bound=str(row["lower_bound"]) if row["lower_bound"] else None,
+                upper_bound=str(row["upper_bound"]) if row["upper_bound"] else None,
+            )
         )
-        for dimension, row in rows.items()
-    ]
+    return evidence
