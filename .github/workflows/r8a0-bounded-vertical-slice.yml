@@ -8,28 +8,54 @@ on:
       - "docs/r8a0/**"
       - ".github/workflows/r8a0-*.yml"
   workflow_dispatch:
+    inputs:
+      authorized_base_sha:
+        description: "Immutable R8A0 authorized base commit"
+        required: true
+        default: "12dd3cb4e3329324885a827506d4f7e8ac25d41d"
 
 permissions:
   contents: read
+
+env:
+  AUTHORIZED_BASE_SHA: "12dd3cb4e3329324885a827506d4f7e8ac25d41d"
+  APPROVED_PARENT_SHA: "c4c16997698460acbf9cddb03a27b1c1128ab223"
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Compile
-        run: python -m compileall -q r8a0 tests/r8a0
-      - name: Run positive and hostile tests
-        run: python -m unittest discover -s tests/r8a0 -p 'test_*.py' -v
-      - name: Reject prohibited path drift
+      - name: Verify authorized lineage and path scope
         shell: bash
+        env:
+          EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          DISPATCH_BASE_SHA: ${{ inputs.authorized_base_sha }}
         run: |
           set -euo pipefail
-          BASE_SHA="${{ github.event.pull_request.base.sha }}"
-          if [ -z "$BASE_SHA" ]; then BASE_SHA="HEAD^"; fi
-          git diff --name-only "$BASE_SHA" HEAD | \
+          git cat-file -e "${AUTHORIZED_BASE_SHA}^{commit}"
+          git cat-file -e "${APPROVED_PARENT_SHA}^{commit}"
+          git merge-base --is-ancestor "$AUTHORIZED_BASE_SHA" HEAD
+          test "$(git rev-parse HEAD^)" = "$APPROVED_PARENT_SHA"
+
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            test "$DISPATCH_BASE_SHA" = "$AUTHORIZED_BASE_SHA"
+          else
+            test -n "$EVENT_BASE_SHA"
+            test "$EVENT_BASE_SHA" = "$AUTHORIZED_BASE_SHA"
+            git merge-base --is-ancestor "$EVENT_BASE_SHA" HEAD
+          fi
+
+          git diff --name-only "$AUTHORIZED_BASE_SHA" HEAD | \
             grep -Ev '^(r8a0/|tests/r8a0/|docs/r8a0/|\.github/workflows/r8a0-[^/]+\.yml$)' > /tmp/prohibited || true
           test ! -s /tmp/prohibited
+      - name: Compile exact acceptance bytes
+        run: python -m compileall -q -f r8a0 tests/r8a0
+      - name: Run exact deterministic acceptance suite
+        run: PYTHONHASHSEED=0 TERM=xterm python -X dev -m unittest discover -s tests/r8a0 -p 'test_*.py' -v
