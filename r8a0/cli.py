@@ -1,154 +1,35 @@
-"""Observed lifecycle entry points for the bounded R8A0 slice."""
+"""Issuer, supervisor, and recovery entry points for bounded R8A0."""
 from __future__ import annotations
-
-import argparse
-import json
-import os
-from datetime import datetime
+import argparse,hashlib,json,os,subprocess,sys
+from datetime import datetime,timezone
 from pathlib import Path
-
-from .canonical import strict_loads
-from .recovery import CheckpointState, recover, terminate, write_checkpoint
+from .canonical import canonical_bytes,strict_loads
+from .recovery import CheckpointState,read_checkpoint_receipt,read_termination_intent,recover,write_checkpoint,write_exit_attestation,write_termination_intent
 from .temporal import evidence_from_mapping
-
-
-def _receipt_key() -> bytes:
-    value = os.environ.get("VERA_R8A0_RECEIPT_KEY_HEX", "")
-    if len(value) < 32 or len(value) % 2:
-        raise ValueError("VERA_R8A0_RECEIPT_KEY_HEX must contain at least 16 bytes of hexadecimal key material")
-    try:
-        return bytes.fromhex(value)
-    except ValueError as exc:
-        raise ValueError("VERA_R8A0_RECEIPT_KEY_HEX is not valid hexadecimal") from exc
-
-
-def _checkpoint_terminate(args: argparse.Namespace) -> int:
-    input_data = strict_loads(Path(args.state_input).read_bytes())
-    if set(input_data) != {
-        "state",
-        "verified_predecessor_digest",
-        "verified_self_model_head_digest",
-        "verified_authority_state_digest",
-    }:
-        raise ValueError("checkpoint lifecycle input fields are missing or unknown")
-    state_data = input_data["state"]
-    if set(state_data) != {
-        "project_id",
-        "identity_id",
-        "runtime_id",
-        "memory_head_digest",
-        "self_model_head_digest",
-        "authority_state_digest",
-        "active_commitments",
-        "unfinished_work",
-        "created_at",
-        "predecessor_checkpoint_digest",
-    }:
-        raise ValueError("checkpoint state fields are missing or unknown")
-    state = CheckpointState(
-        project_id=state_data["project_id"],
-        identity_id=state_data["identity_id"],
-        runtime_id=state_data["runtime_id"],
-        memory_head_digest=state_data["memory_head_digest"],
-        self_model_head_digest=state_data["self_model_head_digest"],
-        authority_state_digest=state_data["authority_state_digest"],
-        active_commitments=tuple(state_data["active_commitments"]),
-        unfinished_work=tuple(state_data["unfinished_work"]),
-        created_at=state_data["created_at"],
-        predecessor_checkpoint_digest=state_data["predecessor_checkpoint_digest"],
-    )
-    key = _receipt_key()
-    checkpoint_receipt = write_checkpoint(
-        args.checkpoint,
-        state,
-        checkpoint_receipt_path=args.checkpoint_receipt,
-        verified_predecessor_digest=input_data["verified_predecessor_digest"],
-        verified_self_model_head_digest=input_data["verified_self_model_head_digest"],
-        verified_authority_state_digest=input_data["verified_authority_state_digest"],
-        receipt_key=key,
-    )
-    termination_receipt = terminate(
-        state.runtime_id,
-        checkpoint_receipt_path=args.checkpoint_receipt,
-        termination_receipt_path=args.termination_receipt,
-        receipt_key=key,
-    )
-    print(
-        json.dumps(
-            {
-                "result": "CHECKPOINT_WRITTEN_AND_RUNTIME_TERMINATED",
-                "runtime_id": state.runtime_id,
-                "checkpoint_receipt_mac": checkpoint_receipt["receipt_mac"],
-                "termination_receipt_mac": termination_receipt["receipt_mac"],
-            },
-            sort_keys=True,
-        )
-    )
-    return 0
-
-
-def _recover(args: argparse.Namespace) -> int:
-    recovery_input = strict_loads(Path(args.recovery_input).read_bytes())
-    required = {
-        "now",
-        "orientation_source_mode",
-        "orientation_evidence",
-        "checkpoint_receipt_path",
-        "termination_receipt_path",
-        "expected_checkpoint_receipt_mac",
-        "expected_termination_receipt_mac",
-        "expected_project_id",
-        "expected_identity_id",
-        "expected_predecessor_checkpoint_digest",
-        "expected_memory_head_digest",
-        "expected_self_model_head_digest",
-        "expected_authority_state_digest",
-        "successor_runtime_id",
-    }
-    if set(recovery_input) != required:
-        raise ValueError("recovery input fields are missing or unknown")
-    now = datetime.fromisoformat(str(recovery_input["now"]).replace("Z", "+00:00"))
-    receipt = recover(
-        args.checkpoint,
-        orientation_evidence=evidence_from_mapping(recovery_input["orientation_evidence"]),
-        orientation_now=now,
-        orientation_source_mode=recovery_input["orientation_source_mode"],
-        checkpoint_receipt_path=recovery_input["checkpoint_receipt_path"],
-        termination_receipt_path=recovery_input["termination_receipt_path"],
-        expected_checkpoint_receipt_mac=recovery_input["expected_checkpoint_receipt_mac"],
-        expected_termination_receipt_mac=recovery_input["expected_termination_receipt_mac"],
-        expected_project_id=recovery_input["expected_project_id"],
-        expected_identity_id=recovery_input["expected_identity_id"],
-        expected_predecessor_checkpoint_digest=recovery_input["expected_predecessor_checkpoint_digest"],
-        expected_memory_head_digest=recovery_input["expected_memory_head_digest"],
-        expected_self_model_head_digest=recovery_input["expected_self_model_head_digest"],
-        expected_authority_state_digest=recovery_input["expected_authority_state_digest"],
-        successor_runtime_id=recovery_input["successor_runtime_id"],
-        receipt_key=_receipt_key(),
-    )
-    print(json.dumps(receipt, sort_keys=True))
-    return 0
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers(dest="command", required=True)
-
-    checkpoint_terminate = subparsers.add_parser("checkpoint-terminate")
-    checkpoint_terminate.add_argument("--state-input", required=True)
-    checkpoint_terminate.add_argument("--checkpoint", required=True)
-    checkpoint_terminate.add_argument("--checkpoint-receipt", required=True)
-    checkpoint_terminate.add_argument("--termination-receipt", required=True)
-    checkpoint_terminate.set_defaults(handler=_checkpoint_terminate)
-
-    recovery = subparsers.add_parser("recover")
-    recovery.add_argument("checkpoint")
-    recovery.add_argument("--recovery-input", required=True)
-    recovery.set_defaults(handler=_recover)
-
-    args = parser.parse_args()
-    return args.handler(args)
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+_DER=bytes.fromhex('3031300d060960864801650304020105000420')
+def _env(prefix:str)->tuple[str,str,int,int]:
+ issuer=os.environ.get(prefix+'_ISSUER','');kid=os.environ.get(prefix+'_KEY_ID','');n=int(os.environ.get(prefix+'_N_HEX','0'),16);d=int(os.environ.get(prefix+'_D_HEX','0'),16)
+ if not issuer or not kid or n.bit_length()<1024 or d<2:raise ValueError(prefix+' private signing material is incomplete')
+ return issuer,kid,n,d
+def _signer(prefix:str):
+ issuer,kid,n,d=_env(prefix);k=(n.bit_length()+7)//8
+ def sign(payload):
+  tail=_DER+hashlib.sha256(canonical_bytes(payload)).digest();em=b'\x00\x01'+b'\xff'*(k-len(tail)-3)+b'\x00'+tail;return format(pow(int.from_bytes(em,'big'),d,n),'x')
+ return issuer,kid,sign
+def _worker(a):
+ x=strict_loads(Path(a.input).read_bytes());s=x['state'];st=CheckpointState(s['project_id'],s['identity_id'],s['runtime_id'],s['runtime_instance_nonce'],s['memory_head_digest'],s['self_model_head_digest'],s['authority_state_digest'],tuple(s['active_commitments']),tuple(s['unfinished_work']),s['created_at'],s['predecessor_checkpoint_digest']);issuer,kid,sign=_signer('VERA_R8A0_LIFECYCLE');cp=write_checkpoint(a.checkpoint,st,checkpoint_receipt_path=a.checkpoint_receipt,state_attestations=x['state_attestations'],trusted_state_keys=x['trusted_state_keys'],lifecycle_issuer=issuer,lifecycle_key_id=kid,lifecycle_signer=sign);ti=write_termination_intent(checkpoint_receipt_path=a.checkpoint_receipt,termination_intent_path=a.termination_intent,trusted_lifecycle_keys=x['trusted_lifecycle_keys'],lifecycle_issuer=issuer,lifecycle_key_id=kid,lifecycle_signer=sign,process_id=os.getpid());print(json.dumps({'checkpoint_signature':cp['signature'],'termination_signature':ti['signature'],'process_id':os.getpid()}));return 0
+def _supervise(a):
+ cmd=[sys.executable,'-m','r8a0.cli','checkpoint-worker','--input',a.input,'--checkpoint',a.checkpoint,'--checkpoint-receipt',a.checkpoint_receipt,'--termination-intent',a.termination_intent];child_env=os.environ.copy()
+ for key in tuple(child_env):
+  if key.startswith('VERA_R8A0_SUPERVISOR_'):child_env.pop(key)
+ p=subprocess.Popen(cmd,cwd=Path(__file__).resolve().parents[1],env=child_env,text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE);out,err=p.communicate();x=strict_loads(Path(a.input).read_bytes());cp=read_checkpoint_receipt(a.checkpoint_receipt,trusted_lifecycle_keys=x['trusted_lifecycle_keys']);ti=read_termination_intent(a.termination_intent,trusted_lifecycle_keys=x['trusted_lifecycle_keys']);issuer,kid,sign=_signer('VERA_R8A0_SUPERVISOR');ex=write_exit_attestation(path=a.exit_attestation,checkpoint_receipt=cp,termination_intent=ti,exit_code=p.returncode,observed_at=datetime.now(timezone.utc).isoformat(),supervisor_issuer=issuer,supervisor_key_id=kid,supervisor_signer=sign);print(json.dumps({'worker_stdout':out,'worker_stderr':err,'exit_signature':ex['signature'],'exit_code':p.returncode}));return 0 if p.returncode==0 else p.returncode
+def _recover(a):
+ x=strict_loads(Path(a.input).read_bytes());r=recover(a.checkpoint,orientation_evidence=evidence_from_mapping(x['orientation_evidence']),orientation_source_mode=x['orientation_source_mode'],trusted_temporal_keys=x['trusted_temporal_keys'],checkpoint_receipt_path=x['checkpoint_receipt_path'],termination_intent_path=x['termination_intent_path'],exit_attestation_path=x['exit_attestation_path'],trusted_lifecycle_keys=x['trusted_lifecycle_keys'],trusted_supervisor_keys=x['trusted_supervisor_keys'],trusted_state_keys=x['trusted_state_keys'],expected_checkpoint_receipt_signature=x['expected_checkpoint_receipt_signature'],expected_termination_intent_signature=x['expected_termination_intent_signature'],expected_exit_attestation_signature=x['expected_exit_attestation_signature'],expected_project_id=x['expected_project_id'],expected_identity_id=x['expected_identity_id'],expected_predecessor_checkpoint_digest=x['expected_predecessor_checkpoint_digest'],expected_memory_head_digest=x['expected_memory_head_digest'],expected_self_model_head_digest=x['expected_self_model_head_digest'],expected_authority_state_digest=x['expected_authority_state_digest'],successor_runtime_id=x['successor_runtime_id'],lifecycle_registry_path=x['lifecycle_registry_path'],lifecycle_registry_key=bytes.fromhex(os.environ['VERA_R8A0_REGISTRY_KEY_HEX']),expected_lifecycle_registry_head=x['expected_lifecycle_registry_head']);print(json.dumps(r,sort_keys=True));return 0
+def main():
+ p=argparse.ArgumentParser();s=p.add_subparsers(dest='command',required=True)
+ for name,fn in [('checkpoint-worker',_worker),('supervise',_supervise)]:
+  q=s.add_parser(name);q.add_argument('--input',required=True);q.add_argument('--checkpoint',required=True);q.add_argument('--checkpoint-receipt',required=True);q.add_argument('--termination-intent',required=True)
+  if name=='supervise':q.add_argument('--exit-attestation',required=True)
+  q.set_defaults(fn=fn)
+ q=s.add_parser('recover');q.add_argument('checkpoint');q.add_argument('--input',required=True);q.set_defaults(fn=_recover);a=p.parse_args();return a.fn(a)
+if __name__=='__main__':raise SystemExit(main())

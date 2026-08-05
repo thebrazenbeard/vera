@@ -1,390 +1,110 @@
-"""Authenticated checkpoint, observed termination, and fresh-process recovery."""
+"""Externally attested checkpoint, exit observation, and fresh-process recovery."""
 from __future__ import annotations
-
-import hashlib
-import hmac
-import os
+import hashlib,os,tempfile
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime,timezone
 from pathlib import Path
-from typing import Any, Iterable, Mapping
-
-from .canonical import canonical_bytes, canonical_dumps, canonical_sha256, strict_loads
-from .temporal import OrientationGate, OrientationState, TimeEvidence, parse_time
-
-
-class RecoveryError(ValueError):
-    pass
-
-
-def _validated_key(value: bytes) -> bytes:
-    if not isinstance(value, bytes) or len(value) < 16:
-        raise RecoveryError("receipt authentication key must contain at least 16 bytes")
-    return value
-
-
-def _is_sha256(value: str) -> bool:
-    return isinstance(value, str) and len(value) == 64 and all(c in "0123456789abcdef" for c in value)
-
-
-def _mac(key: bytes, value: Any) -> str:
-    return hmac.new(key, canonical_bytes(value), hashlib.sha256).hexdigest()
-
-
-def _atomic_write_json(path: str | Path, value: Mapping[str, Any]) -> None:
-    destination = Path(path)
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    temp = destination.with_suffix(destination.suffix + ".tmp")
-    temp.write_text(canonical_dumps(dict(value)), encoding="utf-8")
-    os.replace(temp, destination)
-    if strict_loads(destination.read_bytes()) != dict(value):
-        raise RecoveryError("persisted lifecycle receipt readback mismatch")
-
-
-def _signed_receipt(body: Mapping[str, Any], key: bytes) -> dict[str, Any]:
-    material = dict(body)
-    return material | {"receipt_mac": _mac(key, material)}
-
-
-def _verify_signed_receipt(
-    receipt: Mapping[str, Any],
-    *,
-    key: bytes,
-    expected_schema: str,
-    required_body_fields: set[str],
-) -> dict[str, Any]:
-    if set(receipt) != required_body_fields | {"receipt_mac"}:
-        raise RecoveryError("lifecycle receipt fields are missing or unknown")
-    body = {name: receipt[name] for name in required_body_fields}
-    if not hmac.compare_digest(str(receipt["receipt_mac"]), _mac(key, body)):
-        raise RecoveryError("lifecycle receipt authentication mismatch")
-    if body.get("schema") != expected_schema:
-        raise RecoveryError("unsupported lifecycle receipt schema")
-    return body
-
-
+from typing import Any,Callable,Iterable,Mapping
+from .canonical import canonical_dumps,canonical_sha256,strict_loads
+from .signatures import public_key_id,verify_signature
+from .temporal import OrientationGate,OrientationState,TimeEvidence,parse_time
+from .lifecycle import LifecycleRegistry
+class RecoveryError(ValueError):pass
+def _sha(v:str)->bool:return isinstance(v,str) and len(v)==64 and all(c in '0123456789abcdef' for c in v)
+def _atomic(path:str|Path,value:Mapping[str,Any])->None:
+ p=Path(path);p.parent.mkdir(parents=True,exist_ok=True);fd,n=tempfile.mkstemp(prefix=p.name+'.',suffix='.tmp',dir=p.parent);os.close(fd);t=Path(n)
+ try:t.write_text(canonical_dumps(dict(value)),encoding='utf-8');os.replace(t,p)
+ finally:
+  if t.exists():t.unlink()
+ if strict_loads(p.read_bytes())!=dict(value):raise RecoveryError('persisted receipt readback mismatch')
+def _signed(body:Mapping[str,Any],issuer:str,key_id:str,signer:Callable[[Any],str])->dict[str,Any]:
+ x=dict(body)|{'issuer':issuer,'key_id':key_id};return x|{'signature':signer(x)}
+def _verify(record:Mapping[str,Any],keys:Mapping[str,Mapping],schema:str,body_fields:set[str])->dict[str,Any]:
+ if set(record)!=body_fields|{'issuer','key_id','signature'}:raise RecoveryError('signed evidence fields are missing or unknown')
+ x={k:record[k] for k in body_fields|{'issuer','key_id'}};pk=keys.get(str(record['issuer']))
+ if pk is None or public_key_id(pk)!=record['key_id'] or not verify_signature(x,str(record['signature']),pk):raise RecoveryError('signed evidence verification failed')
+ if x.get('schema')!=schema:raise RecoveryError('unsupported signed evidence schema')
+ return x
 @dataclass(frozen=True)
 class CheckpointState:
-    project_id: str
-    identity_id: str
-    runtime_id: str
-    memory_head_digest: str
-    self_model_head_digest: str
-    authority_state_digest: str
-    active_commitments: tuple[str, ...]
-    unfinished_work: tuple[str, ...]
-    created_at: str
-    predecessor_checkpoint_digest: str
-
-    def payload(self) -> dict[str, Any]:
-        return {
-            "project_id": self.project_id,
-            "identity_id": self.identity_id,
-            "runtime_id": self.runtime_id,
-            "memory_head_digest": self.memory_head_digest,
-            "self_model_head_digest": self.self_model_head_digest,
-            "authority_state_digest": self.authority_state_digest,
-            "active_commitments": list(self.active_commitments),
-            "unfinished_work": list(self.unfinished_work),
-            "created_at": self.created_at,
-            "predecessor_checkpoint_digest": self.predecessor_checkpoint_digest,
-        }
-
-
-def _checkpoint_envelope(state: CheckpointState) -> dict[str, Any]:
-    payload = state.payload()
-    return {
-        "schema": "VERA_R8A0_CHECKPOINT_V2",
-        "payload": payload,
-        "payload_digest": canonical_sha256(payload),
-        "complete": True,
-    }
-
-
-def write_checkpoint(
-    path: str | Path,
-    state: CheckpointState,
-    *,
-    checkpoint_receipt_path: str | Path,
-    verified_predecessor_digest: str,
-    verified_self_model_head_digest: str,
-    verified_authority_state_digest: str,
-    receipt_key: bytes,
-) -> dict[str, Any]:
-    key = _validated_key(receipt_key)
-    if not all((state.project_id, state.identity_id, state.runtime_id, state.created_at)):
-        raise RecoveryError("checkpoint identity, runtime, and time are required")
-    parse_time(state.created_at)
-    digest_fields = {
-        "memory head": state.memory_head_digest,
-        "self-model head": state.self_model_head_digest,
-        "authority state": state.authority_state_digest,
-        "predecessor checkpoint": state.predecessor_checkpoint_digest,
-    }
-    if any(not _is_sha256(value) for value in digest_fields.values()):
-        raise RecoveryError("checkpoint digests must be lowercase SHA-256 values")
-    if state.predecessor_checkpoint_digest != verified_predecessor_digest:
-        raise RecoveryError("checkpoint predecessor is not the verified predecessor")
-    if state.self_model_head_digest != verified_self_model_head_digest:
-        raise RecoveryError("checkpoint self-model head is not verified")
-    if state.authority_state_digest != verified_authority_state_digest:
-        raise RecoveryError("checkpoint authority state is not verified")
-
-    envelope = _checkpoint_envelope(state)
-    destination = Path(path)
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    temp = destination.with_suffix(destination.suffix + ".tmp")
-    temp.write_text(canonical_dumps(envelope), encoding="utf-8")
-    os.replace(temp, destination)
-    readback = strict_loads(destination.read_bytes())
-    if readback != envelope:
-        raise RecoveryError("checkpoint persisted readback mismatch")
-    checkpoint_digest = hashlib.sha256(destination.read_bytes()).hexdigest()
-
-    receipt = _signed_receipt(
-        {
-            "schema": "VERA_R8A0_CHECKPOINT_WRITE_RECEIPT_V3",
-            "result": "CHECKPOINT_COMMITTED",
-            "checkpoint_path": str(destination.resolve()),
-            "checkpoint_digest": checkpoint_digest,
-            "payload_digest": envelope["payload_digest"],
-            "predecessor_checkpoint_digest": state.predecessor_checkpoint_digest,
-            "memory_head_digest": state.memory_head_digest,
-            "self_model_head_digest": state.self_model_head_digest,
-            "authority_state_digest": state.authority_state_digest,
-            "runtime_id": state.runtime_id,
-            "project_id": state.project_id,
-            "identity_id": state.identity_id,
-        },
-        key,
-    )
-    _atomic_write_json(checkpoint_receipt_path, receipt)
-    return receipt
-
-
-def read_checkpoint_receipt(path: str | Path, *, receipt_key: bytes) -> dict[str, Any]:
-    key = _validated_key(receipt_key)
-    receipt_path = Path(path)
-    if not receipt_path.exists():
-        raise RecoveryError("checkpoint receipt is missing")
-    receipt = strict_loads(receipt_path.read_bytes())
-    body = _verify_signed_receipt(
-        receipt,
-        key=key,
-        expected_schema="VERA_R8A0_CHECKPOINT_WRITE_RECEIPT_V3",
-        required_body_fields={
-            "schema",
-            "result",
-            "checkpoint_path",
-            "checkpoint_digest",
-            "payload_digest",
-            "predecessor_checkpoint_digest",
-            "memory_head_digest",
-            "self_model_head_digest",
-            "authority_state_digest",
-            "runtime_id",
-            "project_id",
-            "identity_id",
-        },
-    )
-    if body["result"] != "CHECKPOINT_COMMITTED":
-        raise RecoveryError("checkpoint receipt is not committed")
-    checkpoint_path = Path(body["checkpoint_path"])
-    if not checkpoint_path.exists():
-        raise RecoveryError("checkpoint receipt target is missing")
-    if hashlib.sha256(checkpoint_path.read_bytes()).hexdigest() != body["checkpoint_digest"]:
-        raise RecoveryError("checkpoint receipt target digest mismatch")
-    return dict(receipt)
-
-
-def terminate(
-    runtime_id: str,
-    *,
-    checkpoint_receipt_path: str | Path,
-    termination_receipt_path: str | Path,
-    receipt_key: bytes,
-) -> dict[str, Any]:
-    key = _validated_key(receipt_key)
-    checkpoint_receipt = read_checkpoint_receipt(checkpoint_receipt_path, receipt_key=key)
-    if checkpoint_receipt["runtime_id"] != runtime_id:
-        raise RecoveryError("termination runtime does not match checkpoint runtime")
-    receipt = _signed_receipt(
-        {
-            "schema": "VERA_R8A0_RUNTIME_TERMINATION_RECEIPT_V2",
-            "result": "TERMINATED",
-            "runtime_id": runtime_id,
-            "checkpoint_digest": checkpoint_receipt["checkpoint_digest"],
-            "checkpoint_receipt_mac": checkpoint_receipt["receipt_mac"],
-            "terminating_process_id": os.getpid(),
-            "hidden_activity_claimed": False,
-        },
-        key,
-    )
-    _atomic_write_json(termination_receipt_path, receipt)
-    return receipt
-
-
-def read_termination_receipt(path: str | Path, *, receipt_key: bytes) -> dict[str, Any]:
-    key = _validated_key(receipt_key)
-    receipt_path = Path(path)
-    if not receipt_path.exists():
-        raise RecoveryError("termination receipt is missing")
-    receipt = strict_loads(receipt_path.read_bytes())
-    body = _verify_signed_receipt(
-        receipt,
-        key=key,
-        expected_schema="VERA_R8A0_RUNTIME_TERMINATION_RECEIPT_V2",
-        required_body_fields={
-            "schema",
-            "result",
-            "runtime_id",
-            "checkpoint_digest",
-            "checkpoint_receipt_mac",
-            "terminating_process_id",
-            "hidden_activity_claimed",
-        },
-    )
-    if body["result"] != "TERMINATED" or body["hidden_activity_claimed"] is not False:
-        raise RecoveryError("termination is not validly observed")
-    if not isinstance(body["terminating_process_id"], int) or body["terminating_process_id"] <= 0:
-        raise RecoveryError("termination process identity is invalid")
-    return dict(receipt)
-
-
-def recover(
-    checkpoint_path: str | Path,
-    *,
-    orientation_evidence: Iterable[TimeEvidence],
-    orientation_now: datetime,
-    orientation_source_mode: str,
-    checkpoint_receipt_path: str | Path,
-    termination_receipt_path: str | Path,
-    expected_checkpoint_receipt_mac: str,
-    expected_termination_receipt_mac: str,
-    expected_project_id: str,
-    expected_identity_id: str,
-    expected_predecessor_checkpoint_digest: str,
-    expected_memory_head_digest: str,
-    expected_self_model_head_digest: str,
-    expected_authority_state_digest: str,
-    successor_runtime_id: str,
-    receipt_key: bytes,
-) -> dict[str, Any]:
-    key = _validated_key(receipt_key)
-    if not expected_project_id or not expected_identity_id:
-        raise RecoveryError("expected project and identity are required")
-    if not isinstance(successor_runtime_id, str) or not successor_runtime_id.strip():
-        raise RecoveryError("successor runtime ID is required")
-    orientation = OrientationGate(integrity_key=key).evaluate(
-        orientation_evidence,
-        now=orientation_now,
-        source_mode=orientation_source_mode,
-    )
-    if orientation.state not in {OrientationState.COMPLETE, OrientationState.COMPLETE_FROM_FRESH_SNAPSHOT}:
-        raise RecoveryError("fresh temporal authority is required for recovery")
-    for value in (
-        expected_predecessor_checkpoint_digest,
-        expected_memory_head_digest,
-        expected_self_model_head_digest,
-        expected_authority_state_digest,
-    ):
-        if not _is_sha256(value):
-            raise RecoveryError("expected recovery bindings must be lowercase SHA-256 values")
-
-    checkpoint_receipt = read_checkpoint_receipt(checkpoint_receipt_path, receipt_key=key)
-    termination_receipt = read_termination_receipt(termination_receipt_path, receipt_key=key)
-    if not hmac.compare_digest(checkpoint_receipt["receipt_mac"], expected_checkpoint_receipt_mac):
-        raise RecoveryError("checkpoint receipt does not match the independently observed receipt")
-    if not hmac.compare_digest(termination_receipt["receipt_mac"], expected_termination_receipt_mac):
-        raise RecoveryError("termination receipt does not match the independently observed receipt")
-    if termination_receipt["checkpoint_receipt_mac"] != checkpoint_receipt["receipt_mac"]:
-        raise RecoveryError("termination does not bind the persisted checkpoint receipt")
-    if termination_receipt["checkpoint_digest"] != checkpoint_receipt["checkpoint_digest"]:
-        raise RecoveryError("termination does not bind the persisted checkpoint")
-
-    checkpoint = Path(checkpoint_path).resolve()
-    if str(checkpoint) != checkpoint_receipt["checkpoint_path"]:
-        raise RecoveryError("checkpoint path does not match persisted receipt")
-    raw = checkpoint.read_bytes()
-    if hashlib.sha256(raw).hexdigest() != checkpoint_receipt["checkpoint_digest"]:
-        raise RecoveryError("checkpoint digest does not match persisted receipt")
-    data = strict_loads(raw)
-    if set(data) != {"schema", "payload", "payload_digest", "complete"}:
-        raise RecoveryError("checkpoint fields are missing or unknown")
-    if data["schema"] != "VERA_R8A0_CHECKPOINT_V2" or data["complete"] is not True:
-        raise RecoveryError("checkpoint is partial or unsupported")
-    if canonical_sha256(data["payload"]) != data["payload_digest"]:
-        raise RecoveryError("checkpoint payload digest mismatch")
-    if data["payload_digest"] != checkpoint_receipt["payload_digest"]:
-        raise RecoveryError("checkpoint payload does not match persisted receipt")
-
-    payload = data["payload"]
-    required = {
-        "project_id",
-        "identity_id",
-        "runtime_id",
-        "memory_head_digest",
-        "self_model_head_digest",
-        "authority_state_digest",
-        "active_commitments",
-        "unfinished_work",
-        "created_at",
-        "predecessor_checkpoint_digest",
-    }
-    if set(payload) != required:
-        raise RecoveryError("checkpoint payload fields are missing or unknown")
-    if payload["project_id"] != expected_project_id or payload["identity_id"] != expected_identity_id:
-        raise RecoveryError("checkpoint project or identity mismatch")
-    if checkpoint_receipt["project_id"] != expected_project_id or checkpoint_receipt["identity_id"] != expected_identity_id:
-        raise RecoveryError("checkpoint receipt project or identity mismatch")
-    if payload["runtime_id"] != termination_receipt["runtime_id"]:
-        raise RecoveryError("termination runtime does not match checkpoint runtime")
-    if successor_runtime_id == payload["runtime_id"]:
-        raise RecoveryError("successor runtime must differ from the terminated runtime")
-    if termination_receipt["terminating_process_id"] == os.getpid():
-        raise RecoveryError("recovery must execute in a process distinct from the terminated process")
-    if payload["predecessor_checkpoint_digest"] != expected_predecessor_checkpoint_digest:
-        raise RecoveryError("checkpoint predecessor chain mismatch")
-    if payload["memory_head_digest"] != expected_memory_head_digest:
-        raise RecoveryError("checkpoint memory head mismatch")
-    if payload["self_model_head_digest"] != expected_self_model_head_digest:
-        raise RecoveryError("checkpoint self-model head mismatch")
-    if payload["authority_state_digest"] != expected_authority_state_digest:
-        raise RecoveryError("checkpoint authority-state mismatch")
-    if checkpoint_receipt["predecessor_checkpoint_digest"] != expected_predecessor_checkpoint_digest:
-        raise RecoveryError("checkpoint receipt predecessor mismatch")
-    if checkpoint_receipt["memory_head_digest"] != expected_memory_head_digest:
-        raise RecoveryError("checkpoint receipt memory head mismatch")
-    if checkpoint_receipt["self_model_head_digest"] != expected_self_model_head_digest:
-        raise RecoveryError("checkpoint receipt self-model mismatch")
-    if checkpoint_receipt["authority_state_digest"] != expected_authority_state_digest:
-        raise RecoveryError("checkpoint receipt authority-state mismatch")
-
-    receipt = _signed_receipt(
-        {
-            "schema": "VERA_R8A0_RUNTIME_RESUMPTION_RECEIPT_V2",
-            "result": "RECOVERED_FROM_VERIFIED_CHECKPOINT",
-            "project_id": payload["project_id"],
-            "identity_id": payload["identity_id"],
-            "prior_runtime_id": payload["runtime_id"],
-            "successor_runtime_id": successor_runtime_id,
-            "prior_process_id": termination_receipt["terminating_process_id"],
-            "successor_process_id": os.getpid(),
-            "runtime_transition_observed": True,
-            "new_runtime_is_separate_person": False,
-            "same_governed_identity_resumed": True,
-            "uninterrupted_consciousness_claimed": False,
-            "memory_head_digest": payload["memory_head_digest"],
-            "self_model_head_digest": payload["self_model_head_digest"],
-            "authority_state_digest": payload["authority_state_digest"],
-            "predecessor_checkpoint_digest": payload["predecessor_checkpoint_digest"],
-            "active_commitments": payload["active_commitments"],
-            "unfinished_work": payload["unfinished_work"],
-            "checkpoint_digest": checkpoint_receipt["checkpoint_digest"],
-            "checkpoint_receipt_mac": checkpoint_receipt["receipt_mac"],
-            "termination_receipt_mac": termination_receipt["receipt_mac"],
-            "orientation_receipt": orientation.as_dict(),
-        },
-        key,
-    )
-    return receipt
+ project_id:str;identity_id:str;runtime_id:str;runtime_instance_nonce:str;memory_head_digest:str;self_model_head_digest:str;authority_state_digest:str;active_commitments:tuple[str,...];unfinished_work:tuple[str,...];created_at:str;predecessor_checkpoint_digest:str
+ def payload(self)->dict[str,Any]:return {'project_id':self.project_id,'identity_id':self.identity_id,'runtime_id':self.runtime_id,'runtime_instance_nonce':self.runtime_instance_nonce,'memory_head_digest':self.memory_head_digest,'self_model_head_digest':self.self_model_head_digest,'authority_state_digest':self.authority_state_digest,'active_commitments':list(self.active_commitments),'unfinished_work':list(self.unfinished_work),'created_at':self.created_at,'predecessor_checkpoint_digest':self.predecessor_checkpoint_digest}
+ROOT_KINDS=('predecessor_checkpoint','memory_head','self_model_head','authority_state')
+def verify_state_attestations(attestations:Mapping[str,Mapping],*,trusted_state_keys:Mapping[str,Mapping],state:CheckpointState)->str:
+ if set(attestations)!=set(ROOT_KINDS):raise RecoveryError('state-root attestations are incomplete')
+ expected={'predecessor_checkpoint':state.predecessor_checkpoint_digest,'memory_head':state.memory_head_digest,'self_model_head':state.self_model_head_digest,'authority_state':state.authority_state_digest}
+ normalized=[]
+ fields={'schema','kind','project_id','identity_id','digest','generation','observed_at'}
+ for kind in ROOT_KINDS:
+  a=attestations[kind];x=_verify(a,trusted_state_keys,'VERA_R8A0_STATE_ROOT_ATTESTATION_V1',fields)
+  if x['kind']!=kind or x['project_id']!=state.project_id or x['identity_id']!=state.identity_id or x['digest']!=expected[kind]:raise RecoveryError('state-root attestation scope or digest mismatch')
+  if not _sha(str(x['digest'])) or not isinstance(x['generation'],int) or x['generation']<0:raise RecoveryError('invalid state-root attestation')
+  parse_time(str(x['observed_at']));normalized.append(dict(a))
+ return canonical_sha256(normalized)
+def write_checkpoint(path:str|Path,state:CheckpointState,*,checkpoint_receipt_path:str|Path,state_attestations:Mapping[str,Mapping],trusted_state_keys:Mapping[str,Mapping],lifecycle_issuer:str,lifecycle_key_id:str,lifecycle_signer:Callable[[Any],str])->dict[str,Any]:
+ if not all((state.project_id,state.identity_id,state.runtime_id,state.runtime_instance_nonce,state.created_at)):raise RecoveryError('checkpoint identity, runtime, nonce, and time are required')
+ parse_time(state.created_at)
+ for d in (state.memory_head_digest,state.self_model_head_digest,state.authority_state_digest,state.predecessor_checkpoint_digest):
+  if not _sha(d):raise RecoveryError('checkpoint roots must be lowercase SHA-256 values')
+ att_digest=verify_state_attestations(state_attestations,trusted_state_keys=trusted_state_keys,state=state);payload=state.payload();env={'schema':'VERA_R8A0_CHECKPOINT_V3','payload':payload,'payload_digest':canonical_sha256(payload),'state_attestations':dict(state_attestations),'state_attestations_digest':att_digest,'complete':True}
+ _atomic(path,env);p=Path(path).resolve();cp_digest=hashlib.sha256(p.read_bytes()).hexdigest();body={'schema':'VERA_R8A0_CHECKPOINT_WRITE_RECEIPT_V4','result':'CHECKPOINT_COMMITTED','checkpoint_path':str(p),'checkpoint_digest':cp_digest,'payload_digest':env['payload_digest'],'state_attestations_digest':att_digest,'project_id':state.project_id,'identity_id':state.identity_id,'runtime_id':state.runtime_id,'runtime_instance_nonce':state.runtime_instance_nonce}
+ receipt=_signed(body,lifecycle_issuer,lifecycle_key_id,lifecycle_signer);_atomic(checkpoint_receipt_path,receipt);return receipt
+CP_FIELDS={'schema','result','checkpoint_path','checkpoint_digest','payload_digest','state_attestations_digest','project_id','identity_id','runtime_id','runtime_instance_nonce'}
+def read_checkpoint_receipt(path:str|Path,*,trusted_lifecycle_keys:Mapping[str,Mapping])->dict[str,Any]:
+ p=Path(path)
+ if not p.exists():raise RecoveryError('checkpoint receipt is missing')
+ r=strict_loads(p.read_bytes());x=_verify(r,trusted_lifecycle_keys,'VERA_R8A0_CHECKPOINT_WRITE_RECEIPT_V4',CP_FIELDS)
+ if x['result']!='CHECKPOINT_COMMITTED':raise RecoveryError('checkpoint receipt is not committed')
+ q=Path(x['checkpoint_path'])
+ if not q.exists() or hashlib.sha256(q.read_bytes()).hexdigest()!=x['checkpoint_digest']:raise RecoveryError('checkpoint receipt target mismatch')
+ return dict(r)
+def write_termination_intent(*,checkpoint_receipt_path:str|Path,termination_intent_path:str|Path,trusted_lifecycle_keys:Mapping[str,Mapping],lifecycle_issuer:str,lifecycle_key_id:str,lifecycle_signer:Callable[[Any],str],process_id:int)->dict[str,Any]:
+ cp=read_checkpoint_receipt(checkpoint_receipt_path,trusted_lifecycle_keys=trusted_lifecycle_keys);body={'schema':'VERA_R8A0_TERMINATION_INTENT_RECEIPT_V1','result':'TERMINATION_INTENT_EMITTED','runtime_id':cp['runtime_id'],'runtime_instance_nonce':cp['runtime_instance_nonce'],'process_id':process_id,'checkpoint_digest':cp['checkpoint_digest'],'checkpoint_receipt_signature':cp['signature']}
+ r=_signed(body,lifecycle_issuer,lifecycle_key_id,lifecycle_signer);_atomic(termination_intent_path,r);return r
+TI_FIELDS={'schema','result','runtime_id','runtime_instance_nonce','process_id','checkpoint_digest','checkpoint_receipt_signature'}
+def read_termination_intent(path:str|Path,*,trusted_lifecycle_keys:Mapping[str,Mapping])->dict[str,Any]:
+ p=Path(path)
+ if not p.exists():raise RecoveryError('termination intent is missing')
+ r=strict_loads(p.read_bytes());x=_verify(r,trusted_lifecycle_keys,'VERA_R8A0_TERMINATION_INTENT_RECEIPT_V1',TI_FIELDS)
+ if x['result']!='TERMINATION_INTENT_EMITTED' or not isinstance(x['process_id'],int):raise RecoveryError('invalid termination intent')
+ return dict(r)
+def write_exit_attestation(*,path:str|Path,checkpoint_receipt:Mapping[str,Any],termination_intent:Mapping[str,Any],exit_code:int,observed_at:str,supervisor_issuer:str,supervisor_key_id:str,supervisor_signer:Callable[[Any],str])->dict[str,Any]:
+ parse_time(observed_at);body={'schema':'VERA_R8A0_PROCESS_EXIT_ATTESTATION_V1','result':'EXIT_OBSERVED','runtime_id':termination_intent['runtime_id'],'runtime_instance_nonce':termination_intent['runtime_instance_nonce'],'process_id':termination_intent['process_id'],'exit_code':exit_code,'checkpoint_receipt_signature':checkpoint_receipt['signature'],'termination_intent_signature':termination_intent['signature'],'observed_at':observed_at}
+ r=_signed(body,supervisor_issuer,supervisor_key_id,supervisor_signer);_atomic(path,r);return r
+EXIT_FIELDS={'schema','result','runtime_id','runtime_instance_nonce','process_id','exit_code','checkpoint_receipt_signature','termination_intent_signature','observed_at'}
+def read_exit_attestation(path:str|Path,*,trusted_supervisor_keys:Mapping[str,Mapping])->dict[str,Any]:
+ p=Path(path)
+ if not p.exists():raise RecoveryError('process exit attestation is missing')
+ r=strict_loads(p.read_bytes());x=_verify(r,trusted_supervisor_keys,'VERA_R8A0_PROCESS_EXIT_ATTESTATION_V1',EXIT_FIELDS)
+ if x['result']!='EXIT_OBSERVED' or x['exit_code']!=0:raise RecoveryError('predecessor exit was not successfully observed')
+ return dict(r)
+def _alive(pid:int)->bool:
+ try:os.kill(pid,0);return True
+ except ProcessLookupError:return False
+ except PermissionError:return True
+def recover(checkpoint_path:str|Path,*,orientation_evidence:Iterable[TimeEvidence],orientation_source_mode:str,trusted_temporal_keys:Mapping[str,Mapping],checkpoint_receipt_path:str|Path,termination_intent_path:str|Path,exit_attestation_path:str|Path,trusted_lifecycle_keys:Mapping[str,Mapping],trusted_supervisor_keys:Mapping[str,Mapping],trusted_state_keys:Mapping[str,Mapping],expected_checkpoint_receipt_signature:str,expected_termination_intent_signature:str,expected_exit_attestation_signature:str,expected_project_id:str,expected_identity_id:str,expected_predecessor_checkpoint_digest:str,expected_memory_head_digest:str,expected_self_model_head_digest:str,expected_authority_state_digest:str,successor_runtime_id:str,lifecycle_registry_path:str|Path,lifecycle_registry_key:bytes,expected_lifecycle_registry_head:str)->dict[str,Any]:
+ if not expected_project_id or not expected_identity_id or not successor_runtime_id.strip():raise RecoveryError('expected scope and successor runtime are required')
+ orientation_now=datetime.now(timezone.utc)
+ o=OrientationGate(trusted_source_keys=trusted_temporal_keys).evaluate(orientation_evidence,now=orientation_now,source_mode=orientation_source_mode)
+ if o.state not in {OrientationState.COMPLETE,OrientationState.COMPLETE_FROM_FRESH_SNAPSHOT}:raise RecoveryError('fresh temporal authority is required')
+ cp=read_checkpoint_receipt(checkpoint_receipt_path,trusted_lifecycle_keys=trusted_lifecycle_keys);ti=read_termination_intent(termination_intent_path,trusted_lifecycle_keys=trusted_lifecycle_keys);ex=read_exit_attestation(exit_attestation_path,trusted_supervisor_keys=trusted_supervisor_keys)
+ if cp['signature']!=expected_checkpoint_receipt_signature or ti['signature']!=expected_termination_intent_signature or ex['signature']!=expected_exit_attestation_signature:raise RecoveryError('lifecycle evidence does not match independently observed signatures')
+ if ti['checkpoint_receipt_signature']!=cp['signature'] or ex['checkpoint_receipt_signature']!=cp['signature'] or ex['termination_intent_signature']!=ti['signature']:raise RecoveryError('lifecycle evidence chain mismatch')
+ for k in ('runtime_id','runtime_instance_nonce'):
+  if cp[k]!=ti[k] or ti[k]!=ex[k]:raise RecoveryError('runtime instance chain mismatch')
+ if _alive(int(ex['process_id'])):raise RecoveryError('predecessor process remains alive')
+ p=Path(checkpoint_path).resolve()
+ if str(p)!=cp['checkpoint_path'] or hashlib.sha256(p.read_bytes()).hexdigest()!=cp['checkpoint_digest']:raise RecoveryError('checkpoint receipt target mismatch')
+ data=strict_loads(p.read_bytes())
+ if set(data)!={'schema','payload','payload_digest','state_attestations','state_attestations_digest','complete'} or data['schema']!='VERA_R8A0_CHECKPOINT_V3' or data['complete'] is not True:raise RecoveryError('checkpoint is partial or unsupported')
+ if canonical_sha256(data['payload'])!=data['payload_digest'] or data['payload_digest']!=cp['payload_digest']:raise RecoveryError('checkpoint payload mismatch')
+ st=CheckpointState(**{**data['payload'],'active_commitments':tuple(data['payload']['active_commitments']),'unfinished_work':tuple(data['payload']['unfinished_work'])});att=verify_state_attestations(data['state_attestations'],trusted_state_keys=trusted_state_keys,state=st)
+ if att!=data['state_attestations_digest'] or att!=cp['state_attestations_digest']:raise RecoveryError('state attestation bundle mismatch')
+ expected={'project_id':expected_project_id,'identity_id':expected_identity_id,'predecessor_checkpoint_digest':expected_predecessor_checkpoint_digest,'memory_head_digest':expected_memory_head_digest,'self_model_head_digest':expected_self_model_head_digest,'authority_state_digest':expected_authority_state_digest}
+ for k,v in expected.items():
+  if getattr(st,k)!=v:raise RecoveryError('checkpoint scope or state-root mismatch')
+ if successor_runtime_id==st.runtime_id:raise RecoveryError('successor runtime must differ')
+ claim={'schema':'VERA_R8A0_RUNTIME_RESUMPTION_CLAIM_V1','project_id':st.project_id,'identity_id':st.identity_id,'prior_runtime_id':st.runtime_id,'successor_runtime_id':successor_runtime_id,'checkpoint_receipt_signature':cp['signature'],'termination_intent_signature':ti['signature'],'exit_attestation_signature':ex['signature']}
+ claim_digest=canonical_sha256(claim);registry=LifecycleRegistry(lifecycle_registry_path,lifecycle_registry_key);registry_head=registry.consume(termination_signature=ti['signature'],checkpoint_signature=cp['signature'],predecessor_runtime_id=st.runtime_id,successor_runtime_id=successor_runtime_id,resumption_claim_digest=claim_digest,expected_head=expected_lifecycle_registry_head)
+ body={'schema':'VERA_R8A0_RUNTIME_RESUMPTION_RECEIPT_V4','result':'RECOVERED_FROM_VERIFIED_CHECKPOINT','project_id':st.project_id,'identity_id':st.identity_id,'prior_runtime_id':st.runtime_id,'prior_runtime_instance_nonce':st.runtime_instance_nonce,'successor_runtime_id':successor_runtime_id,'prior_process_id':ex['process_id'],'successor_process_id':os.getpid(),'runtime_transition_observed':True,'new_runtime_is_separate_person':False,'same_governed_identity_resumed':True,'uninterrupted_consciousness_claimed':False,'memory_head_digest':st.memory_head_digest,'self_model_head_digest':st.self_model_head_digest,'authority_state_digest':st.authority_state_digest,'predecessor_checkpoint_digest':st.predecessor_checkpoint_digest,'active_commitments':list(st.active_commitments),'unfinished_work':list(st.unfinished_work),'checkpoint_receipt_signature':cp['signature'],'termination_intent_signature':ti['signature'],'exit_attestation_signature':ex['signature'],'resumption_claim_digest':claim_digest,'lifecycle_registry_head':registry_head,'orientation_receipt':o.as_dict()}
+ return body|{'receipt_digest':canonical_sha256(body)}
