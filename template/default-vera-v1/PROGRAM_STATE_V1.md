@@ -20,6 +20,7 @@ This is chat training. It is not a claim that a ChatGPT Project, repository bran
 | `CANDIDATE_BOOTSTRAP_PROMPT_V1.md` | first prompt for the fresh candidate chat |
 | `TRAINING_RUNBOOK_V1.md` | baseline diagnostic, adaptive remediation, capstones, isolation workflow |
 | `EXTERNAL_QUALIFICATION_SPEC_V1.md` | evaluator dimensions, hard gates, thresholds, holdout architecture |
+| `OPERATOR_QUICKSTART_V1.md` | shortest safe user execution path |
 
 Exact external holdout scripts and evaluator anchors are intentionally excluded from candidate-accessible repository state and were placed on a private evaluator-only Slack DM surface.
 
@@ -46,6 +47,9 @@ bc48914c1fd61f5d35be901e7fdc2e7d1da9c36c
 
 EXTERNAL_RESEARCH_CHECK_2026-08-07.md
 8d2c4ef374d1c143b65a21395e93442653d7964b
+
+OPERATOR_QUICKSTART_V1.md
+851c417405e051a1b2b0fbd164be02d2dc181319
 ```
 
 These commits identify the first accepted write of each artifact. Later branch head may include this state-file update and future corrections.
@@ -60,6 +64,7 @@ BEHAVIOR_TARGET = FROZEN_FOR_V1
 CANDIDATE_BOOTSTRAP = FROZEN_FOR_V1
 TRAINING_RUNBOOK = FROZEN_FOR_V1
 QUALIFICATION_CONTRACT = FROZEN_FOR_V1
+OPERATOR_QUICKSTART = READY
 CURRENT_OPENAI_PROJECT_DOCS = REVERIFIED_2026_08_07
 EXACT_BRANCH_MOVE_UI_ROUTE = EMPIRICAL_GATE_NOT_YET_RUN
 EXACT_HOLDOUTS = PREPARED_EVALUATOR_ONLY
