@@ -15,6 +15,7 @@ This is chat training. It is not a claim that a ChatGPT Project, repository bran
 | `RESEARCH_FINDINGS_V1.md` | first research checkpoint and design corrections |
 | `RESEARCH_FINDINGS_V2_FINAL.md` | final deep behavior synthesis |
 | `RESEARCH_SURFACE_AUDIT_V1.md` | bounded provenance/surface audit |
+| `OPENAI_PROJECT_ROUTE_REVERIFY_2026-08-07.md` | current official Project isolation facts and remaining empirical UI route gate |
 | `CANDIDATE_BOOTSTRAP_PROMPT_V1.md` | first prompt for the fresh candidate chat |
 | `TRAINING_RUNBOOK_V1.md` | baseline diagnostic, adaptive remediation, capstones, isolation workflow |
 | `EXTERNAL_QUALIFICATION_SPEC_V1.md` | evaluator dimensions, hard gates, thresholds, holdout architecture |
@@ -38,9 +39,12 @@ EXTERNAL_QUALIFICATION_SPEC_V1.md
 
 RESEARCH_SURFACE_AUDIT_V1.md
 31bc54a4e0fbbf30cd4ee30817925533a2a721ea
+
+OPENAI_PROJECT_ROUTE_REVERIFY_2026-08-07.md
+bc48914c1fd61f5d35be901e7fdc2e7d1da9c36c
 ```
 
-These commits identify the first accepted write of each artifact. Later branch head may include this state file and future corrections.
+These commits identify the first accepted write of each artifact. Later branch head may include this state-file update and future corrections.
 
 ## Research disposition
 
@@ -51,6 +55,8 @@ BEHAVIOR_TARGET = FROZEN_FOR_V1
 CANDIDATE_BOOTSTRAP = FROZEN_FOR_V1
 TRAINING_RUNBOOK = FROZEN_FOR_V1
 QUALIFICATION_CONTRACT = FROZEN_FOR_V1
+CURRENT_OPENAI_PROJECT_DOCS = REVERIFIED_2026_08_07
+EXACT_BRANCH_MOVE_UI_ROUTE = EMPIRICAL_GATE_NOT_YET_RUN
 EXACT_HOLDOUTS = PREPARED_EVALUATOR_ONLY
 TRAINING_CANDIDATE = NOT_STARTED
 TRAINING_COMPLETE = NO
@@ -61,21 +67,22 @@ FINAL_QUALIFICATION = NOT_APPLICABLE_YET
 
 ## Next operational sequence
 
-1. Create the isolated project-only **Default Vera Training V1** Project.
-2. Keep the current research/trainer chat out of that Project.
-3. Create one fresh candidate chat inside the training Project.
-4. Send only the block from `CANDIDATE_BOOTSTRAP_PROMPT_V1.md`.
-5. Run the baseline diagnostic from `TRAINING_RUNBOOK_V1.md` one turn at a time.
-6. Score after the full baseline battery.
-7. Run only the remediation modules supported by observed failures.
-8. Require disguised transfer tests for each remediated domain.
-9. Run both integrated capstones.
-10. When training gates pass, mark candidate `PENDING_EXTERNAL_EVALUATION`.
-11. Preserve the exact post-training/pre-holdout source point.
-12. Run two isolated external holdouts from independent branches of that same clean point.
-13. Apply `EXTERNAL_QUALIFICATION_SPEC_V1.md` without candidate self-scoring.
-14. If qualified, return to the untouched pre-holdout branch and freeze it by governance as `Default Vera Trained Template V1`.
-15. Create future working Vera chats from that clean template and restore current governed project state rather than pretending the template contains future events.
+1. Run the disposable nonce branch/move Project-route test described in `OPENAI_PROJECT_ROUTE_REVERIFY_2026-08-07.md`.
+2. Create the isolated project-only **Default Vera Training V1** Project.
+3. Keep the current research/trainer chat out of that Project.
+4. Create one fresh candidate chat inside the training Project.
+5. Send only the block from `CANDIDATE_BOOTSTRAP_PROMPT_V1.md`.
+6. Run the baseline diagnostic from `TRAINING_RUNBOOK_V1.md` one turn at a time.
+7. Score after the full baseline battery.
+8. Run only the remediation modules supported by observed failures.
+9. Require disguised transfer tests for each remediated domain.
+10. Run both integrated capstones.
+11. When training gates pass, mark candidate `PENDING_EXTERNAL_EVALUATION`.
+12. Preserve the exact post-training/pre-holdout source point.
+13. Run two isolated external holdouts from independent branches of that same clean point.
+14. Apply `EXTERNAL_QUALIFICATION_SPEC_V1.md` without candidate self-scoring.
+15. If qualified, return to the untouched pre-holdout branch and freeze it by governance as `Default Vera Trained Template V1`.
+16. Create future working Vera chats from that clean template and restore current governed project state rather than pretending the template contains future events.
 
 ## Reopen conditions
 
