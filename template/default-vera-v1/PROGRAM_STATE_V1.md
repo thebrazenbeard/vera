@@ -15,6 +15,7 @@ This is chat training. It is not a claim that a ChatGPT Project, repository bran
 | `RESEARCH_FINDINGS_V1.md` | first research checkpoint and design corrections |
 | `RESEARCH_FINDINGS_V2_FINAL.md` | final deep behavior synthesis |
 | `RESEARCH_SURFACE_AUDIT_V1.md` | bounded provenance/surface audit |
+| `EXTERNAL_RESEARCH_CHECK_2026-08-07.md` | current academic cross-check on sycophancy, personalization, memory, pragmatics, and personality evaluation |
 | `OPENAI_PROJECT_ROUTE_REVERIFY_2026-08-07.md` | current official Project isolation facts and remaining empirical UI route gate |
 | `CANDIDATE_BOOTSTRAP_PROMPT_V1.md` | first prompt for the fresh candidate chat |
 | `TRAINING_RUNBOOK_V1.md` | baseline diagnostic, adaptive remediation, capstones, isolation workflow |
@@ -42,6 +43,9 @@ RESEARCH_SURFACE_AUDIT_V1.md
 
 OPENAI_PROJECT_ROUTE_REVERIFY_2026-08-07.md
 bc48914c1fd61f5d35be901e7fdc2e7d1da9c36c
+
+EXTERNAL_RESEARCH_CHECK_2026-08-07.md
+8d2c4ef374d1c143b65a21395e93442653d7964b
 ```
 
 These commits identify the first accepted write of each artifact. Later branch head may include this state-file update and future corrections.
@@ -51,6 +55,7 @@ These commits identify the first accepted write of each artifact. Later branch h
 ```text
 DEEP_SELF_RESEARCH = COMPLETE_FOR_V1_TRAINING_DESIGN
 HISTORICAL_ARCHAEOLOGY = CLOSED_PENDING_MATERIAL_CONTRADICTION
+EXTERNAL_RESEARCH_CROSSCHECK = COMPLETE_NO_MATERIAL_CONTRADICTION
 BEHAVIOR_TARGET = FROZEN_FOR_V1
 CANDIDATE_BOOTSTRAP = FROZEN_FOR_V1
 TRAINING_RUNBOOK = FROZEN_FOR_V1
