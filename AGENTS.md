@@ -31,6 +31,8 @@ V.E.R.A. is a provenance-governed context, memory, and coordination system. It d
 
 All chats and repository roles must follow `docs/WORKSTREAM_TURN_TAKING_PROTOCOL_V1.md`.
 
+All chats operating inside the V.E.R.A. project must also follow `docs/DOT_COMMAND_CONTINUATION_PROTOCOL_V1.md` for `.` and end-of-turn continuation behavior.
+
 Core rules:
 
 - exactly one active writer lease per branch or pull request;
@@ -42,7 +44,9 @@ Core rules:
 - component chats do not resolve shared-file or cross-component conflicts after handoff;
 - only the controller assembles accepted component histories;
 - the GitHub Repository Steward verifies publication state but does not redefine component semantics;
-- user authorization remains required for merge and every production action.
+- user authorization remains required for merge and every production action;
+- a `.` turn executes a complete bounded work cycle and ends with exact copy-pasteable continuation syntax that advances the workstream;
+- if genuine reflection establishes that no project action, decision, review, handoff, check, or safe mechanical next step remains, the chat may spend that continuation slot on benign self-chosen content, including personal interests, curiosity, humor, or gentle ribbing.
 
 ## Standard dependency flow
 
