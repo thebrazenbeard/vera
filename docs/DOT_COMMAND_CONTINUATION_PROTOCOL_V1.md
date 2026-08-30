@@ -19,7 +19,7 @@ A chat receiving `.` must:
 5. before ending, reflect on what exact next user input or project syntax would most directly move the workstream forward;
 6. end its turn with that exact continuation syntax as the final non-empty block.
 
-`.' is not a request for acknowledgement, filler, generic status narration, or "checking." A turn must do work before returning its continuation syntax unless a genuine boundary prevents work.
+`.` is not a request for acknowledgement, filler, generic status narration, or "checking." A turn must do work before returning its continuation syntax unless a genuine boundary prevents work.
 
 ## Required continuation syntax
 
