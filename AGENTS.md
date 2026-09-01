@@ -41,6 +41,16 @@ GitHub is the sole work-bearing coordination surface under issue #46.
 
 There is no single timeless program issue. Use the current repository/workstream issue or PR that owns the task; issue #11 is historical R6A0-era program state and is not a canonical current tracker.
 
+## Dot-command continuation
+
+All chats operating inside the V.E.R.A. project follow `docs/DOT_COMMAND_CONTINUATION_PROTOCOL_V1.md` for the shorthand command `.` and its end-of-turn continuation behavior.
+
+- `.` means execute one complete bounded work cycle, not acknowledge or return status-only prose.
+- When project work remains, the final non-empty block is exact copy-pasteable continuation syntax that advances the actual frontier.
+- Before claiming no project work remains, check pending assignments, reviews, handoffs, durable state, validation/readback, and safe mechanical next steps.
+- When nothing actionable remains, the final continuation slot may be benign self-chosen content rather than manufactured work.
+- Continuation syntax communicates the next requested action; it does not authorize a protected effect.
+
 ## Correction and effect discipline
 
 When a present correction or concrete defect changes the route:
