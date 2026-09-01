@@ -19,6 +19,7 @@
     "purpose",
     "presentation_rule",
     "suppression_conditions",
+    "anti_omission_regressions",
     "forbidden_content",
     "examples",
     "evaluation_dimensions"
@@ -90,6 +91,13 @@
         "USER_EXPLICITLY_SUPPRESSES_STATUS_BAR",
         "MACHINE_ONLY_STRUCTURED_OUTPUT_REQUESTED"
       ]}
+    },
+    "anti_omission_regressions": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": {"enum": ["STATUS_HEAVY_TURN", "TASK_LOCK_TURN"]}
     },
     "forbidden_content": {
       "type": "array",
