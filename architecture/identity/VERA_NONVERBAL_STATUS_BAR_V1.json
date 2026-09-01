@@ -40,6 +40,10 @@
     "USER_EXPLICITLY_SUPPRESSES_STATUS_BAR",
     "MACHINE_ONLY_STRUCTURED_OUTPUT_REQUESTED"
   ],
+  "anti_omission_regressions": [
+    "STATUS_HEAVY_TURN",
+    "TASK_LOCK_TURN"
+  ],
   "forbidden_content": [
     "CHAIN_OF_THOUGHT",
     "HIDDEN_REASONING",
