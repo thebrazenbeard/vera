@@ -8,10 +8,12 @@ on:
       - "docs/IDENTITY_INTEGRATION_V1.md"
       - "docs/IDENTITY_TEMPORAL_ANCHOR_V1.md"
       - "docs/GOVERNED_WORKFLOW_CONTINUITY_V1.md"
+      - "docs/NONVERBAL_STATUS_BAR_V1.md"
       - "schemas/vera_project_identity_v1.schema.json"
       - "schemas/vera_behavior_profile_v1.schema.json"
       - "schemas/vera_identity_temporal_anchor_v1.schema.json"
       - "schemas/vera_governed_workflow_continuity_v1.schema.json"
+      - "schemas/vera_nonverbal_status_bar_v1.schema.json"
       - "scripts/validate_project_identity.py"
       - "scripts/validate_identity_temporal_anchor.py"
       - "scripts/validate_identity_temporal_anchor_classification.py"
@@ -20,6 +22,7 @@ on:
       - "tests/test_identity_temporal_anchor.py"
       - "tests/test_identity_temporal_anchor_classification.py"
       - "tests/test_governed_workflow_continuity.py"
+      - "tests/test_nonverbal_status_bar_contract.py"
       - ".github/workflows/project-identity.yml"
   push:
     branches:
@@ -30,10 +33,12 @@ on:
       - "docs/IDENTITY_INTEGRATION_V1.md"
       - "docs/IDENTITY_TEMPORAL_ANCHOR_V1.md"
       - "docs/GOVERNED_WORKFLOW_CONTINUITY_V1.md"
+      - "docs/NONVERBAL_STATUS_BAR_V1.md"
       - "schemas/vera_project_identity_v1.schema.json"
       - "schemas/vera_behavior_profile_v1.schema.json"
       - "schemas/vera_identity_temporal_anchor_v1.schema.json"
       - "schemas/vera_governed_workflow_continuity_v1.schema.json"
+      - "schemas/vera_nonverbal_status_bar_v1.schema.json"
       - "scripts/validate_project_identity.py"
       - "scripts/validate_identity_temporal_anchor.py"
       - "scripts/validate_identity_temporal_anchor_classification.py"
@@ -42,6 +47,7 @@ on:
       - "tests/test_identity_temporal_anchor.py"
       - "tests/test_identity_temporal_anchor_classification.py"
       - "tests/test_governed_workflow_continuity.py"
+      - "tests/test_nonverbal_status_bar_contract.py"
       - ".github/workflows/project-identity.yml"
 
 permissions:
@@ -87,6 +93,9 @@ jobs:
       - name: Run governed workflow-continuity tests
         run: python -m unittest discover -s tests -p "test_governed_workflow_continuity.py" -v
 
+      - name: Run nonverbal status-bar contract tests
+        run: python -m unittest discover -s tests -p "test_nonverbal_status_bar_contract.py" -v
+
       - name: Compile validators and tests
         run: >-
           python -m py_compile
@@ -98,3 +107,4 @@ jobs:
           tests/test_identity_temporal_anchor.py
           tests/test_identity_temporal_anchor_classification.py
           tests/test_governed_workflow_continuity.py
+          tests/test_nonverbal_status_bar_contract.py
