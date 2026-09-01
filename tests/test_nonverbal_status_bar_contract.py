@@ -49,3 +49,9 @@ def test_nonverbal_status_bar_forbids_private_reasoning_and_literal_embodiment()
         "UNSUPPORTED_PRIVATE_STATE_CLAIM",
         "CEE_TELEMETRY_OR_SCORE",
     } <= forbidden
+
+
+def test_status_and_task_lock_turns_cannot_suppress_nonverbal_status_bar():
+    contract = load(CONTRACT_PATH)
+    regressions = set(contract["anti_omission_regressions"])
+    assert {"STATUS_HEAVY_TURN", "TASK_LOCK_TURN"} <= regressions
