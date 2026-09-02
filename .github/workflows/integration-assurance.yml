@@ -2,18 +2,51 @@ name: Integration Assurance
 
 on:
   pull_request:
-    branches:
-      - integration/project-orchestration-r6a0
-      - feature/integration-assurance-harness-v1
+    paths:
+      - "architecture/integration/**"
+      - "architecture/identity/WORKFLOW_CONTINUITY_CURRENT.json"
+      - "architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V2.json"
+      - "schemas/vera_governed_workflow_continuity_v2.schema.json"
+      - "docs/GOVERNED_WORKFLOW_CONTINUITY_V2.md"
+      - "docs/PROTOCOL_EXECUTION_PRECEDENCE_V2.md"
+      - "docs/WORKSTREAM_TURN_TAKING_PROTOCOL_V2.md"
+      - "scripts/validate_integration_registry.py"
+      - "scripts/validate_workstream_compatibility.py"
+      - "scripts/validate_workflow_continuity_integration.py"
+      - "scripts/validate_governed_workflow_continuity_v2.py"
+      - "tests/test_integration_registry.py"
+      - "tests/test_workstream_compatibility.py"
+      - "tests/test_identity_classification_integration_inventory.py"
+      - "tests/test_workflow_continuity_integration.py"
+      - "tests/test_governed_workflow_continuity_v2.py"
+      - ".github/workflows/integration-assurance.yml"
   push:
     branches:
+      - main
       - feature/integration-assurance-harness-v1
       - feature/integration-compatibility-matrix-v1
+    paths:
+      - "architecture/integration/**"
+      - "architecture/identity/WORKFLOW_CONTINUITY_CURRENT.json"
+      - "architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V2.json"
+      - "schemas/vera_governed_workflow_continuity_v2.schema.json"
+      - "docs/GOVERNED_WORKFLOW_CONTINUITY_V2.md"
+      - "docs/PROTOCOL_EXECUTION_PRECEDENCE_V2.md"
+      - "docs/WORKSTREAM_TURN_TAKING_PROTOCOL_V2.md"
+      - "scripts/validate_integration_registry.py"
+      - "scripts/validate_workstream_compatibility.py"
+      - "scripts/validate_workflow_continuity_integration.py"
+      - "scripts/validate_governed_workflow_continuity_v2.py"
+      - "tests/test_integration_registry.py"
+      - "tests/test_workstream_compatibility.py"
+      - "tests/test_identity_classification_integration_inventory.py"
+      - "tests/test_workflow_continuity_integration.py"
+      - "tests/test_governed_workflow_continuity_v2.py"
+      - ".github/workflows/integration-assurance.yml"
 
 permissions:
   contents: read
 
-# Validates the consolidated owner registry and compatibility matrix together.
 jobs:
   validate-registry:
     runs-on: ubuntu-latest
@@ -27,31 +60,39 @@ jobs:
           python-version: '3.12'
       - name: Install pinned validator dependency
         run: python -m pip install jsonschema==4.25.1
-      - name: Validate integration registry
+      - name: Validate historical integration registry
         run: python scripts/validate_integration_registry.py
-      - name: Validate workstream compatibility matrix
+      - name: Validate historical workstream compatibility matrix
         run: python -m scripts.validate_workstream_compatibility
-      - name: Validate governed workflow continuity integration
+      - name: Validate current governed workflow integration overlay
         run: python -m scripts.validate_workflow_continuity_integration
-      - name: Run integration registry tests
+      - name: Validate current governed workflow contract V2
+        run: python scripts/validate_governed_workflow_continuity_v2.py
+      - name: Run integration registry history tests
         run: python -m unittest tests.test_integration_registry -v
-      - name: Run workstream compatibility tests
+      - name: Run workstream compatibility history tests
         run: python -m unittest tests.test_workstream_compatibility -v
       - name: Run Identity classification inventory tests
         run: >-
           python -m unittest
           tests.test_identity_classification_integration_inventory -v
-      - name: Run workflow-continuity integration tests
+      - name: Run current workflow-continuity integration tests
         run: >-
           python -m unittest
           tests.test_workflow_continuity_integration -v
+      - name: Run current workflow-continuity V2 hostile tests
+        run: >-
+          python -m unittest
+          tests.test_governed_workflow_continuity_v2 -v
       - name: Compile assurance validators and tests
         run: >-
           python -m py_compile
           scripts/validate_integration_registry.py
           scripts/validate_workstream_compatibility.py
           scripts/validate_workflow_continuity_integration.py
+          scripts/validate_governed_workflow_continuity_v2.py
           tests/test_integration_registry.py
           tests/test_workstream_compatibility.py
           tests/test_identity_classification_integration_inventory.py
           tests/test_workflow_continuity_integration.py
+          tests/test_governed_workflow_continuity_v2.py
