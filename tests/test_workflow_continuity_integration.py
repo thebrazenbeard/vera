@@ -1,193 +1,118 @@
 from __future__ import annotations
 
-from copy import deepcopy
-from pathlib import Path
+import json
+import shutil
+import tempfile
 import unittest
+from pathlib import Path
 
-from scripts.validate_integration_registry import load_json_strict
 from scripts.validate_workflow_continuity_integration import (
-    CLASSIFICATION_VALIDATOR,
-    INTERFACE_BINDINGS,
-    PROJECT_IDENTITY_CHECK,
-    WORKFLOW_ARTIFACTS,
-    WORKFLOW_CONTRACT,
+    CURRENT_CONTRACT,
+    HISTORICAL_CONTRACT,
+    OVERLAY_PATH,
+    POINTER_PATH,
+    REQUIRED_CAPABILITIES,
     validate_workflow_continuity_integration,
 )
 
-
 ROOT = Path(__file__).resolve().parents[1]
-MATRIX_PATH = ROOT / "architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json"
-REGISTRY_PATH = ROOT / "architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json"
-
-
-def matrix():
-    return load_json_strict(MATRIX_PATH)
-
-
-def registry():
-    return load_json_strict(REGISTRY_PATH)
-
-
-def owner(document, route):
-    return next(item for item in document["owners"] if item["route"] == route)
-
-
-def interface(document, interface_id):
-    return next(
-        item for item in document["interfaces"]
-        if item["interface_id"] == interface_id
-    )
 
 
 class WorkflowContinuityIntegrationTests(unittest.TestCase):
-    def test_current_inventory_validates(self):
-        validate_workflow_continuity_integration(matrix(), registry(), ROOT)
+    copied = (
+        OVERLAY_PATH,
+        POINTER_PATH,
+        "architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V2.json",
+        "architecture/identity/VERA_PROJECT_IDENTITY_V1.json",
+        "architecture/identity/VERA_BEHAVIOR_PROFILE_V1.json",
+        "schemas/vera_governed_workflow_continuity_v2.schema.json",
+        "docs/GOVERNED_WORKFLOW_CONTINUITY_V2.md",
+        "docs/PROTOCOL_EXECUTION_PRECEDENCE_V2.md",
+        "docs/WORKSTREAM_TURN_TAKING_PROTOCOL_V2.md",
+        "architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json",
+        "architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json",
+    )
 
-    def test_owner_contract_omission_rejected(self):
-        source = registry()
-        owner(source, "workstream/identity")["contract_ids"].remove(WORKFLOW_CONTRACT)
-        with self.assertRaisesRegex(
-            ValueError,
-            "omits governed workflow-continuity contract|canonical source intent",
-        ):
-            validate_workflow_continuity_integration(matrix(), source, ROOT)
+    def copy_repo_slice(self, target: Path) -> None:
+        for relative in self.copied:
+            source = ROOT / relative
+            destination = target / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
 
-    def test_each_canonical_artifact_omission_rejected(self):
-        for artifact in sorted(WORKFLOW_ARTIFACTS):
-            with self.subTest(artifact=artifact):
-                source = registry()
-                owner(source, "workstream/identity")["owned_artifacts"].remove(artifact)
-                with self.assertRaisesRegex(
-                    ValueError,
-                    "omits governed workflow-continuity artifacts|canonical source intent",
-                ):
-                    validate_workflow_continuity_integration(matrix(), source, ROOT)
+    def mutate(self, target: Path, relative: str, key: str, value: object) -> None:
+        path = target / relative
+        document = json.loads(path.read_text(encoding="utf-8"))
+        document[key] = value
+        path.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
 
-    def test_classification_validator_omission_rejected(self):
-        source = registry()
-        owner(source, "workstream/identity")["owned_artifacts"].remove(
-            CLASSIFICATION_VALIDATOR
-        )
-        with self.assertRaisesRegex(
-            ValueError,
-            "classification validator|canonical source intent",
-        ):
-            validate_workflow_continuity_integration(matrix(), source, ROOT)
+    def test_current_inventory_validates(self) -> None:
+        validate_workflow_continuity_integration(ROOT)
 
-    def test_each_bound_interface_contract_omission_rejected(self):
-        for interface_id, binding in INTERFACE_BINDINGS.items():
-            contract_field = binding["contract_field"]
-            if contract_field is None:
-                continue
-            with self.subTest(interface_id=interface_id):
-                document = matrix()
-                interface(document, interface_id)[contract_field].remove(
-                    WORKFLOW_CONTRACT
-                )
-                with self.assertRaisesRegex(ValueError, f"{interface_id} omits"):
-                    validate_workflow_continuity_integration(document, registry(), ROOT)
+    def test_overlay_cannot_fall_back_to_v1(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp)
+            self.copy_repo_slice(target)
+            self.mutate(target, OVERLAY_PATH, "current_workflow_contract_id", HISTORICAL_CONTRACT)
+            with self.assertRaisesRegex(ValueError, "resolve to V2"):
+                validate_workflow_continuity_integration(target)
 
-    def test_each_bound_interface_artifact_omission_rejected(self):
-        for interface_id, binding in INTERFACE_BINDINGS.items():
-            artifact_role = binding["artifact_role"]
-            if artifact_role is None:
-                continue
-            for artifact in sorted(binding["artifacts"]):
-                with self.subTest(interface_id=interface_id, artifact=artifact):
-                    document = matrix()
-                    interface(document, interface_id)["acceptance_evidence"][
-                        artifact_role
-                    ].remove(artifact)
-                    with self.assertRaisesRegex(ValueError, f"{interface_id} omits"):
-                        validate_workflow_continuity_integration(
-                            document, registry(), ROOT
-                        )
+    def test_pointer_cannot_fall_back_to_v1(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp)
+            self.copy_repo_slice(target)
+            self.mutate(target, POINTER_PATH, "current_contract_id", HISTORICAL_CONTRACT)
+            with self.assertRaisesRegex(ValueError, "pointer must resolve to V2"):
+                validate_workflow_continuity_integration(target)
 
-    def test_every_required_capability_omission_rejected(self):
-        for interface_id, binding in INTERFACE_BINDINGS.items():
-            for capability in sorted(binding["capabilities"]):
-                with self.subTest(interface_id=interface_id, capability=capability):
-                    document = matrix()
-                    interface(document, interface_id)["capabilities"].remove(capability)
-                    with self.assertRaisesRegex(ValueError, "capability set differs"):
-                        validate_workflow_continuity_integration(
-                            document, registry(), ROOT
-                        )
+    def test_v1_must_remain_classified_historical(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp)
+            self.copy_repo_slice(target)
+            self.mutate(target, OVERLAY_PATH, "historical_workflow_contract", CURRENT_CONTRACT)
+            with self.assertRaisesRegex(ValueError, "historical predecessor"):
+                validate_workflow_continuity_integration(target)
 
-    def test_unreviewed_capability_addition_rejected(self):
-        for interface_id in INTERFACE_BINDINGS:
-            with self.subTest(interface_id=interface_id):
-                document = matrix()
-                interface(document, interface_id)["capabilities"].append(
-                    "UNREVIEWED_CAPABILITY"
-                )
+    def test_capability_omission_rejected(self) -> None:
+        for capability in sorted(REQUIRED_CAPABILITIES):
+            with self.subTest(capability=capability), tempfile.TemporaryDirectory() as temp:
+                target = Path(temp)
+                self.copy_repo_slice(target)
+                path = target / OVERLAY_PATH
+                document = json.loads(path.read_text(encoding="utf-8"))
+                document["required_capabilities"].remove(capability)
+                path.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
                 with self.assertRaisesRegex(ValueError, "capability set differs"):
-                    validate_workflow_continuity_integration(document, registry(), ROOT)
+                    validate_workflow_continuity_integration(target)
 
-    def test_project_identity_evidence_omission_rejected(self):
-        source_registry = registry()
-        owner(source_registry, "workstream/identity")["required_checks"].remove(
-            PROJECT_IDENTITY_CHECK
-        )
-        with self.assertRaisesRegex(ValueError, "Project Identity workflow evidence"):
-            validate_workflow_continuity_integration(
-                matrix(), source_registry, ROOT
-            )
+    def test_unreviewed_capability_addition_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp)
+            self.copy_repo_slice(target)
+            path = target / OVERLAY_PATH
+            document = json.loads(path.read_text(encoding="utf-8"))
+            document["required_capabilities"].append("PERMISSION_RECURSION")
+            path.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "capability set differs"):
+                validate_workflow_continuity_integration(target)
 
-        for interface_id, binding in INTERFACE_BINDINGS.items():
-            if not binding["requires_project_identity"]:
-                continue
-            with self.subTest(interface_id=interface_id):
-                document = matrix()
-                interface(document, interface_id)["acceptance_evidence"][
-                    "required_checks"
-                ].remove(PROJECT_IDENTITY_CHECK)
-                with self.assertRaisesRegex(
-                    ValueError, "Project Identity workflow evidence"
-                ):
-                    validate_workflow_continuity_integration(
-                        document, registry(), ROOT
-                    )
+    def test_historical_registry_is_evidence_not_current_semantics(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp)
+            self.copy_repo_slice(target)
+            # V1 identifiers remain inside the historical registry by design. The
+            # current overlay must still validate V2 rather than re-promoting them.
+            registry = (target / "architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json").read_text(encoding="utf-8")
+            self.assertIn(HISTORICAL_CONTRACT, registry)
+            validate_workflow_continuity_integration(target)
 
-    def test_route_drift_rejected(self):
-        for interface_id, binding in INTERFACE_BINDINGS.items():
-            with self.subTest(interface_id=interface_id, role="source"):
-                document = matrix()
-                interface(document, interface_id)["source_route"] = "workstream/time"
-                with self.assertRaisesRegex(ValueError, "source must remain"):
-                    validate_workflow_continuity_integration(
-                        document, registry(), ROOT
-                    )
-            with self.subTest(interface_id=interface_id, role="target"):
-                document = matrix()
-                interface(document, interface_id)["target_route"] = "workstream/time"
-                with self.assertRaisesRegex(ValueError, "target must remain"):
-                    validate_workflow_continuity_integration(
-                        document, registry(), ROOT
-                    )
-
-    def test_execution_and_canonical_transfer_promotions_rejected(self):
-        for interface_id in INTERFACE_BINDINGS:
-            with self.subTest(interface_id=interface_id, field="execution"):
-                document = matrix()
-                interface(document, interface_id)["execution_authorized"] = True
-                with self.assertRaisesRegex(ValueError, "execution authority"):
-                    validate_workflow_continuity_integration(
-                        document, registry(), ROOT
-                    )
-            with self.subTest(interface_id=interface_id, field="canonical_memory"):
-                document = matrix()
-                interface(document, interface_id)["canonical_memory_transfer"] = True
-                with self.assertRaisesRegex(ValueError, "canonical memory"):
-                    validate_workflow_continuity_integration(
-                        document, registry(), ROOT
-                    )
-
-    def test_stale_registry_digest_remains_rejected(self):
-        source = deepcopy(registry())
-        source["lifecycle_status"] = "STALE_MUTATION"
-        with self.assertRaisesRegex(ValueError, "active registry digest"):
-            validate_workflow_continuity_integration(matrix(), source, ROOT)
+    def test_routing_rule_cannot_allow_v1_repromotion(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp)
+            self.copy_repo_slice(target)
+            self.mutate(target, OVERLAY_PATH, "routing_rule", "Use whichever workflow contract is most verbose.")
+            with self.assertRaisesRegex(ValueError, "forbid V1 semantic re-promotion"):
+                validate_workflow_continuity_integration(target)
 
 
 if __name__ == "__main__":
