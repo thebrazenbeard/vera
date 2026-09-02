@@ -34,4 +34,14 @@ A repository or database write is confirmed only by target-system effect plus re
 
 Work-bearing coordination is GitHub-only under issue #46. Slack and legacy Supabase coordination records may be historical evidence, but they are not current workflow authority.
 
+Current execution/authority semantics are defined by:
+
+- `docs/PROTOCOL_EXECUTION_PRECEDENCE_V2.md`
+- `docs/WORKSTREAM_TURN_TAKING_PROTOCOL_V2.md`
+- `docs/GOVERNED_WORKFLOW_CONTINUITY_V2.md`
+
+These V2 documents supersede conflicting older workflow interpretations, especially any reading that requires a second permission or bespoke writer lease for an already-assigned reversible isolated act. Writer leases coordinate genuine shared-writer collision; they are not a substitute source of authority. Clear authorized reversible work defaults to `DO -> VERIFY -> REPORT`.
+
+Older V1 workflow documents remain historical evidence and may still contain useful review/exact-head discipline, but they do not override the V2 execution-precedence model where the two conflict.
+
 Current work must bind mutable claims to fresh evidence rather than relying on this README as a timeless state snapshot.
