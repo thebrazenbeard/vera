@@ -1,204 +1,96 @@
 #!/usr/bin/env python3
-"""Validate workflow-continuity registration across Integration assurance surfaces."""
+"""Validate the current workflow-continuity integration overlay.
+
+The legacy V1 integration registry and compatibility matrix remain independently
+validated historical evidence. They no longer define current workflow semantics.
+"""
 
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 from typing import Any
 
-from scripts.validate_integration_registry import load_json_strict
-from scripts.validate_workstream_compatibility import (
-    validate_semantics as validate_matrix_semantics,
-)
-
+from scripts.validate_governed_workflow_continuity_v2 import validate_contract
 
 ROOT = Path(__file__).resolve().parents[1]
-WORKFLOW_CONTRACT = "VERA_GOVERNED_WORKFLOW_CONTINUITY_V1"
-PROJECT_IDENTITY_CHECK = "Project Identity"
-CLASSIFICATION_VALIDATOR = "scripts/validate_identity_temporal_anchor_classification.py"
-WORKFLOW_ARTIFACTS = {
-    "architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V1.json",
-    "docs/GOVERNED_WORKFLOW_CONTINUITY_V1.md",
-    "schemas/vera_governed_workflow_continuity_v1.schema.json",
-    "scripts/validate_governed_workflow_continuity.py",
-    "tests/test_governed_workflow_continuity.py",
-}
-INTERFACE_BINDINGS = {
-    "VERA-IFACE-002": {
-        "source_route": "workstream/identity",
-        "target_route": "workstream/memory",
-        "contract_field": "source_contract_ids",
-        "artifact_role": "source_artifacts",
-        "artifacts": {
-            "architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V1.json",
-            "scripts/validate_governed_workflow_continuity.py",
-        },
-        "capabilities": {
-            "AUTHORITY_SCOPE",
-            "CORRECTION_PRECEDENCE",
-            "BEHAVIOR_CONFIGURATION",
-            "CANONICAL_ROUTE",
-            "GOVERNED_WORKFLOW_CONTINUITY",
-            "AUTHORITY_BOUNDARY_STOP",
-        },
-        "requires_project_identity": True,
-    },
-    "VERA-IFACE-003": {
-        "source_route": "workstream/identity",
-        "target_route": "workstream/initiatives",
-        "contract_field": "source_contract_ids",
-        "artifact_role": "source_artifacts",
-        "artifacts": {
-            "architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V1.json",
-            "scripts/validate_governed_workflow_continuity.py",
-        },
-        "capabilities": {
-            "AUTHORITY_SCOPE",
-            "CORRECTION_PRECEDENCE",
-            "CANONICAL_ROUTE",
-            "SAFE_AUTHORIZED_ADVANCEMENT",
-            "WRITER_LEASE_BOUNDARY",
-            "ABSTENTION_ON_HARD_STOP",
-        },
-        "requires_project_identity": True,
-    },
-    "VERA-IFACE-009": {
-        "source_route": "workstream/coordination",
-        "target_route": "workstream/integration",
-        "contract_field": None,
-        "artifact_role": None,
-        "artifacts": set(),
-        "capabilities": {
-            "OPERATIONAL_RECEIPT",
-            "ROUTE_EVIDENCE",
-            "AUTHORITY_ENVELOPE_EVIDENCE",
-            "EXACT_HEAD_HANDOFF",
-            "WRITER_LEASE_EVIDENCE",
-            "STALE_STATE_RECONCILIATION",
-            "USER_COURIER_AVOIDANCE",
-        },
-        "requires_project_identity": False,
-    },
-    "VERA-IFACE-010": {
-        "source_route": "workstream/integration",
-        "target_route": "workstream/identity",
-        "contract_field": "target_contract_ids",
-        "artifact_role": "target_artifacts",
-        "artifacts": {
-            "architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V1.json",
-            "scripts/validate_governed_workflow_continuity.py",
-        },
-        "capabilities": {
-            "COMPATIBILITY_FINDING",
-            "DRIFT_FINDING",
-            "ASSEMBLY_EVIDENCE",
-            "NO_COMPONENT_SEMANTICS",
-            "WORKFLOW_CONTINUITY_FINDING",
-            "AUTHORITY_STOP_PRESERVATION",
-        },
-        "requires_project_identity": True,
-    },
+OVERLAY_PATH = "architecture/integration/WORKFLOW_CONTINUITY_INTEGRATION_CURRENT.json"
+POINTER_PATH = "architecture/identity/WORKFLOW_CONTINUITY_CURRENT.json"
+CURRENT_CONTRACT = "VERA_GOVERNED_WORKFLOW_CONTINUITY_V2"
+HISTORICAL_CONTRACT = "VERA_GOVERNED_WORKFLOW_CONTINUITY_V1"
+REQUIRED_CAPABILITIES = {
+    "SPECIFIC_CURRENT_INSTRUCTION_PRECEDENCE",
+    "NECESSARY_REVERSIBLE_SETUP",
+    "PROPORTIONAL_EFFECT_CLASSES",
+    "PROPORTIONAL_WRITER_OWNERSHIP",
+    "REPOSITORY_LOCAL_STEWARDSHIP",
+    "EXACT_STATE_EVIDENCE_WHERE_MATERIAL",
+    "GITHUB_ONLY_WORK_COORDINATION",
+    "CORRECTION_PERFORMANCE",
+    "USER_COURIER_AVOIDANCE",
+    "PROTECTED_EFFECT_BOUNDARIES",
 }
 
 
-def _owner(registry: dict[str, Any], route: str) -> dict[str, Any]:
-    return next(item for item in registry["owners"] if item["route"] == route)
+def _load(path: Path) -> dict[str, Any]:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError(f"{path} must contain an object")
+    return value
 
 
-def _interface(matrix: dict[str, Any], interface_id: str) -> dict[str, Any]:
-    return next(
-        item for item in matrix["interfaces"]
-        if item["interface_id"] == interface_id
-    )
+def validate_workflow_continuity_integration(root: Path = ROOT) -> None:
+    root = root.resolve()
+    overlay_file = root / OVERLAY_PATH
+    pointer_file = root / POINTER_PATH
+    if not overlay_file.is_file():
+        raise ValueError("missing current workflow integration overlay")
+    if not pointer_file.is_file():
+        raise ValueError("missing current workflow pointer")
 
+    overlay = _load(overlay_file)
+    pointer = _load(pointer_file)
 
-def validate_workflow_continuity_integration(
-    matrix: dict[str, Any],
-    registry: dict[str, Any],
-    root: Path = ROOT,
-) -> None:
-    """Validate the new Identity behavior contract without weakening prior gates."""
-    identity = _owner(registry, "workstream/identity")
-    if WORKFLOW_CONTRACT not in identity["contract_ids"]:
-        raise ValueError("Identity owner omits governed workflow-continuity contract")
-    missing_artifacts = WORKFLOW_ARTIFACTS - set(identity["owned_artifacts"])
-    if missing_artifacts:
-        raise ValueError(
-            "Identity owner omits governed workflow-continuity artifacts: "
-            + ", ".join(sorted(missing_artifacts))
-        )
-    if CLASSIFICATION_VALIDATOR not in identity["owned_artifacts"]:
-        raise ValueError("Identity owner omits temporal-anchor classification validator")
-    if PROJECT_IDENTITY_CHECK not in identity["required_checks"]:
-        raise ValueError("Identity owner omits Project Identity workflow evidence")
+    if overlay.get("lifecycle_status") != "CURRENT":
+        raise ValueError("workflow integration overlay must be CURRENT")
+    if overlay.get("current_workflow_contract_id") != CURRENT_CONTRACT:
+        raise ValueError("workflow integration overlay must resolve to V2")
+    if pointer.get("current_contract_id") != CURRENT_CONTRACT:
+        raise ValueError("workflow current pointer must resolve to V2")
+    if overlay.get("current_workflow_contract_path") != pointer.get("current_contract_path"):
+        raise ValueError("workflow integration overlay and current pointer disagree on contract path")
+    if overlay.get("historical_workflow_contract") != HISTORICAL_CONTRACT:
+        raise ValueError("workflow integration overlay must classify V1 as historical predecessor")
 
-    for interface_id, binding in INTERFACE_BINDINGS.items():
-        interface = _interface(matrix, interface_id)
-        if interface["source_route"] != binding["source_route"]:
-            raise ValueError(
-                f"{interface_id} source must remain {binding['source_route']}"
-            )
-        if interface["target_route"] != binding["target_route"]:
-            raise ValueError(
-                f"{interface_id} target must remain {binding['target_route']}"
-            )
+    capabilities = overlay.get("required_capabilities")
+    if not isinstance(capabilities, list) or set(capabilities) != REQUIRED_CAPABILITIES:
+        raise ValueError("workflow integration overlay capability set differs")
 
-        contract_field = binding["contract_field"]
-        if (
-            contract_field is not None
-            and WORKFLOW_CONTRACT not in interface[contract_field]
-        ):
-            raise ValueError(f"{interface_id} omits governed workflow-continuity contract")
+    for field in ("historical_integration_registry", "historical_compatibility_matrix"):
+        relative = overlay.get(field)
+        if not isinstance(relative, str) or not (root / relative).is_file():
+            raise ValueError(f"workflow integration overlay missing historical evidence path: {field}")
 
-        evidence = interface["acceptance_evidence"]
-        artifact_role = binding["artifact_role"]
-        if artifact_role is not None:
-            missing = binding["artifacts"] - set(evidence[artifact_role])
-            if missing:
-                raise ValueError(
-                    f"{interface_id} omits governed workflow-continuity evidence: "
-                    + ", ".join(sorted(missing))
-                )
+    rule = overlay.get("routing_rule")
+    if not isinstance(rule, str) or "must not re-promote V1 lease semantics" not in rule:
+        raise ValueError("workflow integration overlay must forbid V1 semantic re-promotion")
 
-        observed_capabilities = set(interface["capabilities"])
-        if observed_capabilities != binding["capabilities"]:
-            raise ValueError(
-                f"{interface_id} governed workflow-continuity capability set differs"
-            )
-        if (
-            binding["requires_project_identity"]
-            and PROJECT_IDENTITY_CHECK not in evidence["required_checks"]
-        ):
-            raise ValueError(f"{interface_id} omits Project Identity workflow evidence")
-        if interface["execution_authorized"]:
-            raise ValueError(f"{interface_id} may not gain execution authority")
-        if interface["canonical_memory_transfer"]:
-            raise ValueError(f"{interface_id} may not transfer canonical memory")
-
-    # Run the full inherited registry and matrix gates after the focused checks so
-    # hostile mutations receive a workflow-specific diagnostic without bypassing
-    # any existing authority, ownership, artifact, topology, or digest validation.
-    validate_matrix_semantics(matrix, registry, root)
+    v2_errors = validate_contract(root)
+    if v2_errors:
+        raise ValueError("current Protocol V2 contract invalid: " + "; ".join(v2_errors))
 
 
 def validate_repository(root: Path = ROOT) -> None:
-    root = root.resolve()
-    matrix = load_json_strict(
-        root / "architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json"
-    )
-    registry = load_json_strict(
-        root / "architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json"
-    )
-    validate_workflow_continuity_integration(matrix, registry, root)
+    validate_workflow_continuity_integration(root)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=ROOT)
     args = parser.parse_args()
-    validate_repository(args.root.resolve())
-    print("workflow-continuity integration inventory: valid")
+    validate_repository(args.root)
+    print("workflow-continuity current integration overlay: valid")
     return 0
 
 
