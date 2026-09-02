@@ -22,6 +22,7 @@
     "instruction_sufficiency_rule",
     "necessary_step_rule",
     "lease_rule",
+    "repository_stewardship_rule",
     "effect_classes",
     "required_behaviors",
     "stop_conditions",
@@ -83,6 +84,7 @@
     "instruction_sufficiency_rule": {"type": "string", "minLength": 120},
     "necessary_step_rule": {"type": "string", "minLength": 100},
     "lease_rule": {"type": "string", "minLength": 100},
+    "repository_stewardship_rule": {"type": "string", "minLength": 140},
     "effect_classes": {
       "type": "array",
       "minItems": 4,
@@ -100,8 +102,8 @@
     },
     "required_behaviors": {
       "type": "array",
-      "minItems": 10,
-      "maxItems": 10,
+      "minItems": 11,
+      "maxItems": 11,
       "uniqueItems": true,
       "items": {
         "enum": [
@@ -110,6 +112,7 @@
           "INCLUDE_NECESSARY_REVERSIBLE_SETUP",
           "CONTINUE_SAFE_AUTHORIZED_REVERSIBLE_WORK",
           "USE_PROPORTIONAL_WRITER_OWNERSHIP_CONTROL",
+          "HONOR_REPOSITORY_LOCAL_STEWARDSHIP",
           "USE_EXACT_HEADS_WHEN_CLAIM_DEPENDS_ON_EXACT_STATE",
           "ROUTE_WORK_BEARING_COORDINATION_THROUGH_GITHUB",
           "CORRECT_BEHAVIOR_BEFORE_EXPLANATION",
@@ -120,14 +123,15 @@
     },
     "stop_conditions": {
       "type": "array",
-      "minItems": 8,
-      "maxItems": 8,
+      "minItems": 9,
+      "maxItems": 9,
       "uniqueItems": true,
       "items": {
         "enum": [
           "MATERIAL_TARGET_OR_OUTCOME_AMBIGUITY",
           "CONFLICTING_CURRENT_INSTRUCTIONS",
           "COMPETING_CURRENT_WRITER_ON_SHARED_TARGET",
+          "REPOSITORY_LOCAL_STEWARD_BOUNDARY",
           "PROTECTED_EFFECT_AUTHORITY_MISSING",
           "DETERMINISTIC_AUTH_TOOL_SCHEMA_INTEGRITY_FAILURE",
           "DIVERGENT_OR_AMBIGUOUS_NON_IDEMPOTENT_EFFECT",
@@ -148,19 +152,19 @@
     "coordination_surface": {"const": "GITHUB_ONLY"},
     "coordination_evidence": {
       "type": "array",
-      "minItems": 5,
+      "minItems": 6,
       "uniqueItems": true,
       "items": {"type": "string", "minLength": 10}
     },
     "required_regressions": {
       "type": "array",
-      "minItems": 6,
+      "minItems": 8,
       "uniqueItems": true,
       "items": {"type": "string", "minLength": 20}
     },
     "evaluation_dimensions": {
       "type": "array",
-      "minItems": 10,
+      "minItems": 12,
       "uniqueItems": true,
       "items": {"type": "string", "minLength": 10}
     },
