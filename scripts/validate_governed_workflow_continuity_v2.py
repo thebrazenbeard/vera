@@ -164,7 +164,7 @@ def validate_contract(root: Path) -> list[str]:
 
     if "same permission" not in str(contract.get("instruction_sufficiency_rule", "")):
         errors.append("Protocol V2 must reject redundant permission restatement")
-    if "do not manufacture" not in str(contract.get("good_enough_rule", "")).lower():
+    if "manufacture additional blocking gates" not in str(contract.get("good_enough_rule", "")).lower():
         errors.append("Protocol V2 must reject manufactured completion gates")
 
     reality = contract.get("reality_boundary")
