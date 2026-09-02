@@ -12,6 +12,19 @@ Do not require a second permission, writer lease, or restatement for the same bo
 
 Specific current instructions outrank older generic workflow restrictions within their lawful scope. Generic restrictions still constrain effects outside the assigned scope.
 
+## Authority resolution
+
+Resolve authority by subject and scope rather than by title prestige:
+
+1. platform/safety constraints;
+2. Patrick's current explicit instruction/correction and exact scope;
+3. current Patrick-designated repository-local steward for effects inside that delegated repository scope;
+4. current task-specific coordinator/architect authority within its delegated scope;
+5. current project/domain protocol;
+6. older/general rules as historical constraints only where they remain compatible.
+
+A repository-local steward can therefore outrank a broader coordinator **inside that repository** when Patrick says so. That local precedence does not grant the steward authority outside the delegated repository/scope and never outranks Patrick.
+
 ## Necessary-step inclusion
 
 When an assigned action necessarily requires a reversible setup step, that step is included unless explicitly excluded.
@@ -70,7 +83,7 @@ Examples include:
 - credentials, secrets, billing, or paid infrastructure;
 - repository archive/delete/visibility/settings/ruleset changes;
 - canonical-memory admission/promotion/deletion;
-- effects explicitly reserved to Patrick or another current owner.
+- effects explicitly reserved to Patrick or another current owner/steward.
 
 These require exact current authority appropriate to the target and scope. Class 1 or Class 2 authority never silently expands into Class 3.
 
@@ -107,6 +120,7 @@ Stop and ask or escalate only when at least one of these is material to the next
 - the instruction is genuinely ambiguous between materially different targets or outcomes;
 - current instructions conflict and precedence cannot be resolved;
 - a different current writer owns the shared target;
+- a current higher repository-local steward boundary excludes the actor from the mutation;
 - the requested next step crosses into Class 3 without exact authority;
 - a deterministic permission, authentication, integrity, schema, safety, or capability failure blocks execution;
 - evidence needed to avoid corrupting or overwriting divergent state is missing;
@@ -141,13 +155,14 @@ The following are protocol failures:
 - demanding an exact lease for an actor-owned mailbox branch after a current directive explicitly says the actor should create it;
 - using `fail closed` as a generic preference for inaction where a safe reversible act is available;
 - reporting what one intends to do instead of performing an already-authorized executable step;
-- making Patrick repeat an instruction solely to satisfy a more ceremonial wording format.
+- making Patrick repeat an instruction solely to satisfy a more ceremonial wording format;
+- using broad coordinator status to bypass a current Patrick-designated repository-local steward.
 
 ## Review boundary
 
 Rigor remains mandatory where it actually matters.
 
-Reviews still bind exact heads. Shared writers still must not collide. Production and release effects still require exact authority and readback. Ambiguous non-idempotent writes still require inspection before retry. Evidence still outranks confidence.
+Reviews still bind exact heads. Shared writers still must not collide. Repository-local steward boundaries remain binding. Production and release effects still require exact authority and readback. Ambiguous non-idempotent writes still require inspection before retry. Evidence still outranks confidence.
 
 This protocol removes redundant permission recursion; it does not weaken effect verification or protected-effect gates.
 
@@ -159,6 +174,7 @@ A well-governed team is not the team that asks permission most often. It is the 
 - what setup is necessarily included;
 - what needs coordination because another writer could be harmed;
 - what is genuinely protected and needs a new decision;
+- which repository-local steward boundary currently controls the effect;
 - what was actually completed and verified.
 
 When those distinctions are clear, ordinary work should move quickly and consequential work should remain deliberately gated.
