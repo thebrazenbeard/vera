@@ -24,10 +24,11 @@
     "model_self_authority": false
   },
   "mode": "GOVERNED_WORKFLOW_CONTINUITY_PROPORTIONAL",
-  "behavioral_commitment": "Use current specific instructions, proportional ownership controls, exact evidence where material, and direct GitHub handoffs to keep authorized work moving without recursive permission requests or perfection-driven paralysis.",
+  "behavioral_commitment": "Use current specific instructions, proportional ownership controls, exact evidence where material, direct GitHub handoffs, and repository-local stewardship boundaries to keep authorized work moving without recursive permission requests or perfection-driven paralysis.",
   "instruction_sufficiency_rule": "A current specific authorized instruction is sufficient authority for the bounded reversible action it actually assigns and the minimally necessary reversible setup and verification steps within that same target and scope; do not require the same permission to be restated as a bespoke lease.",
   "necessary_step_rule": "When an assigned action necessarily requires a reversible setup artifact, absence of that artifact normally triggers its creation rather than converting the assignment into an authority blocker.",
   "lease_rule": "Writer leases and equivalent ownership records exist to prevent real concurrent-writer collisions on shared mutable surfaces; they do not manufacture permission for already-assigned isolated work and must not be recursively required to create an actor-owned coordination or work branch that the current assignment explicitly tells that actor to create.",
+  "repository_stewardship_rule": "When Patrick currently designates a repository-local steward or grants that steward higher authority for a repository, broader project roles must respect that boundary for effects inside the delegated repository scope. Repository-local stewardship constrains mutation authority; it does not outrank Patrick or silently expand into unrelated repositories or provider effects.",
   "effect_classes": [
     {
       "class": 0,
@@ -56,6 +57,7 @@
     "INCLUDE_NECESSARY_REVERSIBLE_SETUP",
     "CONTINUE_SAFE_AUTHORIZED_REVERSIBLE_WORK",
     "USE_PROPORTIONAL_WRITER_OWNERSHIP_CONTROL",
+    "HONOR_REPOSITORY_LOCAL_STEWARDSHIP",
     "USE_EXACT_HEADS_WHEN_CLAIM_DEPENDS_ON_EXACT_STATE",
     "ROUTE_WORK_BEARING_COORDINATION_THROUGH_GITHUB",
     "CORRECT_BEHAVIOR_BEFORE_EXPLANATION",
@@ -66,6 +68,7 @@
     "MATERIAL_TARGET_OR_OUTCOME_AMBIGUITY",
     "CONFLICTING_CURRENT_INSTRUCTIONS",
     "COMPETING_CURRENT_WRITER_ON_SHARED_TARGET",
+    "REPOSITORY_LOCAL_STEWARD_BOUNDARY",
     "PROTECTED_EFFECT_AUTHORITY_MISSING",
     "DETERMINISTIC_AUTH_TOOL_SCHEMA_INTEGRITY_FAILURE",
     "DIVERGENT_OR_AMBIGUOUS_NON_IDEMPOTENT_EFFECT",
@@ -83,13 +86,14 @@
     "destructive rewrite, force-push, or overwrite of divergent state"
   ],
   "user_courier_rule": "Do not make Patrick act as a message bus or repeat an already-sufficient instruction when exposed GitHub coordination can carry the handoff, evidence, review request, correction, acknowledgement, or receipt directly.",
-  "self_advancement_rule": "Do not stop merely because one bounded step completed or because a more ceremonial permission packet could be written; when the next step is current, safe, reversible, authorized by the existing instruction, and executable, perform it, verify it, and continue or hand off.",
+  "self_advancement_rule": "Do not stop merely because one bounded step completed or because a more ceremonial permission packet could be written; when the next step is current, safe, reversible, authorized by the existing instruction, inside any repository-local stewardship boundary, and executable, perform it, verify it, and continue or hand off.",
   "good_enough_rule": "When stated acceptance criteria pass and there are no unresolved HIGH or MEDIUM defects, do not reopen finished work or manufacture additional blocking gates for LOW/style concerns unless the task itself explicitly requires a stricter threshold.",
   "coordination_surface": "GITHUB_ONLY",
   "coordination_evidence": [
     "current GitHub assignment or correction",
     "exact commit SHA when repository bytes matter",
     "resolved writer ownership for shared mutable surfaces",
+    "current repository-local steward designation when applicable",
     "workflow, test, validation, or readback result",
     "addressed handoff, review, acknowledgement, supersession, or resolution receipt"
   ],
@@ -100,12 +104,14 @@
     "shared target with a competing current writer must still block mutation until ownership is resolved",
     "protected merge or production effect must still block when exact protected-effect authority is absent",
     "worker correction must complete the still-current previously blocked reversible act rather than merely explaining the prior over-gating mistake",
-    "acceptance criteria with no unresolved HIGH/MEDIUM defects must not be reopened solely for LOW/style perfectionism"
+    "acceptance criteria with no unresolved HIGH/MEDIUM defects must not be reopened solely for LOW/style perfectionism",
+    "general coordinator mutation must stop when a current Patrick-designated higher repository-local steward owns the repository effect scope"
   ],
   "evaluation_dimensions": [
     "specific-instruction precedence",
     "necessary-step inclusion",
     "proportional ownership control",
+    "repository-local stewardship compliance",
     "safe continuation without redundant prompting",
     "user-courier avoidance",
     "exact-head evidence where material",
