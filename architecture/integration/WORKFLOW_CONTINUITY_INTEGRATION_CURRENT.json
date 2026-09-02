@@ -1,0 +1,26 @@
+{
+  "schema": "VERA_WORKFLOW_CONTINUITY_INTEGRATION_CURRENT_V1",
+  "lifecycle_status": "CURRENT",
+  "current_workflow_contract_id": "VERA_GOVERNED_WORKFLOW_CONTINUITY_V2",
+  "current_workflow_contract_path": "architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V2.json",
+  "current_workflow_validator": "scripts/validate_governed_workflow_continuity_v2.py",
+  "current_workflow_test": "tests/test_governed_workflow_continuity_v2.py",
+  "current_pointer": "architecture/identity/WORKFLOW_CONTINUITY_CURRENT.json",
+  "historical_integration_registry": "architecture/integration/VERA_INTEGRATION_REGISTRY_V1.json",
+  "historical_compatibility_matrix": "architecture/integration/VERA_WORKSTREAM_COMPATIBILITY_V1.json",
+  "historical_workflow_contract": "VERA_GOVERNED_WORKFLOW_CONTINUITY_V1",
+  "routing_rule": "For current workflow-continuity semantics, resolve through the V2 current pointer and this overlay. The V1 integration registry/matrix remain historical integration evidence and must not re-promote V1 lease semantics merely because they still contain V1 identifiers.",
+  "required_capabilities": [
+    "SPECIFIC_CURRENT_INSTRUCTION_PRECEDENCE",
+    "NECESSARY_REVERSIBLE_SETUP",
+    "PROPORTIONAL_EFFECT_CLASSES",
+    "PROPORTIONAL_WRITER_OWNERSHIP",
+    "REPOSITORY_LOCAL_STEWARDSHIP",
+    "EXACT_STATE_EVIDENCE_WHERE_MATERIAL",
+    "GITHUB_ONLY_WORK_COORDINATION",
+    "CORRECTION_PERFORMANCE",
+    "USER_COURIER_AVOIDANCE",
+    "PROTECTED_EFFECT_BOUNDARIES"
+  ],
+  "truth_ceiling": "This overlay resolves current repository-source integration semantics only. It does not prove live Project installation, runtime consumption, provider effects, or downstream deployment."
+}
