@@ -1,18 +1,21 @@
-name: R8A0 bounded vertical slice
+name: Historical R8A0 bounded vertical slice exact-lineage validation
 
+# This workflow is preserved for historical exact-lineage verification only.
+# It is intentionally not a pull_request gate on the consolidated current-main
+# tree: its contract is bound to the original R8A0 base/parent and rejects any
+# broader reconstruction by design. Current-tree validation is owned by
+# consolidation-salvage-validation.yml.
 on:
-  pull_request:
-    paths:
-      - "r8a0/**"
-      - "tests/r8a0/**"
-      - "docs/r8a0/**"
-      - ".github/workflows/r8a0-*.yml"
   workflow_dispatch:
     inputs:
       authorized_base_sha:
-        description: "Immutable R8A0 authorized base commit"
+        description: "Immutable historical R8A0 authorized base commit"
         required: true
         default: "12dd3cb4e3329324885a827506d4f7e8ac25d41d"
+      target_sha:
+        description: "Historical R8A0 commit to validate"
+        required: true
+        default: "1165bab44e127a13a83ad0fabf66d191cf7a5522"
 
 permissions:
   contents: read
@@ -28,34 +31,26 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ inputs.target_sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Verify authorized lineage and path scope
+      - name: Verify historical authorized lineage and path scope
         shell: bash
         env:
-          EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           DISPATCH_BASE_SHA: ${{ inputs.authorized_base_sha }}
+          TARGET_SHA: ${{ inputs.target_sha }}
         run: |
           set -euo pipefail
+          test "$DISPATCH_BASE_SHA" = "$AUTHORIZED_BASE_SHA"
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
           git cat-file -e "${AUTHORIZED_BASE_SHA}^{commit}"
           git cat-file -e "${APPROVED_PARENT_SHA}^{commit}"
           git merge-base --is-ancestor "$AUTHORIZED_BASE_SHA" HEAD
-          test "$(git rev-parse HEAD^)" = "$APPROVED_PARENT_SHA"
-
-          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
-            test "$DISPATCH_BASE_SHA" = "$AUTHORIZED_BASE_SHA"
-          else
-            test -n "$EVENT_BASE_SHA"
-            test "$EVENT_BASE_SHA" = "$AUTHORIZED_BASE_SHA"
-            git merge-base --is-ancestor "$EVENT_BASE_SHA" HEAD
-          fi
-
           git diff --name-only "$AUTHORIZED_BASE_SHA" HEAD | \
             grep -Ev '^(r8a0/|tests/r8a0/|docs/r8a0/|\.github/workflows/r8a0-[^/]+\.yml$)' > /tmp/prohibited || true
           test ! -s /tmp/prohibited
-      - name: Compile exact acceptance bytes
+      - name: Compile historical acceptance bytes
         run: python -m compileall -q -f r8a0 tests/r8a0
-      - name: Run exact deterministic acceptance suite
+      - name: Run historical deterministic acceptance suite
         run: PYTHONHASHSEED=0 TERM=xterm python -X dev -m unittest discover -s tests/r8a0 -p 'test_*.py' -v
