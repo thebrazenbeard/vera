@@ -36,16 +36,25 @@ jobs:
       - name: Verify historical authorized lineage and path scope
         shell: bash
         env:
+          EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           DISPATCH_BASE_SHA: ${{ inputs.authorized_base_sha }}
           TARGET_SHA: ${{ inputs.target_sha }}
         run: |
           set -euo pipefail
-          test "$DISPATCH_BASE_SHA" = "$AUTHORIZED_BASE_SHA"
-          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
           git cat-file -e "${AUTHORIZED_BASE_SHA}^{commit}"
           git cat-file -e "${APPROVED_PARENT_SHA}^{commit}"
           git merge-base --is-ancestor "$AUTHORIZED_BASE_SHA" HEAD
           test "$(git rev-parse HEAD^)" = "$APPROVED_PARENT_SHA"
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
+
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            test "$DISPATCH_BASE_SHA" = "$AUTHORIZED_BASE_SHA"
+          else
+            test -n "$EVENT_BASE_SHA"
+            test "$EVENT_BASE_SHA" = "$AUTHORIZED_BASE_SHA"
+            git merge-base --is-ancestor "$EVENT_BASE_SHA" HEAD
+          fi
+
           git diff --name-only "$AUTHORIZED_BASE_SHA" HEAD | \
             grep -Ev '^(r8a0/|tests/r8a0/|docs/r8a0/|\.github/workflows/r8a0-[^/]+\.yml$)' > /tmp/prohibited || true
           test ! -s /tmp/prohibited
