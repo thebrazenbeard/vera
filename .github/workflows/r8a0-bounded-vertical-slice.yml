@@ -1,10 +1,8 @@
 name: Historical R8A0 bounded vertical slice exact-lineage validation
 
-# This workflow is preserved for historical exact-lineage verification only.
-# It is intentionally not a pull_request gate on the consolidated current-main
-# tree: its contract is bound to the original R8A0 base/parent and rejects any
-# broader reconstruction by design. Current-tree validation is owned by
-# consolidation-salvage-validation.yml.
+# Preserved for historical exact-lineage verification only. It is deliberately
+# not a pull-request gate on the consolidated current-main tree. Current-tree
+# validation is owned by consolidation-salvage-validation.yml.
 on:
   workflow_dispatch:
     inputs:
@@ -47,10 +45,11 @@ jobs:
           git cat-file -e "${AUTHORIZED_BASE_SHA}^{commit}"
           git cat-file -e "${APPROVED_PARENT_SHA}^{commit}"
           git merge-base --is-ancestor "$AUTHORIZED_BASE_SHA" HEAD
+          test "$(git rev-parse HEAD^)" = "$APPROVED_PARENT_SHA"
           git diff --name-only "$AUTHORIZED_BASE_SHA" HEAD | \
             grep -Ev '^(r8a0/|tests/r8a0/|docs/r8a0/|\.github/workflows/r8a0-[^/]+\.yml$)' > /tmp/prohibited || true
           test ! -s /tmp/prohibited
-      - name: Compile historical acceptance bytes
+      - name: Compile exact acceptance bytes
         run: python -m compileall -q -f r8a0 tests/r8a0
-      - name: Run historical deterministic acceptance suite
+      - name: Run exact deterministic acceptance suite
         run: PYTHONHASHSEED=0 TERM=xterm python -X dev -m unittest discover -s tests/r8a0 -p 'test_*.py' -v
