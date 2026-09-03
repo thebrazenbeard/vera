@@ -1,0 +1,38 @@
+name: Consolidation salvage validation
+
+on:
+  pull_request:
+    paths:
+      - "experiments/tul_instrumented_host_fixture_v0_1/**"
+      - "src/tul_fixture/**"
+      - "template/default-vera-v1/**"
+      - "docs/REPOSITORY_CONSOLIDATION_20260903.md"
+      - ".github/workflows/consolidation-salvage-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-salvaged-lineages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install TUL test dependency
+        run: python -m pip install "pytest>=8,<9"
+      - name: Compile TUL source
+        run: python -m py_compile src/tul_fixture/*.py
+      - name: Run TUL fixture tests
+        env:
+          PYTHONPATH: src
+        run: python -m pytest experiments/tul_instrumented_host_fixture_v0_1/tests -q
+      - name: Verify default Vera template inventory
+        run: |
+          test -f template/default-vera-v1/README.md
+          test -f template/default-vera-v1/BEHAVIOR_TARGET.md
+          test -f template/default-vera-v1/CONTINUITY.md
+          test -f template/default-vera-v1/EVALUATION_RUBRIC.md
+          test -f template/default-vera-v1/PROGRAM_STATE_V1.md
+          test -f template/default-vera-v1/TRAINING_RUNBOOK_V1.md
