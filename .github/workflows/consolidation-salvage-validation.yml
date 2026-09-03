@@ -9,6 +9,7 @@ on:
       - "r8a0/**"
       - "tests/r8a0/**"
       - "docs/r8a0/**"
+      - "architecture/integration/VERA_BRANCH_DISPOSITION_20260903.json"
       - "docs/REPOSITORY_CONSOLIDATION_20260903.md"
       - ".github/workflows/consolidation-salvage-validation.yml"
       - ".github/workflows/r8a0-bounded-vertical-slice.yml"
@@ -44,3 +45,20 @@ jobs:
           test -f template/default-vera-v1/EVALUATION_RUBRIC.md
           test -f template/default-vera-v1/PROGRAM_STATE_V1.md
           test -f template/default-vera-v1/TRAINING_RUNBOOK_V1.md
+      - name: Validate branch-disposition inventory
+        run: |
+          python -m json.tool architecture/integration/VERA_BRANCH_DISPOSITION_20260903.json >/dev/null
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('architecture/integration/VERA_BRANCH_DISPOSITION_20260903.json')
+          data = json.loads(path.read_text(encoding='utf-8'))
+          rows = data['dispositions']
+          names = [row['branch'] for row in rows]
+          assert len(names) == len(set(names)), 'duplicate branch disposition'
+          assert 'main' in names
+          assert 'feature/pccc-host-bridge-v1' in names
+          assert 'feature/tul-instrumented-host-fixture-v0.1' in names
+          assert 'vera-stickers' in names
+          PY
