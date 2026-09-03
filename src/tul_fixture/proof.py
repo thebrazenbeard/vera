@@ -119,5 +119,8 @@ def build_proof_artifact() -> dict[str, Any]:
 def write_proof_artifact(path: Path) -> dict[str, Any]:
     artifact = build_proof_artifact()
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(artifact, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(artifact, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
     return artifact
