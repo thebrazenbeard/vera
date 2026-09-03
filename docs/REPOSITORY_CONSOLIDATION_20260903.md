@@ -8,7 +8,7 @@ Candidate branch:
 
 `consolidation/lineage-reconstruction-20260903`
 
-Base at reconstruction start:
+Base at reconstruction start and latest re-read during this pass:
 
 `main@6731d35bbb0ebeb10576374c028e99577a5ba869`
 
@@ -23,7 +23,9 @@ At audit time the branch was 31 commits ahead and 460 behind current `main`. Its
 - `experiments/tul_instrumented_host_fixture_v0_1/**`
 - `src/tul_fixture/**`
 
-Disposition: `SALVAGED_TECHNICAL_LINEAGE`.
+The first consolidation CI run exposed a pre-existing source-branch defect: the committed proof artifact contains literal UTF-8 `±`, while the later deterministic generator used Python `json.dumps` with its default ASCII escaping. The existing byte-for-byte regression failed exactly at that character. The consolidation candidate repairs the generator with `ensure_ascii=False`; the regression is retained unchanged.
+
+Disposition: `SALVAGED_TECHNICAL_LINEAGE_WITH_DETERMINISM_REPAIR`.
 
 ### R8A0 bounded vertical slice
 
@@ -36,7 +38,9 @@ At audit time the branch was 7 commits ahead and 40 behind current `main`. The u
 - `tests/r8a0/**`
 - `.github/workflows/r8a0-bounded-vertical-slice.yml`
 
-Disposition: `SALVAGED_HISTORICAL_IMPLEMENTATION`.
+The original R8A0 workflow is itself part of the historical contract: it is exact-base/exact-parent bound to `12dd3cb4e3329324885a827506d4f7e8ac25d41d` / `974cb87f8267b03ced0d68a048c4f0e37a98d713` and intentionally rejects a current-main consolidation PR. The candidate therefore preserves that workflow as manual historical exact-lineage validation only. Current-tree execution of the same compile/unittest acceptance suite is performed by `.github/workflows/consolidation-salvage-validation.yml`; the historical exact-parent assertion remains intact so the salvaged R8A0 tests continue to verify the old workflow contract rather than silently weakening it.
+
+Disposition: `SALVAGED_HISTORICAL_IMPLEMENTATION_WITH_SEPARATE_CURRENT_VALIDATION`.
 
 ### Default Vera template
 
@@ -108,19 +112,61 @@ Disposition: `TEMP_BUILD_NOT_INTEGRATED`.
 
 `vera-stickers@fd91794a408228add3da80c5d6193c34ef9fa4d3`
 
-The four exact sticker blobs are duplicated in `thebrazenbeard/vera-control-plane`. Canonical private asset custody is being normalized there under `assets/stickers/`, so this duplicate branch is not integrated into `vera/main`.
+The four exact sticker blobs are duplicated in `thebrazenbeard/vera-control-plane`. Canonical private asset custody is normalized there under `assets/stickers/`, so this duplicate branch is not integrated into `vera/main`.
 
 Disposition: `CROSS_REPO_DUPLICATE_CONTROL_PLANE_OWNS`.
 
+## Superseded divergent tips not replayed
+
+These tips have commits not in `main`, but their own repository history establishes that they are weaker, obsolete, or superseded routes rather than missing current implementation:
+
+- `feature/integration-assurance-harness-v1` and `feature/integration-compatibility-matrix-v1-r2`: four branch-only registry-harness commits; superseded by the later exact-tree Integration Assurance line integrated through `feature/integration-compatibility-matrix-v1` / project orchestration.
+- `protocol/dot-command-turn-continuation-v1`: three branch-only predecessor commits; superseded by the current-main correction lineage `fix/dot-command-current-main-20260901`, which is already an ancestor of `main`.
+- `replacement/memory-cross-chat-durability-v1`: four branch-only predecessor durability commits; PR #19 was explicitly closed as superseded by the broader accepted Memory PR #10 lineage, which is already in `main`.
+- `repair/r6a0-linkage-reference-semantics` and related R6A0 linkage repair material: historical linkage semantics only; the current front door explicitly classifies the R6A0 coordination/linkage surfaces as provenance rather than current routing authority.
+- `assembly/workflow-continuity-6aa757`: one branch-only assembly receipt. The accepted workflow-continuity implementation itself is already in main ancestry; the receipt remains available on the preserved historical ref rather than becoming current coordination state.
+
+Disposition: `SUPERSEDED_OR_HISTORICAL_PRESERVE_REF_NO_REPLAY`.
+
 ## Already contained by current main
 
-Representative old branches checked as pure ancestors include `feature/neutral-vera-r6-rewrite` (0 ahead / 460 behind), `noop` (0 ahead / 457 behind), and `release/r7a0-20260731-ec7d18f7` (0 ahead / 77 behind). Assembly, validation, merged feature/fix, and historical integration refs that contribute no unique tip content do not require replay merely to consolidate the current tree.
+Fresh comparisons confirmed representative accepted/merged lineages are pure ancestors of `main`, including:
+
+- `feature/coordination-bus-v1` — 0 ahead;
+- `feature/governed-initiative-kernel-v0-1` — 0 ahead;
+- `feature/memory-cross-chat-contract-v1` — 0 ahead;
+- `feature/project-identity-contract-v1` — 0 ahead;
+- `feature/temporal-enforcement-kernel-v1` — 0 ahead;
+- `feature/r7a1-behavior-laws-successor-v1` — 0 ahead;
+- `feature/integration-compatibility-matrix-v1` — 0 ahead;
+- `integration/project-orchestration-r6a0` — 0 ahead;
+- `temporal-pilot` — 0 ahead;
+- `vera/nonverbal-status-bar-v1` — 0 ahead;
+- `fix/dot-command-current-main-20260901` — 0 ahead;
+- `assembly/identity-classification-into-assurance` — 0 ahead;
+- `assembly/initiatives-into-assurance` — 0 ahead;
+- `feature/neutral-vera-r6-rewrite` — 0 ahead / 460 behind;
+- `noop` — 0 ahead / 457 behind;
+- `release/r7a0-20260731-ec7d18f7` — 0 ahead / 77 behind.
+
+These branches require no replay to recover their implementation into the consolidated tree. Validation/assembly refs that point to already-integrated immutable commits remain historical provenance.
 
 ## Repository boundary after consolidation
 
 `thebrazenbeard/vera` remains the technical/source repository: architecture, code, schemas, migrations, tests, validators, sanitized engineering history, experiments, and historical release source.
 
 Private centered state, closeouts, role-training custody, and Vera sticker assets belong in `thebrazenbeard/vera-control-plane`; they are not copied into this repository.
+
+## Validation model
+
+The consolidation candidate uses current-tree validation rather than pretending historical exact-lineage workflows are transferable authority:
+
+- `Consolidation salvage validation` exercises the salvaged TUL test suite, salvaged R8A0 compile/unittest suite, and default-template inventory on the current PR tree.
+- historical R8A0 exact-lineage validation remains manual and exact-parent bound;
+- R6A1 package and source-binding workflows validate the copied historical candidate against its declared immutable source commit;
+- inherited R6A0 and temporal regression workflows remain independent regressions on the combined PR tree.
+
+A green result proves only those predicates on the bound candidate head. It does not merge, install, deploy, activate a release, or establish provider/runtime state.
 
 ## Protected effects not performed
 
