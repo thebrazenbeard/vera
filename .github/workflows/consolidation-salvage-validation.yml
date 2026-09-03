@@ -6,8 +6,12 @@ on:
       - "experiments/tul_instrumented_host_fixture_v0_1/**"
       - "src/tul_fixture/**"
       - "template/default-vera-v1/**"
+      - "r8a0/**"
+      - "tests/r8a0/**"
+      - "docs/r8a0/**"
       - "docs/REPOSITORY_CONSOLIDATION_20260903.md"
       - ".github/workflows/consolidation-salvage-validation.yml"
+      - ".github/workflows/r8a0-bounded-vertical-slice.yml"
 
 permissions:
   contents: read
@@ -28,6 +32,10 @@ jobs:
         env:
           PYTHONPATH: src
         run: python -m pytest experiments/tul_instrumented_host_fixture_v0_1/tests -q
+      - name: Compile salvaged R8A0 source and tests
+        run: python -m compileall -q -f r8a0 tests/r8a0
+      - name: Run salvaged R8A0 deterministic suite
+        run: PYTHONHASHSEED=0 TERM=xterm python -X dev -m unittest discover -s tests/r8a0 -p 'test_*.py' -v
       - name: Verify default Vera template inventory
         run: |
           test -f template/default-vera-v1/README.md
