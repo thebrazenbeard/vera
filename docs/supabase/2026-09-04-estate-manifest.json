@@ -1,0 +1,232 @@
+{
+  "schema": "VERA_SUPABASE_ESTATE_MANIFEST_V1",
+  "generated_at_date": "2026-09-04",
+  "status": "WORKING_AUDIT_SOURCE_ONLY_NO_PRODUCTION_MUTATION",
+  "provider_bindings": {
+    "vera_production": {
+      "project_ref": "klmbpaigzeguvnpccqzz",
+      "region": "ca-central-1",
+      "postgres_major": 17
+    },
+    "project_lantern": {
+      "project_ref": "agvhmutlrolbaijzlbqk",
+      "region": "us-west-2",
+      "postgres_major": 17
+    }
+  },
+  "classification_enum": [
+    "CORE",
+    "OPERATIONS",
+    "HISTORY",
+    "DERIVED",
+    "MIGRATION_CANDIDATE",
+    "DORMANT",
+    "UNKNOWN",
+    "PLATFORM_INFRASTRUCTURE",
+    "SEPARATE_IDENTITY_COLOCATED",
+    "RETIRE_CANDIDATE"
+  ],
+  "rules": {
+    "dormant_or_unknown_does_not_imply_retire": true,
+    "row_count_or_size_alone_does_not_imply_liveness_or_disposability": true,
+    "advisor_notice_does_not_authorize_remediation": true,
+    "production_retirement_requires_positive_no_consumer_evidence_and_separate_authority": true,
+    "source_presence_does_not_prove_deployment": true,
+    "provider_record_time_does_not_define_current_truth": true
+  },
+  "vera": {
+    "build_team_2": {
+      "class": "MIGRATION_CANDIDATE",
+      "target": "project_lantern",
+      "base_tables": 11,
+      "views": 2,
+      "memory_events_live_rows_observed": 5934,
+      "cross_schema_foreign_keys_observed": 0,
+      "api_coupling": "public service_role SECURITY DEFINER wrappers",
+      "source_reproducibility": "INCOMPLETE",
+      "retirement_state": "NOT_AUTHORIZED_NOT_PROVEN"
+    },
+    "bug_ops": {
+      "class": "OPERATIONS",
+      "project_key": "VERA",
+      "reports_observed": 92,
+      "events_observed": 237,
+      "dispatch_events_v2_observed": 175,
+      "operation_receipts_observed": 236,
+      "coordinator_role": "ONE",
+      "voss_active": false,
+      "move_to_lantern": false
+    },
+    "pgmq_bug_dispatch": {
+      "class": "OPERATIONS",
+      "live_dispatch_rows_estimate": 91,
+      "archived_dispatch_rows_estimate": 84,
+      "role_work_queues_currently_empty": true,
+      "voss_queue_retirement": "CANDIDATE_PENDING_CALLER_PROOF"
+    },
+    "radar": {
+      "class": "OPERATIONS",
+      "canonical_source": "GitHub Chat Communication Bus",
+      "supabase_role": "rebuildable operational projection",
+      "realtime_publication_configured": true
+    },
+    "semantic_atlas": {
+      "runtime_snapshots_and_objects": "DERIVED",
+      "capture_policy": "CORE",
+      "capture_events_and_outcomes": "OPERATIONS_HISTORY",
+      "retirement_state": "HOLD_UNTIL_TESTED_REBUILD"
+    },
+    "redworm": {
+      "class": "UNKNOWN",
+      "reason": "small but stateful succession/lineage subsystem with observed reads/writes and unresolved source owner",
+      "retirement_state": "HOLD"
+    },
+    "public": {
+      "class": "MIXED_OWNERSHIP",
+      "vera_core_or_context": {
+        "relations": 15,
+        "base_tables": 4,
+        "views": 11,
+        "estimated_live_rows": 4282
+      },
+      "vera_memory_epoch": {
+        "relations": 4,
+        "estimated_live_rows": 11
+      },
+      "vera_portable_bootstrap": {
+        "relations": 5,
+        "estimated_live_rows": 14
+      },
+      "brigit_colocated": {
+        "class": "SEPARATE_IDENTITY_COLOCATED",
+        "relations": 15,
+        "base_tables": 4,
+        "views": 11,
+        "estimated_live_rows": 10,
+        "action": "separate identity/privacy ownership review before move or retirement"
+      }
+    },
+    "storage": {
+      "class": "CORE",
+      "bucket": "files",
+      "public": false,
+      "canon_image_objects_observed": 5,
+      "retirement_state": "RETAIN"
+    },
+    "auth": {
+      "class": "DORMANT",
+      "users_observed": 0,
+      "retirement_state": "NO_CONCLUSION"
+    },
+    "realtime": {
+      "class": "OPERATIONS",
+      "active_subscription_rows_observed": 0,
+      "radar_publication_configured": true
+    },
+    "cron": {
+      "class": "PLATFORM_INFRASTRUCTURE",
+      "installed": true,
+      "configured_jobs_observed": 0,
+      "intended_default_role": "bounded verification and maintenance after ownership/reproducibility work"
+    },
+    "database_webhooks": {
+      "class": "PLATFORM_INFRASTRUCTURE",
+      "installed": true,
+      "configured_hooks_observed": 0,
+      "queued_requests_observed": 0,
+      "intended_default_role": "explicit outbound event notification after event catalog and failure semantics exist"
+    },
+    "storage_fdw_and_vault": {
+      "class": "PLATFORM_INFRASTRUCTURE",
+      "foreign_servers_observed": 3,
+      "foreign_tables_observed": 0,
+      "user_mappings_observed": 0,
+      "vault_backed_platform_configuration": true,
+      "retirement_state": "HOLD_MANAGED_INFRASTRUCTURE"
+    }
+  },
+  "project_lantern": {
+    "lantern_material": {
+      "class": "CORE",
+      "accepted_profile_rows": 1,
+      "material_rows": 2,
+      "producer_grant_rows": 3,
+      "admission_receipt_rows": 2,
+      "schema_policy_rows": 1
+    },
+    "build_team_2": {
+      "present_at_observed_cut": false,
+      "future_class": "CORE_PROJECT_SUBSYSTEM",
+      "destination_rule": "dedicated ownership namespace and service-only API contract"
+    },
+    "bug_ops": {
+      "class": "DORMANT",
+      "all_observed_application_rows": 0,
+      "lineage": "older than current Vera bug_ops v2",
+      "reuse_state": "NOT_AUTHORIZED_NOT_CURRENT_BY_DEFAULT"
+    },
+    "pgmq_bug_queues": {
+      "class": "DORMANT",
+      "queue_definitions_present": true,
+      "all_observed_queue_and_archive_rows": 0
+    },
+    "r9a0_construction_surfaces": {
+      "class": "DORMANT",
+      "action": "classify independently before retirement"
+    },
+    "auth": {
+      "users_observed": 0
+    },
+    "storage": {
+      "buckets_observed": 0,
+      "objects_observed": 0
+    },
+    "realtime": {
+      "publications_observed": 0
+    },
+    "edge_functions": {
+      "count_observed": 0
+    },
+    "source_reproducibility": "INCOMPLETE_FOR_HOSTED_DATABASE_STATE"
+  },
+  "async_paths": [
+    {
+      "name": "github_bus_to_radar",
+      "class": "ACTIVE",
+      "path": "GitHub Bus -> github-bus-ingest Edge Function -> Radar RPC projection"
+    },
+    {
+      "name": "pgmq_bug_dispatch",
+      "class": "ACTIVE"
+    },
+    {
+      "name": "database_webhooks_pg_net",
+      "class": "INSTALLED_UNCONFIGURED"
+    },
+    {
+      "name": "pg_cron",
+      "class": "INSTALLED_UNCONFIGURED"
+    }
+  ],
+  "required_async_contract": [
+    "producer",
+    "durable_handoff",
+    "consumer",
+    "idempotency_key",
+    "acknowledgement",
+    "retry",
+    "dead_letter_or_failure_record",
+    "owner"
+  ],
+  "next_sequence": [
+    "freeze estate manifest and ownership map",
+    "repair versioned source-of-truth gaps",
+    "rationalize public API and ownership boundaries",
+    "prepare and independently review BT2 destination schema contract",
+    "migrate and verify BT2 under a separately authorized production cutover",
+    "classify Lantern dormant construction baggage",
+    "reconcile active derived projections",
+    "add Cron/Webhooks only after explicit owners and failure contracts exist",
+    "retire only after positive no-consumer evidence and separate authorization"
+  ]
+}
