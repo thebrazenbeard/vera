@@ -1,0 +1,28 @@
+name: R6A1 release package
+on:
+  pull_request:
+    paths:
+      - "architecture/releases/R6A1_20260731_B20E7309/**"
+      - "scripts/validate_r6a1_release.py"
+      - "tests/test_r6a1_release.py"
+      - ".github/workflows/r6a1-release-package.yml"
+  push:
+    branches:
+      - feature/replacement-release-r6a1-v1
+permissions:
+  contents: read
+jobs:
+  validate-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install PyYAML==6.0.2
+      - name: Validate package
+        run: python scripts/validate_r6a1_release.py
+      - name: Run hostile package tests
+        run: python -m unittest tests.test_r6a1_release -v
+      - name: Compile validator and tests
+        run: python -m py_compile scripts/validate_r6a1_release.py tests/test_r6a1_release.py
