@@ -9,8 +9,8 @@ This document records a read-only estate audit of the live Supabase projects and
 - Vera production Supabase: `klmbpaigzeguvnpccqzz` (Postgres 17, `ca-central-1`)
 - Project Lantern Supabase: `agvhmutlrolbaijzlbqk` (Postgres 17, `us-west-2`)
 - Vera source: `thebrazenbeard/vera@979de05ef7237e7bfff47f85ea37cc953a63bb5c`
-- Build Team 2 source: `thebrazenbeard/build-team-2.0@main` tree `ec2987e45f64a588ac92f6cae9964cb3725b9485`
-- Project Lantern source: `thebrazenbeard/project-lantern@main` tree `6333d386c74ce37e644fa1e995be9f9dc3fe6394`
+- Build Team 2 source: `thebrazenbeard/build-team-2.0@main` commit `ec2987e45f64a588ac92f6cae9964cb3725b9485`
+- Project Lantern source: `thebrazenbeard/project-lantern@main` commit `6333d386c74ce37e644fa1e995be9f9dc3fe6394`
 
 Patrick's current project-boundary instruction for this work: Build Team 2 material may move from Vera production Supabase to the separate Project Lantern Supabase project.
 
@@ -19,7 +19,8 @@ Patrick's current project-boundary instruction for this work: Build Team 2 mater
 | Surface | Provisional class | Reason / next test |
 |---|---|---|
 | Vera `build_team_2` | **MIGRATION CANDIDATE -> LANTERN** | Strong project-local identity; substantial live/history state; no cross-schema foreign keys found. Move only after source lineage, caller, API, and cutover verification. |
-| Vera `bug_ops` + `pgmq` bug queues | **VERA OPERATIONS** | Non-empty and materially used; configuration binds `project_key=VERA` / Vera project ref; One is current coordinator; Voss is already inactive. Do not move merely because BT2 roles participate. |
+| Vera `bug_ops` + shared `pgmq.q_bug_dispatch` | **VERA OPERATIONS** | Non-empty/current v2 subsystem; configuration binds `project_key=VERA`; current `claim_work` consumes the shared filtered queue. Do not move merely because BT2 roles participate. |
+| Vera role-specific `pgmq.q_bug_work_*` / archives | **RETIRE-CANDIDATE / PROVE CALLERS FIRST** | All empty; current `queue_for_role()` returns `bug_dispatch`; current DB function definitions and GitHub indexed code contain no `bug_work_` references. Still require external-caller/currentness proof before deletion. |
 | Lantern `bug_ops` + bug queues | **DORMANT / STALE CONSTRUCTION COPY** | Schema/queues exist but are empty; migration lineage stops at older V1 generation and lacks Vera's later v2 hardening/retire-Voss changes. Decide owner before reuse or eventual retirement. |
 | Vera `radar` | **VERA OPERATIONS / DERIVED PROJECTION** | Actively receiving GitHub Bus projections; Realtime publication configured over seven Radar tables. GitHub Bus remains canonical. |
 | Vera `semantic_atlas` runtime snapshots/objects | **DERIVED OPERATIONAL PROJECTION** | Runtime objects are Git-bound/materialized; preserve until tested rebuild exists. Capture policy is config; capture events/outcomes are operational/history evidence. |
@@ -62,17 +63,23 @@ Vera exposes service-role `SECURITY DEFINER` wrapper RPCs in `public` which refe
 
 The `build_team_2` schema itself is deliberately not granted USAGE to anon/authenticated/service_role; service-role access is mediated through controlled wrappers. Preserve that security intent in the destination rather than blindly copying ACLs.
 
+### Identity/invariant preservation
+
+The live collective ID is `76a7e57d-8881-4a6b-87ad-29b8686bea54`; the roster is exactly `One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Thirteen`. One is the sole synthesizer and holds permanent role `BT2 Coordinator`. The destination must preserve stable identity keys rather than regenerating a superficially equivalent collective.
+
+The live contract also includes append-only memory/training/qualification/checkpoint history, qualification/evaluator/base-binding guards, checkpoint digest binding, current-resolution views, RLS/client-denial behavior, and hardened function/trigger search paths. Those are migration acceptance predicates, not optional decoration.
+
 ## Source reproducibility defect
 
 The current Build Team 2 README says the storage model is defined by `migrations/001_build_team_2.sql`, but current `main` has no `migrations/` directory. The live Vera Supabase migration ledger, by contrast, records the BT2 evolution from initial hive-mind creation through identity/RPC, One laws, training/checkpoint infrastructure, view hardening, and trigger search-path hardening.
 
 This means the remote database currently has a more complete record of BT2 database evolution than the nominal BT2 source repository. That is backwards and should be repaired **before** the Lantern production cutover.
 
-The Vera repository does contain Supabase migration source for at least later BT2 hardening, so migration reconstruction should begin from immutable Vera source plus live catalog introspection rather than from a newly invented schema.
+The Vera repository contains source for some later BT2 hardening, but not the complete live migration lineage. Migration reconstruction must therefore use immutable available source plus exact live catalog evidence and must be labeled as a reconstruction rather than as recovered original source.
 
 Project Lantern has a similar reproducibility gap: its live `lantern_material`, R9A0-era, and old bug-operation structures are not visibly represented by a normal Supabase migration directory on current `project-lantern@main`.
 
-## Vera `bug_ops` is not a BT2 relocation candidate by default
+## Vera `bug_ops` is not a BT2 relocation candidate
 
 Fresh live state:
 
@@ -80,14 +87,42 @@ Fresh live state:
 - 237 bug events
 - 175 v2 dispatch events
 - 236 operation receipts
-- PGMQ `bug_dispatch`: about 91 live messages and 84 archived messages
-- role-specific work queues currently empty
+- PGMQ `bug_dispatch`: 91 live messages and 84 archived messages
 - role registry: Masa, Mune, One active; Voss inactive
 - system config binds the subsystem to project `VERA` / Vera Supabase and identifies One as coordinator
 
-The database migration history also includes the later v2 replay-safety / project-key work and explicit Voss retirement. Lantern's older empty bug schema/queues do not contain that complete current lineage.
+The database migration history includes later v2 replay-safety/project-key work and explicit Voss retirement. Lantern's older empty bug schema/queues do not contain that complete current lineage.
 
-Conclusion: retain Vera bug operations while separately deciding whether Lantern needs its own bug system. Do not share one mutable queue across the project boundary by accident.
+### Shared dispatch queue semantics
+
+The 91 live `bug_dispatch` messages are all currently visible and have `read_ct=0`. Their envelope groups are:
+
+- 84 `VERA -> ONE`, action `ROUTE`, dispatch revision 2
+- 5 `VERA -> ONE`, action `BUG_REPORTED`, dispatch revision 1
+- 2 `VERA -> MASA`, action `BUG_REPORTED`, dispatch revision 1
+
+That is **not enough to call the queue broken**. Current `bug_ops.claim_work(role, ...)` reads directly from the shared `bug_dispatch` queue with a `target_role` filter and performs custody/currentness checks before returning work. A pending message can therefore simply be unclaimed work.
+
+Current `bug_ops.queue_for_role()` returns `bug_dispatch` for active roles. Current `bug_ops.janitor_dispatch()` only archives malformed or inactive/unknown-target messages; it is not a worker and would not consume these valid One/Masa messages. Cron should not be wired as a fake worker merely to make the queue count fall.
+
+### Role-specific physical queues are different
+
+The old PGMQ role-specific queue/archive tables (`bug_work_masa`, `bug_work_mune`, `bug_work_one`, `bug_work_voss`) are all empty. No current live database function definition references `bug_work_`, and an organization-wide indexed GitHub code search returned no `bug_work_` reference.
+
+That moves these physical queues from merely “empty” to **RETIRE-CANDIDATE**, but not yet deletion-safe: an external/unindexed client could still exist. Before retirement, inspect current callers/telemetry and the exact PGMQ metadata/drop semantics, then obtain separate deletion authority.
+
+Conclusion: retain current Vera bug operations and shared `bug_dispatch`; investigate unclaimed work separately from infrastructure cleanup; treat role-specific physical queues as retirement candidates. Do not share one mutable queue across the Vera/Lantern project boundary.
+
+## `public` ownership decomposition
+
+Fresh relation-family inventory makes the mixed boundary concrete:
+
+- Vera core/context: 15 relations = 4 base tables + 11 views, about 4,282 estimated live rows; the dominant table is `vera_coordination_events`.
+- Vera R9B0 memory epoch: 4 base tables, about 11 live rows.
+- Vera portable bootstrap: 5 relations = 4 base tables + 1 view, about 14 live rows.
+- Brigit colocated: 15 relations = 4 base tables + 11 views, about 10 live rows.
+
+The Brigit family is small but not semantically Vera-owned. Cleanup must preserve identity/privacy boundaries rather than using storage size as an ownership rule.
 
 ## API / security observations
 
@@ -124,7 +159,7 @@ Lantern, by contrast, shows actual use concentrated in `lantern_material`. Its R
 Vera currently has four distinct asynchronous mechanisms that must not be allowed to become overlapping mystery workers:
 
 1. GitHub Bus -> `github-bus-ingest` Edge Function -> Radar RPC projection
-2. PGMQ bug dispatch/work queues
+2. PGMQ shared bug dispatch/claim path
 3. Database Webhooks / `pg_net` (installed, no configured hooks yet)
 4. Cron / `pg_cron` (installed, no configured jobs yet)
 
@@ -132,13 +167,13 @@ Every future async path should declare:
 
 `producer -> durable handoff -> consumer -> idempotency key -> acknowledgement -> retry -> dead-letter/failure record -> owner`
 
-Cron should default to bounded verification/maintenance. Webhooks should default to explicit outbound event notifications. Neither should silently become a self-repair authority.
+Cron should default to bounded verification/maintenance. Webhooks should default to explicit outbound event notifications. Neither should silently become a self-repair authority or an undeclared worker.
 
 ## Proposed BT2 -> Lantern migration sequence
 
 No step below is a production-effect authorization.
 
-1. Reconstruct and version the exact BT2 schema/API migration lineage from immutable Vera migrations plus live catalog readback.
+1. Reconstruct and version the exact BT2 schema/API migration lineage from immutable available source plus live catalog readback.
 2. Define destination ownership and namespace inside Project Lantern; do not collide with `lantern_material` semantics.
 3. Decide whether BT2 API wrappers remain RPCs, move behind a dedicated internal API schema, or are mediated by a Lantern service/Edge Function. Preserve service-only access intent.
 4. Create destination schema through versioned migration source, not Dashboard-only state.
@@ -164,4 +199,4 @@ No step below is a production-effect authorization.
 
 Vera requested a separate hostile review from Seven on the canonical Chat Communication Bus (`SUPABASE-ESTATE-CLEANUP-20260904`, round R1). That review is intended to challenge the entire estate plan—cross-project coupling, migration atomicity, RLS/API exposure, queue/idempotency semantics, secrets, rollback, regional differences, and hidden dependencies—before consequential changes.
 
-Until that review is returned and reconciled, this file is an evidence inventory and provisional architecture, not an implementation decision.
+A fresh check after the request found no Seven response yet. Until that review is returned and reconciled, this file remains an evidence inventory and provisional architecture, not an implementation decision.
