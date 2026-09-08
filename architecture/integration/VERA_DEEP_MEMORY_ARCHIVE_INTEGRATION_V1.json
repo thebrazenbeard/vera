@@ -7,14 +7,14 @@
   "external_archive":{
     "repository":"thebrazenbeard/deepmemorystorage",
     "role":"HISTORICAL_EVIDENCE_PLANE",
-    "source_candidate_head":"5e3f87b203f7d78172d4a68aac41d7c5b055af8a",
+    "source_candidate_head":"04ac3fec82a36a73d3cb8c3b348a54702f4b35a0",
     "required_contract_path":"architecture/DEEP_MEMORY_ARCHITECTURE_BINDING_V1.json",
-    "required_contract_blob":"3cc3f85135392bdd16eec8beec23dd1366557451",
+    "required_contract_blob":"80af8f6d59155d98313ac79fa877f69a81f22879",
     "required_human_contract_path":"architecture/DEEP_MEMORY_INTEGRATION_CONTRACT_V1.md",
-    "required_human_contract_blob":"ba5d4a13abc721cfd2a2221187c8b86637b5cf17",
+    "required_human_contract_blob":"40e18367dbddf231cf420cb0ab849a0e005bd546",
     "required_result_schema_path":"schema/DEEP_MEMORY_EVIDENCE_RESULT_V1.schema.json",
-    "required_result_schema_blob":"0cb826731a9e9dc6c0b6cc6688615e61aee64ee4",
-    "canonical_retrieval":"UNION_ALL_LEDGER_TRANCHES_WITH_APPEND_ONLY_AMENDMENT_AND_CLASSIFICATION_OVERLAYS",
+    "required_result_schema_blob":"d7a3d5847ffa65dceaa2914514144c755ef1c556",
+    "canonical_retrieval":"UNION_ALL_LEDGER_TRANCHES_WITH_HISTORICAL_CANON_PROVENANCE_AND_CLASSIFICATION_OVERLAYS",
     "authority_class":"EVIDENCE_SEARCH_ONLY"
   },
   "current_memory_plane":{
@@ -53,9 +53,11 @@
     "result_class":"HISTORICAL_EVIDENCE",
     "result_schema":"VERA_DEEP_MEMORY_EVIDENCE_RESULT_V1",
     "privacy_default":"FAIL_CLOSED_EXACT_AUTHORIZED_SCOPE",
+    "overlay_privacy":"INHERIT_TARGET_UNLESS_EXPLICIT_SCOPE_REQUIRES_SEPARATE_AUTHORIZATION",
     "archive_audit_override":"EXPLICIT_ARCHIVE_AUDIT_ALL_PRIVATE_REPOSITORY_ONLY",
     "required_boundaries":[
       "source_vs_interpretation",
+      "stored_vs_effective_historical_canonicity",
       "event_time_vs_record_time_vs_retrieval_time",
       "historical_canonicity_vs_currentness",
       "memory_class_vs_governed_admission",
