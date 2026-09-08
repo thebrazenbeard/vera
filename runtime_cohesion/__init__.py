@@ -15,7 +15,13 @@ from .executor import (
     execute_projection_cycle,
 )
 from .reconcile import ReconciliationResult, reconcile_exact
-from .runtime import RetrievalPlan, build_operational_checkpoint, build_retrieval_plan
+from .runtime import (
+    AdmissionDecision,
+    RetrievalPlan,
+    build_operational_checkpoint,
+    build_retrieval_plan,
+    evaluate_proposition_admission,
+)
 
 __all__ = [
     "AdapterProbeResult",
@@ -33,7 +39,9 @@ __all__ = [
     "execute_projection_cycle",
     "ReconciliationResult",
     "reconcile_exact",
+    "AdmissionDecision",
     "RetrievalPlan",
     "build_operational_checkpoint",
     "build_retrieval_plan",
+    "evaluate_proposition_admission",
 ]
