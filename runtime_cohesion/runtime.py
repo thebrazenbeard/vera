@@ -7,6 +7,7 @@ from typing import Any, Iterable, Mapping
 RETRIEVABLE_ROUTE_STATES = {"CURRENTLY_OBSERVED_REACHABLE", "RESULT"}
 BUDGET_OK = "WITHIN_BUDGET"
 BUDGET_EXHAUSTED = "UNRESOLVED_RETRIEVAL_BUDGET_EXHAUSTED"
+ADMISSION_STATUSES = {"ADMITTED", "UNRESOLVED", "CONFLICT"}
 
 
 @dataclass(frozen=True)
@@ -19,6 +20,20 @@ class RetrievalPlan:
     budget_state: str
     reason: str
     privacy_classes: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class AdmissionDecision:
+    status: str
+    dispatch_id: str | None
+    resolver_ref: str | None
+    required_evidence_classes: tuple[str, ...]
+    observed_evidence_classes: tuple[str, ...]
+    reason: str
+
+    def __post_init__(self) -> None:
+        if self.status not in ADMISSION_STATUSES:
+            raise ValueError(f"unsupported admission status: {self.status}")
 
 
 def _rows_by_id(rows: Iterable[Mapping[str, Any]], kind: str) -> dict[str, Mapping[str, Any]]:
@@ -52,6 +67,142 @@ def _validate_selector_narrowing(
     narrowed_set = set(narrowed)
     if not narrowed_set.issubset(parent):
         raise ValueError(f"selector broadens parent evidence capabilities: {selector_ref}")
+
+
+def evaluate_proposition_admission(
+    domain_id: str,
+    proposition_or_effect_class: str,
+    referent_scope: str,
+    observations: Iterable[Any],
+    contract: Mapping[str, Any],
+) -> AdmissionDecision:
+    """Fail closed unless B dispatch admits decisive evidence for the proposition.
+
+    Transport, readability, and even exact cross-provider reconciliation are not
+    proposition authority. Dispatch is selected before terminal resolver
+    acceptance. Exact-domain rows outrank wildcard rows at equal precedence; an
+    equal-precedence/equal-specificity overlap that points to different resolvers
+    is a conflict rather than an arbitrary winner.
+
+    Current B rows encode actor-sensitive direct-self-report requirements in
+    `conflict_disposition`; an explicit future `required_evidence_classes` list on
+    a dispatch row takes precedence over that compatibility rule.
+    """
+
+    dispatch_rows = contract.get("resolver_dispatch", [])
+    candidates: list[Mapping[str, Any]] = []
+    for row in dispatch_rows:
+        if not isinstance(row, Mapping):
+            continue
+        if row.get("domain_scope") not in {"*", domain_id}:
+            continue
+        if row.get("proposition_or_effect_class") != proposition_or_effect_class:
+            continue
+        if row.get("referent_scope") != referent_scope:
+            continue
+        candidates.append(row)
+
+    observed = tuple(sorted({
+        evidence_class
+        for item in observations
+        if isinstance((evidence_class := getattr(item, "evidence_class", None)), str) and evidence_class
+    }))
+
+    if not candidates:
+        return AdmissionDecision(
+            status="UNRESOLVED",
+            dispatch_id=None,
+            resolver_ref=None,
+            required_evidence_classes=(),
+            observed_evidence_classes=observed,
+            reason="No resolver_dispatch row matches the exact domain/proposition/referent tuple.",
+        )
+
+    def rank(row: Mapping[str, Any]) -> tuple[int, int]:
+        precedence = row.get("precedence")
+        if not isinstance(precedence, int):
+            precedence = -1
+        specificity = 1 if row.get("domain_scope") == domain_id else 0
+        return precedence, specificity
+
+    best_rank = max(rank(row) for row in candidates)
+    best = [row for row in candidates if rank(row) == best_rank]
+    best_resolvers = {row.get("resolver_ref") for row in best}
+    if len(best_resolvers) != 1:
+        return AdmissionDecision(
+            status="CONFLICT",
+            dispatch_id=None,
+            resolver_ref=None,
+            required_evidence_classes=(),
+            observed_evidence_classes=observed,
+            reason="Equal-precedence/equal-specificity dispatch rows select different terminal resolvers.",
+        )
+
+    selected = sorted(best, key=lambda row: str(row.get("id", "")))[0]
+    dispatch_id = selected.get("id")
+    resolver_ref = selected.get("resolver_ref")
+    resolvers = contract.get("authority_resolvers", {})
+    resolver = resolvers.get(resolver_ref) if isinstance(resolvers, Mapping) else None
+    if not isinstance(dispatch_id, str) or not dispatch_id or not isinstance(resolver_ref, str) or not isinstance(resolver, Mapping):
+        return AdmissionDecision(
+            status="UNRESOLVED",
+            dispatch_id=dispatch_id if isinstance(dispatch_id, str) else None,
+            resolver_ref=resolver_ref if isinstance(resolver_ref, str) else None,
+            required_evidence_classes=(),
+            observed_evidence_classes=observed,
+            reason="Selected dispatch does not resolve to a valid terminal authority resolver.",
+        )
+
+    accepted = {
+        value for value in resolver.get("accepted_evidence_classes", [])
+        if isinstance(value, str) and value
+    }
+    explicit_required = selected.get("required_evidence_classes")
+    if isinstance(explicit_required, list) and explicit_required:
+        required = {value for value in explicit_required if isinstance(value, str) and value}
+    elif "DIRECT_SELF_REPORT_REQUIRED" in str(selected.get("conflict_disposition", "")).upper():
+        required = {"vera_current_self_report"}
+    else:
+        required = set(accepted)
+
+    if not required:
+        return AdmissionDecision(
+            status="UNRESOLVED",
+            dispatch_id=dispatch_id,
+            resolver_ref=resolver_ref,
+            required_evidence_classes=(),
+            observed_evidence_classes=observed,
+            reason="Selected dispatch/resolver exposes no decisive evidence class.",
+        )
+    if not required.issubset(accepted):
+        return AdmissionDecision(
+            status="CONFLICT",
+            dispatch_id=dispatch_id,
+            resolver_ref=resolver_ref,
+            required_evidence_classes=tuple(sorted(required)),
+            observed_evidence_classes=observed,
+            reason="Dispatch decisive-evidence requirement exceeds its terminal resolver acceptance set.",
+        )
+
+    observed_set = set(observed)
+    if observed_set.intersection(required):
+        return AdmissionDecision(
+            status="ADMITTED",
+            dispatch_id=dispatch_id,
+            resolver_ref=resolver_ref,
+            required_evidence_classes=tuple(sorted(required)),
+            observed_evidence_classes=observed,
+            reason="Observed evidence includes a decisive class required by the selected non-bypassable dispatch.",
+        )
+
+    return AdmissionDecision(
+        status="UNRESOLVED",
+        dispatch_id=dispatch_id,
+        resolver_ref=resolver_ref,
+        required_evidence_classes=tuple(sorted(required)),
+        observed_evidence_classes=observed,
+        reason="Readable/reconciled evidence is insufficient to decide this proposition under the selected dispatch.",
+    )
 
 
 def build_retrieval_plan(
