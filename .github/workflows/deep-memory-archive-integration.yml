@@ -1,0 +1,30 @@
+name: Deep Memory archive integration
+
+on:
+  pull_request:
+    paths:
+      - "architecture/integration/VERA_DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.json"
+      - "docs/DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.md"
+      - "scripts/validate_deep_memory_archive_integration.py"
+      - ".github/workflows/deep-memory-archive-integration.yml"
+  push:
+    branches: [main]
+    paths:
+      - "architecture/integration/VERA_DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.json"
+      - "docs/DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.md"
+      - "scripts/validate_deep_memory_archive_integration.py"
+      - ".github/workflows/deep-memory-archive-integration.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m py_compile scripts/validate_deep_memory_archive_integration.py
+      - run: python scripts/validate_deep_memory_archive_integration.py
