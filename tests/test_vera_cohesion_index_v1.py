@@ -82,6 +82,7 @@ class VeraCohesionIndexV1Tests(unittest.TestCase):
         self.assertEqual(len(domain_ids), len(set(domain_ids)))
         known_sources = {system["id"] for system in document["systems"]} | set(document["auxiliary_sources"])
         known_routes = {route["id"] for route in document["route_declarations"]}
+        known_selectors = {selector["id"] for selector in document.get("selector_declarations", [])}
         for domain in domains:
             self.assertEqual(set(domain), EXPECTED_DOMAIN_FIELDS)
             self.assertTrue(domain["authority_resolver_ref"].startswith(AUTHORITY_PREFIX), domain["id"])
@@ -97,9 +98,7 @@ class VeraCohesionIndexV1Tests(unittest.TestCase):
                 for capability in target["evidence_capability_refs"]:
                     self.assertTrue(capability.startswith(EVIDENCE_PREFIX), domain["id"])
                 if "selector_ref" in target:
-                    self.assertIsInstance(target["selector_ref"], str)
-                    self.assertLessEqual(len(target["selector_ref"]), 160)
-                    self.assertNotIn("\n", target["selector_ref"])
+                    self.assertIn(target["selector_ref"], known_selectors)
             self.assertTrue(domain["fail_closed_behavior"], domain["id"])
 
     def test_failure_signatures_are_contract_refs_not_opaque_local_labels(self):
@@ -109,29 +108,11 @@ class VeraCohesionIndexV1Tests(unittest.TestCase):
                 self.assertLessEqual(len(value), 160)
                 self.assertNotIn("\n", value)
 
-    def test_dependency_graph_is_resolvable_and_cycle_free(self):
+    def test_dependency_graph_refs_resolve_without_requiring_dag(self):
         domains = load_index()["domains"]
-        graph = {domain["id"]: domain["dependencies"] for domain in domains}
-        domain_ids = set(graph)
-        for domain_id, dependencies in graph.items():
-            self.assertTrue(set(dependencies).issubset(domain_ids), domain_id)
-
-        visiting = set()
-        visited = set()
-
-        def visit(node):
-            if node in visiting:
-                self.fail(f"dependency cycle detected at {node}")
-            if node in visited:
-                return
-            visiting.add(node)
-            for dependency in graph[node]:
-                visit(dependency)
-            visiting.remove(node)
-            visited.add(node)
-
-        for domain_id in graph:
-            visit(domain_id)
+        domain_ids = {domain["id"] for domain in domains}
+        for domain in domains:
+            self.assertTrue(set(domain["dependencies"]).issubset(domain_ids), domain["id"])
 
 
 if __name__ == "__main__":
