@@ -9,14 +9,19 @@ on:
       - "architecture/VERA_RUNTIME_EVIDENCE_CONTRACT_V1.json"
       - "architecture/VERA_COHESION_INDEX_V1.json"
       - "architecture/VERA_RUNTIME_CONTRACT_V1.json"
+      - "architecture/VERA_PROVIDER_FABRIC_V1.json"
       - "architecture/VERA_COHESION_PAIR_RECEIPT_V1.json"
       - "docs/VERA_RUNTIME_COHESION*.md"
       - "docs/VERA_COHESION*.md"
+      - "runtime_cohesion/**"
       - "scripts/validate_vera_runtime_cohesion_v1.py"
+      - "scripts/validate_runtime_cohesion_provider_fabric_v1.py"
       - "tests/test_vera_runtime_cohesion_v1.py"
       - "tests/test_vera_runtime_evidence_contract_v1.py"
       - "tests/test_vera_cohesion_index_v1.py"
       - "tests/test_vera_runtime_contract_v1.py"
+      - "tests/test_runtime_cohesion_*.py"
+      - "tests/fixtures/runtime_cohesion/**"
       - ".github/workflows/runtime-cohesion.yml"
   workflow_dispatch:
 
@@ -33,7 +38,36 @@ jobs:
           python-version: "3.12"
       - name: Validate cohesion source contracts
         run: python scripts/validate_vera_runtime_cohesion_v1.py
+      - name: Validate provider cohesion fabric
+        run: python scripts/validate_runtime_cohesion_provider_fabric_v1.py
       - name: Run cohesion regression tests
-        run: python -m unittest tests.test_vera_runtime_cohesion_v1 tests.test_vera_runtime_evidence_contract_v1 tests.test_vera_cohesion_index_v1 tests.test_vera_runtime_contract_v1 -v
-      - name: Compile cohesion validator and tests
-        run: python -m py_compile scripts/validate_vera_runtime_cohesion_v1.py tests/test_vera_runtime_cohesion_v1.py tests/test_vera_runtime_evidence_contract_v1.py tests/test_vera_cohesion_index_v1.py tests/test_vera_runtime_contract_v1.py
+        run: >-
+          python -m unittest
+          tests.test_vera_runtime_cohesion_v1
+          tests.test_vera_runtime_evidence_contract_v1
+          tests.test_vera_cohesion_index_v1
+          tests.test_vera_runtime_contract_v1
+          tests.test_runtime_cohesion_evidence
+          tests.test_runtime_cohesion_reconciliation
+          tests.test_runtime_cohesion_runtime
+          tests.test_runtime_cohesion_hostile
+          tests.test_runtime_cohesion_fabric_crossbind
+          -v
+      - name: Compile cohesion validators, runtime, and tests
+        run: >-
+          python -m py_compile
+          scripts/validate_vera_runtime_cohesion_v1.py
+          scripts/validate_runtime_cohesion_provider_fabric_v1.py
+          runtime_cohesion/__init__.py
+          runtime_cohesion/evidence.py
+          runtime_cohesion/reconcile.py
+          runtime_cohesion/runtime.py
+          tests/test_vera_runtime_cohesion_v1.py
+          tests/test_vera_runtime_evidence_contract_v1.py
+          tests/test_vera_cohesion_index_v1.py
+          tests/test_vera_runtime_contract_v1.py
+          tests/test_runtime_cohesion_evidence.py
+          tests/test_runtime_cohesion_reconciliation.py
+          tests/test_runtime_cohesion_runtime.py
+          tests/test_runtime_cohesion_hostile.py
+          tests/test_runtime_cohesion_fabric_crossbind.py
