@@ -58,7 +58,7 @@
   "comparison_modes": {
     "EXACT_REVISION": "Source and target expose an exact revision/generation identity that must agree for the compared projection subject.",
     "EXACT_RECEIPT": "A receipt binds exact provider object identity/readback; receipt validity proves only the provider effect/object named by the receipt.",
-    "SEMANTIC_COMPANION": "Target is a human-readable or derived companion rather than a byte-identical replica; source movement can make the companion stale, but companion recency never creates source authority."
+    "SEMANTIC_COMPANION": "Target is a human-readable or derived companion rather than a byte-identical replica; source movement can make the companion stale only inside its registered projection scope, and companion recency never creates source authority."
   },
   "projections": [
     {
@@ -67,6 +67,8 @@
       "target_provider": "supabase",
       "source_subject": "github:thebrazenbeard/semanticatlas",
       "target_subject": "supabase:klmbpaigzeguvnpccqzz/semantic_atlas.runtime_snapshots",
+      "source_ref_pattern": "refs/heads/research/**",
+      "source_path_pattern": "ledger/**|evidence/**|state/**|runtime-manifest/**",
       "comparison_mode": "EXACT_REVISION",
       "source_revision_field": "git_commit_sha",
       "target_revision_field": "git_commit_sha",
@@ -78,10 +80,13 @@
       "target_provider": "supabase",
       "source_subject": "github:thebrazenbeard/chat-communication-bus",
       "target_subject": "supabase:klmbpaigzeguvnpccqzz/radar.messages",
+      "source_ref_pattern": "refs/heads/bus/**",
+      "source_path_pattern": "messages/**",
+      "projection_trigger_ref": "github:thebrazenbeard/chat-communication-bus/.github/workflows/radar-bus-projection.yml",
       "comparison_mode": "EXACT_REVISION",
       "source_revision_field": "source_commit",
       "target_revision_field": "source_commit",
-      "claim_ceiling": "Operational message projection/delivery evidence only; projection does not establish identity, memory, native routing qualification, or task acceptance."
+      "claim_ceiling": "Operational message projection/delivery evidence only; only registered bus/** + messages/** source events are projection candidates, and projection does not establish identity, memory, native routing qualification, or task acceptance."
     },
     {
       "id": "projection:r9b0-drive-supabase-provider-receipt",
@@ -89,6 +94,8 @@
       "target_provider": "supabase",
       "source_subject": "drive:r9b0-memory-epoch-object",
       "target_subject": "supabase:klmbpaigzeguvnpccqzz/vera_memory_epoch_provider_receipts_v1",
+      "source_ref_pattern": "logical-memory:R9B0",
+      "source_path_pattern": "memory-epoch-object",
       "comparison_mode": "EXACT_RECEIPT",
       "source_revision_field": "provider_revision_or_version",
       "target_revision_field": "provider_revision_or_version",
@@ -100,13 +107,16 @@
       "target_provider": "google_drive",
       "source_subject": "github:thebrazenbeard/vera/architecture/VERA_COHESION_INDEX_V1.json",
       "target_subject": "drive:VERA Runtime Cohesion - System Inventory V1",
+      "source_ref_pattern": "refs/heads/work/vera-runtime-cohesion-v1-20260908",
+      "source_path_pattern": "architecture/VERA_COHESION_INDEX_V1.json|architecture/VERA_RUNTIME_CONTRACT_V1.json",
       "comparison_mode": "SEMANTIC_COMPANION",
       "source_revision_field": "git_commit_sha",
       "target_revision_field": "source_revision_ref",
-      "claim_ceiling": "Readable companion freshness only; Drive companion content cannot override the normative GitHub source pair."
+      "claim_ceiling": "Readable companion freshness only; if the companion lacks a bound source revision, automated exact freshness is UNRESOLVED rather than guessed, and Drive companion content cannot override the normative GitHub source pair."
     }
   ],
   "global_rules": {
+    "projection_scope": "A source change is eligible for stale-projection evaluation only when it matches the registered projection source provider, subject, ref scope, and path scope. Out-of-scope source activity is NOT_APPLICABLE, not stale evidence.",
     "newest_timestamp": "Observation time may describe chronology or lag but never resolves revision/digest conflict and never grants current authority.",
     "returned_item_typing": "Each returned item must be independently typed from its own provenance/content/receipt/currentness evidence; provider capability is not item type.",
     "missing_observation": "Missing, unavailable, or ambiguous provider evidence remains bounded as such; do not infer a successful projection or current state.",
