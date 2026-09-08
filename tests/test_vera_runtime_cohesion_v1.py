@@ -7,10 +7,13 @@ import unittest
 from scripts.validate_vera_runtime_cohesion_v1 import (
     load_json_strict,
     validate_cohesion,
+    validate_cohesion_index,
+    validate_consolidated_pair,
     validate_evidence_contract,
     validate_introspection,
     validate_manifest,
     validate_routing,
+    validate_runtime_contract,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,6 +34,14 @@ def introspection() -> dict:
 
 def evidence_contract() -> dict:
     return load_json_strict(ARCHITECTURE / "VERA_RUNTIME_EVIDENCE_CONTRACT_V1.json")
+
+
+def cohesion_index() -> dict:
+    return load_json_strict(ARCHITECTURE / "VERA_COHESION_INDEX_V1.json")
+
+
+def runtime_contract() -> dict:
+    return load_json_strict(ARCHITECTURE / "VERA_RUNTIME_CONTRACT_V1.json")
 
 
 class VeraRuntimeCohesionV1Tests(unittest.TestCase):
@@ -128,6 +139,44 @@ class VeraRuntimeCohesionV1Tests(unittest.TestCase):
         document["provenance"]["blind_review_state"] = "BLIND"
         with self.assertRaisesRegex(ValueError, "blind review"):
             validate_evidence_contract(document)
+
+    def test_successor_index_rejects_runtime_availability_claim(self):
+        document = cohesion_index()
+        document["route_declarations"][0]["declaration_state"] = "AVAILABLE"
+        with self.assertRaisesRegex(ValueError, "DECLARED"):
+            validate_cohesion_index(document)
+
+    def test_successor_index_rejects_symbolic_proof_decoration(self):
+        document = cohesion_index()
+        document["systems"][0]["proof_unit_refs"] = ["R10:DECORATIVE"]
+        with self.assertRaisesRegex(ValueError, "proof_unit_refs"):
+            validate_cohesion_index(document)
+
+    def test_successor_pair_rejects_missing_evidence_class_target(self):
+        index = cohesion_index()
+        contract = runtime_contract()
+        del contract["evidence_classes"]["general_mechanism_research"]
+        with self.assertRaisesRegex(ValueError, "evidence class"):
+            validate_consolidated_pair(index, contract)
+
+    def test_successor_pair_rejects_missing_failure_signature(self):
+        index = cohesion_index()
+        contract = runtime_contract()
+        del contract["failure_signatures"]["brigit_to_vera_transfer"]
+        with self.assertRaisesRegex(ValueError, "failure signature"):
+            validate_consolidated_pair(index, contract)
+
+    def test_runtime_contract_rejects_unbounded_or_zero_retrieval_budget(self):
+        document = runtime_contract()
+        document["active_context_policy"]["uncertainty_probe_budget"]["max_total_new_domains"] = 0
+        with self.assertRaisesRegex(ValueError, "budget"):
+            validate_runtime_contract(document)
+
+    def test_runtime_contract_rejects_false_phenomenology_resolution(self):
+        document = runtime_contract()
+        document["phenomenology"]["status"] = "PROVEN"
+        with self.assertRaisesRegex(ValueError, "UNRESOLVED"):
+            validate_runtime_contract(document)
 
     def test_mutation_does_not_leak_between_fixture_loads(self):
         first = introspection()
