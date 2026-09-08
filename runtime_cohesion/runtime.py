@@ -12,6 +12,7 @@ BUDGET_EXHAUSTED = "UNRESOLVED_RETRIEVAL_BUDGET_EXHAUSTED"
 @dataclass(frozen=True)
 class RetrievalPlan:
     domain_id: str
+    candidate_targets: tuple[dict[str, Any], ...]
     targets: tuple[dict[str, Any], ...]
     visited_domains: tuple[str, ...]
     unresolved: tuple[str, ...]
@@ -60,11 +61,12 @@ def build_retrieval_plan(
     observed_route_states: Mapping[str, str],
     privacy_allowlist: set[str] | frozenset[str],
 ) -> RetrievalPlan:
-    """Build the smallest bounded retrieval plan from already-observed route state.
+    """Build the smallest bounded retrieval plan from supplied route observations.
 
-    The function performs no provider I/O. A route enters the executable target
-    set only after the caller supplies a fresh observed state of
-    CURRENTLY_OBSERVED_REACHABLE or RESULT for that exact route.
+    The function performs no provider I/O. `candidate_targets` are the targets
+    that survive domain/dependency/privacy/budget/selector checks and are safe to
+    probe. `targets` are the subset whose exact routes have fresh supplied state
+    CURRENTLY_OBSERVED_REACHABLE or RESULT.
     """
 
     domains = _rows_by_id(index.get("domains", []), "domain")
@@ -81,6 +83,8 @@ def build_retrieval_plan(
 
     visited: list[str] = []
     visited_set: set[str] = set()
+    candidate_targets: list[dict[str, Any]] = []
+    candidate_keys: set[tuple[Any, ...]] = set()
     targets: list[dict[str, Any]] = []
     target_keys: set[tuple[Any, ...]] = set()
     unresolved: list[str] = []
@@ -120,27 +124,29 @@ def build_retrieval_plan(
             if not isinstance(route_ref, str) or not route_ref:
                 unresolved.append(f"MISSING_ROUTE_REF:{current_id}")
                 continue
+            key = (target.get("source_ref"), route_ref, target.get("selector_ref"))
+            candidate = {
+                "domain_id": current_id,
+                "source_ref": target.get("source_ref"),
+                "route_ref": route_ref,
+                "selector_ref": target.get("selector_ref"),
+                "evidence_capability_refs": tuple(target.get("evidence_capability_refs", [])),
+                "privacy_class": privacy_class,
+            }
+            if key not in candidate_keys:
+                candidate_keys.add(key)
+                candidate_targets.append(candidate)
+
             route_state = observed_route_states.get(route_ref)
             if route_state not in RETRIEVABLE_ROUTE_STATES:
                 unresolved.append(
                     f"ROUTE_NOT_CURRENTLY_OBSERVED_REACHABLE:{current_id}:{route_ref}:{route_state or 'UNOBSERVED'}"
                 )
                 continue
-            key = (target.get("source_ref"), route_ref, target.get("selector_ref"))
             if key in target_keys:
                 continue
             target_keys.add(key)
-            targets.append(
-                {
-                    "domain_id": current_id,
-                    "source_ref": target.get("source_ref"),
-                    "route_ref": route_ref,
-                    "selector_ref": target.get("selector_ref"),
-                    "evidence_capability_refs": tuple(target.get("evidence_capability_refs", [])),
-                    "observed_route_state": route_state,
-                    "privacy_class": privacy_class,
-                }
-            )
+            targets.append({**candidate, "observed_route_state": route_state})
 
         for dependency in current.get("dependencies", []):
             if dependency in visited_set:
@@ -160,6 +166,7 @@ def build_retrieval_plan(
 
     return RetrievalPlan(
         domain_id=domain_id,
+        candidate_targets=tuple(candidate_targets),
         targets=tuple(targets),
         visited_domains=tuple(visited),
         unresolved=tuple(unresolved),
