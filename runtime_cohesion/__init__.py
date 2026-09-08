@@ -8,7 +8,12 @@ Provider I/O occurs only when a runtime explicitly invokes registered adapters.
 from .adapters import AdapterProbeResult, AdapterRegistry, AdapterRequest, ProviderAdapter
 from .audit import ProjectionAuditResult, audit_registered_projections
 from .evidence import ProviderEvidenceEnvelope, load_provider_fabric, validate_envelope
-from .executor import DomainExecutionResult, execute_domain_cycle
+from .executor import (
+    DomainExecutionResult,
+    ProjectionExecutionResult,
+    execute_domain_cycle,
+    execute_projection_cycle,
+)
 from .reconcile import ReconciliationResult, reconcile_exact
 from .runtime import RetrievalPlan, build_operational_checkpoint, build_retrieval_plan
 
@@ -23,7 +28,9 @@ __all__ = [
     "load_provider_fabric",
     "validate_envelope",
     "DomainExecutionResult",
+    "ProjectionExecutionResult",
     "execute_domain_cycle",
+    "execute_projection_cycle",
     "ReconciliationResult",
     "reconcile_exact",
     "RetrievalPlan",
