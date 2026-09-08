@@ -152,6 +152,16 @@ class VeraRuntimeCohesionV1Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "proof_unit_refs"):
             validate_cohesion_index(document)
 
+    def test_successor_index_allows_resolvable_dependency_cycle(self):
+        document = cohesion_index()
+        first = next(domain for domain in document["domains"] if domain["id"] == "SELF_APPRAISAL_AND_EMPATHY")
+        second = next(domain for domain in document["domains"] if domain["id"] == "SEMANTICS_PROVENANCE_CURRENTNESS")
+        if second["id"] not in first["dependencies"]:
+            first["dependencies"].append(second["id"])
+        if first["id"] not in second["dependencies"]:
+            second["dependencies"].append(first["id"])
+        validate_cohesion_index(document)
+
     def test_successor_pair_rejects_missing_evidence_class_target(self):
         index = cohesion_index()
         contract = runtime_contract()
@@ -170,6 +180,12 @@ class VeraRuntimeCohesionV1Tests(unittest.TestCase):
         document = runtime_contract()
         document["active_context_policy"]["uncertainty_probe_budget"]["max_total_new_domains"] = 0
         with self.assertRaisesRegex(ValueError, "budget"):
+            validate_runtime_contract(document)
+
+    def test_runtime_contract_rejects_missing_machine_failure_predicate(self):
+        document = runtime_contract()
+        document["failure_signatures"]["history_as_present_state"]["predicate_id"] = ""
+        with self.assertRaisesRegex(ValueError, "predicate_id"):
             validate_runtime_contract(document)
 
     def test_runtime_contract_rejects_false_phenomenology_resolution(self):
