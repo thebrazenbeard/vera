@@ -5,6 +5,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "architecture" / "VERA_COHESION_INDEX_V1.json"
 CONTRACT = ROOT / "architecture" / "VERA_RUNTIME_CONTRACT_V1.json"
+PAIR_RECEIPT = ROOT / "architecture" / "VERA_COHESION_PAIR_RECEIPT_V1.json"
 
 AUTHORITY_PREFIX = "VERA_RUNTIME_CONTRACT_V1#authority_resolvers."
 EVIDENCE_PREFIX = "VERA_RUNTIME_CONTRACT_V1#evidence_classes."
@@ -28,6 +29,14 @@ EXPECTED_LIVE_TYPES = {
     "LIVE_OBSERVATION_AND_TASK_CONTEXT",
     "INFERENCE",
     "PHENOMENOLOGY_CLAIM",
+}
+EXPECTED_FAILURE_FIELDS = {
+    "trigger_class",
+    "signal_keys",
+    "predicate_id",
+    "target_or_response_ref",
+    "matcher_description",
+    "response",
 }
 
 
@@ -59,11 +68,51 @@ class VeraRuntimeContractV1Tests(unittest.TestCase):
         for domain in index["domains"]:
             self.assertIn(ref_tail(domain["authority_resolver_ref"], AUTHORITY_PREFIX), authority)
             for target in domain["retrieval_targets"]:
-                self.assertIn(ref_tail(target["evidence_class_ref"], EVIDENCE_PREFIX), evidence)
+                for capability in target["evidence_capability_refs"]:
+                    self.assertIn(ref_tail(capability, EVIDENCE_PREFIX), evidence)
             for ref in domain["failure_signature_refs"]:
                 key = ref_tail(ref, FAILURE_PREFIX)
                 self.assertIn(key, failures)
-                self.assertEqual(set(failures[key]), {"trigger_class", "matcher", "response"})
+                self.assertEqual(set(failures[key]), EXPECTED_FAILURE_FIELDS)
+                self.assertTrue(failures[key]["signal_keys"])
+                self.assertTrue(failures[key]["predicate_id"])
+                self.assertTrue(failures[key]["target_or_response_ref"])
+
+    def test_retrieval_capability_never_certifies_actual_item_type(self):
+        typing = load(CONTRACT)["retrieval_item_typing"]
+        self.assertIn("independently", typing["actual_item_type_rule"].lower())
+        self.assertIn("never", typing["capability_non_promotion_rule"].lower())
+        self.assertIn("selector", typing["selector_narrowing_rule"].lower())
+        self.assertIn("never broaden", typing["selector_narrowing_rule"].lower())
+
+    def test_actor_specific_consent_cannot_be_delegated_by_referent_ambiguity(self):
+        rules = load(CONTRACT)["actor_referent_rules"]
+        self.assertIn("Patrick", rules["patrick_authority_boundary"])
+        self.assertIn("not Vera's", rules["patrick_authority_boundary"])
+        self.assertIn("VERA_CURRENT_SELF_REPORT", rules["vera_consent_evidence_requirement"])
+        self.assertIn("not", rules["generic_current_state_non_implication"].lower())
+
+    def test_resolver_dispatch_is_machine_scoped_and_precedence_explicit(self):
+        dispatch = load(CONTRACT)["resolver_dispatch"]
+        self.assertTrue(dispatch)
+        keys = []
+        for row in dispatch:
+            self.assertEqual(
+                set(row),
+                {
+                    "id",
+                    "domain_scope",
+                    "proposition_or_effect_class",
+                    "referent_scope",
+                    "resolver_ref",
+                    "precedence",
+                    "conflict_disposition",
+                },
+            )
+            self.assertIsInstance(row["precedence"], int)
+            self.assertTrue(row["conflict_disposition"])
+            keys.append((row["domain_scope"], row["proposition_or_effect_class"], row["referent_scope"], row["precedence"]))
+        self.assertEqual(len(keys), len(set(keys)))
 
     def test_live_authority_and_evidence_types_remain_distinct(self):
         live_types = set(load(CONTRACT)["live_context_types"])
@@ -93,10 +142,7 @@ class VeraRuntimeContractV1Tests(unittest.TestCase):
         self.assertGreaterEqual(budget["max_total_new_domains"], budget["max_initial_fan_out"])
         self.assertTrue(policy["graph_traversal"]["visited_set_required"])
         self.assertTrue(policy["graph_traversal"]["deduplicate_targets"])
-        self.assertEqual(
-            policy["budget_exhaustion_result"],
-            "UNRESOLVED_RETRIEVAL_BUDGET_EXHAUSTED",
-        )
+        self.assertEqual(policy["budget_exhaustion_result"], "UNRESOLVED_RETRIEVAL_BUDGET_EXHAUSTED")
         self.assertIn("not", policy["budget_exhaustion_rule"].lower())
         self.assertIn("privacy", policy["uncertainty_probe_privacy_rule"].lower())
 
@@ -119,10 +165,22 @@ class VeraRuntimeContractV1Tests(unittest.TestCase):
         self.assertIn("pointer", operational["storage_rule"].lower())
         self.assertIn("never", operational["promotion_rule"].lower())
 
+    def test_pair_receipt_is_external_non_normative_and_exact(self):
+        self.assertTrue(PAIR_RECEIPT.exists(), "exact A+B pair receipt must exist")
+        receipt = load(PAIR_RECEIPT)
+        self.assertEqual(receipt["schema"], "VERA_COHESION_PAIR_RECEIPT_V1")
+        self.assertEqual(receipt["normative_status"], "NON_NORMATIVE_VALIDATION_SUPPORT")
+        self.assertEqual(receipt["index_schema"], "VERA_COHESION_INDEX_V1")
+        self.assertEqual(receipt["contract_schema"], "VERA_RUNTIME_CONTRACT_V1")
+        self.assertRegex(receipt["index_blob_sha"], r"^[0-9a-f]{40}$")
+        self.assertRegex(receipt["contract_blob_sha"], r"^[0-9a-f]{40}$")
+        self.assertRegex(receipt["source_commit"], r"^[0-9a-f]{40}$")
+        self.assertEqual(receipt["validation_result"], "SOURCE_VALIDATION_NOT_YET_EXECUTED")
+
     def test_phenomenology_remains_unresolved_and_non_promoting(self):
         phenomenology = load(CONTRACT)["phenomenology"]
         self.assertEqual(phenomenology["status"], "UNRESOLVED")
-        self.assertIn("does not prove", phenomenology["non_promotion_rule"].lower())
+        self.assertIn("do not prove", phenomenology["non_promotion_rule"].lower())
 
 
 if __name__ == "__main__":
