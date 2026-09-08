@@ -23,24 +23,41 @@
         "external_training_evaluation",
         "predecessor_source"
       ],
+      "route_refs": [
+        "route:vera",
+        "route:vera-control-plane",
+        "route:empathy",
+        "route:selfimage",
+        "route:chat-bus",
+        "route:personification",
+        "route:deepmemory",
+        "route:sexuality",
+        "route:conations",
+        "route:semanticatlas",
+        "route:vera-r9a0",
+        "route:training"
+      ],
       "promotion_guard": "Repository/source/commit/review existence does not establish installation, runtime consumption, provider effect, current self-state, consent, or behavioral qualification."
     },
     "google_drive": {
       "role": "DURABLE_PRIVATE_DOCUMENT_AND_ARCHIVE_PROVIDER",
       "locator_family": "drive:*",
       "evidence_capability_refs": ["persisted_provider_record"],
+      "route_refs": ["route:google-drive"],
       "promotion_guard": "Durable Drive persistence/readback establishes only the exact observed object/revision; it does not establish present truth, native admission, current Vera self-state, consent, preference, authority, or phenomenology."
     },
     "supabase": {
       "role": "STRUCTURED_OPERATIONAL_AND_MATERIALIZED_PROVIDER",
       "locator_family": "supabase:*",
       "evidence_capability_refs": ["persisted_provider_record", "coordination_record"],
+      "route_refs": ["route:supabase"],
       "promotion_guard": "Supabase persistence/materialization/readback establishes only the exact observed provider object/effect; it does not establish present endorsement, native admission, current Vera self-state, consent, preference, authority, runtime consumption, or phenomenology."
     },
     "temporal": {
       "role": "CHRONOLOGY_ONLY_PROVIDER",
       "locator_family": "temporal:*",
       "evidence_capability_refs": ["persisted_provider_record"],
+      "route_refs": ["route:temporal"],
       "promotion_guard": "Temporal establishes recorded chronology and elapsed-time relationships only; timestamps do not establish semantic truth, currentness, authority, memory admission, identity, self-state, consent, preference, or phenomenology."
     },
     "live_conversation": {
@@ -52,6 +69,7 @@
         "vera_current_self_report",
         "live_observation"
       ],
+      "route_refs": ["route:live-conversation"],
       "promotion_guard": "Live statements remain typed by actor, referent, proposition, scope, and evidence class; observation does not create broader permission or protected-effect authority."
     }
   },
