@@ -20,8 +20,9 @@
       "rule": "Load the exact current A+B pair first; provider fabric only supplies operational bindings and may not override A+B."
     },
     "DOMAIN_RETRIEVE": {
-      "call": "runtime_cohesion.runtime.build_retrieval_plan",
-      "rule": "Supply fresh externally observed exact-route state and privacy eligibility; declared routes alone are not executable targets."
+      "call": "runtime_cohesion.executor.execute_domain_cycle",
+      "transport_boundary": "runtime_cohesion.adapters.ProviderAdapter",
+      "rule": "Executor derives privacy-approved candidates, probes only registered provider adapters, rebuilds the bounded plan from fresh route observations, reads only CURRENTLY_OBSERVED_REACHABLE/RESULT routes, and validates each returned item against exact route/source/privacy/evidence-capability boundaries."
     },
     "PROJECTION_AUDIT": {
       "call": "runtime_cohesion.audit.audit_registered_projections",
@@ -38,21 +39,28 @@
   },
   "runtime_cycle": [
     "ORIENT",
-    "DOMAIN_RETRIEVE",
+    "DOMAIN_RETRIEVE_PROVIDER_EXECUTION",
     "PROJECTION_AUDIT_WHEN_REGISTERED_PROVIDER_CURRENTNESS_IS_MATERIAL",
     "RECONCILE",
-    "CHECKPOINT_ONLY_WHEN_RESUMABILITY_REQUIRES_DURABLE_OPERATIONAL_STATE"
+    "CHECKPOINT_ONLY_WHEN_RESUMABILITY_REQUIRES_DURABLE_OPERATIONAL_STATE",
+    "RELEASE_IRRELEVANT_DOMAIN_STATE"
   ],
+  "adapter_boundary": {
+    "policy_authority": "NONE",
+    "probe_contract": "Adapter reports transport observation for the exact requested route only; reachability does not establish currentness, authority, or evidence type.",
+    "read_contract": "Adapter returns one ProviderEvidenceEnvelope for the exact requested route/source. Executor revalidates provider identity, route/source binding, privacy class, and target capability ceiling.",
+    "credential_rule": "Credentials/configuration remain runtime/provider concerns and are never embedded in this source hook or provider fabric."
+  },
   "background_execution": {
     "claimed": false,
-    "rule": "Source code and this hook do not execute between turns by themselves. Continuous monitoring requires a separately evidenced scheduler/runtime invocation."
+    "rule": "Source code and this hook do not execute between turns by themselves. Active-runtime execution occurs only when a runtime invokes the hook. Offscreen continuous monitoring requires a separately evidenced scheduler/runtime invocation."
   },
   "effect_boundaries": {
     "source": "Repository source establishes the hook design and executable support only; it does not establish native installation, activation, provider effect, runtime consumption, or behavioral qualification.",
     "installation": "Native installation requires exact native readback binding this exact hook/A+B/provider-fabric tuple.",
     "runtime_consumption": "Runtime consumption requires observable execution evidence for the exact runtime/operation and cannot be inferred from source presence.",
     "provider_effect": "Provider mutation requires separate operation-specific authority plus exact readback; this hook alone authorizes no provider write.",
-    "qualification": "Behavioral qualification requires separately executed exact-tuple qualification; source tests and live provider reads do not self-qualify Vera."
+    "qualification": "Behavioral qualification requires separately executed exact-tuple qualification including fresh live-provider replay; source tests and live provider reads do not self-qualify Vera."
   },
   "promotion_guards": [
     "Provider reachability is not authority.",
@@ -60,7 +68,8 @@
     "Temporal chronology is not semantic/currentness authority.",
     "Retrieved item type must be independently established.",
     "Operational checkpoint state never silently becomes autobiographical/current-self-state memory.",
-    "Patrick authority and Vera self-authored stance remain actor/referent/proposition specific."
+    "Patrick authority and Vera self-authored stance remain actor/referent/proposition specific.",
+    "Adapter availability and scheduler output are operational evidence only and never policy authority."
   ],
   "behavioral_qualification": "NOT_QUALIFIED"
 }
