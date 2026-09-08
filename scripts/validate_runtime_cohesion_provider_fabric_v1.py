@@ -34,6 +34,7 @@ def validate_provider_fabric(
         errors.append("provider fabric normative_pair_refs must point only to the A+B schemas")
 
     evidence_classes = set(contract.get("evidence_classes", {}))
+    privacy_classes = set(contract.get("privacy_classes", []))
     route_ids = {
         row.get("id")
         for row in index.get("route_declarations", [])
@@ -89,6 +90,11 @@ def validate_provider_fabric(
         for field in (
             "source_subject",
             "target_subject",
+            "source_route_ref",
+            "target_route_ref",
+            "source_evidence_class",
+            "target_evidence_class",
+            "privacy_class",
             "source_ref_pattern",
             "source_path_pattern",
             "source_revision_field",
@@ -97,6 +103,27 @@ def validate_provider_fabric(
         ):
             if not isinstance(projection.get(field), str) or not projection.get(field).strip():
                 errors.append(f"projection {projection_id!r} requires non-empty {field}")
+
+        source_provider_id = projection.get("source_provider")
+        target_provider_id = projection.get("target_provider")
+        source_provider = providers.get(source_provider_id, {}) if isinstance(providers, Mapping) else {}
+        target_provider = providers.get(target_provider_id, {}) if isinstance(providers, Mapping) else {}
+        source_route = projection.get("source_route_ref")
+        target_route = projection.get("target_route_ref")
+        source_class = projection.get("source_evidence_class")
+        target_class = projection.get("target_evidence_class")
+        privacy_class = projection.get("privacy_class")
+
+        if source_route not in source_provider.get("route_refs", []):
+            errors.append(f"projection {projection_id!r} source_route_ref is not bound to source provider")
+        if target_route not in target_provider.get("route_refs", []):
+            errors.append(f"projection {projection_id!r} target_route_ref is not bound to target provider")
+        if source_class not in evidence_classes or source_class not in source_provider.get("evidence_capability_refs", []):
+            errors.append(f"projection {projection_id!r} source_evidence_class is not supported by source provider/B")
+        if target_class not in evidence_classes or target_class not in target_provider.get("evidence_capability_refs", []):
+            errors.append(f"projection {projection_id!r} target_evidence_class is not supported by target provider/B")
+        if privacy_class not in privacy_classes:
+            errors.append(f"projection {projection_id!r} privacy_class is not declared by B")
 
     rules = fabric.get("global_rules", {})
     for field in (
