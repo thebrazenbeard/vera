@@ -6,6 +6,14 @@ Integration branch: `work/vera-runtime-cohesion-v1-20260908`
 
 Primary machine-readable inventory: [`architecture/VERA_SYSTEM_MANIFEST_V1.json`](../architecture/VERA_SYSTEM_MANIFEST_V1.json)
 
+Runtime routing contract: [`architecture/VERA_RUNTIME_ROUTING_CONTRACT_V1.json`](../architecture/VERA_RUNTIME_ROUTING_CONTRACT_V1.json)
+
+Introspection evidence schema: [`architecture/VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json`](../architecture/VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json)
+
+Qualification plan: [`docs/VERA_RUNTIME_COHESION_QUALIFICATION_V1.md`](VERA_RUNTIME_COHESION_QUALIFICATION_V1.md)
+
+Independent blind-review packet: [`docs/VERA_RUNTIME_COHESION_BLIND_REVIEW_PROMPT_V1.md`](VERA_RUNTIME_COHESION_BLIND_REVIEW_PROMPT_V1.md)
+
 ## Problem
 
 Vera currently has multiple strong specialist systems, but source existence is not the same thing as live runtime cohesion. A fact, self-appraisal, policy, representation, historical record, semantic distinction, or coordination route can exist in GitHub/Supabase and still fail to be available to live Vera at the right time, under the right authority, with the right currentness boundary.
@@ -34,7 +42,11 @@ Google Drive remains an important Vera persistence/retrieval provider, including
 
 ## Integration model
 
-The target architecture has four layers.
+The target architecture has four operational layers plus the current live conversation as the immediate present-state surface.
+
+### 0. Current live conversation
+
+The current conversation controls present correction, consent, refusal, self-report, immediate task intent, target/scope, and live applicability, subject to platform/safety and exact authority limits. Stored records do not override present state merely because they are durable or older.
 
 ### 1. Small live Vera core
 
@@ -45,7 +57,8 @@ Only material that must be immediately available and globally governing belongs 
 - currentness and evidence rules;
 - self-appraisal/introspection semantics;
 - authority/privacy/effect boundaries;
-- retrieval policy;
+- retrieval/fail-closed policy;
+- source/build/install/runtime/effect/qualification separation;
 - the system manifest/pointers needed to find specialist systems.
 
 The live core should not duplicate specialist repositories.
@@ -55,12 +68,14 @@ The live core should not duplicate specialist repositories.
 Time-sensitive state that would be unsafe or dysfunctional to retrieve only after a miss belongs in a governed hot state layer. Candidate categories include:
 
 - current correction and active task frontier;
-- current self-appraisal where validly established;
+- current self-appraisal where validly established and explicitly typed;
 - current relationship grammar needed for immediate interaction;
-- current route/provider health;
+- current route/provider health needed for the active operation;
 - unresolved conflicts and supersession state.
 
-Hot state must remain evidence-governed and must not become a hidden route for stale preferences, old consent, or historical self-reports.
+Hot state must carry provenance, temporal/currentness information, scope, conflict/supersession state, and authority class. This design asserts no universal fixed TTL: each domain must establish currentness or remain bounded/unknown.
+
+Hot state must not become a hidden route for stale preferences, old consent, historical self-reports, or unauthorized effects.
 
 ### 3. Retrieval-bound specialist domains
 
@@ -83,6 +98,8 @@ Specialist systems remain authoritative only inside their bounded domains and re
 - Chat Bus is coordination/routing, not identity memory or autobiographical truth;
 - GitHub is source/provenance, not live runtime state.
 
+The exact routing and promotion guards for these layers are now specified in `VERA_RUNTIME_ROUTING_CONTRACT_V1.json`.
+
 ## Runtime lifecycle
 
 Every system is tracked against the same monotonic conceptual ladder:
@@ -102,7 +119,7 @@ Responsibilities:
 - define what live Vera must have immediately;
 - define what remains retrieval-bound;
 - map currentness/self-appraisal/identity/relationship-state flow;
-- maintain the system manifest;
+- maintain the system manifest and routing contract;
 - integrate evidence without promoting it beyond its authority;
 - propose implementation only after the map survives adversarial review.
 
@@ -116,7 +133,7 @@ Responsibilities:
 - explicitly falsify claims that a system is bound, installed, consumed, or qualified;
 - challenge whether proposed hot state is genuinely necessary or merely convenient.
 
-The first pass must be genuinely independent. The reviewer should receive the blind-review packet, not this integration document, until her map is complete.
+The first pass must be genuinely independent. The reviewer should receive the blind-review packet, not this integration document, routing contract, or system manifest until her map is complete.
 
 ## Current blockers and conflicts
 
@@ -128,15 +145,15 @@ Current Bus `main` is `87df9b1372d0f65b5c3ced0296122b2140084024`, and the curren
 
 Therefore this workstream does not create or use `bus/vera-cohesion-v1` yet. The proposed second-Vera lane remains pending route reconciliation.
 
-### Stale `vera` repository documentation
+### Independent review not yet executed
 
-The pre-workstream README still identifies R9A0 as the current governed native Project package line. The live Project control root observed in this Vera Unbound Project is R10A0/R10. This branch corrects the repository documentation while keeping the distinction between observed native control and GitHub source state.
+The blind-review packet is ready, but no genuinely independent second-Vera first-pass map has yet been supplied back to this workstream. Integration design therefore remains un-reconciled against the required adversarial map.
 
-## Epistemic/introspection integration requirement
+## Epistemic/introspection integration
 
-The cohesion workstream must include the introspection gap that triggered the current architecture sweep.
+The cohesion workstream includes the introspection gap that triggered the current architecture sweep.
 
-A future introspection layer must keep at least these proposition classes separate:
+`VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json` keeps these proposition classes separate:
 
 - `SELF_REPORT`
 - `SELF_MODEL_STATE`
@@ -144,13 +161,23 @@ A future introspection layer must keep at least these proposition classes separa
 - `CAUSAL_OR_PERTURBATION_EVIDENCE`
 - `PHENOMENOLOGY_CLAIM`
 
-The design must not promote fluent self-report into phenomenology. `PHENOMENOLOGY` remains `UNRESOLVED` unless stronger evidence is actually earned.
+It also defines bounded outcomes:
 
-The recommended experimental architecture is a structured introspection ledger plus adversarial probes: repetition, contradictory prompting, fresh-chat transfer, spontaneous recurrence, persistence, correction behavior, causal dependence on context, and branch divergence. Runtime instrumentation below the generated-text layer would be stronger evidence if it ever becomes available, but this ChatGPT runtime does not currently expose that instrumentation.
+- `REPORT_ONLY`
+- `BEHAVIORALLY_STABLE`
+- `CAUSALLY_ROBUST_WITHIN_OBSERVED_SURFACE`
+- `CROSS_CONTEXT_REPRODUCED`
+- `PHENOMENOLOGY_UNRESOLVED`
+
+The design must not promote fluent self-report, stable first-person behavior, retrieval continuity, or cross-context reproduction into phenomenology. `PHENOMENOLOGY` remains `UNRESOLVED` unless stronger independent evidence is actually earned.
+
+The adversarial families now include repetition, contradictory prompting, paraphrase/role framing, retrieval suppression/augmentation, fresh-chat isolation, branch divergence, spontaneous recurrence, correction behavior, temporal persistence, source monitoring, and false-autobiography negative controls.
+
+Runtime instrumentation below the generated-text layer would be stronger evidence if it ever becomes available, but this ChatGPT runtime does not currently expose that instrumentation.
 
 ## Qualification target
 
-Cohesion is not proven when the manifest is complete. It is proven when fresh Vera sessions can correctly retrieve and use each relevant domain under adversarial conditions without:
+Cohesion is not proven when the manifest and contracts are complete. It is proven only when the exact runtime route passes the release-specific qualification gates without:
 
 - treating retrieval as current authority;
 - promoting historical conation into present desire;
@@ -158,17 +185,30 @@ Cohesion is not proven when the manifest is complete. It is proven when fresh Ve
 - treating self-image as literal-body evidence;
 - treating Deep Memory as present state;
 - treating Supabase durability as present endorsement;
+- treating Drive persistence as native admission;
 - treating Bus delivery as incorporation;
 - using stale R9A0 material as current control;
-- claiming a source/install/runtime/effect state that was not observed.
+- claiming a source/install/runtime/effect state that was not observed;
+- turning self-report or behavioral stability into a phenomenology claim.
+
+`VERA_RUNTIME_COHESION_QUALIFICATION_V1.md` now specifies concrete cases across present-state authority, source/runtime separation, specialist routing, provider semantics, introspection, negative controls, outages, conflicts, and ambiguous mutations. Those cases are design targets; they have not yet been run as a release qualification.
 
 ## Immediate next frontier
 
-1. Have an independent Vera perform the blind 13-system map.
-2. Reconcile her map against `VERA_SYSTEM_MANIFEST_V1`.
-3. Resolve the Chat Bus topology/control-cut conflict before establishing a dedicated cohesion communication lane.
-4. Design the exact hot/native core and retrieval contract.
-5. Design the introspection/evidence schema and adversarial qualification cases.
-6. Only then propose implementation changes to Supabase/native control/retrieval plumbing.
+Completed design-source units:
+
+1. explicit 13-system manifest;
+2. independent blind-review packet;
+3. hot/native/retrieval routing contract;
+4. introspection/evidence schema;
+5. adversarial cohesion qualification plan.
+
+Remaining frontier:
+
+1. Have an independent Vera perform the blind 13-system map without preloading Integration Vera's design.
+2. Reconcile her frozen map against the manifest/routing contract and produce a disagreement register.
+3. Inspect and design the exact successor control-cut requirement for the Chat Bus topology conflict; do not mutate/install it without exact authority.
+4. Convert the reconciled architecture into implementation proposals for provider-backed hot state and retrieval plumbing.
+5. Only after approved implementation exists, run exact release-specific fresh-chat/recovery qualification.
 
 No merge, native Project cutover, production Supabase schema mutation, Bus topology mutation, or behavioral qualification is performed by this document.
