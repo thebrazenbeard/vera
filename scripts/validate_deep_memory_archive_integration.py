@@ -8,6 +8,11 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "architecture/integration/VERA_DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.json"
 DOC = ROOT / "docs/DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.md"
 
+EXPECTED_DEEP_MEMORY_HEAD = "0ffa598134eea531f6dca03be100800661d73ab9"
+EXPECTED_BINDING_BLOB = "3cc3f85135392bdd16eec8beec23dd1366557451"
+EXPECTED_HUMAN_CONTRACT_BLOB = "78dbd9b2ca8eafca6bec5b53c519944493a45a0c"
+EXPECTED_RESULT_SCHEMA_BLOB = "0cb826731a9e9dc6c0b6cc6688615e61aee64ee4"
+
 
 def main() -> int:
     data = json.loads(CONTRACT.read_text(encoding="utf-8"))
@@ -21,9 +26,13 @@ def main() -> int:
     assert archive["role"] == "HISTORICAL_EVIDENCE_PLANE"
     assert archive["authority_class"] == "EVIDENCE_SEARCH_ONLY"
     assert archive["canonical_retrieval"].startswith("UNION_ALL_LEDGER_TRANCHES")
+    assert archive["source_candidate_head"] == EXPECTED_DEEP_MEMORY_HEAD
     assert archive["required_contract_path"] == "architecture/DEEP_MEMORY_ARCHITECTURE_BINDING_V1.json"
+    assert archive["required_contract_blob"] == EXPECTED_BINDING_BLOB
     assert archive["required_human_contract_path"] == "architecture/DEEP_MEMORY_INTEGRATION_CONTRACT_V1.md"
+    assert archive["required_human_contract_blob"] == EXPECTED_HUMAN_CONTRACT_BLOB
     assert archive["required_result_schema_path"] == "schema/DEEP_MEMORY_EVIDENCE_RESULT_V1.schema.json"
+    assert archive["required_result_schema_blob"] == EXPECTED_RESULT_SCHEMA_BLOB
 
     current = data["current_memory_plane"]
     assert current["route"] == "workstream/memory"
