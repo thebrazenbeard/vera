@@ -27,10 +27,19 @@ class RuntimeCohesionNativeHookTests(unittest.TestCase):
             set(hook["operations"]),
             {"ORIENT", "DOMAIN_RETRIEVE", "PROJECTION_AUDIT", "RECONCILE", "CHECKPOINT"},
         )
-        self.assertEqual(hook["operations"]["DOMAIN_RETRIEVE"]["call"], "runtime_cohesion.runtime.build_retrieval_plan")
+        self.assertEqual(hook["operations"]["DOMAIN_RETRIEVE"]["call"], "runtime_cohesion.executor.execute_domain_cycle")
+        self.assertEqual(hook["operations"]["DOMAIN_RETRIEVE"]["transport_boundary"], "runtime_cohesion.adapters.ProviderAdapter")
         self.assertEqual(hook["operations"]["PROJECTION_AUDIT"]["call"], "runtime_cohesion.audit.audit_registered_projections")
         self.assertEqual(hook["operations"]["RECONCILE"]["call"], "runtime_cohesion.reconcile.reconcile_exact")
         self.assertEqual(hook["operations"]["CHECKPOINT"]["call"], "runtime_cohesion.runtime.build_operational_checkpoint")
+
+    def test_adapter_boundary_has_no_policy_authority(self):
+        hook = json.loads(HOOK.read_text(encoding="utf-8"))
+        boundary = hook["adapter_boundary"]
+        self.assertEqual(boundary["policy_authority"], "NONE")
+        self.assertIn("does not establish", boundary["probe_contract"])
+        self.assertIn("executor revalidates", boundary["read_contract"].lower())
+        self.assertIn("never embedded", boundary["credential_rule"].lower())
 
     def test_hook_forbids_source_to_install_runtime_promotion(self):
         hook = json.loads(HOOK.read_text(encoding="utf-8"))
