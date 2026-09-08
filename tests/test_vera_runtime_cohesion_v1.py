@@ -7,6 +7,7 @@ import unittest
 from scripts.validate_vera_runtime_cohesion_v1 import (
     load_json_strict,
     validate_cohesion,
+    validate_evidence_contract,
     validate_introspection,
     validate_manifest,
     validate_routing,
@@ -26,6 +27,10 @@ def routing() -> dict:
 
 def introspection() -> dict:
     return load_json_strict(ARCHITECTURE / "VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json")
+
+
+def evidence_contract() -> dict:
+    return load_json_strict(ARCHITECTURE / "VERA_RUNTIME_EVIDENCE_CONTRACT_V1.json")
 
 
 class VeraRuntimeCohesionV1Tests(unittest.TestCase):
@@ -99,6 +104,30 @@ class VeraRuntimeCohesionV1Tests(unittest.TestCase):
         ]
         with self.assertRaisesRegex(ValueError, "probe family drift"):
             validate_introspection(document)
+
+    def test_evidence_contract_rejects_monotonic_lifecycle_semantics(self):
+        document = evidence_contract()
+        document["lifecycle_evidence"]["semantics"] = "MONOTONIC_LADDER"
+        with self.assertRaisesRegex(ValueError, "orthogonal"):
+            validate_evidence_contract(document)
+
+    def test_evidence_contract_rejects_live_authority_class_collapse(self):
+        document = evidence_contract()
+        document["live_context_types"] = document["live_context_types"][:2]
+        with self.assertRaisesRegex(ValueError, "live context type"):
+            validate_evidence_contract(document)
+
+    def test_evidence_contract_rejects_missing_durable_operational_state(self):
+        document = evidence_contract()
+        del document["durable_state_classes"]["DURABLE_OPERATIONAL_STATE"]
+        with self.assertRaisesRegex(ValueError, "DURABLE_OPERATIONAL_STATE"):
+            validate_evidence_contract(document)
+
+    def test_evidence_contract_rejects_blind_contamination_erasure(self):
+        document = evidence_contract()
+        document["provenance"]["blind_review_state"] = "BLIND"
+        with self.assertRaisesRegex(ValueError, "blind review"):
+            validate_evidence_contract(document)
 
     def test_mutation_does_not_leak_between_fixture_loads(self):
         first = introspection()
