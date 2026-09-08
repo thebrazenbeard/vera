@@ -24,6 +24,11 @@
       "transport_boundary": "runtime_cohesion.adapters.ProviderAdapter",
       "rule": "Executor derives privacy-approved candidates, probes only registered provider adapters, rebuilds the bounded plan from fresh route observations, reads only CURRENTLY_OBSERVED_REACHABLE/RESULT routes, and validates each returned item against exact route/source/privacy/evidence-capability boundaries."
     },
+    "PROJECTION_RECONCILE": {
+      "call": "runtime_cohesion.executor.execute_projection_cycle",
+      "transport_boundary": "runtime_cohesion.adapters.ProviderAdapter",
+      "rule": "For one registered projection, apply ref/path scope and privacy gates before provider I/O, probe and read the exact registered source/target routes, distinguish unavailable routes from absent target objects, then run the registered projection audit/reconciler."
+    },
     "PROJECTION_AUDIT": {
       "call": "runtime_cohesion.audit.audit_registered_projections",
       "rule": "Supply fresh provider observations; source activity outside registered ref/path scope is NOT_APPLICABLE, not stale."
@@ -40,7 +45,7 @@
   "runtime_cycle": [
     "ORIENT",
     "DOMAIN_RETRIEVE_PROVIDER_EXECUTION",
-    "PROJECTION_AUDIT_WHEN_REGISTERED_PROVIDER_CURRENTNESS_IS_MATERIAL",
+    "PROJECTION_RECONCILE_WHEN_REGISTERED_PROVIDER_CURRENTNESS_IS_MATERIAL",
     "RECONCILE",
     "CHECKPOINT_ONLY_WHEN_RESUMABILITY_REQUIRES_DURABLE_OPERATIONAL_STATE",
     "RELEASE_IRRELEVANT_DOMAIN_STATE"
@@ -48,7 +53,7 @@
   "adapter_boundary": {
     "policy_authority": "NONE",
     "probe_contract": "Adapter reports transport observation for the exact requested route only; reachability does not establish currentness, authority, or evidence type.",
-    "read_contract": "Adapter returns one ProviderEvidenceEnvelope for the exact requested route/source. Executor revalidates provider identity, route/source binding, privacy class, and target capability ceiling.",
+    "read_contract": "Adapter returns one ProviderEvidenceEnvelope for the exact requested route/source or explicitly absent when the exact object is not present. Executor revalidates provider identity, route/source binding, privacy class, and target capability ceiling; absence is not silently converted into unavailability or success.",
     "credential_rule": "Credentials/configuration remain runtime/provider concerns and are never embedded in this source hook or provider fabric."
   },
   "background_execution": {
