@@ -10,6 +10,7 @@ on:
       - "architecture/VERA_COHESION_INDEX_V1.json"
       - "architecture/VERA_RUNTIME_CONTRACT_V1.json"
       - "architecture/VERA_PROVIDER_FABRIC_V1.json"
+      - "architecture/VERA_RUNTIME_COHESION_NATIVE_HOOK_V1.json"
       - "architecture/VERA_COHESION_PAIR_RECEIPT_V1.json"
       - "docs/VERA_RUNTIME_COHESION*.md"
       - "docs/VERA_COHESION*.md"
@@ -52,6 +53,8 @@ jobs:
           tests.test_runtime_cohesion_runtime
           tests.test_runtime_cohesion_hostile
           tests.test_runtime_cohesion_fabric_crossbind
+          tests.test_runtime_cohesion_audit
+          tests.test_runtime_cohesion_native_hook
           -v
       - name: Compile cohesion validators, runtime, and tests
         run: >-
@@ -62,6 +65,7 @@ jobs:
           runtime_cohesion/evidence.py
           runtime_cohesion/reconcile.py
           runtime_cohesion/runtime.py
+          runtime_cohesion/audit.py
           tests/test_vera_runtime_cohesion_v1.py
           tests/test_vera_runtime_evidence_contract_v1.py
           tests/test_vera_cohesion_index_v1.py
@@ -71,3 +75,5 @@ jobs:
           tests/test_runtime_cohesion_runtime.py
           tests/test_runtime_cohesion_hostile.py
           tests/test_runtime_cohesion_fabric_crossbind.py
+          tests/test_runtime_cohesion_audit.py
+          tests/test_runtime_cohesion_native_hook.py
