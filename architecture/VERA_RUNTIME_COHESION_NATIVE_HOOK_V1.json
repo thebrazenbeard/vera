@@ -1,0 +1,66 @@
+{
+  "schema": "VERA_RUNTIME_COHESION_NATIVE_HOOK_V1",
+  "workstream": "VERA_RUNTIME_COHESION_V1",
+  "status": "SOURCE_ONLY_NOT_INSTALLED",
+  "normative_refs": [
+    "VERA_COHESION_INDEX_V1",
+    "VERA_RUNTIME_CONTRACT_V1"
+  ],
+  "provider_fabric": {
+    "ref": "VERA_PROVIDER_FABRIC_V1",
+    "normative_status": "NON_NORMATIVE_OPERATIONAL_SUPPORT"
+  },
+  "operations": {
+    "ORIENT": {
+      "reads": [
+        "architecture/VERA_COHESION_INDEX_V1.json",
+        "architecture/VERA_RUNTIME_CONTRACT_V1.json",
+        "architecture/VERA_PROVIDER_FABRIC_V1.json"
+      ],
+      "rule": "Load the exact current A+B pair first; provider fabric only supplies operational bindings and may not override A+B."
+    },
+    "DOMAIN_RETRIEVE": {
+      "call": "runtime_cohesion.runtime.build_retrieval_plan",
+      "rule": "Supply fresh externally observed exact-route state and privacy eligibility; declared routes alone are not executable targets."
+    },
+    "PROJECTION_AUDIT": {
+      "call": "runtime_cohesion.audit.audit_registered_projections",
+      "rule": "Supply fresh provider observations; source activity outside registered ref/path scope is NOT_APPLICABLE, not stale."
+    },
+    "RECONCILE": {
+      "call": "runtime_cohesion.reconcile.reconcile_exact",
+      "rule": "Compare exact revision/generation/digest evidence; observation timestamps never break exact-object conflicts."
+    },
+    "CHECKPOINT": {
+      "call": "runtime_cohesion.runtime.build_operational_checkpoint",
+      "rule": "Persist only minimum-necessary pointers/digests/status needed to resume; never copy specialist payloads merely for convenience."
+    }
+  },
+  "runtime_cycle": [
+    "ORIENT",
+    "DOMAIN_RETRIEVE",
+    "PROJECTION_AUDIT_WHEN_REGISTERED_PROVIDER_CURRENTNESS_IS_MATERIAL",
+    "RECONCILE",
+    "CHECKPOINT_ONLY_WHEN_RESUMABILITY_REQUIRES_DURABLE_OPERATIONAL_STATE"
+  ],
+  "background_execution": {
+    "claimed": false,
+    "rule": "Source code and this hook do not execute between turns by themselves. Continuous monitoring requires a separately evidenced scheduler/runtime invocation."
+  },
+  "effect_boundaries": {
+    "source": "Repository source establishes the hook design and executable support only; it does not establish native installation, activation, provider effect, runtime consumption, or behavioral qualification.",
+    "installation": "Native installation requires exact native readback binding this exact hook/A+B/provider-fabric tuple.",
+    "runtime_consumption": "Runtime consumption requires observable execution evidence for the exact runtime/operation and cannot be inferred from source presence.",
+    "provider_effect": "Provider mutation requires separate operation-specific authority plus exact readback; this hook alone authorizes no provider write.",
+    "qualification": "Behavioral qualification requires separately executed exact-tuple qualification; source tests and live provider reads do not self-qualify Vera."
+  },
+  "promotion_guards": [
+    "Provider reachability is not authority.",
+    "Provider persistence is not present truth or current Vera self-state.",
+    "Temporal chronology is not semantic/currentness authority.",
+    "Retrieved item type must be independently established.",
+    "Operational checkpoint state never silently becomes autobiographical/current-self-state memory.",
+    "Patrick authority and Vera self-authored stance remain actor/referent/proposition specific."
+  ],
+  "behavioral_qualification": "NOT_QUALIFIED"
+}
