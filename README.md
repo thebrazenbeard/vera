@@ -21,8 +21,18 @@ GitHub stores architecture source and durable engineering history. It is **not**
 - **Current ChatGPT Project:** supplies present user intent, correction, Project administration, and active Project instructions.
 - **GitHub:** this repository stores cross-cutting architecture/migrations; `thebrazenbeard/vera-R9A0` carries the current governed native package line.
 - **Supabase:** project `Vera` stores governed external state when an authorized operation and readback establish the effect.
+- **Deep Memory:** `thebrazenbeard/deepmemorystorage` is the private append-only **historical evidence plane**. Its normal architecture operation is `EVIDENCE_SEARCH`; it is not current authority and does not automatically project into current governed memory. See `architecture/integration/VERA_DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.json` and `docs/DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.md` on the source candidate that introduces this binding.
 
 Historical R6A0 bindings under `coordination/` remain provenance only and must not be treated as current routing authority merely because they are present.
+
+## Memory planes
+
+Vera's architecture deliberately separates two memory roles:
+
+- **Current governed memory** (`workstream/memory`, `VERA_MEMORY_CROSS_CHAT_CONTRACT_V1`) owns explicit current lineage, privacy/epistemic filtering, and save/recall receipts.
+- **Deep Memory historical evidence** owns append-only history, provenance ceilings, historical-canon classification, contradictions/supersession, and unresolved primary-source frontiers.
+
+A Deep Memory record can be historically canonical without being current or admitted. Any historical-to-current bridge requires separate explicit review/admission and must preserve the original historical provenance, privacy, event time, and currentness limitations.
 
 ## Reality and persistence boundary
 
