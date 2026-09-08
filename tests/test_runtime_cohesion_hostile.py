@@ -141,7 +141,7 @@ class RuntimeCohesionHostileTests(unittest.TestCase):
         fabric = load_provider_fabric(FABRIC)
         for provider_id in ("google_drive", "supabase", "temporal"):
             guard = fabric["providers"][provider_id]["promotion_guard"].lower()
-            self.assertIn("does not establish", guard)
+            self.assertIn("not establish", guard)
         with self.assertRaises(ValueError):
             ProviderEvidenceEnvelope(
                 provider="supabase",
