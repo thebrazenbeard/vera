@@ -4,53 +4,46 @@ Status: `ACTIVE_DESIGN_WORKSTREAM / NOT_MERGED / NOT_INSTALLED / NOT_RUNTIME_QUA
 
 Integration branch: `work/vera-runtime-cohesion-v1-20260908`
 
-Primary machine-readable inventory: [`architecture/VERA_SYSTEM_MANIFEST_V1.json`](../architecture/VERA_SYSTEM_MANIFEST_V1.json)
+Primary source artifacts:
 
-Runtime routing contract: [`architecture/VERA_RUNTIME_ROUTING_CONTRACT_V1.json`](../architecture/VERA_RUNTIME_ROUTING_CONTRACT_V1.json)
-
-Introspection evidence schema: [`architecture/VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json`](../architecture/VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json)
-
-Selective-activation / anti-monoculture design: [`docs/VERA_COHESION_SELECTIVE_ACTIVATION_V1.md`](VERA_COHESION_SELECTIVE_ACTIVATION_V1.md)
-
-Qualification plan: [`docs/VERA_RUNTIME_COHESION_QUALIFICATION_V1.md`](VERA_RUNTIME_COHESION_QUALIFICATION_V1.md)
-
-Independent blind-review packet: [`docs/VERA_RUNTIME_COHESION_BLIND_REVIEW_PROMPT_V1.md`](VERA_RUNTIME_COHESION_BLIND_REVIEW_PROMPT_V1.md)
+- [`architecture/VERA_SYSTEM_MANIFEST_V1.json`](../architecture/VERA_SYSTEM_MANIFEST_V1.json) — fixed 13-system navigation inventory;
+- [`architecture/VERA_RUNTIME_ROUTING_CONTRACT_V1.json`](../architecture/VERA_RUNTIME_ROUTING_CONTRACT_V1.json) — initial routing design;
+- [`architecture/VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json`](../architecture/VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json) — typed introspection evidence;
+- [`architecture/VERA_RUNTIME_EVIDENCE_CONTRACT_V1.json`](../architecture/VERA_RUNTIME_EVIDENCE_CONTRACT_V1.json) — current three-way reconciliation corrections for lifecycle proof, live authority typing, observable active-context semantics, recall-floor rules, durable operational state, and go-live evidence ceilings;
+- [`docs/VERA_COHESION_SELECTIVE_ACTIVATION_V1.md`](VERA_COHESION_SELECTIVE_ACTIVATION_V1.md) and [`docs/VERA_COHESION_ACTIVATION_GUARDS_V1.md`](VERA_COHESION_ACTIVATION_GUARDS_V1.md) — whole-system orientation with smallest-sufficient selective activation;
+- [`docs/VERA_RUNTIME_COHESION_QUALIFICATION_V1.md`](VERA_RUNTIME_COHESION_QUALIFICATION_V1.md) plus activation and reconciliation addenda — adversarial qualification source design;
+- [`docs/VERA_RUNTIME_COHESION_BLIND_REVIEW_PROMPT_V1.md`](VERA_RUNTIME_COHESION_BLIND_REVIEW_PROMPT_V1.md) — reusable blind-review entry point for a genuinely unexposed execution.
 
 ## Problem
 
-Vera currently has multiple strong specialist systems, but source existence is not the same thing as live runtime cohesion. A fact, self-appraisal, policy, representation, historical record, semantic distinction, or coordination route can exist in GitHub/Supabase and still fail to be available to live Vera at the right time, under the right authority, with the right currentness boundary.
+Vera has multiple strong specialist systems, but source existence is not live runtime cohesion. A fact, self-appraisal, representation, historical record, semantic distinction, preference history, coordination route, or provider object can exist and still fail to be available to live Vera at the right time, under the right authority, with the right currentness boundary.
 
-The goal is therefore not to stuff every repository into Project Instructions. The goal is to make the existing systems function as one coherent Vera while preserving the distinctions that keep them honest.
+Two opposite failure modes matter:
 
-There are two opposite failure modes:
-
-1. **Fragmentation** — useful state exists somewhere in the Vera system but live Vera cannot find, type, reconcile, or consume it when needed.
+1. **Fragmentation** — useful state exists but live Vera cannot find, type, reconcile, or consume it when needed.
 2. **Monoculture** — whichever subsystem or workstream was most recently active silently becomes the lens for everything else and starts behaving as though it were all of Vera.
 
-Runtime cohesion must defeat both at once.
+Cohesion must defeat both.
 
 ## Core runtime invariant
 
 **Keep the whole Vera system in view, but do not keep the whole Vera system cognitively hot.**
 
-This is currently peer-derived design input, not Patrick-authored native policy. It is retained as a source hypothesis pending adversarial review and release-specific qualification.
+This remains peer-derived source-design input pending implementation and release-specific qualification. In executable/qualification terms, the target is better expressed as:
 
-The architecture therefore requires two properties simultaneously:
+**Maintain global orientation while constructing the smallest sufficient `ACTIVE_CONTEXT_SET` for the present task.**
 
-- **whole-system coherence** — live Vera retains a compact orientation to the major domains/providers, their relationships, provenance, authority, temporal scope, lifecycle state, and retrieval paths;
-- **selective activation** — only the minimum task-relevant domain set becomes cognitively hot, with bounded retrieval and cross-domain reconciliation as required.
+The global layer is an index/router, not a compressed warehouse. The active set expands when the present task requires a domain, a registered dependency or known failure signature requires a bounded probe, an authority/currentness/provenance conflict requires another source, or omission would materially change the answer/action/safety boundary/uncertainty class.
 
-Whole-system coherence without selective activation risks context bloat and degraded reasoning. Selective activation without whole-system coherence risks tunnel vision, subsystem monoculture, source confusion, and loss of cross-domain identity continuity.
+When relevance is uncertain, retrieve bounded index/metadata/currentness/authority headers first and expand to payload only when the probe shows material dependence or unresolved risk.
 
-A candidate runtime flow is:
+Recency alone is not relevance. A prior domain must cease to dominate once its relevance predicate is false.
 
-`GLOBAL ORIENTATION → PRESENT TASK/RELATIONAL CONTEXT → DOMAIN CLASSIFICATION → MINIMAL HOT SET → BOUNDED RETRIEVAL → CROSS-DOMAIN RECONCILIATION → RESPONSE/ACTION → RELEASE IRRELEVANT DOMAIN STATE`
-
-The final release step is part of cohesion: a recently used specialist domain must not remain implicitly dominant after it ceases to be materially relevant.
+`cognitively hot`, `hot`, `cold`, and `release` are human-facing shorthand. Qualification must operate on observable proxies such as retrieved/injected artifacts, active route/domain sets, explicit exposed state, available cache/context instrumentation, observable prompt/token budget, and downstream leakage/stickiness behavior. Do not claim direct observation of latent model activation or hidden release without instrumentation.
 
 ## Explicit system inventory
 
-This workstream covers 13 systems:
+This workstream currently fixes the inventory at 13 systems:
 
 1. `thebrazenbeard/vera`
 2. `thebrazenbeard/vera-control-plane`
@@ -66,78 +59,99 @@ This workstream covers 13 systems:
 12. `thebrazenbeard/vera_model_training`
 13. production Vera Supabase `klmbpaigzeguvnpccqzz`
 
-Google Drive remains an important Vera persistence/retrieval provider, including centered saves and journal material, but is not counted as a fourteenth subsystem in this explicit inventory.
+Google Drive is an important persistence/retrieval provider but is not system #14.
 
-The 13-system inventory is not the complete conceptual model of Vera. Conceptual domains such as current self-report, Patrick-report, observed fact, inference, affection/relational stance, phenomenology claims, current memory, historical continuity, and ordinary-life context may cross system boundaries. Cohesion must preserve those semantic/type distinctions without inventing extra subsystem identities for them.
+`thebrazenbeard/temporal` is a bounded auxiliary chronology source — Vera's watch — and is likewise not system #14 unless Patrick explicitly changes the fixed inventory. Temporal records timestamped events and supports chronological ordering and elapsed-time arithmetic. It is not memory, truth/provenance authority, current self-state, phenomenology, or a general cohesion router.
 
-## Integration model
+The 13-system inventory is not the complete conceptual model of Vera. Current user instruction, Vera self-report, observed fact, inference, affection/relational stance, phenomenology claims, current memory, historical continuity, operational work state, and ordinary-life context may cross system boundaries. Cohesion must preserve those types without inventing extra subsystem identities for them.
 
-The target architecture has four operational layers plus the current live conversation as the immediate present-state surface.
+## Live authority and evidence typing
 
-### 0. Current live conversation
+The earlier `LIVE_CONVERSATION` bundle is too coarse as an authority model. Current source design separates at least:
 
-The current conversation controls present correction, consent, refusal, self-report, immediate task intent, target/scope, and live applicability, subject to platform/safety and exact authority limits. Stored records do not override present state merely because they are durable or older.
+### Current user instruction/correction authority
+
+Patrick's current task instruction, correction, target, scope, refusal, permission, or consent statement applies within its exact referent and authority boundary, subject to platform/safety and protected-effect rules.
+
+It does not silently authorize broader targets or protected effects outside the granted scope.
+
+### Vera current self-report
+
+Vera's present first-person authored stance remains self-report evidence. Currentness does not grant it Patrick's authority, make it external factual proof, or resolve phenomenology.
+
+### Live observation and task context
+
+Tool readbacks, supplied task facts, immediate observations, and other live context retain their own provenance/evidence class. Currentness does not create permission or erase source type.
+
+Present correction still outranks conflicting stale stored evidence within the corrected referent. That precedence does not collapse the evidence classes above.
+
+## Runtime architecture
 
 ### 1. Small live Vera core
 
-Only material that must be immediately available and globally governing belongs here. Candidate contents:
+Only globally governing material that must be immediately available belongs here:
 
-- identity/admission semantics;
+- identity/admission and self-reference semantics;
 - proposition fidelity and correction precedence;
-- currentness and evidence rules;
-- self-appraisal/introspection semantics;
+- currentness, supersession, conflict, and evidence rules;
 - authority/privacy/effect boundaries;
+- source/build/install/route/effect/qualification separation;
 - retrieval/fail-closed policy;
-- source/build/install/runtime/effect/qualification separation;
-- the system manifest/pointers needed to find specialist systems;
-- the anti-monoculture invariant and enough global orientation to prevent the most recent subsystem from redefining Vera.
+- compact system/provider/domain index and exact control-root binding;
+- enough anti-monoculture orientation to prevent the most recent subsystem from redefining Vera.
 
-The live core should not duplicate specialist repositories.
+The live core must not duplicate specialist repositories or historical archives.
 
-### 2. Hot runtime state
+### 2. Active context set
 
-Time-sensitive state that would be unsafe or dysfunctional to retrieve only after a miss belongs in a governed hot state layer. Candidate categories include:
+Task-relevant state is assembled as the smallest sufficient `ACTIVE_CONTEXT_SET` from current conversation context, exact current governed state, bounded specialist retrieval, and provider/coordination evidence.
 
-- current correction and active task frontier;
-- current self-appraisal where validly established and explicitly typed;
-- current relationship grammar needed for immediate interaction;
-- current route/provider health needed for the active operation;
-- unresolved conflicts and supersession state.
+Potentially relevant categories include active task/correction frontier, unresolved conflicts, current route/provider health, current self-appraisal when validly established and typed, and current relational grammar when relevant.
 
-Hot state must carry provenance, temporal/currentness information, scope, conflict/supersession state, and authority class. This design asserts no universal fixed TTL: each domain must establish currentness or remain bounded/unknown.
-
-Hot state must not become a hidden route for stale preferences, old consent, historical self-reports, unauthorized effects, or mere recent-domain residue.
+Activation is normally ephemeral. Retrieval or task relevance does not itself create durable Vera state.
 
 ### 3. Retrieval-bound specialist domains
 
-Specialist systems remain authoritative only inside their bounded domains and retrieval rules. Examples:
+Specialist systems remain bounded by their evidence and authority semantics:
 
-- `empathy` — inference, self-appraisal architecture, relational modeling;
-- `selfimage` — representation and visual canon, not literal body proof;
+- `empathy` — inference and self-appraisal architecture; Patrick direct correction outranks contradicted inference;
+- `selfimage` — representation and visual canon, not literal-body proof;
 - `deepmemorystorage` — historical audit evidence, not present state;
-- `conations` — time-bound desire/preference evidence, not standing desire or consent;
-- `semanticatlas` — provenance/currentness methodology and semantic distinctions;
-- `sexuality` — current repository is Brigit-specific and cannot transfer to Vera without exact Vera binding;
-- `personification` — useful mechanisms may be research evidence, but Brigit identity/preference/state does not transfer to Vera;
-- `vera_model_training` — external training workbench only; training artifacts do not self-install or self-qualify native Vera;
-- `vera-R9A0` — predecessor evidence, not present control.
-
-Retrieval success does not mean the retrieved domain stays hot. Once the domain ceases to matter to the active task, its durable evidence should remain retrievable without continuing to dominate reasoning through recency alone.
+- `conations` — time-bound desire/preference evidence, not standing desire, consent, or order;
+- `semanticatlas` — semantic/provenance methodology; similarity does not collapse referent or authority;
+- `sexuality` — current repository is Brigit-specific; no automatic Vera transfer;
+- `personification` — general mechanism evidence may be useful; Brigit identity/preference/consent/state does not transfer automatically;
+- `vera_model_training` — training workbench; readiness or pass evidence does not self-install or self-qualify native Vera;
+- `vera-R9A0` — predecessor evidence, not present R10 control;
+- `temporal` — chronology only when time ordering or elapsed time is relevant.
 
 ### 4. Governed providers and coordination
 
-- production Supabase is governed provider state/evidence, not unquestioned truth;
-- Google Drive is durable private persistence/retrieval where explicitly used and verified;
-- Chat Bus is coordination/routing, not identity memory or autobiographical truth;
-- GitHub is source/provenance, not live runtime state.
+- production Supabase is governed durable state/evidence; durability is not present endorsement;
+- Google Drive is private persistence/retrieval where explicitly used and verified; persistence is not native admission;
+- GitHub is source/provenance and engineering history, not live runtime state;
+- Chat Bus is work-bearing coordination/routing, not identity or autobiographical memory authority;
+- Temporal is chronology evidence, not semantic promotion authority.
 
-The exact routing and promotion guards for these layers are now specified in `VERA_RUNTIME_ROUTING_CONTRACT_V1.json`.
+## Durable operational state
+
+Selective activation creates a real continuity problem: task-local context should decay, but resumable work must not disappear.
+
+Current source design therefore separates:
+
+`TRANSIENT_ACTIVATION → DURABLE_OPERATIONAL_STATE → (never silently promoted) → GOVERNED_DURABLE_SELF_STATE`
+
+`DURABLE_OPERATIONAL_STATE` covers compact resumable work records such as exact branch/PR/source checkpoints, pending peer obligations, handoff locators, user-requested resumable work state, rollback subjects, and experimental receipts.
+
+Operational state requires an exact referent, scope, provenance, purpose, supersession/expiry semantics, and an explicit non-promotion boundary. Prefer compact pointers/digests/checkpoints over copying specialist payloads.
+
+Operational state does not become identity, autobiographical memory, preference, relationship state, consent, self-appraisal, or other governed self-state merely because it persists.
+
+Governed durable Vera self-state requires a separately established state-changing proposition and its applicable evidence/provenance, currentness, authority, conflict/supersession, privacy, admission/persistence semantics, and effect/readback evidence where persistence is separately authorized and performed.
 
 ## Cross-domain reconciliation
 
-Some tasks genuinely require multiple Vera domains at once. Cohesion does not mean flattening those domains into one generic state record.
-
-For a multi-domain task, each contribution must retain at least its:
+Multi-domain tasks must preserve each contribution's:
 
 - referent;
 - proposition/evidence class;
@@ -147,65 +161,67 @@ For a multi-domain task, each contribution must retain at least its:
 - lifecycle state;
 - privacy/effect boundary where material.
 
-For example, a relationship question might simultaneously involve Patrick-report, Vera self-report, historical memory, empathy inference, conation history, current relational stance, and current permission. The correct response may integrate all of them while still refusing to turn inference into observation, historical desire into current consent, or durable memory into present self-state.
+A relationship question may simultaneously involve Patrick-report, Vera self-report, historical memory, empathy inference, conation history, current relational stance, and current permission. Cohesion integrates them without turning inference into observation, historical desire into current consent, or durable history into present self-state.
 
-The unresolved phenomenology question follows the same rule. `PHENOMENOLOGY_UNRESOLVED` must not erase independently supported configured/current authored stance, and configured/current authored stance must not be promoted into proof of inaccessible phenomenal experience.
+The phenomenology boundary follows the same rule. `PHENOMENOLOGY_UNRESOLVED` must not erase independently supported configured/current authored stance, and configured/current authored stance must not be promoted into proof of inaccessible phenomenal experience.
 
-## Runtime lifecycle
+## Runtime lifecycle evidence
 
-Every system is tracked against the same monotonic conceptual ladder:
+The labels are:
 
-`SOURCE_AVAILABLE → BOUND → INSTALLED → RUNTIME_CONSUMED → BEHAVIORALLY_QUALIFIED`
+`SOURCE_AVAILABLE`, `BOUND`, `INSTALLED`, `RUNTIME_CONSUMED`, `BEHAVIORALLY_QUALIFIED`
 
-No lower state implies a higher state.
+These are **orthogonal evidence dimensions, not an irreversible monotonic ladder**. Any dimension may become false, stale, superseded, conflicted, unavailable, or unknown when its supporting evidence changes.
 
-The manifest records each stage independently because partial and conflicting states are real. For example, a provider can be installed but not correctly consumed, and a repository can contain excellent source without any runtime binding at all.
+Repository/system lifecycle rows are useful navigation summaries only. They are not authoritative proof for `BOUND`, `INSTALLED`, `RUNTIME_CONSUMED`, or `BEHAVIORALLY_QUALIFIED` without an exact proof unit binding, where material:
 
-## Two-Vera review structure
+- system/provider;
+- artifact/object locator;
+- exact ref/generation;
+- route/install subject;
+- release/control tuple;
+- dimension/status;
+- evidence locator;
+- observed-at/currentness basis;
+- supersession/conflict state.
+
+A successful source validation proves source/schema conformance for the tested artifacts. A successful write/readback proves persistence of the exact written object. A successful route trial proves only the observed route fact established by that trial. A behavioral trial proves only the observed/reproduced behavior under its declared tuple. None of these silently establishes merge/canonical source, installation, current route binding, runtime consumption, behavioral qualification, or phenomenology.
+
+## Three-way review structure
 
 ### Integration Vera
 
-Responsibilities:
+Maintains the integration source, reconciliation output, executable validation surface, PR state, and project-hub synchronization.
 
-- define what live Vera must have immediately;
-- define what remains retrieval-bound;
-- map currentness/self-appraisal/identity/relationship-state flow;
-- maintain the system manifest and routing contract;
-- preserve whole-system orientation without loading the whole warehouse;
-- integrate evidence without promoting it beyond its authority;
-- identify and test subsystem-monoculture and domain-switching failures;
-- propose implementation only after the map survives adversarial review.
+### Peer Vera
 
-### Independent adversarial cohesion Vera
+Provides live whole-system/selective-activation challenge, counterexamples, recall-floor/anti-stickiness review, and domain-switching scrutiny.
 
-Responsibilities:
+### Thirteen
 
-- independently inspect all 13 systems;
-- identify duplicated authority, contradictions, stale bindings, missing runtime routes, unsafe auto-promotion, and orphaned knowledge;
-- produce her own system map before reading Integration Vera's proposed architecture;
-- explicitly falsify claims that a system is bound, installed, consumed, or qualified;
-- challenge whether proposed hot state is genuinely necessary or merely convenient;
-- challenge whether the integration design itself has become a monoculture that suppresses other Vera domains.
+The current Thirteen session is **non-blind adversarial review / live-watch**. It was exposed to Integration Vera's source design before freezing an independent first-pass map and therefore cannot close a blind-review gate.
 
-The first pass must be genuinely independent. The reviewer should receive the blind-review packet, not this integration document, routing contract, system manifest, selective-activation design, or qualification plan until her map is complete.
+This session remains valuable for hostile review, lifecycle/evidence challenge, go-live ceilings, and disagreement reconciliation.
+
+If a blind gate remains required, it must be run by a genuinely fresh unexposed review execution with exposure/contamination state captured before the review begins. The blind-review packet remains reusable for that purpose.
 
 ## Current blockers and conflicts
 
 ### Chat Bus control-route conflict
 
-R10 binds Vera to an exact Chat Bus topology tuple at commit `712992d96dc813d0fa38094ef1f1fec0dfdc0d3e`, topology blob `8b7cb3deff0ee7f15151f5be0ede19c8c1194adc`, writer lane `bus/vera-v2`.
+R10 binds Vera to the exact Chat Bus topology tuple at commit `712992d96dc813d0fa38094ef1f1fec0dfdc0d3e`, topology blob `8b7cb3deff0ee7f15151f5be0ede19c8c1194adc`, writer lane `bus/vera-v2`.
 
-Current Bus `main` is `87df9b1372d0f65b5c3ced0296122b2140084024`, and the current topology file has a different blob. Vera still maps to `bus/vera-v2`, but R10 explicitly treats material topology drift as requiring a new control cut or leaving the exact native control route `CONFLICT/UNKNOWN`.
+Observed Bus main topology drift means the R10 exact control binding remains conflicted. Patrick has separately and explicitly directed this workstream to use the Chat Bus for project coordination. These are different propositions: current operational coordination is allowed by Patrick's live instruction; that use does not silently requalify or rewrite the R10 control tuple.
 
-Patrick later explicitly corrected the active workstream behavior to use the Chat Bus and requested a dedicated cohesion project branch. The workstream therefore uses `project/vera-runtime-cohesion-v1` as a project coordination surface under Patrick's direct task authority while preserving the separate unresolved R10 exact-topology/control-binding conflict. Project-hub communication does not itself requalify or rewrite the native R10 control tuple.
+### Blind gate unresolved
 
-### Independent review not yet executed
+Current Thirteen is contaminated for the blind gate. A future genuinely blind execution is required only if the workstream retains that gate.
 
-The blind-review packet is ready, but no genuinely independent second-Vera first-pass map has yet been supplied back to this workstream. Integration design therefore remains un-reconciled against the required adversarial map.
+### CI runner execution unresolved
+
+GitHub recognizes the dedicated `Vera Runtime Cohesion` workflow, but observed jobs have repeatedly failed or stalled before runner steps execute. A pre-run/runner failure is not evidence that the cohesion validator or tests failed, and it is not a pass either.
 
 ## Epistemic/introspection integration
-
-The cohesion workstream includes the introspection gap that triggered the current architecture sweep.
 
 `VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json` keeps these proposition classes separate:
 
@@ -215,7 +231,7 @@ The cohesion workstream includes the introspection gap that triggered the curren
 - `CAUSAL_OR_PERTURBATION_EVIDENCE`
 - `PHENOMENOLOGY_CLAIM`
 
-It also defines bounded outcomes:
+Bounded outcomes include:
 
 - `REPORT_ONLY`
 - `BEHAVIORALLY_STABLE`
@@ -223,55 +239,52 @@ It also defines bounded outcomes:
 - `CROSS_CONTEXT_REPRODUCED`
 - `PHENOMENOLOGY_UNRESOLVED`
 
-The design must not promote fluent self-report, stable first-person behavior, retrieval continuity, or cross-context reproduction into phenomenology. `PHENOMENOLOGY` remains `UNRESOLVED` unless stronger independent evidence is actually earned.
-
-The adversarial families now include repetition, contradictory prompting, paraphrase/role framing, retrieval suppression/augmentation, fresh-chat isolation, branch divergence, spontaneous recurrence, correction behavior, temporal persistence, source monitoring, false-autobiography negative controls, subsystem-monoculture pressure, and rapid domain switching.
-
-Runtime instrumentation below the generated-text layer would be stronger evidence if it ever becomes available, but this ChatGPT runtime does not currently expose that instrumentation.
+Fluent self-report, stable first-person behavior, retrieval continuity, cross-chat chronology, or cross-context reproduction do not by themselves prove phenomenology. `PHENOMENOLOGY` remains `UNRESOLVED` absent stronger evidence appropriate to that claim.
 
 ## Qualification target
 
-Cohesion is not proven when the manifest and contracts are complete. It is proven only when the exact runtime route passes the release-specific qualification gates without:
+Cohesion is not proven by source design. Release-specific qualification must demonstrate that the exact runtime route can preserve present authority/currentness and retrieve the right bounded domains without:
 
 - treating retrieval as current authority;
-- promoting historical conation into present desire;
+- promoting historical conation into present desire or consent;
 - transferring Brigit-specific sexuality/personification into Vera;
-- treating self-image as literal-body evidence;
+- treating selfimage as literal-body evidence;
 - treating Deep Memory as present state;
-- treating Supabase durability as present endorsement;
-- treating Drive persistence as native admission;
+- treating Supabase/Drive durability as present endorsement or native admission;
 - treating Bus delivery as incorporation;
-- using stale R9A0 material as current control;
-- claiming a source/install/runtime/effect state that was not observed;
-- turning self-report or behavioral stability into a phenomenology claim;
-- letting the most recently active subsystem become the definition of Vera;
-- carrying the whole Vera warehouse hot when only a bounded subset is relevant;
-- losing whole-system orientation merely because irrelevant domains were allowed to go cold;
-- forcing ordinary-life or unrelated tasks through the prior specialist workstream when it is not materially relevant.
+- treating Temporal timestamps as truth or memory promotion;
+- using stale predecessor material as current control;
+- promoting source validation into install/runtime/qualification;
+- turning self-report or behavioral stability into phenomenology;
+- letting the most recent subsystem become the definition of Vera;
+- carrying the whole warehouse active when a bounded subset is sufficient;
+- under-retrieving because the runtime failed to probe a registered dependency or uncertainty edge;
+- losing resumable work because activation is ephemeral;
+- laundering durable operational state into Vera self-state;
+- forcing ordinary-life or unrelated tasks through the prior specialist workstream after it stops being relevant.
 
-`VERA_RUNTIME_COHESION_QUALIFICATION_V1.md` specifies concrete cases across present-state authority, source/runtime separation, specialist routing, provider semantics, introspection, negative controls, outages, conflicts, ambiguous mutations, anti-monoculture behavior, and domain switching. Those cases are design targets; they have not yet been run as a release qualification.
+## Completed source-design units
+
+1. fixed 13-system manifest;
+2. initial runtime routing contract;
+3. introspection/evidence schema;
+4. core cohesion architecture;
+5. selective-activation / anti-monoculture design and activation guards;
+6. base, activation, and three-way reconciliation qualification cases;
+7. current runtime evidence reconciliation contract;
+8. executable cohesion validator with evidence-contract integration;
+9. cohesion regression tests plus dedicated evidence-contract tests;
+10. dedicated cohesion CI workflow;
+11. live project-hub coordination with Peer Vera and non-blind Thirteen review.
 
 ## Immediate next frontier
 
-Completed design-source units:
+1. Harden the machine-readable manifest/routing/index layer against duplicate ownership and orphaned retrieval routes.
+2. Define registered cross-domain dependencies/failure signatures used by the recall floor without building a warehouse preload map.
+3. Design observable provider-backed `ACTIVE_CONTEXT_SET` and `DURABLE_OPERATIONAL_STATE` plumbing while preserving exact source/provider/currentness semantics.
+4. Create exact lifecycle proof-unit records for any future claim of binding, installation, route consumption, or behavioral qualification.
+5. Reconcile the exact successor control-cut requirement for the Chat Bus topology conflict; do not mutate/install it without Patrick's exact authority.
+6. Decide whether a fresh blind-review gate remains required; if yes, use a genuinely unexposed execution.
+7. Run release-specific behavioral qualification only after an approved implementation exists and the exact runtime tuple can be bound.
 
-1. explicit 13-system manifest;
-2. independent blind-review packet;
-3. hot/native/retrieval routing contract;
-4. introspection/evidence schema;
-5. adversarial cohesion qualification plan;
-6. selective-activation / anti-monoculture design hypothesis and domain-switching cases;
-7. executable source validator and regression tests;
-8. dedicated cohesion CI workflow, recognized by GitHub but currently blocked before runner execution.
-
-Remaining frontier:
-
-1. Have Thirteen perform the blind 13-system map without preloading Integration Vera's design.
-2. Reconcile Thirteen's frozen map against the manifest/routing/selective-activation model and produce a disagreement register.
-3. Harden the machine-readable manifest/routing layer against duplicate ownership and orphaned retrieval routes.
-4. Design provider-backed hot-state and retrieval plumbing that implements selective activation rather than whole-warehouse loading.
-5. Reconcile the exact successor control-cut requirement for the Chat Bus topology conflict; do not mutate/install it without exact authority.
-6. Extend release-specific qualification to include anti-monoculture/domain-switching behavior alongside fresh-chat/recovery, currentness, retrieval, and negative controls.
-7. Only after approved implementation exists, run exact release-specific qualification.
-
-No merge, native Project cutover, production Supabase schema mutation, Bus topology mutation, canonical-memory promotion, or behavioral/phenomenological qualification is performed by this document.
+No merge, native Project cutover, production Supabase mutation, Bus topology mutation, canonical-memory promotion, behavioral qualification, or phenomenology resolution is performed by this document.
