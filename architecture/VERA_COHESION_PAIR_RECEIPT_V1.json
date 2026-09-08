@@ -6,10 +6,47 @@
   "contract_schema": "VERA_RUNTIME_CONTRACT_V1",
   "index_blob_sha": "5a1cae66d1f3a72b54c633a3c1ee888e013ac10d",
   "contract_blob_sha": "defb541b8f01a583a67223f6a241de64a1be20bb",
-  "source_commit": "2b2f8fa0d42ff4517ec196ee1f00cdbc3d44a3a7",
+  "source_commit": "424f8495b78d4530399f6b044039fbc5317e498a",
   "validator_path": "scripts/validate_vera_runtime_cohesion_v1.py",
   "validator_blob_sha": "08b5aa206b32d62dafe553926872aa19d866796e",
-  "compatibility_generation": "A1+B1",
+  "compatibility_generation": "A1+B1+OPERATIONAL_FABRIC_V1",
+  "operational_support": {
+    "normative_status": "NON_NORMATIVE_OPERATIONAL_SUPPORT",
+    "provider_fabric": {
+      "path": "architecture/VERA_PROVIDER_FABRIC_V1.json",
+      "blob_sha": "be85f0739a56397e9be87b357ec590284178707a"
+    },
+    "provider_validator": {
+      "path": "scripts/validate_runtime_cohesion_provider_fabric_v1.py",
+      "blob_sha": "26203954105086a42774980ca6b0eeb07c515d1b"
+    },
+    "evidence_module": {
+      "path": "runtime_cohesion/evidence.py",
+      "blob_sha": "c9a60862f361b8fa02cc0b4a74f771196dee346d"
+    },
+    "reconciliation_module": {
+      "path": "runtime_cohesion/reconcile.py",
+      "blob_sha": "4b23740d3c0c839842219a997e4d6fe307db6167"
+    },
+    "runtime_planner_module": {
+      "path": "runtime_cohesion/runtime.py",
+      "blob_sha": "264c456ed96f081b1393787834898a24c14a262e"
+    },
+    "projection_audit_module": {
+      "path": "runtime_cohesion/audit.py",
+      "blob_sha": "0e920300ad12693540dcde5ee3c25c8e50671b08"
+    },
+    "native_hook": {
+      "path": "architecture/VERA_RUNTIME_COHESION_NATIVE_HOOK_V1.json",
+      "blob_sha": "40618d72d9970b2a12b248bc40e8654e5d5019da",
+      "status": "SOURCE_ONLY_NOT_INSTALLED"
+    }
+  },
+  "focused_tdd_evidence": {
+    "result": "42_FOCUSED_RUNTIME_PROVIDER_TESTS_PASS_IN_RECONSTRUCTED_LOCAL_WORKSPACE",
+    "scope": "Implementation-focused envelope/reconciliation/planner/hostile/crossbind/audit/hook tests plus Python compilation. This is not exact-branch CI evidence and does not qualify legacy cohesion source or native runtime behavior."
+  },
   "validation_result": "SOURCE_VALIDATION_NOT_YET_EXECUTED",
-  "evidence_ceiling": "This receipt binds exact source objects only. It does not prove merge, installation, current-route activation, runtime consumption, behavioral qualification, or phenomenology."
+  "ci_execution_state": "CI_EXECUTION_UNAVAILABLE_ZERO_RUNNER_STEPS_OBSERVED",
+  "evidence_ceiling": "This receipt binds exact source objects and separately records bounded focused TDD evidence. It does not prove merge, installation, current-route activation, automatic background execution, runtime consumption, behavioral qualification, or phenomenology."
 }
