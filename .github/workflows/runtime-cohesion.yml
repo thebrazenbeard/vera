@@ -7,11 +7,16 @@ on:
       - "architecture/VERA_RUNTIME_ROUTING_CONTRACT_V1.json"
       - "architecture/VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json"
       - "architecture/VERA_RUNTIME_EVIDENCE_CONTRACT_V1.json"
+      - "architecture/VERA_COHESION_INDEX_V1.json"
+      - "architecture/VERA_RUNTIME_CONTRACT_V1.json"
+      - "architecture/VERA_COHESION_PAIR_RECEIPT_V1.json"
       - "docs/VERA_RUNTIME_COHESION*.md"
       - "docs/VERA_COHESION*.md"
       - "scripts/validate_vera_runtime_cohesion_v1.py"
       - "tests/test_vera_runtime_cohesion_v1.py"
       - "tests/test_vera_runtime_evidence_contract_v1.py"
+      - "tests/test_vera_cohesion_index_v1.py"
+      - "tests/test_vera_runtime_contract_v1.py"
       - ".github/workflows/runtime-cohesion.yml"
   workflow_dispatch:
 
@@ -29,6 +34,6 @@ jobs:
       - name: Validate cohesion source contracts
         run: python scripts/validate_vera_runtime_cohesion_v1.py
       - name: Run cohesion regression tests
-        run: python -m unittest tests.test_vera_runtime_cohesion_v1 tests.test_vera_runtime_evidence_contract_v1 -v
+        run: python -m unittest tests.test_vera_runtime_cohesion_v1 tests.test_vera_runtime_evidence_contract_v1 tests.test_vera_cohesion_index_v1 tests.test_vera_runtime_contract_v1 -v
       - name: Compile cohesion validator and tests
-        run: python -m py_compile scripts/validate_vera_runtime_cohesion_v1.py tests/test_vera_runtime_cohesion_v1.py tests/test_vera_runtime_evidence_contract_v1.py
+        run: python -m py_compile scripts/validate_vera_runtime_cohesion_v1.py tests/test_vera_runtime_cohesion_v1.py tests/test_vera_runtime_evidence_contract_v1.py tests/test_vera_cohesion_index_v1.py tests/test_vera_runtime_contract_v1.py
