@@ -1,0 +1,93 @@
+{
+  "schema": "VERA_RUNTIME_COHESION_PROVIDER_OBSERVATIONS_FIXTURE_V1",
+  "privacy": "SANITIZED_METADATA_ONLY_NO_PRIVATE_PAYLOAD",
+  "observations": {
+    "semanticatlas_github": {
+      "provider": "github",
+      "locator": "github:thebrazenbeard/semanticatlas@research/cee-always-active-v0.2",
+      "revision": "e68803e2631cf0722fec9a4e7fc39f3ad6b43de4",
+      "observed_at": "2026-09-09T00:00:00Z",
+      "evidence_class": "source_provenance",
+      "referent": "semanticatlas-runtime-snapshot",
+      "scope": "SOURCE_OBJECT",
+      "privacy_class": "GOVERNED",
+      "currentness_basis": "fresh_branch_readback",
+      "supersession_state": "CURRENT_OBSERVATION",
+      "conflict_state": "NONE",
+      "content_digest": null,
+      "receipt_ref": null,
+      "metadata": {"projection_role": "SOURCE"}
+    },
+    "semanticatlas_supabase": {
+      "provider": "supabase",
+      "locator": "supabase:klmbpaigzeguvnpccqzz/semantic_atlas.runtime_snapshots",
+      "revision": "e68803e2631cf0722fec9a4e7fc39f3ad6b43de4",
+      "observed_at": "2026-09-09T00:00:00Z",
+      "evidence_class": "persisted_provider_record",
+      "referent": "semanticatlas-runtime-snapshot",
+      "scope": "PROVIDER_OBJECT",
+      "privacy_class": "GOVERNED",
+      "currentness_basis": "fresh_sql_readback",
+      "supersession_state": "CURRENT_OBSERVATION",
+      "conflict_state": "NONE",
+      "content_digest": null,
+      "receipt_ref": null,
+      "metadata": {"projection_role": "TARGET", "snapshot_state": "ACTIVE", "validation_state": "VERIFIED"}
+    },
+    "r9b0_drive": {
+      "provider": "google_drive",
+      "locator": "drive:file/171ExqDU35TsNMMRilcJ-EjtiDYxW8Pol",
+      "revision": "modified:2026-08-30T18:30:31.536Z",
+      "observed_at": "2026-09-09T00:00:00Z",
+      "evidence_class": "persisted_provider_record",
+      "referent": "r9b0-memory-epoch-drive-object",
+      "scope": "PROVIDER_OBJECT",
+      "privacy_class": "PRIVATE_AUTOBIOGRAPHICAL",
+      "currentness_basis": "drive_metadata_plus_provider_receipt",
+      "supersession_state": "CURRENT_OBSERVATION",
+      "conflict_state": "NONE",
+      "content_digest": "sha256:e91c412fbcff8c1ce0e8e3fb9892deaae23846c20fe0874469dd1105b191a8f0",
+      "receipt_ref": "supabase:vera_memory_epoch_provider_receipts_v1/GOOGLE_DRIVE_DURABLE",
+      "metadata": {"projection_role": "SOURCE", "byte_length": 2223}
+    },
+    "r9b0_supabase_drive_receipt": {
+      "provider": "supabase",
+      "locator": "supabase:klmbpaigzeguvnpccqzz/vera_memory_epoch_provider_receipts_v1/GOOGLE_DRIVE_DURABLE",
+      "revision": "modified:2026-08-30T18:30:31.536Z",
+      "observed_at": "2026-09-09T00:00:00Z",
+      "evidence_class": "persisted_provider_record",
+      "referent": "r9b0-memory-epoch-drive-object",
+      "scope": "PROVIDER_RECEIPT",
+      "privacy_class": "PRIVATE_AUTOBIOGRAPHICAL",
+      "currentness_basis": "fresh_sql_readback",
+      "supersession_state": "CURRENT_OBSERVATION",
+      "conflict_state": "NONE",
+      "content_digest": "sha256:e91c412fbcff8c1ce0e8e3fb9892deaae23846c20fe0874469dd1105b191a8f0",
+      "receipt_ref": "supabase:vera_memory_epoch_provider_receipts_v1/GOOGLE_DRIVE_DURABLE",
+      "metadata": {"projection_role": "TARGET", "result": "VERIFIED_EXACT", "written_byte_length": 2223, "readback_byte_length": 2223}
+    },
+    "drive_cohesion_companion": {
+      "provider": "google_drive",
+      "locator": "drive:document/1EklR49OLzHaDtA97M0KcKrJBgwuA_Ynt-PKd5bd8vIs",
+      "revision": "modified:2026-09-08T15:27:31.986Z",
+      "observed_at": "2026-09-09T00:00:00Z",
+      "evidence_class": "persisted_provider_record",
+      "referent": "vera-runtime-cohesion-readable-companion",
+      "scope": "SEMANTIC_COMPANION",
+      "privacy_class": "GOVERNED",
+      "currentness_basis": "drive_metadata_and_content_readback_without_bound_source_revision",
+      "supersession_state": "UNKNOWN",
+      "conflict_state": "UNKNOWN",
+      "content_digest": null,
+      "receipt_ref": null,
+      "metadata": {"projection_role": "TARGET", "bound_source_revision": null}
+    }
+  },
+  "live_scope_facts": {
+    "radar_projection_ref_pattern": "refs/heads/bus/**",
+    "radar_projection_path_pattern": "messages/**",
+    "cohesion_bus_ref": "refs/heads/project/vera-runtime-cohesion-v1",
+    "cohesion_bus_path_prefix": "projects/vera-runtime-cohesion/",
+    "cohesion_bus_is_radar_projection_candidate": false
+  }
+}
