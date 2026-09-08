@@ -21,6 +21,9 @@ def main() -> int:
     assert archive["role"] == "HISTORICAL_EVIDENCE_PLANE"
     assert archive["authority_class"] == "EVIDENCE_SEARCH_ONLY"
     assert archive["canonical_retrieval"].startswith("UNION_ALL_LEDGER_TRANCHES")
+    assert archive["required_contract_path"] == "architecture/DEEP_MEMORY_ARCHITECTURE_BINDING_V1.json"
+    assert archive["required_human_contract_path"] == "architecture/DEEP_MEMORY_INTEGRATION_CONTRACT_V1.md"
+    assert archive["required_result_schema_path"] == "schema/DEEP_MEMORY_EVIDENCE_RESULT_V1.schema.json"
 
     current = data["current_memory_plane"]
     assert current["route"] == "workstream/memory"
@@ -32,6 +35,13 @@ def main() -> int:
     assert bridge["mode"] == "EXPLICIT_REVIEW_ONLY"
     assert bridge["automatic"] is False
     assert bridge["requires_separate_authority"] is True
+
+    retrieval = data["retrieval"]
+    assert retrieval["operation"] == "EVIDENCE_SEARCH"
+    assert retrieval["result_class"] == "HISTORICAL_EVIDENCE"
+    assert retrieval["result_schema"] == "VERA_DEEP_MEMORY_EVIDENCE_RESULT_V1"
+    assert retrieval["privacy_default"] == "FAIL_CLOSED_EXACT_AUTHORIZED_SCOPE"
+    assert retrieval["archive_audit_override"] == "EXPLICIT_ARCHIVE_AUDIT_ALL_PRIVATE_REPOSITORY_ONLY"
 
     assert data["execution_authorized"] is False
     assert data["canonical_memory_eligible"] is False
