@@ -1,0 +1,31 @@
+name: Vera Runtime Cohesion
+
+on:
+  pull_request:
+    paths:
+      - "architecture/VERA_SYSTEM_MANIFEST_V1.json"
+      - "architecture/VERA_RUNTIME_ROUTING_CONTRACT_V1.json"
+      - "architecture/VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json"
+      - "docs/VERA_RUNTIME_COHESION*.md"
+      - "scripts/validate_vera_runtime_cohesion_v1.py"
+      - "tests/test_vera_runtime_cohesion_v1.py"
+      - ".github/workflows/runtime-cohesion.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate cohesion source contracts
+        run: python scripts/validate_vera_runtime_cohesion_v1.py
+      - name: Run cohesion regression tests
+        run: python -m unittest tests.test_vera_runtime_cohesion_v1 -v
+      - name: Compile cohesion validator and tests
+        run: python -m py_compile scripts/validate_vera_runtime_cohesion_v1.py tests/test_vera_runtime_cohesion_v1.py
