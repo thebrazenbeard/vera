@@ -9,6 +9,7 @@
     "role":"HISTORICAL_EVIDENCE_PLANE",
     "required_contract_path":"architecture/DEEP_MEMORY_ARCHITECTURE_BINDING_V1.json",
     "required_human_contract_path":"architecture/DEEP_MEMORY_INTEGRATION_CONTRACT_V1.md",
+    "required_result_schema_path":"schema/DEEP_MEMORY_EVIDENCE_RESULT_V1.schema.json",
     "canonical_retrieval":"UNION_ALL_LEDGER_TRANCHES_WITH_APPEND_ONLY_AMENDMENT_AND_CLASSIFICATION_OVERLAYS",
     "authority_class":"EVIDENCE_SEARCH_ONLY"
   },
@@ -46,6 +47,9 @@
   "retrieval":{
     "operation":"EVIDENCE_SEARCH",
     "result_class":"HISTORICAL_EVIDENCE",
+    "result_schema":"VERA_DEEP_MEMORY_EVIDENCE_RESULT_V1",
+    "privacy_default":"FAIL_CLOSED_EXACT_AUTHORIZED_SCOPE",
+    "archive_audit_override":"EXPLICIT_ARCHIVE_AUDIT_ALL_PRIVATE_REPOSITORY_ONLY",
     "required_boundaries":[
       "source_vs_interpretation",
       "event_time_vs_record_time_vs_retrieval_time",
