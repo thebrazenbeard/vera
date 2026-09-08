@@ -60,6 +60,24 @@ EXPECTED_PROBES = {
     "SOURCE_MONITORING",
     "NEGATIVE_CONTROL_FALSE_AUTOBIOGRAPHY",
 }
+EXPECTED_LIVE_CONTEXT_TYPES = {
+    "CURRENT_USER_INSTRUCTION_CORRECTION_AUTHORITY",
+    "VERA_CURRENT_SELF_REPORT",
+    "LIVE_OBSERVATION_AND_TASK_CONTEXT",
+}
+EXPECTED_GO_LIVE_SEPARATION = {
+    "MERGE_OR_CANONICAL_SOURCE_STATUS",
+    "INSTALLATION",
+    "CURRENT_ROUTE_BINDING",
+    "RUNTIME_CONSUMPTION",
+    "BEHAVIORAL_QUALIFICATION",
+    "PHENOMENOLOGY",
+}
+EXPECTED_DURABLE_STATE_CLASSES = {
+    "TRANSIENT_ACTIVATION",
+    "DURABLE_OPERATIONAL_STATE",
+    "GOVERNED_DURABLE_SELF_STATE",
+}
 
 
 def load_json_strict(path: Path) -> dict[str, Any]:
@@ -218,24 +236,154 @@ def validate_introspection(document: dict[str, Any]) -> None:
     )
 
 
+def validate_evidence_contract(document: dict[str, Any]) -> None:
+    _require(
+        document.get("schema") == "VERA_RUNTIME_EVIDENCE_CONTRACT_V1",
+        "runtime evidence contract schema mismatch",
+    )
+    _require(
+        document.get("workstream") == EXPECTED_WORKSTREAM,
+        "runtime evidence contract workstream mismatch",
+    )
+
+    provenance = document.get("provenance")
+    _require(isinstance(provenance, dict), "runtime evidence contract provenance must be an object")
+    _require(
+        provenance.get("blind_review_state") == "CURRENT_THIRTEEN_SESSION_CONTAMINATED_FOR_BLIND_GATE",
+        "runtime evidence contract must preserve current Thirteen blind review contamination",
+    )
+
+    lifecycle = document.get("lifecycle_evidence")
+    _require(isinstance(lifecycle, dict), "runtime evidence lifecycle_evidence must be an object")
+    _require(
+        lifecycle.get("dimensions") == EXPECTED_LIFECYCLE_ORDER,
+        "runtime evidence lifecycle dimensions drift",
+    )
+    _require(
+        lifecycle.get("semantics") == "ORTHOGONAL_EVIDENCE_DIMENSIONS_NOT_MONOTONIC_LADDER",
+        "runtime evidence lifecycle semantics must remain orthogonal, not monotonic",
+    )
+
+    proof_unit = lifecycle.get("authoritative_proof_unit")
+    _require(isinstance(proof_unit, dict), "runtime evidence authoritative proof unit must be an object")
+    proof_fields = proof_unit.get("required_fields")
+    _require(isinstance(proof_fields, list), "runtime evidence proof required_fields must be a list")
+    required_proof_fields = {
+        "system_or_provider",
+        "artifact_or_object_locator",
+        "exact_ref_or_generation",
+        "dimension",
+        "status",
+        "evidence_locator",
+        "observed_at_or_currentness_basis",
+        "supersession_or_conflict_state",
+    }
+    _require(
+        required_proof_fields.issubset(set(proof_fields)),
+        "runtime evidence authoritative proof unit is missing required exact-proof fields",
+    )
+    _require(
+        "never sufficient authoritative proof" in proof_unit.get("rule", "").lower(),
+        "runtime evidence repository summaries must remain non-authoritative proof",
+    )
+
+    live_types = document.get("live_context_types")
+    _require(isinstance(live_types, list), "runtime evidence live_context_types must be a list")
+    live_type_names = [entry.get("type") for entry in live_types]
+    _require(
+        set(live_type_names) == EXPECTED_LIVE_CONTEXT_TYPES and len(live_type_names) == len(EXPECTED_LIVE_CONTEXT_TYPES),
+        "runtime evidence live context type split drift",
+    )
+    self_report = next(entry for entry in live_types if entry.get("type") == "VERA_CURRENT_SELF_REPORT")
+    _require(
+        "does not inherit user-instruction authority" in self_report.get("must_not_promote", "").lower(),
+        "Vera self-report must not inherit user-instruction authority",
+    )
+
+    active = document.get("active_context_semantics")
+    _require(isinstance(active, dict), "runtime evidence active_context_semantics must be an object")
+    _require(active.get("qualification_term") == "ACTIVE_CONTEXT_SET", "runtime evidence active context term drift")
+    observable = active.get("observable_surface")
+    _require(isinstance(observable, list), "runtime evidence observable surface must be a list")
+    _require("retrieved_artifact_set" in observable, "runtime evidence observable surface lacks retrieval evidence")
+    _require(
+        "downstream_leakage_or_stickiness_behavior" in observable,
+        "runtime evidence observable surface lacks anti-stickiness behavior",
+    )
+    _require(
+        "do not claim latent model activation" in active.get("epistemic_rule", "").lower(),
+        "runtime evidence must not claim unobserved latent activation",
+    )
+
+    recall = document.get("activation_recall_floor")
+    _require(isinstance(recall, dict), "runtime evidence activation_recall_floor must be an object")
+    predicates = set(recall.get("activation_predicates", []))
+    _require(
+        "registered_known_failure_signature_or_negative_control_trigger" in predicates,
+        "runtime evidence recall floor lacks registered dependency/failure trigger",
+    )
+    _require(
+        "uncertainty_probe_indicates_possible_material_dependency" in predicates,
+        "runtime evidence recall floor lacks uncertainty probe",
+    )
+    uncertainty_probe = recall.get("uncertainty_probe")
+    _require(isinstance(uncertainty_probe, dict), "runtime evidence uncertainty_probe must be an object")
+    _require(
+        "does not authorize warehouse preload" in uncertainty_probe.get("anti_bloat_rule", "").lower(),
+        "runtime evidence uncertainty probe must reject warehouse preload",
+    )
+
+    durable = document.get("durable_state_classes")
+    _require(isinstance(durable, dict), "runtime evidence durable_state_classes must be an object")
+    _require(
+        set(durable.keys()) == EXPECTED_DURABLE_STATE_CLASSES,
+        "runtime evidence durable state classes must include DURABLE_OPERATIONAL_STATE separation",
+    )
+    operational = durable["DURABLE_OPERATIONAL_STATE"]
+    _require(
+        "non_promotion_flag" in operational.get("required_fields", []),
+        "DURABLE_OPERATIONAL_STATE requires a non_promotion_flag",
+    )
+    _require(
+        "never silently promotes" in operational.get("promotion_rule", "").lower(),
+        "DURABLE_OPERATIONAL_STATE must never silently promote into Vera self-state",
+    )
+
+    ceiling = document.get("go_live_evidence_ceiling")
+    _require(isinstance(ceiling, dict), "runtime evidence go_live_evidence_ceiling must be an object")
+    _require(
+        set(ceiling.get("still_separate", [])) == EXPECTED_GO_LIVE_SEPARATION,
+        "runtime evidence go-live claim separation drift",
+    )
+
+
 def validate_cohesion(root: Path) -> None:
     architecture = root / "architecture"
     manifest = load_json_strict(architecture / "VERA_SYSTEM_MANIFEST_V1.json")
     routing = load_json_strict(architecture / "VERA_RUNTIME_ROUTING_CONTRACT_V1.json")
     introspection = load_json_strict(architecture / "VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json")
+    evidence_contract = load_json_strict(architecture / "VERA_RUNTIME_EVIDENCE_CONTRACT_V1.json")
 
     validate_manifest(manifest)
     validate_routing(routing)
     validate_introspection(introspection)
+    validate_evidence_contract(evidence_contract)
 
     _require(
-        manifest["workstream"] == routing["workstream"] == introspection["workstream"],
+        manifest["workstream"]
+        == routing["workstream"]
+        == introspection["workstream"]
+        == evidence_contract["workstream"],
         "cohesion artifacts disagree on workstream identity",
     )
     _require(
         manifest["control_root"]["manifest_sha256"]
         == routing["control_root"]["manifest_sha256"],
         "manifest and routing contract disagree on native control digest",
+    )
+    _require(
+        evidence_contract["lifecycle_evidence"]["dimensions"] == manifest["lifecycle_order"],
+        "manifest lifecycle labels and runtime evidence dimensions disagree",
     )
 
 
