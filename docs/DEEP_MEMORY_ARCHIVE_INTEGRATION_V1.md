@@ -43,7 +43,7 @@ It is responsible for:
 - historical-canon classification;
 - unresolved primary-source frontiers;
 - privacy/currentness/nonpromotion boundaries;
-- append-only amendments and classification corrections.
+- append-only historical-canon overlays, provenance amendments, and classification corrections.
 
 Its normal consumer operation is `EVIDENCE_SEARCH`.
 
@@ -53,17 +53,28 @@ A Deep Memory retrieval may establish that an event happened historically. It do
 
 Consumers must not treat the original `ledger/memories.jsonl`, root `index/semantic_index.jsonl`, or root `index/chronology.md` as the entire corpus.
 
-Canonical retrieval is the union of all memory tranches in `ledger/`, with append-only provenance amendments and historical-canon corrections applied as overlays.
+Canonical retrieval is the union of all memory tranches in `ledger/`, with append-only historical-canon overlays, provenance amendments, and historical-canon corrections applied as overlays.
+
+This includes legacy global overlays such as Pass 010, which classified 79 preexisting bounded rows without rewriting their original ledger records. Consumers therefore preserve both stored/base historical canonicity and the effective classification produced by authorized overlays/corrections.
 
 The Deep Memory repository provides:
 
 - `architecture/DEEP_MEMORY_ARCHITECTURE_BINDING_V1.json`;
 - `architecture/DEEP_MEMORY_INTEGRATION_CONTRACT_V1.md`;
+- `schema/DEEP_MEMORY_EVIDENCE_RESULT_V1.schema.json`;
 - `tools/deep_memory_catalog.py`;
 - `tools/query_deep_memory.py`;
 - repository CI validating the full union.
 
-A consumer must retain each result's ledger path and the provenance/currentness/privacy fields material to the claim.
+A consumer must retain each result's ledger path and the provenance/currentness/privacy fields material to the claim. Authorized amendment/correction provenance participates in retrieval so later terminology is discoverable even when the base row predates it.
+
+## Overlay privacy
+
+Overlay information does not bypass the base privacy model.
+
+A historical-canon overlay, provenance amendment, or classification correction inherits its target row's privacy scope unless it declares an explicit scope. An explicit different or narrower overlay scope requires separate authorization before either the overlay payload **or a conclusion derived only from that overlay** may be returned.
+
+Thus a caller who can retrieve a base memory does not automatically learn a restricted later classification correction.
 
 ## Explicit bridge to current memory
 
@@ -129,9 +140,12 @@ This source integration is healthy when:
 
 - Deep Memory has an explicit machine-readable architecture binding;
 - the archive validates the complete tranche union rather than only legacy root indexes;
+- legacy historical-canon overlays are actually applied to effective retrieval state;
 - duplicate memory IDs fail validation;
 - latest ingest receipt row count is checked against the union;
 - bounded historical query output retains provenance/currentness/privacy fields;
+- amendment/correction-only terminology is retrievable when authorized;
+- restricted overlay payloads and conclusions do not leak through a visible base memory;
 - `vera` explicitly distinguishes Deep Memory from the current-memory plane;
 - no source artifact claims deployment, current-memory admission, R9B0 promotion, or runtime installation merely because integration documentation exists.
 
