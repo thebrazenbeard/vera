@@ -24,7 +24,8 @@ EXPECTED_DOMAIN_FIELDS = {
     "privacy_class",
     "fail_closed_behavior",
 }
-EXPECTED_TARGET_FIELDS = {"source_ref", "route_ref", "evidence_class_ref"}
+REQUIRED_TARGET_FIELDS = {"source_ref", "route_ref", "evidence_capability_refs"}
+OPTIONAL_TARGET_FIELDS = {"selector_ref"}
 EXPECTED_ROUTE_FIELDS = {"id", "locator", "declaration_state"}
 LIFECYCLE_SEMANTICS = "NAVIGATION_ONLY_NON_AUTHORITATIVE_NON_MONOTONIC"
 AUTHORITY_PREFIX = "VERA_RUNTIME_CONTRACT_V1#authority_resolvers."
@@ -45,6 +46,8 @@ class VeraCohesionIndexV1Tests(unittest.TestCase):
         self.assertEqual(len(systems), 13)
         ids = [system["id"] for system in systems]
         self.assertEqual(len(ids), len(set(ids)))
+        self.assertIn("supabase-vera-production", ids)
+        self.assertNotIn("supabase-production", ids)
         self.assertNotIn("temporal", ids)
         self.assertEqual(document["auxiliary_sources"]["temporal"]["role"], "CHRONOLOGY_ONLY")
 
@@ -71,7 +74,7 @@ class VeraCohesionIndexV1Tests(unittest.TestCase):
             self.assertEqual(route["declaration_state"], "DECLARED")
             self.assertTrue(route["locator"])
 
-    def test_domains_use_one_resolver_with_many_typed_evidence_targets(self):
+    def test_domains_use_one_resolver_with_many_capability_typed_targets(self):
         document = load_index()
         domains = document.get("domains")
         self.assertIsInstance(domains, list, "consolidated index requires domains")
@@ -86,10 +89,17 @@ class VeraCohesionIndexV1Tests(unittest.TestCase):
             self.assertTrue(set(domain["evidence_sources"]).issubset(known_sources), domain["id"])
             self.assertTrue(domain["retrieval_targets"], domain["id"])
             for target in domain["retrieval_targets"]:
-                self.assertEqual(set(target), EXPECTED_TARGET_FIELDS)
+                self.assertTrue(REQUIRED_TARGET_FIELDS.issubset(target), domain["id"])
+                self.assertTrue(set(target).issubset(REQUIRED_TARGET_FIELDS | OPTIONAL_TARGET_FIELDS), domain["id"])
                 self.assertIn(target["source_ref"], known_sources, domain["id"])
                 self.assertIn(target["route_ref"], known_routes, domain["id"])
-                self.assertTrue(target["evidence_class_ref"].startswith(EVIDENCE_PREFIX), domain["id"])
+                self.assertTrue(target["evidence_capability_refs"], domain["id"])
+                for capability in target["evidence_capability_refs"]:
+                    self.assertTrue(capability.startswith(EVIDENCE_PREFIX), domain["id"])
+                if "selector_ref" in target:
+                    self.assertIsInstance(target["selector_ref"], str)
+                    self.assertLessEqual(len(target["selector_ref"]), 160)
+                    self.assertNotIn("\n", target["selector_ref"])
             self.assertTrue(domain["fail_closed_behavior"], domain["id"])
 
     def test_failure_signatures_are_contract_refs_not_opaque_local_labels(self):
