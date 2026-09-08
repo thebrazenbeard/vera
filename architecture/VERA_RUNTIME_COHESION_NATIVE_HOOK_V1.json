@@ -37,6 +37,10 @@
       "call": "runtime_cohesion.reconcile.reconcile_exact",
       "rule": "Compare exact revision/generation/digest evidence; observation timestamps never break exact-object conflicts."
     },
+    "ADMIT_PROPOSITION": {
+      "call": "runtime_cohesion.runtime.evaluate_proposition_admission",
+      "rule": "After typing/currentness reconciliation, select the matching resolver_dispatch row for the exact domain/proposition/referent tuple before terminal resolver acceptance. Readable or VERIFIED_EXACT provider evidence remains insufficient when the selected dispatch requires a different decisive evidence class; missing or ambiguous dispatch fails closed."
+    },
     "CHECKPOINT": {
       "call": "runtime_cohesion.runtime.build_operational_checkpoint",
       "rule": "Persist only minimum-necessary pointers/digests/status needed to resume; never copy specialist payloads merely for convenience."
@@ -45,8 +49,10 @@
   "runtime_cycle": [
     "ORIENT",
     "DOMAIN_RETRIEVE_PROVIDER_EXECUTION",
+    "INDEPENDENT_ITEM_TYPING_AND_PRIVACY_VERIFICATION",
     "PROJECTION_RECONCILE_WHEN_REGISTERED_PROVIDER_CURRENTNESS_IS_MATERIAL",
     "RECONCILE",
+    "ADMIT_PROPOSITION_THROUGH_NON_BYPASSABLE_DISPATCH",
     "CHECKPOINT_ONLY_WHEN_RESUMABILITY_REQUIRES_DURABLE_OPERATIONAL_STATE",
     "RELEASE_IRRELEVANT_DOMAIN_STATE"
   ],
@@ -72,6 +78,7 @@
     "Provider persistence is not present truth or current Vera self-state.",
     "Temporal chronology is not semantic/currentness authority.",
     "Retrieved item type must be independently established.",
+    "VERIFIED_EXACT reconciliation is not proposition authority; resolver dispatch remains a separate gate.",
     "Operational checkpoint state never silently becomes autobiographical/current-self-state memory.",
     "Patrick authority and Vera self-authored stance remain actor/referent/proposition specific.",
     "Adapter availability and scheduler output are operational evidence only and never policy authority."
