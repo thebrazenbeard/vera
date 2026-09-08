@@ -6,9 +6,9 @@
   "contract_schema": "VERA_RUNTIME_CONTRACT_V1",
   "index_blob_sha": "5a1cae66d1f3a72b54c633a3c1ee888e013ac10d",
   "contract_blob_sha": "defb541b8f01a583a67223f6a241de64a1be20bb",
-  "source_commit": "e51243e1d95d40bd283b7f9374b9883e6de76038",
+  "source_commit": "2b2f8fa0d42ff4517ec196ee1f00cdbc3d44a3a7",
   "validator_path": "scripts/validate_vera_runtime_cohesion_v1.py",
-  "validator_blob_sha": "afce0077b1109db4f4891a86c7faf09c791fc84a",
+  "validator_blob_sha": "08b5aa206b32d62dafe553926872aa19d866796e",
   "compatibility_generation": "A1+B1",
   "validation_result": "SOURCE_VALIDATION_NOT_YET_EXECUTED",
   "evidence_ceiling": "This receipt binds exact source objects only. It does not prove merge, installation, current-route activation, runtime consumption, behavioral qualification, or phenomenology."
