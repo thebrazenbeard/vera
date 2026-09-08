@@ -8,10 +8,10 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "architecture/integration/VERA_DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.json"
 DOC = ROOT / "docs/DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.md"
 
-EXPECTED_DEEP_MEMORY_HEAD = "5e3f87b203f7d78172d4a68aac41d7c5b055af8a"
-EXPECTED_BINDING_BLOB = "3cc3f85135392bdd16eec8beec23dd1366557451"
-EXPECTED_HUMAN_CONTRACT_BLOB = "ba5d4a13abc721cfd2a2221187c8b86637b5cf17"
-EXPECTED_RESULT_SCHEMA_BLOB = "0cb826731a9e9dc6c0b6cc6688615e61aee64ee4"
+EXPECTED_DEEP_MEMORY_HEAD = "04ac3fec82a36a73d3cb8c3b348a54702f4b35a0"
+EXPECTED_BINDING_BLOB = "80af8f6d59155d98313ac79fa877f69a81f22879"
+EXPECTED_HUMAN_CONTRACT_BLOB = "40e18367dbddf231cf420cb0ab849a0e005bd546"
+EXPECTED_RESULT_SCHEMA_BLOB = "d7a3d5847ffa65dceaa2914514144c755ef1c556"
 
 
 def main() -> int:
@@ -26,6 +26,7 @@ def main() -> int:
     assert archive["role"] == "HISTORICAL_EVIDENCE_PLANE"
     assert archive["authority_class"] == "EVIDENCE_SEARCH_ONLY"
     assert archive["canonical_retrieval"].startswith("UNION_ALL_LEDGER_TRANCHES")
+    assert "HISTORICAL_CANON" in archive["canonical_retrieval"]
     assert archive["source_candidate_head"] == EXPECTED_DEEP_MEMORY_HEAD
     assert archive["required_contract_path"] == "architecture/DEEP_MEMORY_ARCHITECTURE_BINDING_V1.json"
     assert archive["required_contract_blob"] == EXPECTED_BINDING_BLOB
@@ -50,6 +51,8 @@ def main() -> int:
     assert retrieval["result_class"] == "HISTORICAL_EVIDENCE"
     assert retrieval["result_schema"] == "VERA_DEEP_MEMORY_EVIDENCE_RESULT_V1"
     assert retrieval["privacy_default"] == "FAIL_CLOSED_EXACT_AUTHORIZED_SCOPE"
+    assert retrieval["overlay_privacy"] == "INHERIT_TARGET_UNLESS_EXPLICIT_SCOPE_REQUIRES_SEPARATE_AUTHORIZATION"
+    assert "stored_vs_effective_historical_canonicity" in retrieval["required_boundaries"]
     assert retrieval["archive_audit_override"] == "EXPLICIT_ARCHIVE_AUDIT_ALL_PRIVATE_REPOSITORY_ONLY"
 
     assert data["execution_authorized"] is False
