@@ -1,0 +1,38 @@
+{
+  "schema": "VERA_COHESION_INDEX_V1",
+  "workstream": "VERA_RUNTIME_COHESION_V1",
+  "status": "SOURCE_DESIGN / NOT_MERGED / NOT_INSTALLED / NOT_RUNTIME_QUALIFIED",
+  "inventory_semantics": "FIXED_13_SYSTEM_NAVIGATION_INDEX",
+  "systems": [
+    {"id": "vera", "locator": "github:thebrazenbeard/vera", "role": "CROSS_CUTTING_ARCHITECTURE_SOURCE"},
+    {"id": "vera-control-plane", "locator": "github:thebrazenbeard/vera-control-plane", "role": "CURRENT_CONTROL_SOURCE"},
+    {"id": "empathy", "locator": "github:thebrazenbeard/empathy", "role": "SPECIALIST_EVIDENCE_SOURCE"},
+    {"id": "selfimage", "locator": "github:thebrazenbeard/selfimage", "role": "REPRESENTATION_SOURCE"},
+    {"id": "chat-communication-bus", "locator": "github:thebrazenbeard/chat-communication-bus", "role": "COORDINATION_SOURCE"},
+    {"id": "personification", "locator": "github:thebrazenbeard/personification", "role": "SPECIALIST_RESEARCH_SOURCE"},
+    {"id": "deepmemorystorage", "locator": "github:thebrazenbeard/deepmemorystorage", "role": "HISTORICAL_AUDIT_SOURCE"},
+    {"id": "sexuality", "locator": "github:thebrazenbeard/sexuality", "role": "SPECIALIST_RESEARCH_SOURCE"},
+    {"id": "conations", "locator": "github:thebrazenbeard/conations", "role": "HISTORICAL_CONATION_SOURCE"},
+    {"id": "semanticatlas", "locator": "github:thebrazenbeard/semanticatlas", "role": "SEMANTIC_PROVENANCE_SOURCE"},
+    {"id": "vera-R9A0", "locator": "github:thebrazenbeard/vera-R9A0", "role": "PREDECESSOR_EVIDENCE_SOURCE"},
+    {"id": "vera_model_training", "locator": "github:thebrazenbeard/vera_model_training", "role": "EXTERNAL_TRAINING_WORKBENCH"},
+    {"id": "supabase-production", "locator": "supabase:klmbpaigzeguvnpccqzz", "role": "GOVERNED_PROVIDER_STATE_EVIDENCE"}
+  ],
+  "auxiliary_sources": {
+    "temporal": {
+      "locator": "github:thebrazenbeard/temporal",
+      "role": "CHRONOLOGY_ONLY",
+      "promotion_guard": "Timestamp chronology does not establish truth, authority, memory admission, identity, self-state, or phenomenology."
+    },
+    "google-drive": {
+      "locator": "provider:google-drive",
+      "role": "PERSISTENCE_RETRIEVAL_PROVIDER",
+      "promotion_guard": "Persistence does not establish present truth, native admission, or current authority."
+    },
+    "live-conversation": {
+      "locator": "runtime:current-conversation",
+      "role": "CURRENT_LIVE_SURFACE",
+      "promotion_guard": "Live context retains typed distinctions; ordinary observation does not become protected-effect permission."
+    }
+  }
+}
