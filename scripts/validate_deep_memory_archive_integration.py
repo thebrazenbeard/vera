@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "architecture/integration/VERA_DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.json"
 DOC = ROOT / "docs/DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.md"
 
-EXPECTED_DEEP_MEMORY_HEAD = "04ac3fec82a36a73d3cb8c3b348a54702f4b35a0"
+EXPECTED_DEEP_MEMORY_HEAD = "6bf20390565e92e74fe551386a3365d0289972f1"
 EXPECTED_BINDING_BLOB = "80af8f6d59155d98313ac79fa877f69a81f22879"
 EXPECTED_HUMAN_CONTRACT_BLOB = "40e18367dbddf231cf420cb0ab849a0e005bd546"
 EXPECTED_RESULT_SCHEMA_BLOB = "d7a3d5847ffa65dceaa2914514144c755ef1c556"
@@ -78,6 +78,8 @@ def main() -> int:
         "no automatic Deep Memory -> current memory promotion",
         "CANONICAL_HISTORY",
         "EVIDENCE_SEARCH",
+        "Pass 010",
+        "conclusion derived only from that overlay",
     ):
         assert required.casefold() in text.casefold(), required
 
