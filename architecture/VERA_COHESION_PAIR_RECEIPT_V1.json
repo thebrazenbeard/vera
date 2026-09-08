@@ -1,0 +1,15 @@
+{
+  "schema": "VERA_COHESION_PAIR_RECEIPT_V1",
+  "workstream": "VERA_RUNTIME_COHESION_V1",
+  "normative_status": "NON_NORMATIVE_VALIDATION_SUPPORT",
+  "index_schema": "VERA_COHESION_INDEX_V1",
+  "contract_schema": "VERA_RUNTIME_CONTRACT_V1",
+  "index_blob_sha": "5a1cae66d1f3a72b54c633a3c1ee888e013ac10d",
+  "contract_blob_sha": "defb541b8f01a583a67223f6a241de64a1be20bb",
+  "source_commit": "e51243e1d95d40bd283b7f9374b9883e6de76038",
+  "validator_path": "scripts/validate_vera_runtime_cohesion_v1.py",
+  "validator_blob_sha": "afce0077b1109db4f4891a86c7faf09c791fc84a",
+  "compatibility_generation": "A1+B1",
+  "validation_result": "SOURCE_VALIDATION_NOT_YET_EXECUTED",
+  "evidence_ceiling": "This receipt binds exact source objects only. It does not prove merge, installation, current-route activation, runtime consumption, behavioral qualification, or phenomenology."
+}
