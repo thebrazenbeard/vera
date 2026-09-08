@@ -55,6 +55,7 @@ jobs:
           tests.test_runtime_cohesion_fabric_crossbind
           tests.test_runtime_cohesion_audit
           tests.test_runtime_cohesion_executor
+          tests.test_runtime_cohesion_projection_executor
           tests.test_runtime_cohesion_native_hook
           -v
       - name: Compile cohesion validators, runtime, and tests
@@ -80,4 +81,5 @@ jobs:
           tests/test_runtime_cohesion_fabric_crossbind.py
           tests/test_runtime_cohesion_audit.py
           tests/test_runtime_cohesion_executor.py
+          tests/test_runtime_cohesion_projection_executor.py
           tests/test_runtime_cohesion_native_hook.py
