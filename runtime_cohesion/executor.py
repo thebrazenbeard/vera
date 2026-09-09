@@ -83,7 +83,17 @@ def _provider_for_route(fabric: Mapping[str, Any], route_ref: str) -> str:
     return matches[0]
 
 
-def _request_for_candidate(candidate: Mapping[str, Any], provider: str) -> AdapterRequest:
+def _request_for_candidate(
+    candidate: Mapping[str, Any],
+    provider: str,
+    *,
+    governing_dispatch: Mapping[str, Any] | None = None,
+) -> AdapterRequest:
+    governing_proposition = None
+    governing_referent_scope = None
+    if governing_dispatch is not None:
+        governing_proposition = str(governing_dispatch["proposition_or_effect_class"])
+        governing_referent_scope = str(governing_dispatch["referent_scope"])
     return AdapterRequest(
         domain_id=str(candidate["domain_id"]),
         provider=provider,
@@ -92,6 +102,8 @@ def _request_for_candidate(candidate: Mapping[str, Any], provider: str) -> Adapt
         selector_ref=candidate.get("selector_ref"),
         privacy_class=str(candidate["privacy_class"]),
         evidence_capability_refs=tuple(candidate.get("evidence_capability_refs", ())),
+        governing_proposition_or_effect_class=governing_proposition,
+        governing_referent_scope=governing_referent_scope,
     )
 
 
@@ -102,10 +114,6 @@ def _candidate_key(candidate: Mapping[str, Any]) -> tuple[str, str, str, str | N
         str(candidate["route_ref"]),
         candidate.get("selector_ref"),
     )
-
-
-def _request_key(request: AdapterRequest) -> tuple[str, str, str, str | None]:
-    return (request.domain_id, request.source_ref, request.route_ref, request.selector_ref)
 
 
 def _allowed_evidence_classes(request: AdapterRequest) -> set[str]:
@@ -241,8 +249,27 @@ def _derive_governing_resolution(
     referent_scope = str(expected["referent_scope"])
     expected_dispatch_id = str(expected["id"])
     expected_resolver_ref = str(expected["resolver_ref"])
+    bound = [
+        item
+        for item in relevant
+        if item.metadata.get("proposition_or_effect_class") == proposition
+        and item.metadata.get("referent_scope") == referent_scope
+    ]
+    if not bound:
+        return GoverningResolutionRecord(
+            prerequisite_domain=prerequisite_domain,
+            proposition_or_effect_class=proposition,
+            referent_scope=referent_scope,
+            status="UNRESOLVED",
+            admission_status="UNRESOLVED",
+            dispatch_id=expected_dispatch_id,
+            resolver_ref=expected_resolver_ref,
+            observed_evidence_classes=observed_classes,
+            current_observation_count=0,
+            reason="No prerequisite evidence is explicitly bound to the exact A+B governing proposition/referent scope.",
+        )
 
-    if any(item.conflict_state in {"CONFLICT", "MISMATCH"} for item in relevant):
+    if any(item.conflict_state in {"CONFLICT", "MISMATCH"} for item in bound):
         return GoverningResolutionRecord(
             prerequisite_domain=prerequisite_domain,
             proposition_or_effect_class=proposition,
@@ -251,14 +278,14 @@ def _derive_governing_resolution(
             admission_status="CONFLICT",
             dispatch_id=expected_dispatch_id,
             resolver_ref=expected_resolver_ref,
-            observed_evidence_classes=observed_classes,
+            observed_evidence_classes=tuple(sorted({item.evidence_class for item in bound})),
             current_observation_count=0,
-            reason="Fresh prerequisite evidence contains an explicit conflict/mismatch and cannot release dependent I/O.",
+            reason="Exact proposition-bound prerequisite evidence contains an explicit conflict/mismatch and cannot release dependent I/O.",
         )
 
     current = [
         item
-        for item in relevant
+        for item in bound
         if item.supersession_state == "CURRENT_OBSERVATION" and item.conflict_state == "NONE"
     ]
     if not current:
@@ -270,9 +297,9 @@ def _derive_governing_resolution(
             admission_status="UNRESOLVED",
             dispatch_id=expected_dispatch_id,
             resolver_ref=expected_resolver_ref,
-            observed_evidence_classes=observed_classes,
+            observed_evidence_classes=tuple(sorted({item.evidence_class for item in bound})),
             current_observation_count=0,
-            reason="No conflict-free CURRENT_OBSERVATION evidence exists for the exact governing prerequisite.",
+            reason="No conflict-free CURRENT_OBSERVATION evidence exists for the exact governing proposition/referent.",
         )
 
     decision = evaluate_proposition_admission(
@@ -343,10 +370,10 @@ def execute_domain_cycle(
 
     The executor never accepts a caller-supplied SATISFIED status. It first
     retrieves safe hard-prerequisite evidence, independently derives the exact
-    governing proposition/referent dispatch from A+B, re-runs proposition
-    admission/currentness on the fresh exact-referent envelopes, and only then
-    feeds the derived governing status back into the planner. Dependent provider
-    I/O therefore cannot be released by an unbound status string.
+    governing proposition/referent dispatch from A+B, carries that exact request
+    binding across the adapter boundary, then re-runs proposition admission and
+    currentness on only the fresh envelopes that echo the same binding. Dependent
+    provider I/O is released only from that internally derived resolution.
     """
 
     probes: list[AdapterProbeResult] = []
@@ -384,7 +411,8 @@ def execute_domain_cycle(
         for candidate in plan.candidate_targets:
             key = _candidate_key(candidate)
             provider = _provider_for_route(fabric, str(candidate["route_ref"]))
-            request = _request_for_candidate(candidate, provider)
+            governing_dispatch, _ = _expected_governing_dispatch(str(candidate["domain_id"]), index, contract)
+            request = _request_for_candidate(candidate, provider, governing_dispatch=governing_dispatch)
             candidate_requests[key] = request
             if key in probed_keys:
                 continue
@@ -423,7 +451,8 @@ def execute_domain_cycle(
             provider = _provider_for_route(fabric, str(target["route_ref"]))
             request = candidate_requests.get(key)
             if request is None:
-                request = _request_for_candidate(target, provider)
+                governing_dispatch, _ = _expected_governing_dispatch(str(target["domain_id"]), index, contract)
+                request = _request_for_candidate(target, provider, governing_dispatch=governing_dispatch)
                 candidate_requests[key] = request
             adapter = adapters.get(provider)
             if adapter is None:
