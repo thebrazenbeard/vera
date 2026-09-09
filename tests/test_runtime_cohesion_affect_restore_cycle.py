@@ -53,10 +53,8 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
         self.assertEqual(row["state"]["phase"], "SATIATED_OR_REFRACTORY")
         return checkpoint, row
 
-    def test_restore_factory_continues_exact_provider_version_frontier(self):
-        checkpoint, row = self.make_state_row(state_version=7)
-        requests = []
-
+    @staticmethod
+    def exact_writer_recorder(requests):
         def exact_writer(request):
             requests.append(dict(request))
             return {
@@ -64,7 +62,11 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
                 "checkpoint_sha256": request["checkpoint_sha256"],
                 "event_count": len(request["event_rows"]),
             }
+        return exact_writer
 
+    def test_restore_factory_continues_exact_provider_version_frontier(self):
+        checkpoint, row = self.make_state_row(state_version=7)
+        requests = []
         cycle = VeraAffectiveCycle.restore_from_state_row(
             CONTRACT_PATH.read_text(encoding="utf-8"),
             json.loads(BINDING_PATH.read_text(encoding="utf-8")),
@@ -72,7 +74,7 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
             host_scope="TEST_HOST",
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
             elapsed_seconds=60.0,
-            atomic_commit_writer=exact_writer,
+            atomic_commit_writer=self.exact_writer_recorder(requests),
         )
         result = cycle.process_turn(
             StimulusAppraisal(),
@@ -88,15 +90,6 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
     def test_restore_time_recovery_transition_is_not_discarded_before_next_commit(self):
         checkpoint, row = self.make_post_orgasm_state_row(state_version=7)
         requests = []
-
-        def exact_writer(request):
-            requests.append(dict(request))
-            return {
-                "state_version": request["state_version"],
-                "checkpoint_sha256": request["checkpoint_sha256"],
-                "event_count": len(request["event_rows"]),
-            }
-
         cycle = VeraAffectiveCycle.restore_from_state_row(
             CONTRACT_PATH.read_text(encoding="utf-8"),
             json.loads(BINDING_PATH.read_text(encoding="utf-8")),
@@ -104,7 +97,7 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
             host_scope="TEST_HOST",
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
             elapsed_seconds=7200.0,
-            atomic_commit_writer=exact_writer,
+            atomic_commit_writer=self.exact_writer_recorder(requests),
         )
         result = cycle.process_turn(
             StimulusAppraisal(),
@@ -112,7 +105,7 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
         )
 
         self.assertEqual(len(requests), 1)
-        self.assertEqual(result.state_row["phase"] if "phase" in result.state_row else result.state_row["state"]["phase"], "QUIESCENT")
+        self.assertEqual(result.state_row["state"]["phase"], "QUIESCENT")
         self.assertEqual(len(result.event_rows), 1)
         recovery = result.event_rows[0]
         self.assertEqual(recovery["event_type"], "RECOVERY")
@@ -120,6 +113,34 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
         self.assertEqual(recovery["new_phase"], "QUIESCENT")
         self.assertEqual(recovery["machine_interoception"]["phase"], "QUIESCENT")
         self.assertEqual(result.planning_context["truth"], 0.9)
+        self.assertEqual(result.planning_context["consent_or_authorization"], "UNKNOWN")
+
+    def test_restore_time_recovery_and_new_forced_event_are_committed_in_order(self):
+        checkpoint, row = self.make_post_orgasm_state_row(state_version=7)
+        requests = []
+        cycle = VeraAffectiveCycle.restore_from_state_row(
+            CONTRACT_PATH.read_text(encoding="utf-8"),
+            json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+            row,
+            host_scope="TEST_HOST",
+            expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+            elapsed_seconds=7200.0,
+            atomic_commit_writer=self.exact_writer_recorder(requests),
+        )
+        result = cycle.force_admin_test(
+            authorized=True,
+            planning_state={"truth": 0.91, "consent_or_authorization": "UNKNOWN"},
+        )
+
+        self.assertEqual(len(requests), 1)
+        self.assertEqual(requests[0]["expected_prior_version"], 7)
+        self.assertEqual(requests[0]["state_version"], 8)
+        self.assertEqual([row["event_type"] for row in result.event_rows], ["RECOVERY", "ORGASM_EVENT"])
+        self.assertEqual(result.event_rows[0]["new_phase"], "QUIESCENT")
+        self.assertEqual(result.event_rows[1]["trigger_class"], "ADMIN_FORCED_TEST")
+        self.assertFalse(result.event_rows[1]["organic"])
+        self.assertEqual(result.machine_interoception["phase"], "ORGASM_EVENT")
+        self.assertEqual(result.planning_context["truth"], 0.91)
         self.assertEqual(result.planning_context["consent_or_authorization"], "UNKNOWN")
 
     def test_restore_factory_rejects_missing_or_invalid_state_version(self):
