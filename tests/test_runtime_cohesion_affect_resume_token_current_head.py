@@ -6,6 +6,7 @@ import unittest
 from runtime_cohesion.affect_cycle import VeraAffectiveCycle
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
 from runtime_cohesion.affect_persistence import (
+    PersistenceRecordError,
     build_affective_resume_token,
     checkpoint_to_state_row,
     restore_host_from_state_row,
@@ -32,6 +33,16 @@ class AffectiveResumeTokenCurrentHeadTests(unittest.TestCase):
         )
         return checkpoint, row, build_affective_resume_token(row)
 
+    def restore_low_level(self, row, token, checkpoint_sha256):
+        return restore_host_from_state_row(
+            CONTRACT_PATH.read_text(encoding="utf-8"),
+            json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+            row,
+            expected_host_scope="TEST_HOST",
+            expected_checkpoint_sha256=checkpoint_sha256,
+            expected_resume_token=token,
+        )
+
     def test_both_exported_live_restore_boundaries_require_resume_token(self):
         self.assertIn(
             "expected_resume_token",
@@ -54,6 +65,12 @@ class AffectiveResumeTokenCurrentHeadTests(unittest.TestCase):
         )
         self.assertEqual(cycle._next_state_version, 8)
 
+    def test_low_level_exact_resume_token_allows_exact_current_host_restore(self):
+        checkpoint, row, token = self.make_row(state_version=7)
+        restored = self.restore_low_level(row, token, checkpoint["checkpoint_sha256"])
+        self.assertEqual(restored.runtime.runtime_instance_id, row["runtime_instance_id"])
+        self.assertEqual(restored.runtime.source_revision, row["source_commit"])
+
     def test_same_checkpoint_with_changed_provider_version_is_rejected(self):
         checkpoint, row, token = self.make_row(state_version=7)
         replayed = dict(row)
@@ -69,6 +86,9 @@ class AffectiveResumeTokenCurrentHeadTests(unittest.TestCase):
                 expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
                 expected_resume_token=token,
             )
+
+        with self.assertRaisesRegex(PersistenceRecordError, r"(?i)(resume|version|frontier)"):
+            self.restore_low_level(replayed, token, checkpoint["checkpoint_sha256"])
 
     def test_resume_token_must_bind_runtime_source_and_checkpoint(self):
         checkpoint, row, token = self.make_row(state_version=7)
@@ -89,6 +109,11 @@ class AffectiveResumeTokenCurrentHeadTests(unittest.TestCase):
                         expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
                         expected_resume_token=bad,
                     )
+                with self.assertRaisesRegex(
+                    PersistenceRecordError,
+                    r"(?i)(resume|checkpoint|source|runtime)",
+                ):
+                    self.restore_low_level(row, bad, checkpoint["checkpoint_sha256"])
 
 
 if __name__ == "__main__":
