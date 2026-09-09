@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -10,11 +11,75 @@ ROOT = Path(__file__).resolve().parents[1]
 INDEX_PATH = ROOT / "architecture" / "VERA_COHESION_INDEX_V1.json"
 CONTRACT_PATH = ROOT / "architecture" / "VERA_RUNTIME_CONTRACT_V1.json"
 FABRIC_PATH = ROOT / "architecture" / "VERA_PROVIDER_FABRIC_V1.json"
+RECEIPT_PATH = ROOT / "architecture" / "VERA_COHESION_PAIR_RECEIPT_V1.json"
 EVENT_SELECTOR_TOKENS = {"$source_ref", "$source_path", "$source_revision"}
 
 
 def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _git_blob_sha(path: Path) -> str:
+    data = path.read_bytes()
+    return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
+
+
+def validate_operational_support_bindings(root: Path, receipt: Mapping[str, Any]) -> list[str]:
+    """Mechanically bind every path/blob pair claimed by receipt operational support.
+
+    Operational support is non-normative, but an exact blob claim is still an
+    exact claim. Validation therefore proves the repository-local file exists and
+    hashes to the named Git blob. Extra metadata such as status/semantic ceilings
+    remains descriptive and does not become authority through this check.
+    """
+
+    errors: list[str] = []
+    support = receipt.get("operational_support")
+    if not isinstance(support, Mapping):
+        return ["pair receipt operational support mapping is required"]
+    if support.get("normative_status") != "NON_NORMATIVE_OPERATIONAL_SUPPORT":
+        errors.append("pair receipt operational support must remain NON_NORMATIVE_OPERATIONAL_SUPPORT")
+
+    root_resolved = root.resolve()
+    rows = [(name, row) for name, row in support.items() if name != "normative_status"]
+    if not rows:
+        errors.append("pair receipt operational support requires at least one bound support object")
+        return errors
+
+    for name, row in rows:
+        if not isinstance(name, str) or not name:
+            errors.append("operational support entry requires a non-empty name")
+            continue
+        if not isinstance(row, Mapping):
+            errors.append(f"operational support {name!r} must be an object")
+            continue
+
+        relative_path = row.get("path")
+        blob_sha = row.get("blob_sha")
+        if not isinstance(relative_path, str) or not relative_path.strip():
+            errors.append(f"operational support {name!r} requires non-empty path")
+            continue
+        if not isinstance(blob_sha, str) or len(blob_sha) != 40 or any(char not in "0123456789abcdef" for char in blob_sha):
+            errors.append(f"operational support {name!r} requires exact lowercase Git blob SHA")
+            continue
+
+        candidate = (root / relative_path).resolve()
+        try:
+            candidate.relative_to(root_resolved)
+        except ValueError:
+            errors.append(f"operational support {name!r} path escapes repository root: {relative_path!r}")
+            continue
+        if not candidate.is_file():
+            errors.append(f"operational support {name!r} path does not resolve to a repository file: {relative_path!r}")
+            continue
+
+        observed_blob = _git_blob_sha(candidate)
+        if observed_blob != blob_sha:
+            errors.append(
+                f"operational support {name!r} blob mismatch: receipt={blob_sha} observed={observed_blob} path={relative_path}"
+            )
+
+    return errors
 
 
 def _validate_dependency_semantics(index: Mapping[str, Any]) -> list[str]:
@@ -259,11 +324,12 @@ def validate_provider_fabric(
 
 def main() -> int:
     errors = validate_provider_fabric(load(INDEX_PATH), load(CONTRACT_PATH), load(FABRIC_PATH))
+    errors.extend(validate_operational_support_bindings(ROOT, load(RECEIPT_PATH)))
     if errors:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
-    print("VERA_PROVIDER_FABRIC_V1: OK")
+    print("VERA_PROVIDER_FABRIC_V1 + operational support receipt: OK")
     return 0
 
 
