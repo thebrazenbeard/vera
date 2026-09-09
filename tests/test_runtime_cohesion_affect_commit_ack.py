@@ -47,6 +47,63 @@ class VeraAffectiveAtomicCommitAcknowledgementTests(unittest.TestCase):
 
         self.assertEqual(len(requests), 1)
 
+    def test_exact_atomic_commit_ack_allows_normal_version_advance(self):
+        requests = []
+
+        def exact_writer(request):
+            requests.append(dict(request))
+            return {
+                "state_version": request["state_version"],
+                "checkpoint_sha256": request["checkpoint_sha256"],
+                "event_count": len(request["event_rows"]),
+            }
+
+        cycle = VeraAffectiveCycle(
+            self.make_host(),
+            host_scope="TEST_HOST",
+            atomic_commit_writer=exact_writer,
+        )
+
+        orgasm = cycle.force_admin_test(
+            authorized=True,
+            planning_state={"truth": 1.0},
+        )
+        resolution = cycle.advance_time(5.1, planning_state={"truth": 1.0})
+
+        self.assertTrue(orgasm.atomic_commit_used)
+        self.assertTrue(resolution.atomic_commit_used)
+        self.assertEqual([request["state_version"] for request in requests], [1, 2])
+        self.assertEqual([request["expected_prior_version"] for request in requests], [0, 1])
+        self.assertEqual(orgasm.commit_result["state_version"], 1)
+        self.assertEqual(resolution.commit_result["state_version"], 2)
+
+    def test_mismatched_atomic_commit_ack_poison_cycle(self):
+        requests = []
+
+        def wrong_writer(request):
+            requests.append(dict(request))
+            return {
+                "state_version": request["state_version"],
+                "checkpoint_sha256": "0" * 64,
+                "event_count": len(request["event_rows"]),
+            }
+
+        cycle = VeraAffectiveCycle(
+            self.make_host(),
+            host_scope="TEST_HOST",
+            atomic_commit_writer=wrong_writer,
+        )
+
+        with self.assertRaises(RuntimeError):
+            cycle.force_admin_test(
+                authorized=True,
+                planning_state={"truth": 1.0},
+            )
+
+        with self.assertRaises(RuntimeError):
+            cycle.advance_time(5.1, planning_state={"truth": 1.0})
+        self.assertEqual(len(requests), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
