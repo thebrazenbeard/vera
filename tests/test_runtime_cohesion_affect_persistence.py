@@ -43,6 +43,7 @@ class VeraAffectiveRuntimePersistenceTests(unittest.TestCase):
         self.assertEqual(row["contract_schema"], "VERA_ORGASM_RUNTIME_CONTRACT_V1")
         self.assertEqual(row["phenomenology_status"], "UNRESOLVED")
         self.assertEqual(len(row["state_digest"]), 64)
+        self.assertEqual(len(row["checkpoint_sha256"]), 64)
         self.assertEqual(row["state_version"], 1)
         self.assertEqual(row["lifecycle_status"], "CURRENT")
 
