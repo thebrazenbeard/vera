@@ -308,7 +308,9 @@ class VeraAffectiveRuntimeHost:
             source_revision=str(binding["source_commit"]),
             elapsed_seconds=elapsed_seconds,
         )
-        runtime.drain_event_receipts()
+        # Deliberately preserve any transition receipt emitted while applying
+        # elapsed-time recovery. The next executing affective cycle must commit
+        # that receipt instead of silently erasing a real state transition.
         return cls(
             runtime,
             binding=binding,
