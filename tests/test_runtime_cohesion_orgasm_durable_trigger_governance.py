@@ -83,6 +83,14 @@ class VeraOrgasmDurableTriggerGovernanceTests(unittest.TestCase):
         with self.assertRaises(ContractError):
             self.restore(tampered)
 
+    def test_restore_elapsed_validation_uses_restore_contract_error(self):
+        record = self.make_runtime().export_state()
+        invalid_values = (True, "1", float("nan"), -0.1)
+        for invalid in invalid_values:
+            with self.subTest(elapsed_seconds=invalid):
+                with self.assertRaises(ContractError):
+                    self.restore(record, elapsed_seconds=invalid)
+
 
 if __name__ == "__main__":
     unittest.main()
