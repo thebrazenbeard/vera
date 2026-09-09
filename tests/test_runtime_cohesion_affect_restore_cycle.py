@@ -158,6 +158,32 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
                         expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
                     )
 
+    def test_live_restore_rejects_historical_and_superseded_rows(self):
+        checkpoint, row = self.make_state_row(state_version=7)
+        for lifecycle in ("HISTORICAL", "SUPERSEDED"):
+            with self.subTest(lifecycle=lifecycle):
+                stale = dict(row)
+                stale["lifecycle_status"] = lifecycle
+                with self.assertRaises(ValueError):
+                    VeraAffectiveCycle.restore_from_state_row(
+                        CONTRACT_PATH.read_text(encoding="utf-8"),
+                        json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+                        stale,
+                        host_scope="TEST_HOST",
+                        expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+                    )
+
+    def test_live_restore_binds_host_scope_to_provider_row(self):
+        checkpoint, row = self.make_state_row(state_version=7)
+        with self.assertRaises(ValueError):
+            VeraAffectiveCycle.restore_from_state_row(
+                CONTRACT_PATH.read_text(encoding="utf-8"),
+                json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+                row,
+                host_scope="OTHER_HOST",
+                expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
