@@ -6,6 +6,7 @@ import json
 from typing import Any, Iterable, Mapping
 
 from .affect_host import AffectiveBindingError, VeraAffectiveRuntimeHost, _checkpoint_sha256
+from .affect_scope import bind_affective_host_scope
 
 
 class PersistenceRecordError(ValueError):
@@ -397,5 +398,5 @@ def restore_host_from_state_row(
         )
     except AffectiveBindingError as exc:
         raise PersistenceRecordError(str(exc)) from exc
-    restored_host._durable_host_scope = row_host_scope
+    bind_affective_host_scope(restored_host, row_host_scope)
     return restored_host
