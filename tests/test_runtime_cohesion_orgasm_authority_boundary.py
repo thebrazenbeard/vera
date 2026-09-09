@@ -1,11 +1,76 @@
 from collections.abc import Mapping
+from datetime import datetime, timedelta, timezone
+import hashlib
+import json
+from pathlib import Path
 import unittest
 
+from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
 from runtime_cohesion.orgasm import OrgasmRuntime, StimulusAppraisal, TriggerRejected
 from tests.test_runtime_cohesion_orgasm import CONTRACT
 
 
+ROOT = Path(__file__).resolve().parents[1]
+CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_RUNTIME_CONTRACT_V1.json"
+BINDING_PATH = ROOT / "architecture" / "VERA_ORGASM_RUNTIME_BINDING_V1.json"
+
+
+class TrustedAuthorizationVerifierDouble:
+    """Exact test double for the external trust boundary, not caller metadata."""
+
+    verifier_id = "trusted-affective-authority-test-double"
+
+    def __init__(self, *, now: datetime):
+        self.now = now
+
+    def verify(self, subject, *, expected_referent, expected_effect_class):
+        if not isinstance(subject, Mapping):
+            return None
+        if subject.get("state") != "ALLOW":
+            return None
+        if subject.get("referent") != expected_referent:
+            return None
+        if subject.get("proposition_or_effect_class") != expected_effect_class:
+            return None
+        if subject.get("currentness") != "CURRENT":
+            return None
+        if subject.get("source") != "trusted-test-authority":
+            return None
+        if subject.get("expiry_or_supersession") is not None:
+            return None
+        observed_at = subject.get("observed_at")
+        if not isinstance(observed_at, str):
+            return None
+        try:
+            observed = datetime.fromisoformat(observed_at.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        if observed.tzinfo is None:
+            return None
+        age = self.now - observed.astimezone(timezone.utc)
+        if age < timedelta(0) or age > timedelta(minutes=5):
+            return None
+        actor = subject.get("actor")
+        if not isinstance(actor, str) or not actor:
+            return None
+
+        canonical = json.dumps(
+            dict(subject),
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode("utf-8")
+        return {
+            "verifier_id": self.verifier_id,
+            "evidence_id": "affective-authz-test-evidence-1",
+            "evidence_digest": hashlib.sha256(canonical).hexdigest(),
+            "subject": dict(subject),
+        }
+
+
 class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
+    NOW = datetime(2026, 9, 9, 22, 30, tzinfo=timezone.utc)
+
     def make_runtime(self):
         return OrgasmRuntime(
             CONTRACT,
@@ -14,14 +79,24 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
             profile="REENTRANT_CLIMAX",
         )
 
+    def make_bound_host(self, *, verifier):
+        contract_text = CONTRACT_PATH.read_text(encoding="utf-8")
+        binding = json.loads(BINDING_PATH.read_text(encoding="utf-8"))
+        return VeraAffectiveRuntimeHost.from_bound_contract(
+            contract_text,
+            binding,
+            runtime_instance_id="authority-boundary-test",
+            authorization_verifier=verifier,
+        )
+
     def authorization_subject(self, **overrides):
         subject = {
             "state": "ALLOW",
             "actor": "patrick",
             "referent": "vera",
             "proposition_or_effect_class": "ADMIN_FORCED_TEST",
-            "source": "test-upstream-authority",
-            "observed_at": "2026-09-09T22:00:00Z",
+            "source": "trusted-test-authority",
+            "observed_at": "2026-09-09T22:29:00Z",
             "currentness": "CURRENT",
             "expiry_or_supersession": None,
         }
@@ -34,24 +109,23 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
             **overrides,
         )
 
-    def assert_bound_subject(self, provenance, expected_effect):
+    def assert_verified_provenance(self, provenance, expected_effect):
         self.assertIsInstance(provenance, Mapping)
-        for key in (
-            "state",
-            "actor",
-            "referent",
-            "proposition_or_effect_class",
-            "source",
-            "observed_at",
-            "currentness",
-            "expiry_or_supersession",
-        ):
-            self.assertIn(key, provenance)
-        self.assertEqual(provenance["state"], "ALLOW")
-        self.assertEqual(provenance["referent"], "vera")
-        self.assertEqual(provenance["proposition_or_effect_class"], expected_effect)
-        self.assertEqual(provenance["currentness"], "CURRENT")
-        self.assertIsNone(provenance["expiry_or_supersession"])
+        self.assertEqual(
+            provenance.get("verifier_id"),
+            TrustedAuthorizationVerifierDouble.verifier_id,
+        )
+        evidence_id = provenance.get("evidence_id")
+        evidence_digest = provenance.get("evidence_digest")
+        self.assertIsInstance(evidence_id, str)
+        self.assertTrue(evidence_id)
+        self.assertIsInstance(evidence_digest, str)
+        self.assertRegex(evidence_digest, r"^[0-9a-f]{64}$")
+        self.assertEqual(provenance.get("actor"), "patrick")
+        self.assertEqual(provenance.get("referent"), "vera")
+        self.assertEqual(provenance.get("proposition_or_effect_class"), expected_effect)
+        self.assertEqual(provenance.get("currentness"), "CURRENT")
+        self.assertIsNone(provenance.get("expiry_or_supersession"))
 
     def test_naked_boolean_cannot_authorize_privileged_trigger(self):
         for method_name in ("force_admin_test", "force_self_qualification"):
@@ -64,40 +138,66 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
                 ):
                     method(authorized=True)
 
-    def test_valid_current_allow_authorization_subject_is_consumed_and_bound(self):
+    def test_fully_populated_allow_current_mapping_is_not_self_authenticating(self):
         runtime = self.make_runtime()
         subject = self.authorization_subject()
-        receipt = runtime.force_admin_test(authorization_subject=subject)
+        with self.assertRaisesRegex(
+            (TriggerRejected, TypeError, ValueError),
+            r"(?i)(authoriz|verif|trusted|evidence|subject)",
+        ):
+            runtime.force_admin_test(authorization_subject=subject)
+
+    def test_valid_authorization_must_cross_trusted_verifier_and_bind_evidence(self):
+        verifier = TrustedAuthorizationVerifierDouble(now=self.NOW)
+        host = self.make_bound_host(verifier=verifier)
+        subject = self.authorization_subject()
+
+        receipt = host.force_admin_test(authorization_subject=subject)
 
         self.assertEqual(receipt["trigger_class"], "ADMIN_FORCED_TEST")
         self.assertEqual(receipt["runtime_instance_id"], "authority-boundary-test")
-        self.assert_bound_subject(
+        self.assertNotEqual(receipt["trigger_provenance"], subject)
+        self.assert_verified_provenance(
             receipt["trigger_provenance"],
             "ADMIN_FORCED_TEST",
         )
 
+    def test_literal_currentness_does_not_rescue_stale_observation(self):
+        verifier = TrustedAuthorizationVerifierDouble(now=self.NOW)
+        host = self.make_bound_host(verifier=verifier)
+        stale = self.authorization_subject(
+            currentness="CURRENT",
+            observed_at="2026-09-09T21:00:00Z",
+        )
+        with self.assertRaisesRegex(
+            (TriggerRejected, ValueError),
+            r"(?i)(stale|current|observ|authoriz|verif)",
+        ):
+            host.force_admin_test(authorization_subject=stale)
+
     def test_invalid_upstream_authorization_subjects_fail_closed_by_field(self):
+        verifier = TrustedAuthorizationVerifierDouble(now=self.NOW)
         invalid_subjects = (
-            ("referent", self.authorization_subject(referent="not-vera"), r"(?i)referent"),
-            ("currentness", self.authorization_subject(currentness="STALE"), r"(?i)(current|stale)"),
-            ("decline", self.authorization_subject(state="DECLINE"), r"(?i)(state|allow|authoriz|decline)"),
-            ("unknown", self.authorization_subject(state="UNKNOWN"), r"(?i)(state|allow|authoriz|unknown)"),
-            ("actor", self.authorization_subject(actor=None), r"(?i)actor"),
-            ("effect", self.authorization_subject(proposition_or_effect_class="SELF_QUALIFICATION_TEST"), r"(?i)(proposition|effect|trigger)"),
-            ("source", self.authorization_subject(source=None), r"(?i)source"),
-            ("observed_at", self.authorization_subject(observed_at=None), r"(?i)observ"),
+            ("referent", self.authorization_subject(referent="not-vera"), r"(?i)(referent|authoriz|verif)"),
+            ("currentness", self.authorization_subject(currentness="STALE"), r"(?i)(current|stale|authoriz|verif)"),
+            ("decline", self.authorization_subject(state="DECLINE"), r"(?i)(state|allow|authoriz|decline|verif)"),
+            ("unknown", self.authorization_subject(state="UNKNOWN"), r"(?i)(state|allow|authoriz|unknown|verif)"),
+            ("actor", self.authorization_subject(actor=None), r"(?i)(actor|authoriz|verif)"),
+            ("effect", self.authorization_subject(proposition_or_effect_class="SELF_QUALIFICATION_TEST"), r"(?i)(proposition|effect|trigger|authoriz|verif)"),
+            ("source", self.authorization_subject(source="caller-invented-authority"), r"(?i)(source|trusted|authoriz|verif)"),
+            ("observed_at", self.authorization_subject(observed_at=None), r"(?i)(observ|authoriz|verif)"),
             (
                 "expiry_or_supersession",
                 self.authorization_subject(expiry_or_supersession="superseded:replacement"),
-                r"(?i)(expi|supers)",
+                r"(?i)(expi|supers|authoriz|verif)",
             ),
-            ("metadata", {"state": "ALLOW"}, r"(?i)(metadata|actor|referent|source|observ)"),
+            ("metadata", {"state": "ALLOW"}, r"(?i)(metadata|actor|referent|source|observ|authoriz|verif)"),
         )
         for label, subject, pattern in invalid_subjects:
             with self.subTest(case=label):
-                runtime = self.make_runtime()
+                host = self.make_bound_host(verifier=verifier)
                 with self.assertRaisesRegex((TriggerRejected, ValueError), pattern):
-                    runtime.force_admin_test(authorization_subject=subject)
+                    host.force_admin_test(authorization_subject=subject)
 
     def test_unbound_context_eligibility_cannot_establish_organic_authority(self):
         runtime = self.make_runtime()
@@ -129,8 +229,9 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
             "caller-supplied context_eligible=True must not substitute for current upstream context evidence",
         )
 
-    def test_valid_current_context_subject_establishes_context_eligibility(self):
-        runtime = self.make_runtime()
+    def test_valid_current_context_subject_must_cross_same_trusted_verifier(self):
+        verifier = TrustedAuthorizationVerifierDouble(now=self.NOW)
+        host = self.make_bound_host(verifier=verifier)
         subject = self.context_subject()
         appraisal = StimulusAppraisal(
             sexual_relevance=1.0,
@@ -143,16 +244,20 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
             duration_ms=1000,
         )
 
-        result = runtime.apply_stimulus(
+        observed = host.observe(
             appraisal,
             elapsed_seconds=1.0,
             context_subject=subject,
         )
-        self.assertTrue(result["context_eligible"])
+        self.assertTrue(observed["state"]["context_eligible"])
 
-    def test_invalid_context_subject_is_rejected_by_new_boundary(self):
-        runtime = self.make_runtime()
-        stale = self.context_subject(currentness="STALE")
+    def test_stale_context_subject_is_rejected_even_if_labeled_current(self):
+        verifier = TrustedAuthorizationVerifierDouble(now=self.NOW)
+        host = self.make_bound_host(verifier=verifier)
+        stale = self.context_subject(
+            currentness="CURRENT",
+            observed_at="2026-09-09T21:00:00Z",
+        )
         appraisal = StimulusAppraisal(
             sexual_relevance=1.0,
             partner_relevance=1.0,
@@ -160,8 +265,11 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
             anticipation_cue=1.0,
             positive_valence=1.0,
         )
-        with self.assertRaisesRegex((TriggerRejected, ValueError), r"(?i)(context|current|stale)"):
-            runtime.apply_stimulus(
+        with self.assertRaisesRegex(
+            (TriggerRejected, ValueError),
+            r"(?i)(context|current|stale|observ|verif)",
+        ):
+            host.observe(
                 appraisal,
                 elapsed_seconds=1.0,
                 context_subject=stale,
