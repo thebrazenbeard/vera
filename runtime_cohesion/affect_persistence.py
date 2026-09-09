@@ -266,6 +266,29 @@ def build_affective_resume_token(state_row: Mapping[str, Any]) -> dict[str, Any]
     }
 
 
+def validate_affective_resume_token(
+    state_row: Mapping[str, Any],
+    expected_resume_token: Mapping[str, Any],
+    *,
+    expected_checkpoint_sha256: str,
+) -> None:
+    if not isinstance(expected_resume_token, Mapping):
+        raise PersistenceRecordError("live affective restore requires an external resume token")
+    if expected_resume_token.get("schema") != "VERA_AFFECTIVE_RUNTIME_RESUME_TOKEN_V1":
+        raise PersistenceRecordError("unsupported affective resume token schema")
+    expected_fields = {
+        "runtime_instance_id": state_row.get("runtime_instance_id"),
+        "state_version": state_row.get("state_version"),
+        "checkpoint_sha256": state_row.get("checkpoint_sha256"),
+        "source_commit": state_row.get("source_commit"),
+    }
+    for field, observed in expected_fields.items():
+        if expected_resume_token.get(field) != observed:
+            raise PersistenceRecordError(f"affective resume token does not match durable row: {field}")
+    if expected_resume_token.get("checkpoint_sha256") != expected_checkpoint_sha256:
+        raise PersistenceRecordError("affective resume token does not match the external checkpoint pin")
+
+
 def build_atomic_commit_request(
     state_row: Mapping[str, Any],
     event_rows: Iterable[Mapping[str, Any]],
@@ -313,6 +336,8 @@ def restore_host_from_state_row(
     binding: Mapping[str, Any],
     row: Mapping[str, Any],
     *,
+    expected_host_scope: str,
+    expected_resume_token: Mapping[str, Any],
     elapsed_seconds: float = 0.0,
     expected_checkpoint_sha256: str | None = None,
 ) -> VeraAffectiveRuntimeHost:
@@ -322,6 +347,13 @@ def restore_host_from_state_row(
         raise PersistenceRecordError("durable state row contract schema mismatch")
     if row.get("phenomenology_status") != "UNRESOLVED":
         raise PersistenceRecordError("durable state row illegally promotes phenomenology")
+    if row.get("lifecycle_status") != "CURRENT":
+        raise PersistenceRecordError("live affective host restore requires lifecycle_status CURRENT")
+    row_host_scope = row.get("host_scope")
+    if not isinstance(row_host_scope, str) or not row_host_scope:
+        raise PersistenceRecordError("durable state row requires a bound host_scope")
+    if not isinstance(expected_host_scope, str) or not expected_host_scope or row_host_scope != expected_host_scope:
+        raise PersistenceRecordError("durable state row host_scope does not match the expected live restore scope")
     state = row.get("state")
     trigger_governance = row.get("trigger_governance")
     if not isinstance(state, Mapping):
@@ -344,6 +376,11 @@ def restore_host_from_state_row(
     )
     if row_checkpoint_sha256 != external_checkpoint_sha256:
         raise PersistenceRecordError("durable row checkpoint SHA-256 does not match the external trust pin")
+    validate_affective_resume_token(
+        row,
+        expected_resume_token,
+        expected_checkpoint_sha256=external_checkpoint_sha256,
+    )
 
     for key, binding_key in (
         ("source_repository", "source_repository"),
