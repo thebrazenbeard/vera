@@ -1,4 +1,5 @@
 import unittest
+from types import SimpleNamespace
 
 import runtime_cohesion.executor as executor
 import runtime_cohesion.provider_admission as provider_admission
@@ -20,6 +21,66 @@ class ExecutorProviderAdmissionBoundaryTests(unittest.TestCase):
             runtime.evaluate_abstract_proposition_admission,
             "direct runtime provider admission and abstract policy evaluation must be distinct symbols",
         )
+
+    def test_governing_resolution_rejects_duck_typed_provider_lookalike(self):
+        index = {
+            "domains": [
+                {
+                    "id": "GOVERNING",
+                    "authority_resolver_ref": (
+                        "VERA_RUNTIME_CONTRACT_V1#authority_resolvers.current_user_instruction"
+                    ),
+                }
+            ]
+        }
+        contract = {
+            "authority_resolvers": {
+                "current_user_instruction": {
+                    "accepted_evidence_classes": ["current_user_authority"]
+                }
+            },
+            "resolver_dispatch": [
+                {
+                    "id": "dispatch:user-task-authority",
+                    "domain_scope": "GOVERNING",
+                    "proposition_or_effect_class": "TASK_SCOPE_PERMISSION_OR_USER_CONSENT",
+                    "referent_scope": "PATRICK_OR_USER_CONTROLLED_OPERATION",
+                    "resolver_ref": "current_user_instruction",
+                    "precedence": 100,
+                    "conflict_disposition": "FAIL_CLOSED",
+                }
+            ],
+            "resolver_dispatch_decisive_evidence": {
+                "dispatch:user-task-authority": {
+                    "all_of": ["current_user_authority"],
+                    "any_of": [],
+                }
+            },
+        }
+        lookalike = SimpleNamespace(
+            evidence_class="current_user_authority",
+            referent="GOVERNING",
+            supersession_state="CURRENT_OBSERVATION",
+            conflict_state="NONE",
+            metadata={
+                "proposition_or_effect_class": "TASK_SCOPE_PERMISSION_OR_USER_CONSENT",
+                "referent_scope": "PATRICK_OR_USER_CONTROLLED_OPERATION",
+            },
+        )
+
+        with self.assertRaises(
+            TypeError,
+            msg=(
+                "the real governing-resolution path must enforce ProviderEvidenceEnvelope "
+                "type, not merely accept a duck-typed object that carries the same fields"
+            ),
+        ):
+            executor._derive_governing_resolution(
+                "GOVERNING",
+                index,
+                contract,
+                [lookalike],
+            )
 
 
 if __name__ == "__main__":
