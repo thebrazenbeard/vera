@@ -71,16 +71,18 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
 
     def test_restore_factory_rejects_missing_or_invalid_state_version(self):
         checkpoint, row = self.make_state_row(state_version=7)
-        bad = dict(row)
-        bad["state_version"] = 0
-        with self.assertRaises(ValueError):
-            VeraAffectiveCycle.restore_from_state_row(
-                CONTRACT_PATH.read_text(encoding="utf-8"),
-                json.loads(BINDING_PATH.read_text(encoding="utf-8")),
-                bad,
-                host_scope="TEST_HOST",
-                expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
-            )
+        for invalid in (None, 0, -1, True, 7.0, "7"):
+            with self.subTest(state_version=invalid):
+                bad = dict(row)
+                bad["state_version"] = invalid
+                with self.assertRaises(ValueError):
+                    VeraAffectiveCycle.restore_from_state_row(
+                        CONTRACT_PATH.read_text(encoding="utf-8"),
+                        json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+                        bad,
+                        host_scope="TEST_HOST",
+                        expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+                    )
 
 
 if __name__ == "__main__":
