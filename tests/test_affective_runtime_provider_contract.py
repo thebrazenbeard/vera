@@ -32,6 +32,8 @@ class VeraAffectiveRuntimeProviderContractTests(unittest.TestCase):
         contract = json.loads(PATH.read_text(encoding="utf-8"))
         req = contract["runtime_requirements"]
         self.assertTrue(req["separately_pinned_expected_checkpoint_digest_required_on_restore"])
+        self.assertTrue(req["external_resume_token_required_on_live_restore"])
+        self.assertTrue(req["resume_token_must_bind_runtime_version_checkpoint_and_source"])
         self.assertTrue(req["event_receipt_digest_recomputation_required_before_persistence"])
         self.assertTrue(req["resolution_and_recovery_receipts_required"])
         self.assertTrue(req["restore_time_transition_receipts_must_survive_until_next_atomic_commit"])
@@ -39,6 +41,7 @@ class VeraAffectiveRuntimeProviderContractTests(unittest.TestCase):
         self.assertTrue(req["all_post_mutation_finalize_failures_require_provider_reconciliation_before_reuse"])
         self.assertTrue(req["atomic_state_plus_event_commit_required"])
         self.assertTrue(req["compare_and_swap_expected_prior_version_required"])
+        self.assertIn("resume_token_currentness", contract["integrity_model"])
         provider = contract["provider"]
         self.assertEqual(provider["service_role_direct_state_insert_update"], "REVOKED")
         self.assertEqual(provider["service_role_direct_event_insert"], "REVOKED")
