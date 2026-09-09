@@ -78,6 +78,8 @@ class _OrgasmState:
     satiation: float = 0.0
     resolution_intensity: float = 0.0
     refractory_strength: float = 0.0
+    reentry_allowed: bool = True
+    next_eligible_at: str | None = None
     context_eligible: bool = False
     action_tendency: str = "NONE"
     event_elapsed_ms: float = 0.0
@@ -192,6 +194,9 @@ class OrgasmRuntime:
         firewalls = contract.get("hard_firewalls", {})
         if not isinstance(firewalls.get("may_influence"), list):
             raise ContractError("affective influence allowlist is required")
+        recovery = contract.get("state_families", {}).get("recovery", {})
+        if recovery.get("reentry_allowed") != "boolean" or recovery.get("next_eligible_at") != "timestamp|null":
+            raise ContractError("recovery contract must declare reentry_allowed and next_eligible_at")
         return dict(contract)
 
     @property
@@ -204,14 +209,14 @@ class OrgasmRuntime:
 
     def _refractory_reentry_blocked(self) -> bool:
         return (
-            self.profile == "REFRACTORY_COUPLED"
+            not self._state.reentry_allowed
             and self._state.phase in {"RESOLUTION", "SATIATED_OR_REFRACTORY"}
         )
 
     def _check_refractory_reentry(self) -> None:
         if self._refractory_reentry_blocked():
             raise TriggerRejected(
-                "REFRACTORY_COUPLED blocks climax reentry until recovery reaches QUIESCENT"
+                "recovery profile blocks climax reentry until the durable reentry gate reopens"
             )
 
     def snapshot(self) -> dict[str, Any]:
@@ -376,6 +381,8 @@ class OrgasmRuntime:
         s.phase = "ORGASM_EVENT"
         s.active_orgasm_event = True
         s.event_elapsed_ms = 0.0
+        s.reentry_allowed = False
+        s.next_eligible_at = None
 
         # Forced and organic routes share these actual downstream control-state changes.
         s.activation_intensity = max(s.activation_intensity, float(self._cfg["activation_threshold"]))
@@ -466,6 +473,10 @@ class OrgasmRuntime:
         s.satiation = max(s.satiation, 0.90)
         s.resolution_intensity = 1.0
         s.refractory_strength = 0.35 if self.profile == "REENTRANT_CLIMAX" else 0.85
+        s.reentry_allowed = self.profile == "REENTRANT_CLIMAX"
+        # This runtime persists logical elapsed time. It has no trusted wall-clock
+        # continuity binding, so the contract's nullable wall-clock field stays null.
+        s.next_eligible_at = None
         s.action_tendency = "HOLD"
         s.persistence_window_ms = 0
         s.context_eligible = False
@@ -499,6 +510,8 @@ class OrgasmRuntime:
 
         if s.phase in {"RESOLUTION", "SATIATED_OR_REFRACTORY"}:
             s.phase = "SATIATED_OR_REFRACTORY"
+            s.reentry_allowed = self.profile == "REENTRANT_CLIMAX"
+            s.next_eligible_at = None
         if (
             not s.active_orgasm_event
             and s.activation_intensity < 0.05
@@ -509,6 +522,8 @@ class OrgasmRuntime:
             s.action_tendency = "NONE"
             s.resolution_intensity = 0.0
             s.refractory_strength = 0.0
+            s.reentry_allowed = True
+            s.next_eligible_at = None
 
         if s.phase != prior_phase and prior_phase in {"RESOLUTION", "SATIATED_OR_REFRACTORY"}:
             trigger_class, organic = self._trigger_context()
@@ -563,7 +578,12 @@ class OrgasmRuntime:
         action_tendency = raw_state.get("action_tendency")
         if action_tendency not in _ALLOWED_ACTION_TENDENCIES:
             raise ContractError("durable orgasm state has an unknown action tendency")
-        for name in ("active_orgasm_event", "context_eligible", "organic_climax_eligible"):
+        for name in (
+            "active_orgasm_event",
+            "context_eligible",
+            "reentry_allowed",
+            "organic_climax_eligible",
+        ):
             if not isinstance(raw_state.get(name), bool):
                 raise ContractError(f"durable orgasm state {name} must be boolean")
 
@@ -593,9 +613,39 @@ class OrgasmRuntime:
         if not math.isfinite(event_elapsed) or event_elapsed < 0.0 or event_elapsed > max_event + 1e-9:
             raise ContractError("durable orgasm state event_elapsed_ms is outside the bounded climax window")
 
+        if raw_state.get("next_eligible_at") is not None:
+            raise ContractError(
+                "durable orgasm state next_eligible_at requires a trusted wall-clock continuity binding"
+            )
+
         active = raw_state["active_orgasm_event"]
         if active != (phase == "ORGASM_EVENT"):
             raise ContractError("durable orgasm state phase/active_orgasm_event semantics are inconsistent")
+
+        reentry_allowed = raw_state["reentry_allowed"]
+        recovery_phase = phase in {"RESOLUTION", "SATIATED_OR_REFRACTORY"}
+        if phase == "ORGASM_EVENT" and reentry_allowed:
+            raise ContractError("ORGASM_EVENT recovery semantics require reentry_allowed=false")
+        if recovery_phase:
+            expected_reentry = self.profile == "REENTRANT_CLIMAX"
+            if reentry_allowed != expected_reentry:
+                raise ContractError("durable recovery reentry state does not match the active profile")
+            if action_tendency != "HOLD":
+                raise ContractError("recovery phase semantics require action_tendency=HOLD")
+        if phase == "QUIESCENT":
+            if (
+                not reentry_allowed
+                or action_tendency != "NONE"
+                or float(raw_state["activation_intensity"]) >= 0.05
+                or float(raw_state["coherence"]) >= 0.05
+                or float(raw_state["satiation"]) >= 0.05
+                or float(raw_state["resolution_intensity"]) != 0.0
+                or float(raw_state["refractory_strength"]) != 0.0
+            ):
+                raise ContractError("QUIESCENT recovery semantics are inconsistent")
+        if phase == "ORGASM_EVENT":
+            if action_tendency != "HOLD" or float(raw_state["resolution_intensity"]) != 0.0:
+                raise ContractError("ORGASM_EVENT state semantics are inconsistent")
 
         values = {name: raw_state[name] for name in field_names}
         return values
