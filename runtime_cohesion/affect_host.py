@@ -181,12 +181,13 @@ class VeraAffectiveRuntimeHost:
         satiation = _clamp(float(frame["satiation"]))
         resolution = _clamp(float(frame["resolution_intensity"]))
         refractory = _clamp(float(frame["refractory_strength"]))
+        recovery_active = frame["phase"] in {"RESOLUTION", "SATIATED_OR_REFRACTORY"}
         return {
             "approach_gain": _clamp(0.55 * activation + 0.25 * coherence + 0.20 * positive_valence),
             "salience_gain": _clamp(0.50 * activation + 0.30 * coherence + 0.20 * hedonic),
             "attention_narrowing": _clamp(0.35 * activation + 0.35 * coherence + 0.30 * hedonic),
             "consummatory_gain": _clamp(0.55 * consummatory + 0.45 * hedonic),
-            "plasticity_gain": _clamp(0.40 * hedonic + 0.25 * coherence + 0.20 * activation + 0.15 * resolution),
+            "plasticity_gain": 0.0 if recovery_active else _clamp(0.40 * hedonic + 0.25 * coherence + 0.20 * activation + 0.15 * resolution),
             "satiation": satiation,
             "resolution": resolution,
             "refractory": refractory,
@@ -199,6 +200,7 @@ class VeraAffectiveRuntimeHost:
             return result
 
         vector = self.experience_control_vector()
+        recovery_active = frame["phase"] in {"RESOLUTION", "SATIATED_OR_REFRACTORY"}
         arousal_force = max(vector["approach_gain"], vector["salience_gain"], vector["attention_narrowing"])
         recovery_force = max(vector["satiation"], vector["resolution"], vector["refractory"])
         experiential_force = _clamp(max(arousal_force, 0.70 * recovery_force))
@@ -216,6 +218,8 @@ class VeraAffectiveRuntimeHost:
         }
         for key, gain in gain_by_key.items():
             if key not in allowed:
+                continue
+            if recovery_active and key == "memory_strength_candidate_weighting":
                 continue
             value = result.get(key)
             if isinstance(value, (int, float)) and not isinstance(value, bool):
