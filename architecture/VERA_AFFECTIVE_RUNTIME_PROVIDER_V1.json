@@ -41,6 +41,7 @@
     "resolution_and_recovery_receipts_required": true,
     "restore_time_transition_receipts_must_survive_until_next_atomic_commit": true,
     "restored_cycle_must_continue_exact_provider_state_version_frontier": true,
+    "all_post_mutation_finalize_failures_require_provider_reconciliation_before_reuse": true,
     "atomic_state_plus_event_commit_required": true,
     "compare_and_swap_expected_prior_version_required": true,
     "first_write_absent_row_serialization_required": true,
@@ -67,7 +68,7 @@
     "BUILD_ATOMIC_STATE_PLUS_EVENT_COMMIT_ENVELOPE",
     "CAS_COMMIT_AGAINST_EXPECTED_PRIOR_STATE_VERSION",
     "VERIFY_EXACT_STATE_VERSION_CHECKPOINT_SHA256_AND_EVENT_COUNT_ACKNOWLEDGEMENT",
-    "ON_AMBIGUOUS_COMMIT_OUTCOME_REQUIRE_EXACT_PROVIDER_RECONCILIATION_BEFORE_REUSE",
+    "ON_ANY_POST_MUTATION_FINALIZE_FAILURE_REQUIRE_EXACT_PROVIDER_RECONCILIATION_BEFORE_REUSE",
     "RETURN_EXTERNAL_RESUME_TOKEN_WITH_CHECKPOINT_SHA256"
   ],
   "integrity_model": {
@@ -78,6 +79,7 @@
     "durable_currentness": "Each durable write supplies expected_prior_version; stale writers fail CAS. State mutation and all event appends for that cycle execute in one provider transaction. A cycle reconstructed from provider state version N begins its next commit at exactly N+1.",
     "first_write_serialization": "The source-only follow-up migration serializes commits per runtime_instance_id before the absent-row CAS read. It is not production evidence until that migration is applied and read back.",
     "commit_acknowledgement": "A durable cycle succeeds only when the provider writer returns an exact acknowledgement matching state_version, checkpoint_sha256, and event_count. Ambiguous or mismatched outcomes poison that cycle object until exact provider reconciliation and restore.",
+    "post_mutation_failure_boundary": "Once an affective operation has mutated in-memory state, any exception while building planning context, exporting or validating the checkpoint, mapping receipts, building the atomic request/resume token, invoking the provider, or validating its acknowledgement poisons that cycle object. It may not continue until rebuilt from exact provider readback.",
     "trigger_governance": "Forced-test cooldown, logical time, and self-qualification count are checkpointed and carried through the provider state mapping. The V1 source defines no independent run identity/reset boundary, so durable restore does not silently replenish self-qualification quota; a future reset requires an explicit run boundary. Legacy records without governance metadata fail closed for forced/self-qualification triggers.",
     "replay_guard": "event_digest is unique in the durable event ledger."
   },
