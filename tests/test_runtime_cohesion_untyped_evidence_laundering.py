@@ -65,7 +65,8 @@ class UntypedEvidenceLaunderingTests(unittest.TestCase):
             current_envelope("control_source"),
             SimpleNamespace(evidence_class="live_observation"),
         ]
-        self.assertNotEqual(self.decide(observations).status, "ADMITTED")
+        with self.assertRaises(TypeError):
+            self.decide(observations)
 
     def test_stripping_conflicted_envelope_to_evidence_class_cannot_restore_admission(self):
         conflicted = ProviderEvidenceEnvelope(
@@ -89,10 +90,8 @@ class UntypedEvidenceLaunderingTests(unittest.TestCase):
         self.assertNotEqual(direct.status, "ADMITTED")
 
         laundered = SimpleNamespace(evidence_class=conflicted.evidence_class)
-        self.assertNotEqual(
-            self.decide([current_envelope("control_source"), laundered]).status,
-            "ADMITTED",
-        )
+        with self.assertRaises(TypeError):
+            self.decide([current_envelope("control_source"), laundered])
 
 
 if __name__ == "__main__":
