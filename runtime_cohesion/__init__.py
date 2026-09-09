@@ -10,6 +10,7 @@ from .audit import ProjectionAuditResult, audit_registered_projections
 from .evidence import ProviderEvidenceEnvelope, load_provider_fabric, validate_envelope
 from .executor import (
     DomainExecutionResult,
+    GoverningResolutionRecord,
     ProjectionExecutionResult,
     execute_domain_cycle,
     execute_projection_cycle,
@@ -35,6 +36,7 @@ __all__ = [
     "load_provider_fabric",
     "validate_envelope",
     "DomainExecutionResult",
+    "GoverningResolutionRecord",
     "ProjectionExecutionResult",
     "execute_domain_cycle",
     "execute_projection_cycle",
