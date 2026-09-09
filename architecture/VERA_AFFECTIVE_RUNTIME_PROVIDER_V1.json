@@ -45,12 +45,13 @@
     "exact_atomic_commit_acknowledgement_required": true,
     "ambiguous_commit_outcome_requires_provider_reconciliation_before_reuse": true,
     "trigger_governance_durable_across_restore_required": true,
+    "self_qualification_quota_reset_requires_explicit_run_boundary": true,
     "elapsed_time_decay_required_on_restore": true,
     "no_trusted_state_fallback": "QUIESCENT / NO_TRUSTED_PRIOR_STATE"
   },
   "execution_pipeline": [
     "LOAD_OR_RESTORE_EXACT_VERA_AFFECTIVE_STATE_USING_EXTERNAL_CHECKPOINT_PIN",
-    "RESTORE_FORCED_TEST_COOLDOWN_AND_SELF_QUALIFICATION_QUOTA",
+    "RESTORE_FORCED_TEST_COOLDOWN_AND_SELF_QUALIFICATION_QUOTA_WITHOUT_INVENTING_NEW_RUN_BOUNDARY",
     "APPRAISE_CURRENT_EVENT",
     "UPDATE_AROUSAL_AND_ENTRAINMENT",
     "READ_MACHINE_INTEROCEPTION",
@@ -70,7 +71,7 @@
     "durable_currentness": "Each durable write supplies expected_prior_version; stale writers fail CAS. State mutation and all event appends for that cycle execute in one provider transaction.",
     "first_write_serialization": "The source-only follow-up migration serializes commits per runtime_instance_id before the absent-row CAS read. It is not production evidence until that migration is applied and read back.",
     "commit_acknowledgement": "A durable cycle succeeds only when the provider writer returns an exact acknowledgement matching state_version, checkpoint_sha256, and event_count. Ambiguous or mismatched outcomes poison that cycle object until exact provider reconciliation and restore.",
-    "trigger_governance": "Forced-test cooldown, logical time, and self-qualification quota are checkpointed and carried through the provider JSONB state mapping. Legacy records without this metadata restore fail-closed for forced/self-qualification triggers.",
+    "trigger_governance": "Forced-test cooldown and logical time are checkpointed and carried through the provider JSONB state mapping. The V1 source names a self-qualification per-run quota but defines no run identity/reset boundary, so restore does not silently replenish that quota; a future reset requires an explicit run boundary. Legacy records without governance metadata restore fail-closed for forced/self-qualification triggers.",
     "replay_guard": "event_digest is unique in the durable event ledger."
   },
   "claim_ceiling": {
