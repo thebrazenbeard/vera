@@ -36,6 +36,12 @@ class FakeAdapter:
 
     def read(self, request):
         self.reads.append(request)
+        metadata = {"route_ref": request.route_ref, "source_ref": request.source_ref}
+        if request.governing_proposition_or_effect_class is not None:
+            metadata.update({
+                "proposition_or_effect_class": request.governing_proposition_or_effect_class,
+                "referent_scope": request.governing_referent_scope,
+            })
         return ProviderEvidenceEnvelope(
             provider=self.provider,
             locator=f"{self.provider}:{request.source_ref}",
@@ -48,7 +54,7 @@ class FakeAdapter:
             currentness_basis="adapter_exact_readback",
             supersession_state="CURRENT_OBSERVATION",
             conflict_state="NONE",
-            metadata={"route_ref": request.route_ref, "source_ref": request.source_ref},
+            metadata=metadata,
         )
 
 
@@ -65,11 +71,7 @@ class RuntimeCohesionExecutorTests(unittest.TestCase):
         adapter = FakeAdapter("github")
         registry = AdapterRegistry({"github": adapter})
         result = execute_domain_cycle(
-            "VISUAL_SELF_REPRESENTATION",
-            INDEX,
-            CONTRACT,
-            FABRIC,
-            registry,
+            "VISUAL_SELF_REPRESENTATION", INDEX, CONTRACT, FABRIC, registry,
             privacy_allowlist={"PRIVATE_REPRESENTATION"},
         )
         self.assertEqual(result.status, "EXECUTED")
@@ -82,11 +84,7 @@ class RuntimeCohesionExecutorTests(unittest.TestCase):
         adapter = FakeAdapter("github")
         registry = AdapterRegistry({"github": adapter})
         result = execute_domain_cycle(
-            "AUTOBIOGRAPHICAL_HISTORY",
-            INDEX,
-            CONTRACT,
-            FABRIC,
-            registry,
+            "AUTOBIOGRAPHICAL_HISTORY", INDEX, CONTRACT, FABRIC, registry,
             privacy_allowlist={"GOVERNED"},
         )
         self.assertEqual(result.status, "UNRESOLVED")
@@ -97,11 +95,7 @@ class RuntimeCohesionExecutorTests(unittest.TestCase):
         adapter = FakeAdapter("github", {"route:selfimage": "UNAVAILABLE"})
         registry = AdapterRegistry({"github": adapter})
         result = execute_domain_cycle(
-            "VISUAL_SELF_REPRESENTATION",
-            INDEX,
-            CONTRACT,
-            FABRIC,
-            registry,
+            "VISUAL_SELF_REPRESENTATION", INDEX, CONTRACT, FABRIC, registry,
             privacy_allowlist={"PRIVATE_REPRESENTATION"},
         )
         self.assertEqual(result.status, "UNRESOLVED")
@@ -112,10 +106,7 @@ class RuntimeCohesionExecutorTests(unittest.TestCase):
         live = FakeAdapter("live_conversation", evidence_class="current_user_report")
         github = ControlGitHubAdapter("github")
         result = execute_domain_cycle(
-            "CONTROL_AND_GOVERNANCE",
-            INDEX,
-            CONTRACT,
-            FABRIC,
+            "CONTROL_AND_GOVERNANCE", INDEX, CONTRACT, FABRIC,
             AdapterRegistry({"live_conversation": live, "github": github}),
             privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED"},
         )
@@ -128,10 +119,7 @@ class RuntimeCohesionExecutorTests(unittest.TestCase):
         live = FakeAdapter("live_conversation", evidence_class="current_user_authority")
         github = ControlGitHubAdapter("github")
         result = execute_domain_cycle(
-            "CONTROL_AND_GOVERNANCE",
-            INDEX,
-            CONTRACT,
-            FABRIC,
+            "CONTROL_AND_GOVERNANCE", INDEX, CONTRACT, FABRIC,
             AdapterRegistry({"live_conversation": live, "github": github}),
             privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED"},
         )
@@ -146,11 +134,7 @@ class RuntimeCohesionExecutorTests(unittest.TestCase):
         registry = AdapterRegistry({"github": bad})
         with self.assertRaises(ValueError):
             execute_domain_cycle(
-                "VISUAL_SELF_REPRESENTATION",
-                INDEX,
-                CONTRACT,
-                FABRIC,
-                registry,
+                "VISUAL_SELF_REPRESENTATION", INDEX, CONTRACT, FABRIC, registry,
                 privacy_allowlist={"PRIVATE_REPRESENTATION"},
             )
 
@@ -159,11 +143,7 @@ class RuntimeCohesionExecutorTests(unittest.TestCase):
         registry = AdapterRegistry({"github": adapter})
         with self.assertRaises(ValueError):
             execute_domain_cycle(
-                "VISUAL_SELF_REPRESENTATION",
-                INDEX,
-                CONTRACT,
-                FABRIC,
-                registry,
+                "VISUAL_SELF_REPRESENTATION", INDEX, CONTRACT, FABRIC, registry,
                 privacy_allowlist={"PRIVATE_REPRESENTATION"},
             )
 
@@ -178,22 +158,14 @@ class RuntimeCohesionExecutorTests(unittest.TestCase):
         registry = AdapterRegistry({"github": RouteSpoofAdapter("github")})
         with self.assertRaises(ValueError):
             execute_domain_cycle(
-                "VISUAL_SELF_REPRESENTATION",
-                INDEX,
-                CONTRACT,
-                FABRIC,
-                registry,
+                "VISUAL_SELF_REPRESENTATION", INDEX, CONTRACT, FABRIC, registry,
                 privacy_allowlist={"PRIVATE_REPRESENTATION"},
             )
 
     def test_checkpoint_remains_pointer_only_after_execution(self):
         registry = AdapterRegistry({"github": FakeAdapter("github")})
         result = execute_domain_cycle(
-            "VISUAL_SELF_REPRESENTATION",
-            INDEX,
-            CONTRACT,
-            FABRIC,
-            registry,
+            "VISUAL_SELF_REPRESENTATION", INDEX, CONTRACT, FABRIC, registry,
             privacy_allowlist={"PRIVATE_REPRESENTATION"},
         )
         checkpoint = result.checkpoint
@@ -203,11 +175,7 @@ class RuntimeCohesionExecutorTests(unittest.TestCase):
 
     def test_missing_adapter_is_explicit_unresolved_not_silent_skip(self):
         result = execute_domain_cycle(
-            "VISUAL_SELF_REPRESENTATION",
-            INDEX,
-            CONTRACT,
-            FABRIC,
-            AdapterRegistry({}),
+            "VISUAL_SELF_REPRESENTATION", INDEX, CONTRACT, FABRIC, AdapterRegistry({}),
             privacy_allowlist={"PRIVATE_REPRESENTATION"},
         )
         self.assertEqual(result.status, "UNRESOLVED")
