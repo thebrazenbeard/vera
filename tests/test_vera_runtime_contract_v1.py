@@ -175,7 +175,14 @@ class VeraRuntimeContractV1Tests(unittest.TestCase):
         self.assertRegex(receipt["index_blob_sha"], r"^[0-9a-f]{40}$")
         self.assertRegex(receipt["contract_blob_sha"], r"^[0-9a-f]{40}$")
         self.assertRegex(receipt["source_commit"], r"^[0-9a-f]{40}$")
-        self.assertEqual(receipt["validation_result"], "SOURCE_VALIDATION_NOT_YET_EXECUTED")
+        self.assertEqual(
+            receipt["validation_result"],
+            "SOURCE_RECEIPT_REBOUND_EXACT_BRANCH_TEST_EXECUTION_UNAVAILABLE",
+        )
+        self.assertEqual(
+            receipt["ci_execution_state"],
+            "CI_EXECUTION_UNAVAILABLE_ZERO_RUNNER_STEPS_OBSERVED",
+        )
 
     def test_phenomenology_remains_unresolved_and_non_promoting(self):
         phenomenology = load(CONTRACT)["phenomenology"]
