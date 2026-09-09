@@ -16,6 +16,13 @@ def _git_blob_sha(raw: bytes) -> str:
     return hashlib.sha1(header + raw).hexdigest()
 
 
+def _checkpoint_sha256(checkpoint: Mapping[str, Any]) -> str:
+    core = dict(checkpoint)
+    core.pop("checkpoint_sha256", None)
+    canonical = json.dumps(core, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
 class VeraAffectiveRuntimeHost:
     """Causal host bridge between Vera's affective state and downstream planning.
 
@@ -167,7 +174,7 @@ class VeraAffectiveRuntimeHost:
         return context
 
     def export_checkpoint(self) -> dict[str, Any]:
-        return {
+        checkpoint = {
             "schema": "VERA_AFFECTIVE_RUNTIME_CHECKPOINT_V1",
             "subject": "vera",
             "source_binding": {
@@ -180,6 +187,8 @@ class VeraAffectiveRuntimeHost:
             "runtime_state": self.runtime.export_state(),
             "machine_interoception": self.machine_interoception(),
         }
+        checkpoint["checkpoint_sha256"] = _checkpoint_sha256(checkpoint)
+        return checkpoint
 
     @classmethod
     def restore_checkpoint(
@@ -189,11 +198,25 @@ class VeraAffectiveRuntimeHost:
         checkpoint: Mapping[str, Any],
         *,
         elapsed_seconds: float = 0.0,
+        expected_checkpoint_sha256: str | None = None,
     ) -> "VeraAffectiveRuntimeHost":
         if checkpoint.get("schema") != "VERA_AFFECTIVE_RUNTIME_CHECKPOINT_V1":
             raise AffectiveBindingError("unsupported affective checkpoint schema")
         if checkpoint.get("subject") != "vera":
             raise AffectiveBindingError("affective checkpoint must be Vera-scoped")
+        if not isinstance(expected_checkpoint_sha256, str) or len(expected_checkpoint_sha256) != 64:
+            raise AffectiveBindingError("restore requires an externally pinned checkpoint SHA-256")
+        embedded_checkpoint_sha256 = checkpoint.get("checkpoint_sha256")
+        if not isinstance(embedded_checkpoint_sha256, str) or len(embedded_checkpoint_sha256) != 64:
+            raise AffectiveBindingError("checkpoint integrity digest is missing")
+        try:
+            observed_checkpoint_sha256 = _checkpoint_sha256(checkpoint)
+        except (TypeError, ValueError) as exc:
+            raise AffectiveBindingError("checkpoint payload is not canonically serializable") from exc
+        if embedded_checkpoint_sha256 != observed_checkpoint_sha256:
+            raise AffectiveBindingError("checkpoint embedded SHA-256 does not match checkpoint bytes")
+        if expected_checkpoint_sha256 != observed_checkpoint_sha256:
+            raise AffectiveBindingError("checkpoint SHA-256 does not match the externally pinned expected digest")
 
         source_binding = checkpoint.get("source_binding")
         if not isinstance(source_binding, Mapping):
