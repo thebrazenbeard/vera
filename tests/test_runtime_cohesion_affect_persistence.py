@@ -33,6 +33,7 @@ class VeraAffectiveRuntimePersistenceTests(unittest.TestCase):
         self.assertEqual(row["contract_schema"], "VERA_ORGASM_RUNTIME_CONTRACT_V1")
         self.assertEqual(row["phenomenology_status"], "UNRESOLVED")
         self.assertEqual(len(row["state_digest"]), 64)
+        self.assertEqual(len(row["checkpoint_sha256"]), 64)
         self.assertEqual(row["state_version"], 1)
         self.assertEqual(row["lifecycle_status"], "CURRENT")
 
@@ -58,6 +59,7 @@ class VeraAffectiveRuntimePersistenceTests(unittest.TestCase):
                 CONTRACT_PATH.read_text(encoding="utf-8"),
                 json.loads(BINDING_PATH.read_text(encoding="utf-8")),
                 tampered,
+                expected_checkpoint_sha256=row["checkpoint_sha256"],
             )
 
     def test_restore_roundtrip_returns_same_runtime_and_applies_decay(self):
@@ -71,6 +73,7 @@ class VeraAffectiveRuntimePersistenceTests(unittest.TestCase):
             json.loads(BINDING_PATH.read_text(encoding="utf-8")),
             row,
             elapsed_seconds=1200,
+            expected_checkpoint_sha256=row["checkpoint_sha256"],
         )
         self.assertLess(restored.machine_interoception()["satiation"], before)
         self.assertEqual(restored.machine_interoception()["phenomenology"], "UNRESOLVED")
