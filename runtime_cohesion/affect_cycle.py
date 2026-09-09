@@ -60,6 +60,11 @@ class VeraAffectiveCycle:
             raise ValueError("host_scope is required")
         if initial_state_version < 1:
             raise ValueError("initial_state_version must be positive")
+        bound_host_scope = getattr(host, "_durable_host_scope", None)
+        if bound_host_scope is not None and bound_host_scope != host_scope:
+            raise ValueError("affective host is already bound to a different durable host_scope")
+        if bound_host_scope is None:
+            host._durable_host_scope = host_scope
         self.host = host
         self.host_scope = host_scope
         self.state_writer = state_writer

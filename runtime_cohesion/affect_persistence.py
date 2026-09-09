@@ -388,7 +388,7 @@ def restore_host_from_state_row(
         "checkpoint_sha256": row_checkpoint_sha256,
     }
     try:
-        return VeraAffectiveRuntimeHost.restore_checkpoint(
+        restored_host = VeraAffectiveRuntimeHost.restore_checkpoint(
             contract_text,
             binding,
             checkpoint,
@@ -397,3 +397,5 @@ def restore_host_from_state_row(
         )
     except AffectiveBindingError as exc:
         raise PersistenceRecordError(str(exc)) from exc
+    restored_host._durable_host_scope = row_host_scope
+    return restored_host
