@@ -44,6 +44,15 @@ class RuntimeCohesionNativeHookTests(unittest.TestCase):
         self.assertIn("explicitly absent", boundary["read_contract"].lower())
         self.assertIn("never embedded", boundary["credential_rule"].lower())
 
+    def test_projection_reconcile_requires_exact_event_instance_binding(self):
+        hook = json.loads(HOOK.read_text(encoding="utf-8"))
+        rule = hook["operations"]["PROJECTION_RECONCILE"]["rule"].lower()
+        self.assertIn("event", rule)
+        self.assertIn("selector", rule)
+        self.assertIn("wrong event", rule)
+        self.assertIn("unresolved", rule)
+        self.assertIn("conflict", rule)
+
     def test_hook_forbids_source_to_install_runtime_promotion(self):
         hook = json.loads(HOOK.read_text(encoding="utf-8"))
         boundary = hook["effect_boundaries"]
