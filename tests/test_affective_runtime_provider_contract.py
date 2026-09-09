@@ -48,6 +48,7 @@ class VeraAffectiveRuntimeProviderContractTests(unittest.TestCase):
         self.assertTrue(req["exact_atomic_commit_acknowledgement_required"])
         self.assertTrue(req["ambiguous_commit_outcome_requires_provider_reconciliation_before_reuse"])
         self.assertTrue(req["trigger_governance_durable_across_restore_required"])
+        self.assertTrue(req["self_qualification_quota_reset_requires_explicit_run_boundary"])
         self.assertEqual(
             contract["provider"]["first_write_serialization_migration_state"],
             "SOURCE_ONLY_NOT_APPLIED_TO_PRODUCTION",
