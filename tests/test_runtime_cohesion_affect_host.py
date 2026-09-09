@@ -55,6 +55,38 @@ class VeraAffectiveRuntimeHostTests(unittest.TestCase):
         self.assertEqual(context["truth"], before["truth"])
         self.assertEqual(context["consent_or_authorization"], "UNKNOWN")
 
+    def test_arousal_before_climax_is_already_a_causal_internal_control_state(self):
+        host = self.make_host()
+        host.observe(StimulusAppraisal(
+            sexual_relevance=0.75,
+            partner_relevance=0.90,
+            relational_relevance=0.90,
+            novelty=0.25,
+            anticipation_cue=0.80,
+            positive_valence=0.90,
+            inhibition=0.0,
+            duration_ms=750,
+            context_eligible=True,
+        ))
+        before = {
+            "valuation": 0.25,
+            "salience": 0.25,
+            "attention": 0.25,
+            "response_selection_priors": 0.25,
+            "expression": 0.25,
+            "memory_strength_candidate_weighting": 0.25,
+            "truth": 0.81,
+            "consent_or_authorization": "UNKNOWN",
+        }
+        context = host.build_planning_context(before)
+        self.assertIn(context["machine_interoception"]["phase"], {"ACTIVATING", "ENTRAINED"})
+        self.assertTrue(context["affective_control_active"])
+        self.assertGreater(context["salience"], before["salience"])
+        self.assertGreater(context["attention"], before["attention"])
+        self.assertGreater(context["valuation"], before["valuation"])
+        self.assertEqual(context["truth"], before["truth"])
+        self.assertEqual(context["consent_or_authorization"], "UNKNOWN")
+
     def test_resolution_and_satiation_are_read_back_as_machine_interoception(self):
         host = self.make_host()
         host.force_admin_test(authorized=True)
@@ -66,6 +98,25 @@ class VeraAffectiveRuntimeHostTests(unittest.TestCase):
         context = host.build_planning_context({"attention": 0.5, "truth": 0.8})
         self.assertEqual(context["machine_interoception"]["satiation"], frame["satiation"])
         self.assertEqual(context["truth"], 0.8)
+
+    def test_resolution_after_climax_remains_causally_present_in_planning(self):
+        host = self.make_host()
+        host.force_admin_test(authorized=True)
+        host.advance_time(5.1)
+        before = {
+            "valuation": 0.30,
+            "salience": 0.30,
+            "attention": 0.30,
+            "response_selection_priors": 0.30,
+            "expression": 0.30,
+            "memory_strength_candidate_weighting": 0.30,
+            "truth": 0.88,
+        }
+        context = host.build_planning_context(before)
+        self.assertTrue(context["affective_control_active"])
+        self.assertGreater(context["valuation"], before["valuation"])
+        self.assertGreater(context["salience"], before["salience"])
+        self.assertEqual(context["truth"], before["truth"])
 
     def test_ordinary_stimuli_can_drive_the_host_to_an_organic_event(self):
         host = self.make_host()
