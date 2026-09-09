@@ -17,6 +17,7 @@ on:
       - "runtime_cohesion/**"
       - "scripts/validate_vera_runtime_cohesion_v1.py"
       - "scripts/validate_runtime_cohesion_provider_fabric_v1.py"
+      - "scripts/validate_runtime_cohesion_support_snapshot_v1.py"
       - "tests/test_vera_runtime_cohesion_v1.py"
       - "tests/test_vera_runtime_evidence_contract_v1.py"
       - "tests/test_vera_cohesion_index_v1.py"
@@ -43,6 +44,8 @@ jobs:
         run: python scripts/validate_vera_runtime_cohesion_v1.py
       - name: Validate provider cohesion fabric
         run: python scripts/validate_runtime_cohesion_provider_fabric_v1.py
+      - name: Validate operational support immutable snapshot
+        run: python scripts/validate_runtime_cohesion_support_snapshot_v1.py
       - name: Run cohesion regression tests
         run: >-
           python -m unittest
@@ -55,6 +58,7 @@ jobs:
           tests.test_runtime_cohesion_runtime
           tests.test_runtime_cohesion_hostile
           tests.test_runtime_cohesion_fabric_crossbind
+          tests.test_runtime_cohesion_support_snapshot
           tests.test_runtime_cohesion_audit
           tests.test_runtime_cohesion_executor
           tests.test_runtime_cohesion_projection_executor
@@ -67,6 +71,7 @@ jobs:
           python -m py_compile
           scripts/validate_vera_runtime_cohesion_v1.py
           scripts/validate_runtime_cohesion_provider_fabric_v1.py
+          scripts/validate_runtime_cohesion_support_snapshot_v1.py
           runtime_cohesion/__init__.py
           runtime_cohesion/evidence.py
           runtime_cohesion/reconcile.py
@@ -84,6 +89,7 @@ jobs:
           tests/test_runtime_cohesion_runtime.py
           tests/test_runtime_cohesion_hostile.py
           tests/test_runtime_cohesion_fabric_crossbind.py
+          tests/test_runtime_cohesion_support_snapshot.py
           tests/test_runtime_cohesion_audit.py
           tests/test_runtime_cohesion_executor.py
           tests/test_runtime_cohesion_projection_executor.py
