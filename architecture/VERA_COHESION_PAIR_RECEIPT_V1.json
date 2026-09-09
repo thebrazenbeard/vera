@@ -11,7 +11,7 @@
   "validator_path": "scripts/validate_vera_runtime_cohesion_v1.py",
   "validator_blob_sha": "5a7384e10249833fdb1ed09fab16cef22b9bdd1b",
   "compatibility_generation": "A2+B1+OPERATIONAL_FABRIC_V1_EVENT_BOUND_HARD_DEPENDENCIES_DERIVED_GOVERNING_RESOLUTION",
-  "operational_support_source_commit": "cf65a0acb49960781f04fe9d0bd19c9939c52f7d",
+  "operational_support_source_commit": "3691a343eace5f16bd36b20d21e5fc0ff863a5ec",
   "operational_support_source_commit_semantics": "GIT_TREE_CONTAINS_EXACT_OPERATIONAL_SUPPORT_PATH_BLOBS",
   "operational_support_snapshot_validator": {
     "path": "scripts/validate_runtime_cohesion_support_snapshot_v1.py",
@@ -41,7 +41,7 @@
     },
     "adapter_contract": {
       "path": "runtime_cohesion/adapters.py",
-      "blob_sha": "8c6a5188c314b58b2c05cf24bb47056cfb0a005f"
+      "blob_sha": "9206e3eb289e2f11530fbc48f1ef7cfb48668ac3"
     },
     "projection_audit_module": {
       "path": "runtime_cohesion/audit.py",
@@ -49,7 +49,7 @@
     },
     "provider_executor": {
       "path": "runtime_cohesion/executor.py",
-      "blob_sha": "6d21c0ad88de14216e83949bf1eef5854e4767a2"
+      "blob_sha": "294137635b4cd4abcce1b8aa61d9dfcf665ef90b"
     },
     "failure_candidate_router": {
       "path": "runtime_cohesion/failure.py",
@@ -73,10 +73,10 @@
     "m1_dependency_result": "BOUNDED_RECONSTRUCTED_GREEN_HARD_PREREQUISITE_PREEMPTION_BLOCKING_CONTEXTUAL_NONBLOCKING_CYCLE_TERMINATION_NATIVE_HOOK_AND_SOURCE_CROSS_VALIDATION",
     "m1_governing_resolution_boundary_result": "HOSTILE_SOURCE_CASES_ADDED_FOR_NAKED_STATUS_NON_DECISIVE_EVIDENCE_CONFLICT_WRONG_REFERENT_AND_EXACT_DERIVED_RELEASE; EXACT_BRANCH_TEST_EXECUTION_NOT_AVAILABLE",
     "m4_operational_binding_result": "SOURCE_VALIDATOR_REQUIRES_EVERY_OPERATIONAL_SUPPORT_PATH_TO_RESOLVE_INSIDE_REPOSITORY_AND_MATCH_ITS_EXACT_GIT_BLOB",
-    "m4_operational_snapshot_result": "OPERATIONAL_SUPPORT_REBOUND_TO_IMMUTABLE_CF65A0AC_CUT_AFTER_RUNTIME_PROVIDER_VALIDATOR_EXECUTOR_AND_PACKAGE_SURFACE_DRIFT",
-    "scope": "Implementation-focused evidence only. Prior M1/M2/M5 cases were exercised in bounded reconstruction after deliberate red cases. The derived-governing-resolution hostile suite is source-present but has not been executed by exact-branch GitHub CI because runner execution remains unavailable. The current receipt binds the complete support set to immutable commit cf65a0acb49960781f04fe9d0bd19c9939c52f7d. This evidence does not qualify native runtime behavior."
+    "m4_operational_snapshot_result": "OPERATIONAL_SUPPORT_REBOUND_TO_IMMUTABLE_3691A343_CUT_AFTER_GOVERNING_PROPOSITION_REQUEST_AND_EVIDENCE_BINDING_CHANGES",
+    "scope": "Implementation-focused evidence only. Prior M1/M2/M5 cases were exercised in bounded reconstruction after deliberate red cases. The derived-governing-resolution hostile suite is source-present but has not been executed by exact-branch GitHub CI because runner execution remains unavailable. The current receipt binds the complete support set to immutable commit 3691a343eace5f16bd36b20d21e5fc0ff863a5ec. This evidence does not qualify native runtime behavior."
   },
   "validation_result": "SOURCE_RECEIPT_REBOUND_EXACT_BRANCH_TEST_EXECUTION_UNAVAILABLE",
   "ci_execution_state": "CI_EXECUTION_UNAVAILABLE_ZERO_RUNNER_STEPS_OBSERVED",
-  "evidence_ceiling": "This receipt binds exact A+B source objects without modifying them, mechanically requires source_commit to contain those exact blobs, and binds the complete current operational-support set to immutable Git commit cf65a0acb49960781f04fe9d0bd19c9939c52f7d. The executor support at that cut derives governing release from fresh exact-referent evidence plus A+B resolver/admission dispatch rather than accepting caller-supplied SATISFIED strings. This is source/operational-support evidence only; it does not prove merge, installation, current-route activation, runtime consumption, behavioral qualification, or phenomenology."
+  "evidence_ceiling": "This receipt binds exact A+B source objects without modifying them, mechanically requires source_commit to contain those exact blobs, and binds the complete current operational-support set to immutable Git commit 3691a343eace5f16bd36b20d21e5fc0ff863a5ec. The executor support at that cut derives governing release from fresh exact-referent evidence plus A+B resolver/admission dispatch rather than accepting caller-supplied SATISFIED strings, and the adapter request carries the exact governing proposition/referent scope that returned prerequisite evidence must bind back to. This is source/operational-support evidence only; it does not prove merge, installation, current-route activation, runtime consumption, behavioral qualification, or phenomenology."
 }
