@@ -53,10 +53,14 @@ class EvidenceAdapter:
             self.evidence_by_request.get(request.domain_id, "source_provenance"),
         )
         metadata = {"route_ref": request.route_ref, "source_ref": request.source_ref}
-        if request.domain_id == "CURRENT_TASK_CORRECTION_PERMISSION_CONSENT":
+        if request.governing_proposition_or_effect_class is not None:
             metadata.update({
-                "proposition_or_effect_class": self.proposition_override or EXPECTED_PROP,
-                "referent_scope": self.referent_scope_override or EXPECTED_SCOPE,
+                "proposition_or_effect_class": (
+                    self.proposition_override or request.governing_proposition_or_effect_class
+                ),
+                "referent_scope": (
+                    self.referent_scope_override or request.governing_referent_scope
+                ),
             })
         return ProviderEvidenceEnvelope(
             provider=self.provider,
@@ -117,7 +121,13 @@ class GoverningResolutionBoundaryTests(unittest.TestCase):
             registry,
             privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED"},
         )
-        self.assertTrue(any(request.domain_id == "CURRENT_TASK_CORRECTION_PERMISSION_CONSENT" for request in live.reads))
+        prerequisite_reads = [
+            request for request in live.reads
+            if request.domain_id == "CURRENT_TASK_CORRECTION_PERMISSION_CONSENT"
+        ]
+        self.assertTrue(prerequisite_reads)
+        self.assertEqual(prerequisite_reads[0].governing_proposition_or_effect_class, EXPECTED_PROP)
+        self.assertEqual(prerequisite_reads[0].governing_referent_scope, EXPECTED_SCOPE)
         self.assertTrue(any(request.route_ref == "route:vera-control-plane" for request in github.probes))
         self.assertTrue(any(record.status == "SATISFIED" for record in result.governing_resolutions))
 
@@ -155,7 +165,8 @@ class GoverningResolutionBoundaryTests(unittest.TestCase):
             privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED"},
         )
         self.assertFalse(any(request.route_ref == "route:vera-control-plane" for request in github.probes))
-        self.assertTrue(any(record.status == "CONFLICT" for record in result.governing_resolutions))
+        self.assertFalse(any(record.status == "SATISFIED" for record in result.governing_resolutions))
+        self.assertTrue(any(record.status == "UNRESOLVED" for record in result.governing_resolutions))
 
     def test_wrong_referent_scope_cannot_release_dependent_io(self):
         _live, github, registry = self.adapters(referent_scope_override="VERA")
@@ -164,7 +175,8 @@ class GoverningResolutionBoundaryTests(unittest.TestCase):
             privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED"},
         )
         self.assertFalse(any(request.route_ref == "route:vera-control-plane" for request in github.probes))
-        self.assertTrue(any(record.status == "CONFLICT" for record in result.governing_resolutions))
+        self.assertFalse(any(record.status == "SATISFIED" for record in result.governing_resolutions))
+        self.assertTrue(any(record.status == "UNRESOLVED" for record in result.governing_resolutions))
 
 
 if __name__ == "__main__":
