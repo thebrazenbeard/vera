@@ -12,6 +12,7 @@ from scripts.validate_vera_runtime_cohesion_v1 import (
     validate_evidence_contract,
     validate_introspection,
     validate_manifest,
+    validate_pair_receipt,
     validate_routing,
     validate_runtime_contract,
 )
@@ -42,6 +43,10 @@ def cohesion_index() -> dict:
 
 def runtime_contract() -> dict:
     return load_json_strict(ARCHITECTURE / "VERA_RUNTIME_CONTRACT_V1.json")
+
+
+def pair_receipt() -> dict:
+    return load_json_strict(ARCHITECTURE / "VERA_COHESION_PAIR_RECEIPT_V1.json")
 
 
 class VeraRuntimeCohesionV1Tests(unittest.TestCase):
@@ -175,6 +180,12 @@ class VeraRuntimeCohesionV1Tests(unittest.TestCase):
         del contract["failure_signatures"]["brigit_to_vera_transfer"]
         with self.assertRaisesRegex(ValueError, "failure signature"):
             validate_consolidated_pair(index, contract)
+
+    def test_pair_receipt_rejects_unresolvable_source_commit(self):
+        receipt = pair_receipt()
+        receipt["source_commit"] = "0" * 40
+        with self.assertRaisesRegex(ValueError, "source_commit.*tree|tree.*source_commit"):
+            validate_pair_receipt(ROOT, receipt)
 
     def test_runtime_contract_rejects_unbounded_or_zero_retrieval_budget(self):
         document = runtime_contract()
