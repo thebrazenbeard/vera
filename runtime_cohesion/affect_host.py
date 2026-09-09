@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+from threading import RLock
 from typing import Any, Mapping
+from weakref import WeakKeyDictionary
 
 from .affect_scope import mark_affective_host_checkpoint_replay
 from .orgasm import ContractError, OrgasmRuntime, StimulusAppraisal
@@ -10,6 +12,10 @@ from .orgasm import ContractError, OrgasmRuntime, StimulusAppraisal
 
 class AffectiveBindingError(ContractError):
     """The executable affect host cannot bind the supplied sexuality contract exactly."""
+
+
+_RUNTIME_BINDING_LOCK = RLock()
+_PENDING_RUNTIME_HOST_BINDINGS: WeakKeyDictionary[OrgasmRuntime, tuple[str, str, str, str, str]] = WeakKeyDictionary()
 
 
 def _git_blob_sha(raw: bytes) -> str:
@@ -26,6 +32,57 @@ def _checkpoint_sha256(checkpoint: Mapping[str, Any]) -> str:
 
 def _clamp(value: float, low: float = 0.0, high: float = 1.0) -> float:
     return max(low, min(high, float(value)))
+
+
+def _authorize_runtime_host_construction(
+    runtime: OrgasmRuntime,
+    binding: Mapping[str, Any],
+    *,
+    contract_blob_sha: str,
+    contract_sha256: str,
+) -> None:
+    """Authorize exactly one host construction for an exact-bound runtime.
+
+    The authorization lives outside caller-mutable runtime/host attributes and is
+    consumed by the constructor. Raw `OrgasmRuntime.restore_state()` results and
+    caller-created runtimes therefore cannot be laundered into a live affect host
+    merely by copying canonical-looking binding strings.
+    """
+    ticket = (
+        str(binding.get("source_repository") or ""),
+        str(binding.get("source_commit") or ""),
+        str(binding.get("source_path") or ""),
+        contract_blob_sha,
+        contract_sha256,
+    )
+    with _RUNTIME_BINDING_LOCK:
+        if runtime in _PENDING_RUNTIME_HOST_BINDINGS:
+            raise AffectiveBindingError("runtime already has a pending host-construction authorization")
+        _PENDING_RUNTIME_HOST_BINDINGS[runtime] = ticket
+
+
+def _consume_runtime_host_construction(
+    runtime: OrgasmRuntime,
+    binding: Mapping[str, Any],
+    *,
+    contract_blob_sha: str,
+    contract_sha256: str,
+) -> None:
+    expected = (
+        str(binding.get("source_repository") or ""),
+        str(binding.get("source_commit") or ""),
+        str(binding.get("source_path") or ""),
+        contract_blob_sha,
+        contract_sha256,
+    )
+    with _RUNTIME_BINDING_LOCK:
+        observed = _PENDING_RUNTIME_HOST_BINDINGS.pop(runtime, None)
+    if observed is None:
+        raise AffectiveBindingError(
+            "runtime is not authorized for direct host construction; use an exact-bound host factory"
+        )
+    if observed != expected:
+        raise AffectiveBindingError("runtime host-construction authorization does not match the supplied binding")
 
 
 class VeraAffectiveRuntimeHost:
@@ -45,6 +102,12 @@ class VeraAffectiveRuntimeHost:
         contract_blob_sha: str,
         contract_sha256: str,
     ) -> None:
+        _consume_runtime_host_construction(
+            runtime,
+            binding,
+            contract_blob_sha=contract_blob_sha,
+            contract_sha256=contract_sha256,
+        )
         self.runtime = runtime
         self.binding = dict(binding)
         self.contract_blob_sha = contract_blob_sha
@@ -96,11 +159,18 @@ class VeraAffectiveRuntimeHost:
             source_revision=source_revision,
             profile=profile,
         )
+        contract_sha256 = hashlib.sha256(raw).hexdigest()
+        _authorize_runtime_host_construction(
+            runtime,
+            binding,
+            contract_blob_sha=blob_sha,
+            contract_sha256=contract_sha256,
+        )
         return cls(
             runtime,
             binding=binding,
             contract_blob_sha=blob_sha,
-            contract_sha256=hashlib.sha256(raw).hexdigest(),
+            contract_sha256=contract_sha256,
         )
 
     def machine_interoception(self) -> dict[str, Any]:
@@ -320,6 +390,12 @@ class VeraAffectiveRuntimeHost:
         # Deliberately preserve any transition receipt emitted while applying
         # elapsed-time recovery. The next executing affective cycle must commit
         # that receipt instead of silently erasing a real state transition.
+        _authorize_runtime_host_construction(
+            runtime,
+            binding,
+            contract_blob_sha=blob_sha,
+            contract_sha256=sha256,
+        )
         host = cls(
             runtime,
             binding=binding,
