@@ -59,6 +59,7 @@ class VeraAffectiveRuntimePersistenceTests(unittest.TestCase):
                 CONTRACT_PATH.read_text(encoding="utf-8"),
                 json.loads(BINDING_PATH.read_text(encoding="utf-8")),
                 tampered,
+                expected_host_scope="TEST_HOST",
                 expected_checkpoint_sha256=row["checkpoint_sha256"],
             )
 
@@ -72,11 +73,37 @@ class VeraAffectiveRuntimePersistenceTests(unittest.TestCase):
             CONTRACT_PATH.read_text(encoding="utf-8"),
             json.loads(BINDING_PATH.read_text(encoding="utf-8")),
             row,
+            expected_host_scope="TEST_HOST",
             elapsed_seconds=1200,
             expected_checkpoint_sha256=row["checkpoint_sha256"],
         )
         self.assertLess(restored.machine_interoception()["satiation"], before)
         self.assertEqual(restored.machine_interoception()["phenomenology"], "UNRESOLVED")
+
+    def test_restore_rejects_noncurrent_or_cross_scope_rows(self):
+        host = self.make_host()
+        checkpoint = host.export_checkpoint()
+        current = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=1)
+
+        superseded = copy.deepcopy(current)
+        superseded["lifecycle_status"] = "SUPERSEDED"
+        with self.assertRaises(PersistenceRecordError):
+            restore_host_from_state_row(
+                CONTRACT_PATH.read_text(encoding="utf-8"),
+                json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+                superseded,
+                expected_host_scope="TEST_HOST",
+                expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+            )
+
+        with self.assertRaises(PersistenceRecordError):
+            restore_host_from_state_row(
+                CONTRACT_PATH.read_text(encoding="utf-8"),
+                json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+                current,
+                expected_host_scope="OTHER_HOST",
+                expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+            )
 
 
 if __name__ == "__main__":

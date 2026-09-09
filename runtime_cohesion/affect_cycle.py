@@ -103,6 +103,7 @@ class VeraAffectiveCycle:
             contract_text,
             binding,
             row,
+            expected_host_scope=host_scope,
             elapsed_seconds=elapsed_seconds,
             expected_checkpoint_sha256=expected_checkpoint_sha256,
         )

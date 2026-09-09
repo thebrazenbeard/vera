@@ -313,6 +313,7 @@ def restore_host_from_state_row(
     binding: Mapping[str, Any],
     row: Mapping[str, Any],
     *,
+    expected_host_scope: str | None = None,
     elapsed_seconds: float = 0.0,
     expected_checkpoint_sha256: str | None = None,
 ) -> VeraAffectiveRuntimeHost:
@@ -322,6 +323,15 @@ def restore_host_from_state_row(
         raise PersistenceRecordError("durable state row contract schema mismatch")
     if row.get("phenomenology_status") != "UNRESOLVED":
         raise PersistenceRecordError("durable state row illegally promotes phenomenology")
+    if row.get("lifecycle_status") != "CURRENT":
+        raise PersistenceRecordError("live affective restore requires lifecycle_status CURRENT")
+    if not isinstance(expected_host_scope, str) or not expected_host_scope:
+        raise PersistenceRecordError("expected_host_scope is required for live affective restore")
+    row_host_scope = row.get("host_scope")
+    if not isinstance(row_host_scope, str) or not row_host_scope:
+        raise PersistenceRecordError("durable state row requires a bound host_scope")
+    if row_host_scope != expected_host_scope:
+        raise PersistenceRecordError("live affective restore host_scope does not match provider row")
     state = row.get("state")
     trigger_governance = row.get("trigger_governance")
     if not isinstance(state, Mapping):

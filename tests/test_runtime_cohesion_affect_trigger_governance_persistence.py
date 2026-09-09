@@ -35,6 +35,7 @@ class VeraAffectiveTriggerGovernancePersistenceTests(unittest.TestCase):
             CONTRACT_PATH.read_text(encoding="utf-8"),
             json.loads(BINDING_PATH.read_text(encoding="utf-8")),
             row,
+            expected_host_scope="TEST_HOST",
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
         )
         with self.assertRaises(TriggerRejected):

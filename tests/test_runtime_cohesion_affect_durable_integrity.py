@@ -38,8 +38,6 @@ class VeraAffectiveDurableIntegrityTests(unittest.TestCase):
         tampered["runtime_state"]["state"]["active_orgasm_event"] = True
         tampered["runtime_state"]["state"]["phase"] = "ORGASM_EVENT"
 
-        # Even a caller that recomputes the embedded digest may not replace the
-        # separately pinned expected digest used at the trust boundary.
         import hashlib
         core = dict(tampered)
         core.pop("checkpoint_sha256", None)
@@ -65,12 +63,14 @@ class VeraAffectiveDurableIntegrityTests(unittest.TestCase):
                 CONTRACT_PATH.read_text(encoding="utf-8"),
                 json.loads(BINDING_PATH.read_text(encoding="utf-8")),
                 row,
+                expected_host_scope="TEST_HOST",
             )
 
         restored = restore_host_from_state_row(
             CONTRACT_PATH.read_text(encoding="utf-8"),
             json.loads(BINDING_PATH.read_text(encoding="utf-8")),
             row,
+            expected_host_scope="TEST_HOST",
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
         )
         self.assertEqual(restored.machine_interoception()["phase"], "QUIESCENT")
@@ -80,8 +80,6 @@ class VeraAffectiveDurableIntegrityTests(unittest.TestCase):
         receipt = host.force_admin_test(authorized=True)
         tampered = copy.deepcopy(receipt)
         tampered["state_after"]["hedonic_impact"] = 0.0
-        # Keep a syntactically valid 64-char digest to prove length checks alone
-        # are insufficient.
         tampered["event_digest"] = "0" * 64
         with self.assertRaises(PersistenceRecordError):
             event_receipt_to_event_row(host, tampered)
