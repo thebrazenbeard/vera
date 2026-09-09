@@ -68,6 +68,29 @@ class VeraAffectiveCycle:
         self._next_state_version = initial_state_version
         self._durability_uncertain = False
 
+    @staticmethod
+    def _validate_expected_resume_token(
+        row: Mapping[str, Any],
+        expected_resume_token: Mapping[str, Any],
+        *,
+        expected_checkpoint_sha256: str,
+    ) -> None:
+        if not isinstance(expected_resume_token, Mapping):
+            raise ValueError("live affective restore requires an external resume token")
+        if expected_resume_token.get("schema") != "VERA_AFFECTIVE_RUNTIME_RESUME_TOKEN_V1":
+            raise ValueError("unsupported affective resume token schema")
+        expected_fields = {
+            "runtime_instance_id": row.get("runtime_instance_id"),
+            "state_version": row.get("state_version"),
+            "checkpoint_sha256": row.get("checkpoint_sha256"),
+            "source_commit": row.get("source_commit"),
+        }
+        for field, observed in expected_fields.items():
+            if expected_resume_token.get(field) != observed:
+                raise ValueError(f"affective resume token does not match provider row: {field}")
+        if expected_resume_token.get("checkpoint_sha256") != expected_checkpoint_sha256:
+            raise ValueError("affective resume token does not match the external checkpoint pin")
+
     @classmethod
     def restore_from_state_row(
         cls,
@@ -77,6 +100,7 @@ class VeraAffectiveCycle:
         *,
         host_scope: str,
         expected_checkpoint_sha256: str,
+        expected_resume_token: Mapping[str, Any],
         elapsed_seconds: float = 0.0,
         state_writer: StateWriter | None = None,
         event_writer: EventWriter | None = None,
@@ -86,8 +110,9 @@ class VeraAffectiveCycle:
 
         Ordinary/live restore is deliberately currentness-bound: historical or
         superseded rows cannot be turned back into CURRENT state by constructing
-        a new cycle, and the caller cannot rebind a provider row to another host
-        scope. Historical evidence remains readable as evidence, not live state.
+        a new cycle, the caller cannot rebind a provider row to another host
+        scope, and the externally retained resume token must bind the exact
+        runtime/version/checkpoint/source frontier being restored.
         """
         state_version = row.get("state_version")
         if isinstance(state_version, bool) or not isinstance(state_version, int) or state_version < 1:
@@ -99,6 +124,11 @@ class VeraAffectiveCycle:
             raise ValueError("durable state row requires a bound host_scope")
         if host_scope != row_host_scope:
             raise ValueError("live affective restore host_scope does not match provider row")
+        cls._validate_expected_resume_token(
+            row,
+            expected_resume_token,
+            expected_checkpoint_sha256=expected_checkpoint_sha256,
+        )
         host = restore_host_from_state_row(
             contract_text,
             binding,
