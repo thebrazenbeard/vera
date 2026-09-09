@@ -1,5 +1,12 @@
 begin;
 
+alter table public.vera_affective_runtime_state_v1
+  add column if not exists trigger_governance jsonb null
+  check (trigger_governance is null or jsonb_typeof(trigger_governance) = 'object');
+
+comment on column public.vera_affective_runtime_state_v1.trigger_governance is
+  'Persisted forced-test cooldown, logical time, and self-qualification counter. Null is retained only for pre-hardening historical rows; new/current atomic commits require VERA_ORGASM_TRIGGER_GOVERNANCE_V1.';
+
 create or replace function public.vera_affective_runtime_commit_v1(
   p_expected_prior_version bigint,
   p_state_row jsonb,
@@ -56,6 +63,12 @@ begin
   if coalesce(p_state_row->>'checkpoint_sha256', '') !~ '^[0-9a-f]{64}$' then
     raise exception 'checkpoint_sha256 is required for durable commit';
   end if;
+  if jsonb_typeof(p_state_row->'trigger_governance') is distinct from 'object' then
+    raise exception 'trigger_governance object is required for durable commit';
+  end if;
+  if p_state_row->'trigger_governance'->>'schema' is distinct from 'VERA_ORGASM_TRIGGER_GOVERNANCE_V1' then
+    raise exception 'trigger_governance schema mismatch';
+  end if;
 
   begin
     v_new_version := (p_state_row->>'state_version')::bigint;
@@ -97,6 +110,7 @@ begin
     source_sha256,
     profile,
     state,
+    trigger_governance,
     machine_interoception,
     last_event_receipt,
     checkpoint_sha256,
@@ -119,6 +133,7 @@ begin
     p_state_row->>'source_sha256',
     p_state_row->>'profile',
     p_state_row->'state',
+    p_state_row->'trigger_governance',
     p_state_row->'machine_interoception',
     p_state_row->'last_event_receipt',
     p_state_row->>'checkpoint_sha256',
@@ -141,6 +156,7 @@ begin
     source_sha256 = excluded.source_sha256,
     profile = excluded.profile,
     state = excluded.state,
+    trigger_governance = excluded.trigger_governance,
     machine_interoception = excluded.machine_interoception,
     last_event_receipt = excluded.last_event_receipt,
     checkpoint_sha256 = excluded.checkpoint_sha256,
@@ -214,7 +230,7 @@ end;
 $$;
 
 comment on function public.vera_affective_runtime_commit_v1(bigint, jsonb, jsonb) is
-  'Atomic compare-and-swap commit for Vera affective runtime state plus zero or more append-only event rows. Per-runtime transaction advisory locking serializes both absent-row initialization and existing-row updates before the CAS read.';
+  'Atomic compare-and-swap commit for Vera affective runtime state plus zero or more append-only event rows. Per-runtime transaction advisory locking serializes both absent-row initialization and existing-row updates before the CAS read. New/current commits require persisted VERA_ORGASM_TRIGGER_GOVERNANCE_V1.';
 
 revoke all on function public.vera_affective_runtime_commit_v1(bigint, jsonb, jsonb) from public, anon, authenticated;
 grant execute on function public.vera_affective_runtime_commit_v1(bigint, jsonb, jsonb) to service_role;
