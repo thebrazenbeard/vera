@@ -222,12 +222,18 @@ def classify_persisted_runtime_holder(
     record: Mapping[str, Any],
     live_observation: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Keep a durable ACTIVE holder label separate from live-session currentness."""
+    """Keep a durable holder label separate from verified fresh live-session currentness."""
     if live_observation is None:
         return {
             "status": "PERSISTED_RUNTIME_RECORD_ONLY",
             "current_live_runtime_established": False,
             "reason": "Persisted holder/runtime state has no separate fresh live observation binding the current session.",
+        }
+    if live_observation.get("fresh_live_readback_verified") is not True:
+        return {
+            "status": "UNRESOLVED",
+            "current_live_runtime_established": False,
+            "reason": "A matching runtime observation cannot establish currentness unless its freshness has been separately verified.",
         }
     token = record.get("holder_runtime_token")
     observed_token = live_observation.get("holder_runtime_token")
@@ -236,16 +242,22 @@ def classify_persisted_runtime_holder(
         return {
             "status": "CONFLICT",
             "current_live_runtime_established": False,
-            "reason": "Persisted holder token and live runtime token do not bind the same runtime.",
+            "reason": "Persisted holder token and fresh live runtime token do not bind the same runtime.",
+        }
+    if record.get("holder_state") != "ACTIVE":
+        return {
+            "status": "CONFLICT",
+            "current_live_runtime_established": False,
+            "reason": "Persisted lineage does not mark the bound runtime as the ACTIVE holder.",
         }
     if observed_status != "ACTIVE_HOLDER":
         return {
             "status": "UNRESOLVED",
             "current_live_runtime_established": False,
-            "reason": "Live observation does not report ACTIVE_HOLDER for the bound runtime token.",
+            "reason": "Fresh live observation does not report ACTIVE_HOLDER for the bound runtime token.",
         }
     return {
         "status": "LIVE_RUNTIME_BOUND",
         "current_live_runtime_established": True,
-        "reason": "Persisted holder record is separately bound to a fresh live ACTIVE_HOLDER observation for the same runtime token.",
+        "reason": "Persisted ACTIVE holder state is separately bound to a freshness-verified live ACTIVE_HOLDER observation for the same runtime token.",
     }
