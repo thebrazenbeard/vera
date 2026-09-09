@@ -48,6 +48,7 @@ jobs:
           tests.test_runtime_cohesion_orgasm_binding
           tests.test_runtime_cohesion_orgasm_source_fixture
           tests.test_runtime_cohesion_orgasm_durable_trigger_governance
+          tests.test_affective_runtime_provider_contract
           tests.test_runtime_cohesion_affect_host
           tests.test_runtime_cohesion_affect_persistence
           tests.test_runtime_cohesion_affect_cycle
@@ -96,6 +97,7 @@ jobs:
           tests/test_runtime_cohesion_orgasm_binding.py
           tests/test_runtime_cohesion_orgasm_source_fixture.py
           tests/test_runtime_cohesion_orgasm_durable_trigger_governance.py
+          tests/test_affective_runtime_provider_contract.py
           tests/test_runtime_cohesion_affect_host.py
           tests/test_runtime_cohesion_affect_persistence.py
           tests/test_runtime_cohesion_affect_cycle.py
