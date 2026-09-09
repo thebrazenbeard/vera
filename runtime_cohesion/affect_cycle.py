@@ -92,6 +92,11 @@ class VeraAffectiveCycle:
         state_version = row.get("state_version")
         if isinstance(state_version, bool) or not isinstance(state_version, int) or state_version < 1:
             raise ValueError("durable state row requires a positive integer state_version")
+        persisted_host_scope = row.get("host_scope")
+        if not isinstance(persisted_host_scope, str) or not persisted_host_scope:
+            raise ValueError("durable state row requires a nonempty host_scope")
+        if host_scope != persisted_host_scope:
+            raise ValueError("durable state row host_scope does not match the expected restore host_scope")
         host = restore_host_from_state_row(
             contract_text,
             binding,
