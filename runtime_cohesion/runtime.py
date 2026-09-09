@@ -128,21 +128,18 @@ def _admissible_evidence_class(
     return evidence_class
 
 
-def evaluate_proposition_admission(
+def evaluate_abstract_proposition_admission(
     domain_id: str,
     proposition_or_effect_class: str,
     referent_scope: str,
     observations: Iterable[Any],
     contract: Mapping[str, Any],
 ) -> AdmissionDecision:
-    """Fail closed unless B dispatch explicitly admits decisive evidence.
+    """Evaluate proposition admission for abstract policy evidence.
 
-    Transport, readability, persistence, and exact cross-provider reconciliation
-    are not proposition authority. Dispatch selection occurs before terminal
-    resolver acceptance. Every dispatch must have an entry in the separate
-    `resolver_dispatch_decisive_evidence` registry with explicit `all_of` and
-    `any_of` semantics; the resolver's broader accepted set is only a capability
-    ceiling and never silently becomes the deciding rule.
+    This deliberately retains lightweight evidence support for isolated policy
+    tests. Provider-backed callers must use `evaluate_proposition_admission`,
+    which first requires full `ProviderEvidenceEnvelope` objects.
     """
 
     dispatch_rows = contract.get("resolver_dispatch", [])
@@ -261,6 +258,35 @@ def evaluate_proposition_admission(
         required_evidence_classes=tuple(sorted(required)),
         observed_evidence_classes=observed,
         reason="Readable/reconciled evidence is insufficient to satisfy the selected dispatch's decisive evidence rule.",
+    )
+
+
+def evaluate_proposition_admission(
+    domain_id: str,
+    proposition_or_effect_class: str,
+    referent_scope: str,
+    observations: Iterable[Any],
+    contract: Mapping[str, Any],
+) -> AdmissionDecision:
+    """Provider-strict public admission boundary.
+
+    Type strictness preserves provider-envelope binding/currentness/conflict
+    fields through the operational admission path. It does not by itself prove
+    provider origin; adapter/read provenance remains a separate boundary.
+    """
+    from .evidence import ProviderEvidenceEnvelope
+
+    materialized = tuple(observations)
+    if not all(isinstance(item, ProviderEvidenceEnvelope) for item in materialized):
+        raise TypeError(
+            "provider-backed proposition admission requires ProviderEvidenceEnvelope observations"
+        )
+    return evaluate_abstract_proposition_admission(
+        domain_id,
+        proposition_or_effect_class,
+        referent_scope,
+        materialized,
+        contract,
     )
 
 
