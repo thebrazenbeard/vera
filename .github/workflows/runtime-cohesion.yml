@@ -52,6 +52,8 @@ jobs:
           tests.test_runtime_cohesion_affect_cycle
           tests.test_runtime_cohesion_affect_durable_integrity
           tests.test_affective_runtime_persistence_source
+          tests.test_affective_runtime_cas_initialization_source
+          tests.test_runtime_cohesion_affect_commit_ack
           -v
       - name: Compile cohesion validators, runtime, and tests
         run: >-
@@ -96,3 +98,5 @@ jobs:
           tests/test_runtime_cohesion_affect_cycle.py
           tests/test_runtime_cohesion_affect_durable_integrity.py
           tests/test_affective_runtime_persistence_source.py
+          tests/test_affective_runtime_cas_initialization_source.py
+          tests/test_runtime_cohesion_affect_commit_ack.py
