@@ -11,7 +11,7 @@ from .affect_persistence import (
     event_receipt_to_event_row,
     restore_host_from_state_row,
 )
-from .affect_scope import bind_affective_host_scope
+from .affect_scope import bind_affective_host_scope, require_affective_host_cycle_eligible
 from .orgasm import StimulusAppraisal
 
 
@@ -77,6 +77,11 @@ class VeraAffectiveCycle:
         if non_atomic_test_mode and not split_writer_requested:
             raise ValueError("non_atomic_test_mode requires at least one split state/event writer")
 
+        # Raw checkpoint restore proves exact bytes/source binding only. It may
+        # become live again only after the provider-row path has already bound
+        # the validated CURRENT host scope. Fresh hosts remain eligible to bind
+        # their first scope when a new durable cycle is created.
+        require_affective_host_cycle_eligible(host)
         bind_affective_host_scope(host, host_scope)
         self.host = host
         self.host_scope = host_scope
