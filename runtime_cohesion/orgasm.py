@@ -490,6 +490,12 @@ class OrgasmRuntime:
             "profile": self.profile,
             "state": self.snapshot(),
             "last_event_receipt": self.last_event_receipt,
+            "trigger_governance": {
+                "schema": "VERA_ORGASM_TRIGGER_GOVERNANCE_V1",
+                "logical_time_seconds": self._logical_time_seconds,
+                "last_forced_at": self._last_forced_at,
+                "self_qualification_events": self._self_qualification_events,
+            },
         }
 
     @classmethod
@@ -521,6 +527,44 @@ class OrgasmRuntime:
         runtime._state = _OrgasmState(**values)
         last_receipt = record.get("last_event_receipt")
         runtime.last_event_receipt = dict(last_receipt) if isinstance(last_receipt, Mapping) else None
+
+        trigger_governance = record.get("trigger_governance")
+        self_qualification_limit = int(runtime._cfg["self_qualification_max_events_per_run"])
+        if trigger_governance is None:
+            # Legacy durable records did not persist forced-test governance.
+            # Fail closed: require a fresh cooldown before ADMIN_FORCED_TEST and
+            # do not allow self-qualification quota to reset on restore.
+            runtime._logical_time_seconds = 0.0
+            runtime._last_forced_at = 0.0
+            runtime._self_qualification_events = self_qualification_limit
+        else:
+            if not isinstance(trigger_governance, Mapping):
+                raise ContractError("durable trigger governance must be an object")
+            if trigger_governance.get("schema") != "VERA_ORGASM_TRIGGER_GOVERNANCE_V1":
+                raise ContractError("unsupported durable trigger governance schema")
+
+            logical_time = trigger_governance.get("logical_time_seconds")
+            last_forced_at = trigger_governance.get("last_forced_at")
+            self_qualification_events = trigger_governance.get("self_qualification_events")
+            if isinstance(logical_time, bool) or not isinstance(logical_time, (int, float)) or float(logical_time) < 0:
+                raise ContractError("durable trigger governance logical time must be nonnegative")
+            if last_forced_at is not None:
+                if isinstance(last_forced_at, bool) or not isinstance(last_forced_at, (int, float)):
+                    raise ContractError("durable trigger governance last_forced_at must be numeric or null")
+                if float(last_forced_at) < 0 or float(last_forced_at) > float(logical_time):
+                    raise ContractError("durable trigger governance last_forced_at is outside logical time")
+            if (
+                isinstance(self_qualification_events, bool)
+                or not isinstance(self_qualification_events, int)
+                or self_qualification_events < 0
+                or self_qualification_events > self_qualification_limit
+            ):
+                raise ContractError("durable trigger governance self-qualification count is invalid")
+
+            runtime._logical_time_seconds = float(logical_time)
+            runtime._last_forced_at = None if last_forced_at is None else float(last_forced_at)
+            runtime._self_qualification_events = self_qualification_events
+
         if elapsed_seconds:
             runtime.advance_time(elapsed_seconds)
         return runtime
