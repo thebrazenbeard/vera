@@ -185,17 +185,21 @@ def classify_memory_epoch_object(envelope: Mapping[str, Any]) -> dict[str, Any]:
         value for value in limitations
         if isinstance(limitations, list) and isinstance(value, str)
     } if isinstance(limitations, list) else set()
-    if (
-        epistemic_class == "SYNTHETIC_TEST_FIXTURE"
-        or envelope.get("memory_class") == "WORKING_PROJECT"
-        or "NOT_AUTOBIOGRAPHICAL_MEMORY" in limitation_set
-    ):
+    if epistemic_class == "SYNTHETIC_TEST_FIXTURE" or "SYNTHETIC_QUALIFICATION_ONLY" in limitation_set:
         return {
             "status": "PERSISTED_SYNTHETIC_FIXTURE",
             "evidence_classes": ("persisted_provider_record",),
             "autobiographical_admission_eligible": False,
             "present_state_established": False,
-            "reason": "Durable provider verification does not promote a synthetic/working-project object into autobiographical memory.",
+            "reason": "Durable provider verification does not promote a synthetic fixture into autobiographical memory.",
+        }
+    if envelope.get("memory_class") == "WORKING_PROJECT":
+        return {
+            "status": "PERSISTED_WORKING_PROJECT",
+            "evidence_classes": ("persisted_provider_record", "working_project"),
+            "autobiographical_admission_eligible": False,
+            "present_state_established": False,
+            "reason": "Working-project memory remains working-project evidence; persistence does not make it autobiographical or present truth.",
         }
     if envelope.get("memory_class") == "AUTOBIOGRAPHICAL":
         return {
