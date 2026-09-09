@@ -36,6 +36,15 @@ class RuntimeCohesionNativeHookTests(unittest.TestCase):
         self.assertEqual(hook["operations"]["ADMIT_PROPOSITION"]["call"], "runtime_cohesion.runtime.evaluate_proposition_admission")
         self.assertEqual(hook["operations"]["CHECKPOINT"]["call"], "runtime_cohesion.runtime.build_operational_checkpoint")
 
+    def test_domain_retrieve_enforces_hard_prerequisite_preemption(self):
+        hook = json.loads(HOOK.read_text(encoding="utf-8"))
+        rule = hook["operations"]["DOMAIN_RETRIEVE"]["rule"].lower()
+        self.assertIn("hard prerequisite", rule)
+        self.assertIn("before dependent", rule)
+        self.assertIn("withhold", rule)
+        self.assertIn("contextual", rule)
+        self.assertIn("non-blocking", rule)
+
     def test_failure_evaluator_routes_candidates_without_claiming_predicate_truth(self):
         hook = json.loads(HOOK.read_text(encoding="utf-8"))
         rule = hook["operations"]["FAILURE_EVALUATE"]["rule"].lower()
