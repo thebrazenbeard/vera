@@ -132,14 +132,16 @@ def execute_domain_cycle(
     adapters: AdapterRegistry,
     *,
     privacy_allowlist: set[str] | frozenset[str],
+    governing_dependency_states: Mapping[str, str] | None = None,
 ) -> DomainExecutionResult:
     """Execute one provider-backed cohesion retrieval cycle.
 
-    The executor first asks the existing bounded planner which targets are safe to
-    probe, then invokes only the registered provider adapter for each candidate,
-    rebuilds the plan from fresh probe results, and reads only routes observed as
-    CURRENTLY_OBSERVED_REACHABLE or RESULT. Adapters supply transport; A+B and
-    the runtime planner remain policy/currentness boundaries.
+    Governing resolution is supplied separately from transport reachability.
+    Until every hard prerequisite required by a dependent domain is explicitly
+    SATISFIED, only the prerequisite's own safe candidates can be probed/read.
+    Once the resolver/admission/currentness layer returns SATISFIED, the same
+    executor may release the dependent provider probes. Adapters supply transport;
+    A+B and the planner remain the policy/currentness boundary.
     """
 
     discovery = build_retrieval_plan(
@@ -148,6 +150,7 @@ def execute_domain_cycle(
         contract,
         observed_route_states={},
         privacy_allowlist=privacy_allowlist,
+        governing_dependency_states=governing_dependency_states,
     )
 
     probes: list[AdapterProbeResult] = []
@@ -183,6 +186,7 @@ def execute_domain_cycle(
         contract,
         observed_route_states=route_states,
         privacy_allowlist=privacy_allowlist,
+        governing_dependency_states=governing_dependency_states,
     )
     unresolved.extend(plan.unresolved)
 
@@ -257,7 +261,6 @@ def _resolve_event_selector(
         return ()
     if not isinstance(raw, Mapping):
         raise ValueError(f"projection {projection.get('id')!r} {role}_event_selector must be a mapping")
-
     values = {
         "$source_ref": event_ref,
         "$source_path": event_path,
