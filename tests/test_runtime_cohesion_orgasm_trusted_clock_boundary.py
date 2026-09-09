@@ -46,7 +46,7 @@ class VeraOrgasmTrustedClockBoundaryTests(unittest.TestCase):
 
     def test_caller_elapsed_scalar_cannot_act_as_temporal_authority(self):
         clock = FakeMonotonicClock()
-        with patch("runtime_cohesion.orgasm._monotonic_now", side_effect=clock, create=True):
+        with patch("runtime_cohesion.orgasm._monotonic_now", side_effect=clock):
             runtime = self.bound_runtime()
             runtime.apply_stimulus(StimulusAppraisal())
             before = runtime.export_state()["trigger_governance"]["logical_time_seconds"]
@@ -68,7 +68,7 @@ class VeraOrgasmTrustedClockBoundaryTests(unittest.TestCase):
 
     def test_private_monotonic_source_advances_bound_runtime_time(self):
         clock = FakeMonotonicClock()
-        with patch("runtime_cohesion.orgasm._monotonic_now", side_effect=clock, create=True):
+        with patch("runtime_cohesion.orgasm._monotonic_now", side_effect=clock):
             runtime = self.bound_runtime()
             runtime.apply_stimulus(StimulusAppraisal())
             before = runtime.export_state()["trigger_governance"]["logical_time_seconds"]
@@ -81,7 +81,7 @@ class VeraOrgasmTrustedClockBoundaryTests(unittest.TestCase):
 
     def test_nonmonotonic_private_clock_fails_closed(self):
         clock = FakeMonotonicClock()
-        with patch("runtime_cohesion.orgasm._monotonic_now", side_effect=clock, create=True):
+        with patch("runtime_cohesion.orgasm._monotonic_now", side_effect=clock):
             runtime = self.bound_runtime()
             runtime.apply_stimulus(StimulusAppraisal())
             clock.advance(0.5)
