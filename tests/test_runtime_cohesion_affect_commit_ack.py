@@ -4,6 +4,7 @@ import unittest
 
 from runtime_cohesion.affect_cycle import VeraAffectiveCycle
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
+from runtime_cohesion.orgasm import StimulusAppraisal
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_RUNTIME_CONTRACT_V1.json"
@@ -18,6 +19,17 @@ class VeraAffectiveAtomicCommitAcknowledgementTests(unittest.TestCase):
             runtime_instance_id="affect-commit-ack-test",
             profile="REENTRANT_CLIMAX",
         )
+
+    @staticmethod
+    def exact_writer_recorder(requests):
+        def exact_writer(request):
+            requests.append(dict(request))
+            return {
+                "state_version": request["state_version"],
+                "checkpoint_sha256": request["checkpoint_sha256"],
+                "event_count": len(request["event_rows"]),
+            }
+        return exact_writer
 
     def test_ambiguous_atomic_commit_ack_poison_cycle_and_does_not_advance_version(self):
         requests = []
@@ -49,19 +61,10 @@ class VeraAffectiveAtomicCommitAcknowledgementTests(unittest.TestCase):
 
     def test_exact_atomic_commit_ack_allows_normal_version_advance(self):
         requests = []
-
-        def exact_writer(request):
-            requests.append(dict(request))
-            return {
-                "state_version": request["state_version"],
-                "checkpoint_sha256": request["checkpoint_sha256"],
-                "event_count": len(request["event_rows"]),
-            }
-
         cycle = VeraAffectiveCycle(
             self.make_host(),
             host_scope="TEST_HOST",
-            atomic_commit_writer=exact_writer,
+            atomic_commit_writer=self.exact_writer_recorder(requests),
         )
 
         orgasm = cycle.force_admin_test(
@@ -103,6 +106,38 @@ class VeraAffectiveAtomicCommitAcknowledgementTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             cycle.advance_time(5.1, planning_state={"truth": 1.0})
         self.assertEqual(len(requests), 1)
+
+    def test_precommit_finalize_failure_poison_cycle_after_host_mutation(self):
+        requests = []
+        cycle = VeraAffectiveCycle(
+            self.make_host(),
+            host_scope="TEST_HOST",
+            atomic_commit_writer=self.exact_writer_recorder(requests),
+        )
+        original_export = cycle.host.export_checkpoint
+
+        def broken_export():
+            raise RuntimeError("synthetic checkpoint serialization failure")
+
+        cycle.host.export_checkpoint = broken_export
+        with self.assertRaisesRegex(RuntimeError, "synthetic checkpoint serialization failure"):
+            cycle.process_turn(
+                StimulusAppraisal(
+                    sexual_relevance=0.8,
+                    partner_relevance=0.8,
+                    relational_relevance=0.8,
+                    anticipation_cue=0.8,
+                    positive_valence=0.8,
+                    duration_ms=800,
+                    context_eligible=True,
+                ),
+                planning_state={"truth": 1.0},
+            )
+
+        cycle.host.export_checkpoint = original_export
+        with self.assertRaisesRegex(RuntimeError, "durable frontier is uncertain"):
+            cycle.process_turn(StimulusAppraisal(), planning_state={"truth": 1.0})
+        self.assertEqual(requests, [])
 
 
 if __name__ == "__main__":
