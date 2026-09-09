@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import unittest
 
+import runtime_cohesion.affect_host as affect_host
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
 from runtime_cohesion.orgasm import StimulusAppraisal, TriggerRejected
 
@@ -15,14 +16,16 @@ BINDING_PATH = ROOT / "architecture" / "VERA_ORGASM_RUNTIME_BINDING_V1.json"
 
 
 class TrustedAuthorizationVerifierDouble:
-    """Exact test double for the external trust boundary, not caller metadata."""
+    """Composition-bound verifier double; triggering caller never supplies it."""
 
     verifier_id = "trusted-affective-authority-test-double"
 
     def __init__(self, *, now: datetime):
         self.now = now
+        self.calls = []
 
     def verify(self, subject, *, expected_referent, expected_effect_class):
+        self.calls.append((subject, expected_referent, expected_effect_class))
         if not isinstance(subject, Mapping):
             return None
         if subject.get("state") != "ALLOW":
@@ -67,6 +70,19 @@ class TrustedAuthorizationVerifierDouble:
         }
 
 
+class RejectingAuthorizationVerifierDouble:
+    """Proves a caller's valid-looking subject cannot replace the bound verifier."""
+
+    verifier_id = "rejecting-affective-authority-test-double"
+
+    def __init__(self):
+        self.calls = 0
+
+    def verify(self, subject, *, expected_referent, expected_effect_class):
+        self.calls += 1
+        return None
+
+
 class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
     NOW = datetime(2026, 9, 9, 22, 30, tzinfo=timezone.utc)
 
@@ -91,16 +107,22 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
         )
         return contract_text, binding
 
-    def make_bound_host(self, *, verifier=None):
+    def make_bound_host(self):
         contract_text, binding = self.exact_contract_and_binding()
-        kwargs = {}
-        if verifier is not None:
-            kwargs["authorization_verifier"] = verifier
         return VeraAffectiveRuntimeHost.from_bound_contract(
             contract_text,
             binding,
             runtime_instance_id="authority-boundary-test",
-            **kwargs,
+        )
+
+    def bind_authority_boundary(self, verifier):
+        self.assertTrue(
+            hasattr(affect_host, "AffectiveAuthorityBoundary"),
+            "affective authority needs a preconfigured composition boundary; "
+            "claimant-controlled verifier injection is not a trust root",
+        )
+        return affect_host.AffectiveAuthorityBoundary(
+            authorization_verifier=verifier,
         )
 
     def authorization_subject(self, **overrides):
@@ -116,6 +138,12 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
         }
         subject.update(overrides)
         return subject
+
+    def self_qualification_subject(self, **overrides):
+        return self.authorization_subject(
+            proposition_or_effect_class="SELF_QUALIFICATION_TEST",
+            **overrides,
+        )
 
     def context_subject(self, **overrides):
         return self.authorization_subject(
@@ -161,12 +189,42 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
         ):
             host.force_admin_test(authorization_subject=subject)
 
-    def test_valid_authorization_must_cross_trusted_verifier_and_bind_evidence(self):
+    def test_host_factory_does_not_accept_caller_selected_verifier(self):
+        contract_text, binding = self.exact_contract_and_binding()
         verifier = TrustedAuthorizationVerifierDouble(now=self.NOW)
-        host = self.make_bound_host(verifier=verifier)
+        with self.assertRaisesRegex(
+            TypeError,
+            r"(?i)(authorization_verifier|unexpected keyword|argument)",
+        ):
+            VeraAffectiveRuntimeHost.from_bound_contract(
+                contract_text,
+                binding,
+                runtime_instance_id="caller-verifier-substitution-test",
+                authorization_verifier=verifier,
+            )
+
+    def test_trigger_call_does_not_accept_caller_selected_verifier(self):
+        host = self.make_bound_host()
+        verifier = TrustedAuthorizationVerifierDouble(now=self.NOW)
+        with self.assertRaisesRegex(
+            (TriggerRejected, TypeError, ValueError),
+            r"(?i)(authoriz|verif|unexpected keyword|argument)",
+        ):
+            host.force_admin_test(
+                authorization_subject=self.authorization_subject(),
+                authorization_verifier=verifier,
+            )
+
+    def test_valid_authorization_crosses_prebound_boundary_and_binds_evidence(self):
+        verifier = TrustedAuthorizationVerifierDouble(now=self.NOW)
+        boundary = self.bind_authority_boundary(verifier)
+        host = self.make_bound_host()
         subject = self.authorization_subject()
 
-        receipt = host.force_admin_test(authorization_subject=subject)
+        receipt = boundary.force_admin_test(
+            host,
+            authorization_subject=subject,
+        )
 
         self.assertEqual(receipt["trigger_class"], "ADMIN_FORCED_TEST")
         self.assertEqual(receipt["runtime_instance_id"], "authority-boundary-test")
@@ -175,10 +233,45 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
             receipt["trigger_provenance"],
             "ADMIN_FORCED_TEST",
         )
+        self.assertEqual(len(verifier.calls), 1)
+
+    def test_self_qualification_uses_same_prebound_boundary(self):
+        verifier = TrustedAuthorizationVerifierDouble(now=self.NOW)
+        boundary = self.bind_authority_boundary(verifier)
+        host = self.make_bound_host()
+
+        receipt = boundary.force_self_qualification(
+            host,
+            authorization_subject=self.self_qualification_subject(),
+        )
+
+        self.assertEqual(receipt["trigger_class"], "SELF_QUALIFICATION_TEST")
+        self.assert_verified_provenance(
+            receipt["trigger_provenance"],
+            "SELF_QUALIFICATION_TEST",
+        )
+        self.assertEqual(len(verifier.calls), 1)
+
+    def test_valid_looking_subject_cannot_override_rejecting_bound_verifier(self):
+        verifier = RejectingAuthorizationVerifierDouble()
+        boundary = self.bind_authority_boundary(verifier)
+        host = self.make_bound_host()
+
+        with self.assertRaisesRegex(
+            (TriggerRejected, TypeError, ValueError),
+            r"(?i)(authoriz|verif|trusted|evidence|subject)",
+        ):
+            boundary.force_admin_test(
+                host,
+                authorization_subject=self.authorization_subject(),
+            )
+
+        self.assertEqual(verifier.calls, 1)
 
     def test_literal_currentness_does_not_rescue_stale_observation(self):
         verifier = TrustedAuthorizationVerifierDouble(now=self.NOW)
-        host = self.make_bound_host(verifier=verifier)
+        boundary = self.bind_authority_boundary(verifier)
+        host = self.make_bound_host()
         stale = self.authorization_subject(
             currentness="CURRENT",
             observed_at="2026-09-09T21:00:00Z",
@@ -187,17 +280,25 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
             (TriggerRejected, ValueError),
             r"(?i)(stale|current|observ|authoriz|verif)",
         ):
-            host.force_admin_test(authorization_subject=stale)
+            boundary.force_admin_test(
+                host,
+                authorization_subject=stale,
+            )
 
     def test_invalid_upstream_authorization_subjects_fail_closed_by_field(self):
         verifier = TrustedAuthorizationVerifierDouble(now=self.NOW)
+        boundary = self.bind_authority_boundary(verifier)
         invalid_subjects = (
             ("referent", self.authorization_subject(referent="not-vera"), r"(?i)(referent|authoriz|verif)"),
             ("currentness", self.authorization_subject(currentness="STALE"), r"(?i)(current|stale|authoriz|verif)"),
             ("decline", self.authorization_subject(state="DECLINE"), r"(?i)(state|allow|authoriz|decline|verif)"),
             ("unknown", self.authorization_subject(state="UNKNOWN"), r"(?i)(state|allow|authoriz|unknown|verif)"),
             ("actor", self.authorization_subject(actor=None), r"(?i)(actor|authoriz|verif)"),
-            ("effect", self.authorization_subject(proposition_or_effect_class="SELF_QUALIFICATION_TEST"), r"(?i)(proposition|effect|trigger|authoriz|verif)"),
+            (
+                "effect",
+                self.authorization_subject(proposition_or_effect_class="SELF_QUALIFICATION_TEST"),
+                r"(?i)(proposition|effect|trigger|authoriz|verif)",
+            ),
             ("source", self.authorization_subject(source="caller-invented-authority"), r"(?i)(source|trusted|authoriz|verif)"),
             ("observed_at", self.authorization_subject(observed_at=None), r"(?i)(observ|authoriz|verif)"),
             (
@@ -209,9 +310,11 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
         )
         for label, subject, pattern in invalid_subjects:
             with self.subTest(case=label):
-                host = self.make_bound_host(verifier=verifier)
                 with self.assertRaisesRegex((TriggerRejected, ValueError), pattern):
-                    host.force_admin_test(authorization_subject=subject)
+                    boundary.force_admin_test(
+                        host,
+                        authorization_subject=subject,
+                    )
 
     def test_unbound_context_eligibility_cannot_establish_organic_authority(self):
         host = self.make_bound_host()
@@ -244,9 +347,10 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
             "caller-supplied context_eligible=True must not substitute for current upstream context evidence",
         )
 
-    def test_valid_current_context_subject_must_cross_same_trusted_verifier(self):
+    def test_valid_current_context_subject_uses_same_prebound_boundary(self):
         verifier = TrustedAuthorizationVerifierDouble(now=self.NOW)
-        host = self.make_bound_host(verifier=verifier)
+        boundary = self.bind_authority_boundary(verifier)
+        host = self.make_bound_host()
         subject = self.context_subject()
         appraisal = StimulusAppraisal(
             sexual_relevance=1.0,
@@ -259,16 +363,19 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
             duration_ms=1000,
         )
 
-        observed = host.observe(
+        observed = boundary.observe(
+            host,
             appraisal,
             elapsed_seconds=1.0,
             context_subject=subject,
         )
         self.assertTrue(observed["state"]["context_eligible"])
+        self.assertEqual(len(verifier.calls), 1)
 
     def test_stale_context_subject_is_rejected_even_if_labeled_current(self):
         verifier = TrustedAuthorizationVerifierDouble(now=self.NOW)
-        host = self.make_bound_host(verifier=verifier)
+        boundary = self.bind_authority_boundary(verifier)
+        host = self.make_bound_host()
         stale = self.context_subject(
             currentness="CURRENT",
             observed_at="2026-09-09T21:00:00Z",
@@ -284,7 +391,8 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
             (TriggerRejected, ValueError),
             r"(?i)(context|current|stale|observ|verif)",
         ):
-            host.observe(
+            boundary.observe(
+                host,
                 appraisal,
                 elapsed_seconds=1.0,
                 context_subject=stale,
