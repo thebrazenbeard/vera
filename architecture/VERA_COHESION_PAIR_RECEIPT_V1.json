@@ -19,7 +19,7 @@
     },
     "provider_validator": {
       "path": "scripts/validate_runtime_cohesion_provider_fabric_v1.py",
-      "blob_sha": "c17c59c9c3bcbef7aa58f47ee0f33e2c42db98a9"
+      "blob_sha": "9b8a9f09556833d732fb7d8deae09dd4dbc9e34f"
     },
     "evidence_module": {
       "path": "runtime_cohesion/evidence.py",
@@ -64,7 +64,7 @@
     "prior_result": "42_FOCUSED_RUNTIME_PROVIDER_TESTS_PASS_IN_RECONSTRUCTED_LOCAL_WORKSPACE",
     "m5_event_binding_result": "BOUNDED_RECONSTRUCTED_GREEN_WRONG_EVENT_CONFLICT_AND_EXACT_TARGET_SELECTOR",
     "m2_failure_wiring_result": "BOUNDED_RECONSTRUCTED_GREEN_RESOLVER_AND_FAIL_CLOSED_GUARD_CANDIDATE_ROUTING",
-    "m1_dependency_result": "BOUNDED_RECONSTRUCTED_GREEN_HARD_PREREQUISITE_PREEMPTION_BLOCKING_CONTEXTUAL_NONBLOCKING_CYCLE_TERMINATION_AND_NATIVE_HOOK_CONTRACT",
+    "m1_dependency_result": "BOUNDED_RECONSTRUCTED_GREEN_HARD_PREREQUISITE_PREEMPTION_BLOCKING_CONTEXTUAL_NONBLOCKING_CYCLE_TERMINATION_NATIVE_HOOK_AND_SOURCE_CROSS_VALIDATION",
     "scope": "Implementation-focused evidence only. M1/M2/M5 cases were exercised in bounded reconstruction after deliberate red cases. Exact-branch GitHub CI remains unavailable before runner steps; this evidence does not qualify native runtime behavior."
   },
   "validation_result": "SOURCE_VALIDATION_NOT_YET_EXECUTED",
