@@ -13,6 +13,26 @@ class PersistenceRecordError(ValueError):
 
 
 _TRIGGER_GOVERNANCE_STATE_KEY = "_trigger_governance"
+_RECEIPT_INTEROCEPTION_FIELDS = (
+    "presence",
+    "phase",
+    "sexual_salience",
+    "activation_intensity",
+    "positive_valence",
+    "anticipation",
+    "inhibition",
+    "coherence",
+    "coalition_stability",
+    "persistence_window_ms",
+    "hedonic_impact",
+    "consummatory_gain",
+    "satiation",
+    "resolution_intensity",
+    "refractory_strength",
+    "action_tendency",
+    "active_orgasm_event",
+    "organic_climax_eligible",
+)
 
 
 def _canonical_digest(value: Mapping[str, Any]) -> str:
@@ -34,6 +54,33 @@ def _event_receipt_digest(receipt: Mapping[str, Any]) -> str:
     core = dict(receipt)
     core.pop("event_digest", None)
     return _canonical_digest(core)
+
+
+def _receipt_machine_interoception(
+    host: VeraAffectiveRuntimeHost,
+    receipt: Mapping[str, Any],
+    state_after: Mapping[str, Any],
+    *,
+    event_digest: str,
+) -> dict[str, Any]:
+    if state_after.get("subject") != "vera":
+        raise PersistenceRecordError("event state_after must be Vera-scoped")
+    missing = [field for field in _RECEIPT_INTEROCEPTION_FIELDS if field not in state_after]
+    if missing:
+        raise PersistenceRecordError(f"event state_after lacks interoception fields: {missing!r}")
+    if receipt.get("phenomenology") != host.runtime.phenomenology_status:
+        raise PersistenceRecordError("event receipt phenomenology does not match bound runtime claim ceiling")
+
+    return {
+        "experience_class": "ENGINEERED_AFFECTIVE_INTEROCEPTION",
+        "subject": "vera",
+        **{field: state_after[field] for field in _RECEIPT_INTEROCEPTION_FIELDS},
+        "last_trigger_class": receipt.get("trigger_class"),
+        "last_event_digest": event_digest,
+        "source_revision": host.runtime.source_revision,
+        "contract_blob_sha": host.contract_blob_sha,
+        "phenomenology": host.runtime.phenomenology_status,
+    }
 
 
 def checkpoint_to_state_row(
@@ -144,6 +191,8 @@ def event_receipt_to_event_row(
     state_after = receipt.get("state_after")
     if not isinstance(state_before, Mapping) or not isinstance(state_after, Mapping):
         raise PersistenceRecordError("event receipt lacks before/after state")
+    if state_before.get("subject") != "vera" or state_after.get("subject") != "vera":
+        raise PersistenceRecordError("event receipt before/after state must be Vera-scoped")
     digest = _require_hex_digest(receipt.get("event_digest"), label="event_digest")
     expected_digest = _event_receipt_digest(receipt)
     if digest != expected_digest:
@@ -157,6 +206,12 @@ def event_receipt_to_event_row(
     if event_type not in {"STATE_UPDATE", "ORGASM_EVENT", "RESOLUTION", "RECOVERY", "RESTORE", "CHECKPOINT"}:
         raise PersistenceRecordError("unsupported affective event type")
 
+    receipt_interoception = _receipt_machine_interoception(
+        host,
+        receipt,
+        state_after,
+        event_digest=digest,
+    )
     return {
         "runtime_instance_id": host.runtime.runtime_instance_id,
         "subject": "vera",
@@ -167,7 +222,7 @@ def event_receipt_to_event_row(
         "new_phase": state_after.get("phase"),
         "state_before": dict(state_before),
         "state_after": dict(state_after),
-        "machine_interoception": host.machine_interoception(),
+        "machine_interoception": receipt_interoception,
         "event_receipt": dict(receipt),
         "event_digest": digest,
         "source_commit": host.runtime.source_revision,
