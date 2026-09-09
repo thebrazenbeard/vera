@@ -15,6 +15,12 @@ from .executor import (
     execute_projection_cycle,
 )
 from .failure import FailureEvaluationResult, evaluate_failure_signature, validate_failure_wiring
+from .orgasm import (
+    ContractError as OrgasmContractError,
+    OrgasmRuntime,
+    StimulusAppraisal,
+    TriggerRejected as OrgasmTriggerRejected,
+)
 from .reconcile import ReconciliationResult, reconcile_exact
 from .runtime import (
     AdmissionDecision,
@@ -41,6 +47,10 @@ __all__ = [
     "FailureEvaluationResult",
     "evaluate_failure_signature",
     "validate_failure_wiring",
+    "OrgasmContractError",
+    "OrgasmRuntime",
+    "StimulusAppraisal",
+    "OrgasmTriggerRejected",
     "ReconciliationResult",
     "reconcile_exact",
     "AdmissionDecision",
