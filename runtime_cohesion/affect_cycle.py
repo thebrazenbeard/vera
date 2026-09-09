@@ -138,29 +138,36 @@ class VeraAffectiveCycle:
         planning_state: Mapping[str, Any],
         event_receipts: Sequence[Mapping[str, Any]] | None,
     ) -> AffectiveCycleResult:
-        planning_context = self.host.build_planning_context(planning_state)
-        checkpoint = self.host.export_checkpoint()
-        state_version = self._next_state_version
-        state_row = checkpoint_to_state_row(
-            checkpoint,
-            host_scope=self.host_scope,
-            state_version=state_version,
-        )
+        """Build and commit the durable frontier after the host has mutated.
 
-        receipt_copies = [dict(receipt) for receipt in (event_receipts or ())]
-        event_rows = [event_receipt_to_event_row(self.host, receipt) for receipt in receipt_copies]
-        expected_prior_version = state_version - 1
-        commit_request = build_atomic_commit_request(
-            state_row,
-            event_rows,
-            expected_prior_version=expected_prior_version,
-        )
-        resume_token = build_affective_resume_token(state_row)
+        Any exception in this phase is durability-ambiguous from the caller's
+        point of view: the in-memory host has already advanced, while the exact
+        provider frontier may not have. Poison the cycle for *all* finalize
+        failures, not only failures returned by the provider writer.
+        """
+        try:
+            planning_context = self.host.build_planning_context(planning_state)
+            checkpoint = self.host.export_checkpoint()
+            state_version = self._next_state_version
+            state_row = checkpoint_to_state_row(
+                checkpoint,
+                host_scope=self.host_scope,
+                state_version=state_version,
+            )
 
-        commit_result: Any = None
-        atomic_commit_used = self.atomic_commit_writer is not None
-        if self.atomic_commit_writer is not None:
-            try:
+            receipt_copies = [dict(receipt) for receipt in (event_receipts or ())]
+            event_rows = [event_receipt_to_event_row(self.host, receipt) for receipt in receipt_copies]
+            expected_prior_version = state_version - 1
+            commit_request = build_atomic_commit_request(
+                state_row,
+                event_rows,
+                expected_prior_version=expected_prior_version,
+            )
+            resume_token = build_affective_resume_token(state_row)
+
+            commit_result: Any = None
+            atomic_commit_used = self.atomic_commit_writer is not None
+            if self.atomic_commit_writer is not None:
                 commit_result = self.atomic_commit_writer(dict(commit_request))
                 self._validate_atomic_commit_ack(
                     commit_result,
@@ -168,21 +175,18 @@ class VeraAffectiveCycle:
                     checkpoint_sha256=state_row["checkpoint_sha256"],
                     event_count=len(event_rows),
                 )
-            except Exception:
-                # The host has already advanced in memory. Without an exact
-                # provider acknowledgement, the durable outcome/frontier is not
-                # known well enough to continue from this object safely.
-                self._durability_uncertain = True
-                raise
-        else:
-            # Backward-compatible in-memory/test path only. A qualified durable
-            # provider must bind atomic_commit_writer so stale state and event
-            # append cannot split across transactions.
-            if self.state_writer is not None:
-                self.state_writer(dict(state_row))
-            if self.event_writer is not None:
-                for row in event_rows:
-                    self.event_writer(dict(row))
+            else:
+                # Backward-compatible in-memory/test path only. A qualified durable
+                # provider must bind atomic_commit_writer so stale state and event
+                # append cannot split across transactions.
+                if self.state_writer is not None:
+                    self.state_writer(dict(state_row))
+                if self.event_writer is not None:
+                    for row in event_rows:
+                        self.event_writer(dict(row))
+        except Exception:
+            self._durability_uncertain = True
+            raise
 
         self._next_state_version += 1
         last_receipt = receipt_copies[-1] if receipt_copies else None
