@@ -137,6 +137,13 @@ def evaluate_abstract_proposition_admission(
 ) -> AdmissionDecision:
     """Evaluate proposition admission for abstract policy evidence.
 
+    Transport, readability, persistence, and exact cross-provider reconciliation
+    are not proposition authority. Dispatch selection occurs before terminal
+    resolver acceptance. Every dispatch must have an entry in the separate
+    `resolver_dispatch_decisive_evidence` registry with explicit `all_of` and
+    `any_of` semantics; the resolver's broader accepted set is only a capability
+    ceiling and never silently becomes the deciding rule.
+
     This deliberately retains lightweight evidence support for isolated policy
     tests. Provider-backed callers must use `evaluate_proposition_admission`,
     which first requires full `ProviderEvidenceEnvelope` objects.
