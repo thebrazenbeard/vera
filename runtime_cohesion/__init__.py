@@ -14,6 +14,7 @@ from .executor import (
     execute_domain_cycle,
     execute_projection_cycle,
 )
+from .failure import FailureEvaluationResult, evaluate_failure_signature, validate_failure_wiring
 from .reconcile import ReconciliationResult, reconcile_exact
 from .runtime import (
     AdmissionDecision,
@@ -37,6 +38,9 @@ __all__ = [
     "ProjectionExecutionResult",
     "execute_domain_cycle",
     "execute_projection_cycle",
+    "FailureEvaluationResult",
+    "evaluate_failure_signature",
+    "validate_failure_wiring",
     "ReconciliationResult",
     "reconcile_exact",
     "AdmissionDecision",
