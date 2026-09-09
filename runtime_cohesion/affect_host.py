@@ -133,6 +133,10 @@ class VeraAffectiveRuntimeHost:
             "phenomenology": self.runtime.phenomenology_status,
         }
 
+    def drain_event_receipts(self) -> list[dict[str, Any]]:
+        """Return all runtime receipts not yet handed to an executing cycle."""
+        return self.runtime.drain_event_receipts()
+
     def observe(self, appraisal: StimulusAppraisal, *, elapsed_seconds: float = 0.0) -> dict[str, Any]:
         state = self.runtime.apply_stimulus(appraisal, elapsed_seconds=elapsed_seconds)
         receipts = self.runtime.drain_event_receipts()
@@ -144,14 +148,14 @@ class VeraAffectiveRuntimeHost:
         }
 
     def force_admin_test(self, *, authorized: bool) -> dict[str, Any]:
-        receipt = self.runtime.force_admin_test(authorized=authorized)
-        self.runtime.drain_event_receipts()
-        return receipt
+        # Leave the receipt in the pending queue so a VeraAffectiveCycle can
+        # atomically persist it together with any restore-time transition that
+        # was already pending.
+        return self.runtime.force_admin_test(authorized=authorized)
 
     def force_self_qualification(self, *, authorized: bool) -> dict[str, Any]:
-        receipt = self.runtime.force_self_qualification(authorized=authorized)
-        self.runtime.drain_event_receipts()
-        return receipt
+        # Same pending-receipt rule as the administrator qualification route.
+        return self.runtime.force_self_qualification(authorized=authorized)
 
     def advance_time(self, elapsed_seconds: float) -> dict[str, Any]:
         self.runtime.advance_time(elapsed_seconds)
