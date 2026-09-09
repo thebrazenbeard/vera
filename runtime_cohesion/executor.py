@@ -12,6 +12,7 @@ from .runtime import build_operational_checkpoint, build_retrieval_plan
 
 EVIDENCE_PREFIX = "VERA_RUNTIME_CONTRACT_V1#evidence_classes."
 RETRIEVABLE_PROBE_STATES = {"CURRENTLY_OBSERVED_REACHABLE", "RESULT"}
+_EVENT_SELECTOR_TOKENS = {"$source_ref", "$source_path", "$source_revision"}
 
 
 @dataclass(frozen=True)
@@ -243,11 +244,48 @@ def _projection_by_id(fabric: Mapping[str, Any], projection_id: str) -> Mapping[
     return rows[0]
 
 
+def _resolve_event_selector(
+    projection: Mapping[str, Any],
+    *,
+    role: str,
+    event_ref: str,
+    event_path: str,
+    source_revision: str | None,
+) -> tuple[tuple[str, str], ...]:
+    raw = projection.get(f"{role}_event_selector")
+    if raw is None:
+        return ()
+    if not isinstance(raw, Mapping):
+        raise ValueError(f"projection {projection.get('id')!r} {role}_event_selector must be a mapping")
+
+    values = {
+        "$source_ref": event_ref,
+        "$source_path": event_path,
+        "$source_revision": source_revision,
+    }
+    resolved: list[tuple[str, str]] = []
+    for field_name, template in raw.items():
+        if not isinstance(field_name, str) or not field_name:
+            raise ValueError("event selector field names must be non-empty strings")
+        if not isinstance(template, str) or not template:
+            raise ValueError(f"event selector value for {field_name!r} must be a non-empty string")
+        if template.startswith("$") and template not in _EVENT_SELECTOR_TOKENS:
+            raise ValueError(f"unsupported event selector token: {template}")
+        value = values.get(template, template)
+        if value is None:
+            raise ValueError(f"event selector token {template!r} is unavailable before source readback")
+        resolved.append((field_name, value))
+    return tuple(sorted(resolved))
+
+
 def _projection_request(
     projection: Mapping[str, Any],
     fabric: Mapping[str, Any],
     *,
     role: str,
+    event_ref: str,
+    event_path: str,
+    source_revision: str | None = None,
 ) -> AdapterRequest:
     if role not in {"source", "target"}:
         raise ValueError(f"unsupported projection role: {role}")
@@ -272,7 +310,37 @@ def _projection_request(
         selector_ref=None,
         privacy_class=str(projection["privacy_class"]),
         evidence_capability_refs=(f"{EVIDENCE_PREFIX}{evidence_class}",),
+        event_ref=event_ref,
+        event_path=event_path,
+        event_selector=_resolve_event_selector(
+            projection,
+            role=role,
+            event_ref=event_ref,
+            event_path=event_path,
+            source_revision=source_revision,
+        ),
     )
+
+
+def _event_binding_issue(
+    request: AdapterRequest,
+    envelope: ProviderEvidenceEnvelope,
+) -> tuple[str, str] | None:
+    if request.event_ref is None:
+        return None
+    observed_ref = envelope.metadata.get("projection_event_ref")
+    observed_path = envelope.metadata.get("projection_event_path")
+    if not isinstance(observed_ref, str) or not observed_ref or not isinstance(observed_path, str) or not observed_path:
+        return (
+            "UNRESOLVED",
+            f"EVENT_BINDING_MISSING:{request.provider}:{request.route_ref}:{request.event_ref}:{request.event_path}",
+        )
+    if observed_ref != request.event_ref or observed_path != request.event_path:
+        return (
+            "CONFLICT",
+            f"EVENT_BINDING_MISMATCH:{request.provider}:{request.route_ref}:requested={request.event_ref}@{request.event_path}:observed={observed_ref}@{observed_path}",
+        )
+    return None
 
 
 def _projection_checkpoint(
@@ -349,13 +417,13 @@ def execute_projection_cycle(
     source_path: str,
     privacy_allowlist: set[str] | frozenset[str],
 ) -> ProjectionExecutionResult:
-    """Probe, read, and reconcile one registered cross-provider projection.
+    """Probe, read, event-bind, and reconcile one registered projection.
 
-    Scope and privacy gates run before provider I/O. The source and target routes
-    and evidence classes come from the non-normative provider fabric, while the
-    resulting evidence remains typed and non-promoting. Exact revision/digest or
-    receipt reconciliation is delegated to the registered projection auditor;
-    timestamps never resolve disagreement.
+    Scope and privacy gates run before provider I/O. The exact caller event ref
+    and path cross the adapter boundary. A provider observation must independently
+    bind that same event before revision/digest reconciliation may run. Collection
+    targets receive their registered provider-native event selector. Matching
+    revisions for a different event never qualify as VERIFIED_EXACT.
     """
 
     projection = _projection_by_id(fabric, projection_id)
@@ -383,8 +451,13 @@ def execute_projection_cycle(
             unresolved=(f"PRIVACY_NOT_ELIGIBLE:{projection_id}:{privacy_class}",),
         )
 
-    source_request = _projection_request(projection, fabric, role="source")
-    target_request = _projection_request(projection, fabric, role="target")
+    source_request = _projection_request(
+        projection,
+        fabric,
+        role="source",
+        event_ref=source_ref,
+        event_path=source_path,
+    )
 
     source_adapter = adapters.get(source_request.provider)
     if source_adapter is None:
@@ -431,7 +504,27 @@ def execute_projection_cycle(
             unresolved=(f"SOURCE_OBJECT_ABSENT:{source_request.source_ref}",),
         )
     _validate_read(source_request, source_observation)
+    binding_issue = _event_binding_issue(source_request, source_observation)
+    if binding_issue is not None:
+        status, reason = binding_issue
+        return _projection_result(
+            projection_id,
+            status,
+            probes,
+            source_ref,
+            source_path,
+            source=source_observation,
+            unresolved=(reason,),
+        )
 
+    target_request = _projection_request(
+        projection,
+        fabric,
+        role="target",
+        event_ref=source_ref,
+        event_path=source_path,
+        source_revision=source_observation.revision,
+    )
     target_adapter = adapters.get(target_request.provider)
     if target_adapter is None:
         return _projection_result(
@@ -472,6 +565,19 @@ def execute_projection_cycle(
     target_observation = target_adapter.read(target_request)
     if target_observation is not None:
         _validate_read(target_request, target_observation)
+        binding_issue = _event_binding_issue(target_request, target_observation)
+        if binding_issue is not None:
+            status, reason = binding_issue
+            return _projection_result(
+                projection_id,
+                status,
+                probes,
+                source_ref,
+                source_path,
+                source=source_observation,
+                target=target_observation,
+                unresolved=(reason,),
+            )
 
     audit = audit_registered_projections(
         fabric,
