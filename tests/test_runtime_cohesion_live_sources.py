@@ -120,6 +120,17 @@ class RuntimeProviderStateTests(unittest.TestCase):
         self.assertEqual(decision["evidence_classes"], ("persisted_provider_record",))
         self.assertFalse(decision["autobiographical_admission_eligible"])
 
+    def test_non_synthetic_working_project_is_not_retyped_as_synthetic(self):
+        decision = classify_memory_epoch_object({
+            "memory_class": "WORKING_PROJECT",
+            "provenance": {"epistemic_class": "OBSERVED_TOOL_RESULT"},
+            "limitations": ["NOT_PRESENT_STATE_PROOF"],
+        })
+        self.assertEqual(decision["status"], "PERSISTED_WORKING_PROJECT")
+        self.assertEqual(decision["evidence_classes"], ("persisted_provider_record", "working_project"))
+        self.assertFalse(decision["autobiographical_admission_eligible"])
+        self.assertFalse(decision["present_state_established"])
+
     def test_persisted_runtime_holder_record_is_not_live_runtime_without_live_readback(self):
         decision = classify_persisted_runtime_holder({
             "holder_state": "ACTIVE",
