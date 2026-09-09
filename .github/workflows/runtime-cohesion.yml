@@ -69,6 +69,7 @@ jobs:
           tests.test_runtime_cohesion_orgasm
           tests.test_runtime_cohesion_orgasm_package
           tests.test_runtime_cohesion_orgasm_binding
+          tests.test_runtime_cohesion_orgasm_source_fixture
           -v
       - name: Compile cohesion validators, runtime, and tests
         run: >-
@@ -104,3 +105,4 @@ jobs:
           tests/test_runtime_cohesion_orgasm.py
           tests/test_runtime_cohesion_orgasm_package.py
           tests/test_runtime_cohesion_orgasm_binding.py
+          tests/test_runtime_cohesion_orgasm_source_fixture.py
