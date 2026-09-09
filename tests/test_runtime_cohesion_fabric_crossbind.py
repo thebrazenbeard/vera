@@ -77,7 +77,7 @@ class ProviderFabricCrossBindTests(unittest.TestCase):
     def test_event_instance_binding_global_rule_is_required(self):
         fabric = copy.deepcopy(self.fabric)
         fabric["global_rules"].pop("event_instance_binding")
-        errors = validate_provider_fabric(self.index, self.contract, self.fabric)
+        errors = validate_provider_fabric(self.index, self.contract, fabric)
         self.assertTrue(any("event_instance_binding" in error for error in errors))
 
     def test_unknown_event_selector_token_is_rejected(self):
