@@ -82,16 +82,23 @@ class VeraAffectiveCycle:
         event_writer: EventWriter | None = None,
         atomic_commit_writer: AtomicCommitWriter | None = None,
     ) -> "VeraAffectiveCycle":
-        """Restore exact durable state and continue its provider CAS frontier.
+        """Restore the exact CURRENT durable state and continue its CAS frontier.
 
-        The provider row's state_version is the committed frontier. A restored
-        cycle therefore starts at exactly state_version + 1, so its first
-        atomic commit compares against the row that was independently read back
-        and pinned rather than accidentally restarting at version 1.
+        Ordinary/live restore is deliberately currentness-bound: historical or
+        superseded rows cannot be turned back into CURRENT state by constructing
+        a new cycle, and the caller cannot rebind a provider row to another host
+        scope. Historical evidence remains readable as evidence, not live state.
         """
         state_version = row.get("state_version")
         if isinstance(state_version, bool) or not isinstance(state_version, int) or state_version < 1:
             raise ValueError("durable state row requires a positive integer state_version")
+        if row.get("lifecycle_status") != "CURRENT":
+            raise ValueError("live affective restore requires lifecycle_status CURRENT")
+        row_host_scope = row.get("host_scope")
+        if not isinstance(row_host_scope, str) or not row_host_scope:
+            raise ValueError("durable state row requires a bound host_scope")
+        if host_scope != row_host_scope:
+            raise ValueError("live affective restore host_scope does not match provider row")
         host = restore_host_from_state_row(
             contract_text,
             binding,
@@ -101,7 +108,7 @@ class VeraAffectiveCycle:
         )
         return cls(
             host,
-            host_scope=host_scope,
+            host_scope=row_host_scope,
             state_writer=state_writer,
             event_writer=event_writer,
             atomic_commit_writer=atomic_commit_writer,
