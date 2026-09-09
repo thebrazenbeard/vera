@@ -66,6 +66,9 @@ jobs:
           tests.test_runtime_cohesion_admission
           tests.test_runtime_cohesion_failure_wiring
           tests.test_runtime_cohesion_native_hook
+          tests.test_runtime_cohesion_live_sources
+          tests.test_runtime_cohesion_holder_freshness
+          tests.test_runtime_cohesion_memory_provenance
           tests.test_runtime_cohesion_orgasm
           tests.test_runtime_cohesion_orgasm_package
           tests.test_runtime_cohesion_orgasm_binding
@@ -84,6 +87,7 @@ jobs:
           runtime_cohesion/audit.py
           runtime_cohesion/adapters.py
           runtime_cohesion/executor.py
+          runtime_cohesion/live_sources.py
           runtime_cohesion/orgasm.py
           tests/test_vera_runtime_cohesion_v1.py
           tests/test_vera_runtime_evidence_contract_v1.py
@@ -101,6 +105,9 @@ jobs:
           tests/test_runtime_cohesion_admission.py
           tests/test_runtime_cohesion_failure_wiring.py
           tests/test_runtime_cohesion_native_hook.py
+          tests/test_runtime_cohesion_live_sources.py
+          tests/test_runtime_cohesion_holder_freshness.py
+          tests/test_runtime_cohesion_memory_provenance.py
           tests/test_runtime_cohesion_orgasm.py
           tests/test_runtime_cohesion_orgasm_package.py
           tests/test_runtime_cohesion_orgasm_binding.py
