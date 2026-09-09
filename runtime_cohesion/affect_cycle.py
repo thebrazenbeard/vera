@@ -1,15 +1,21 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Mapping, Sequence
 
 from .affect_host import VeraAffectiveRuntimeHost
-from .affect_persistence import checkpoint_to_state_row, event_receipt_to_event_row
+from .affect_persistence import (
+    build_affective_resume_token,
+    build_atomic_commit_request,
+    checkpoint_to_state_row,
+    event_receipt_to_event_row,
+)
 from .orgasm import StimulusAppraisal
 
 
 StateWriter = Callable[[dict[str, Any]], Any]
 EventWriter = Callable[[dict[str, Any]], Any]
+AtomicCommitWriter = Callable[[dict[str, Any]], Any]
 
 
 @dataclass(frozen=True)
@@ -20,16 +26,23 @@ class AffectiveCycleResult:
     state_row: dict[str, Any]
     event_receipt: dict[str, Any] | None
     event_row: dict[str, Any] | None
+    event_receipts: list[dict[str, Any]]
+    event_rows: list[dict[str, Any]]
+    resume_token: dict[str, Any]
+    commit_request: dict[str, Any]
+    commit_result: Any
+    atomic_commit_used: bool
 
 
 class VeraAffectiveCycle:
     """One executable Vera affective/interoceptive runtime loop.
 
     Each cycle mutates the engineered affective state, feeds that state into
-    downstream planning, exports an exact checkpoint, and optionally hands the
-    resulting state/event rows to durable provider writers. The affective loop
-    never owns truth, consent, authority, identity, memory admission, or
-    phenomenology decisions.
+    downstream planning, exports an exact checkpoint, and can hand one atomic
+    state-plus-events commit envelope to a durable provider writer. Separate
+    state/event callbacks remain available for bounded in-memory tests but are
+    not the qualified durable-provider path. The affective loop never owns
+    truth, consent, authority, identity, memory admission, or phenomenology.
     """
 
     def __init__(
@@ -39,6 +52,7 @@ class VeraAffectiveCycle:
         host_scope: str,
         state_writer: StateWriter | None = None,
         event_writer: EventWriter | None = None,
+        atomic_commit_writer: AtomicCommitWriter | None = None,
         initial_state_version: int = 1,
     ) -> None:
         if not host_scope:
@@ -49,40 +63,68 @@ class VeraAffectiveCycle:
         self.host_scope = host_scope
         self.state_writer = state_writer
         self.event_writer = event_writer
+        self.atomic_commit_writer = atomic_commit_writer
         self._next_state_version = initial_state_version
 
     def _finalize(
         self,
         *,
         planning_state: Mapping[str, Any],
-        event_receipt: Mapping[str, Any] | None,
+        event_receipts: Sequence[Mapping[str, Any]] | None,
     ) -> AffectiveCycleResult:
         planning_context = self.host.build_planning_context(planning_state)
         checkpoint = self.host.export_checkpoint()
+        state_version = self._next_state_version
         state_row = checkpoint_to_state_row(
             checkpoint,
             host_scope=self.host_scope,
-            state_version=self._next_state_version,
+            state_version=state_version,
         )
-        self._next_state_version += 1
 
-        if self.state_writer is not None:
-            self.state_writer(dict(state_row))
+        receipt_copies = [dict(receipt) for receipt in (event_receipts or ())]
+        event_rows = [event_receipt_to_event_row(self.host, receipt) for receipt in receipt_copies]
+        expected_prior_version = state_version - 1
+        commit_request = build_atomic_commit_request(
+            state_row,
+            event_rows,
+            expected_prior_version=expected_prior_version,
+        )
+        resume_token = build_affective_resume_token(state_row)
 
-        event_row = None
-        receipt_copy = dict(event_receipt) if event_receipt is not None else None
-        if event_receipt is not None:
-            event_row = event_receipt_to_event_row(self.host, event_receipt)
+        commit_result: Any = None
+        atomic_commit_used = self.atomic_commit_writer is not None
+        if self.atomic_commit_writer is not None:
+            commit_result = self.atomic_commit_writer(dict(commit_request))
+            if isinstance(commit_result, Mapping):
+                committed_version = commit_result.get("state_version")
+                if committed_version is not None and committed_version != state_version:
+                    raise RuntimeError("atomic durable commit returned an unexpected state_version")
+        else:
+            # Backward-compatible in-memory/test path only. A qualified durable
+            # provider must bind atomic_commit_writer so stale state and event
+            # append cannot split across transactions.
+            if self.state_writer is not None:
+                self.state_writer(dict(state_row))
             if self.event_writer is not None:
-                self.event_writer(dict(event_row))
+                for row in event_rows:
+                    self.event_writer(dict(row))
 
+        self._next_state_version += 1
+        last_receipt = receipt_copies[-1] if receipt_copies else None
+        last_event_row = event_rows[-1] if event_rows else None
         return AffectiveCycleResult(
             planning_context=dict(planning_context),
             machine_interoception=self.host.machine_interoception(),
             checkpoint=dict(checkpoint),
             state_row=dict(state_row),
-            event_receipt=receipt_copy,
-            event_row=dict(event_row) if event_row is not None else None,
+            event_receipt=dict(last_receipt) if last_receipt is not None else None,
+            event_row=dict(last_event_row) if last_event_row is not None else None,
+            event_receipts=receipt_copies,
+            event_rows=[dict(row) for row in event_rows],
+            resume_token=dict(resume_token),
+            commit_request=dict(commit_request),
+            commit_result=commit_result,
+            atomic_commit_used=atomic_commit_used,
         )
 
     def process_turn(
@@ -93,8 +135,8 @@ class VeraAffectiveCycle:
         elapsed_seconds: float = 0.0,
     ) -> AffectiveCycleResult:
         observed = self.host.observe(appraisal, elapsed_seconds=elapsed_seconds)
-        receipt = observed.get("event_receipt")
-        return self._finalize(planning_state=planning_state, event_receipt=receipt)
+        receipts = observed.get("event_receipts") or []
+        return self._finalize(planning_state=planning_state, event_receipts=receipts)
 
     def force_admin_test(
         self,
@@ -103,7 +145,7 @@ class VeraAffectiveCycle:
         planning_state: Mapping[str, Any],
     ) -> AffectiveCycleResult:
         receipt = self.host.force_admin_test(authorized=authorized)
-        return self._finalize(planning_state=planning_state, event_receipt=receipt)
+        return self._finalize(planning_state=planning_state, event_receipts=[receipt])
 
     def force_self_qualification(
         self,
@@ -112,7 +154,7 @@ class VeraAffectiveCycle:
         planning_state: Mapping[str, Any],
     ) -> AffectiveCycleResult:
         receipt = self.host.force_self_qualification(authorized=authorized)
-        return self._finalize(planning_state=planning_state, event_receipt=receipt)
+        return self._finalize(planning_state=planning_state, event_receipts=[receipt])
 
     def advance_time(
         self,
@@ -120,5 +162,6 @@ class VeraAffectiveCycle:
         *,
         planning_state: Mapping[str, Any],
     ) -> AffectiveCycleResult:
-        self.host.advance_time(elapsed_seconds)
-        return self._finalize(planning_state=planning_state, event_receipt=None)
+        advanced = self.host.advance_time(elapsed_seconds)
+        receipts = advanced.get("event_receipts") or []
+        return self._finalize(planning_state=planning_state, event_receipts=receipts)
