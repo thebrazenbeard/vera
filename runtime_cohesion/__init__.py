@@ -6,6 +6,7 @@ Provider I/O occurs only when a runtime explicitly invokes registered adapters.
 """
 
 from .adapters import AdapterProbeResult, AdapterRegistry, AdapterRequest, ProviderAdapter
+from .affect_cycle import AffectiveCycleResult, VeraAffectiveCycle
 from .affect_host import AffectiveBindingError, VeraAffectiveRuntimeHost
 from .affect_persistence import (
     PersistenceRecordError,
@@ -42,6 +43,8 @@ __all__ = [
     "AdapterRegistry",
     "AdapterRequest",
     "ProviderAdapter",
+    "AffectiveCycleResult",
+    "VeraAffectiveCycle",
     "AffectiveBindingError",
     "VeraAffectiveRuntimeHost",
     "PersistenceRecordError",
