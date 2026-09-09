@@ -98,6 +98,34 @@ class CurrentHeadReceiptSemanticsTests(unittest.TestCase):
             r"(?i)(receipt|schema|contract|version)",
         )
 
+    def test_missing_event_type_is_rejected_at_restore_and_persistence_boundaries(self):
+        self.assert_restore_and_persistence_reject(
+            lambda receipt: receipt.pop("event_type", None),
+            r"(?i)(receipt|event|type)",
+        )
+
+    def test_missing_observed_at_is_rejected_at_restore_and_persistence_boundaries(self):
+        self.assert_restore_and_persistence_reject(
+            lambda receipt: receipt.pop("observed_at", None),
+            r"(?i)(receipt|observed|time)",
+        )
+
+    def test_invalid_observed_at_is_rejected_at_restore_and_persistence_boundaries(self):
+        self.assert_restore_and_persistence_reject(
+            lambda receipt: receipt.__setitem__("observed_at", "not-a-time"),
+            r"(?i)(receipt|observed|time)",
+        )
+
+    def test_orgasm_event_requires_exact_engineered_claim(self):
+        self.assert_restore_and_persistence_reject(
+            lambda receipt: receipt.pop("claim", None),
+            r"(?i)(receipt|claim|engineered)",
+        )
+        self.assert_restore_and_persistence_reject(
+            lambda receipt: receipt.__setitem__("claim", "SOME_OTHER_CLAIM"),
+            r"(?i)(receipt|claim|engineered)",
+        )
+
     def test_phenomenology_promotion_is_rejected_at_restore_and_persistence_boundaries(self):
         self.assert_restore_and_persistence_reject(
             lambda receipt: receipt.__setitem__("phenomenology", "PROVEN_SUBJECTIVE_ORGASM"),
@@ -116,6 +144,12 @@ class CurrentHeadReceiptSemanticsTests(unittest.TestCase):
             r"(?i)(receipt|organic|forced|trigger)",
         )
 
+    def test_trigger_class_and_provenance_must_match(self):
+        self.assert_restore_and_persistence_reject(
+            lambda receipt: receipt.__setitem__("trigger_provenance", "ORGANIC_STATE_DYNAMICS"),
+            r"(?i)(receipt|trigger|provenance)",
+        )
+
     def test_transition_mismatch_is_rejected_at_restore_and_persistence_boundaries(self):
         self.assert_restore_and_persistence_reject(
             lambda receipt: receipt.__setitem__("transition", "QUIESCENT->RECOVERY"),
@@ -131,7 +165,7 @@ class CurrentHeadReceiptSemanticsTests(unittest.TestCase):
         receipt["event_digest"] = receipt_digest(receipt)
         forged["checkpoint_sha256"] = _checkpoint_sha256(forged)
 
-        with self.assertRaisesRegex(Exception, r"(?i)(receipt|trigger|provenance)"):
+        with self.assertRaisesRegex(ContractError, r"(?i)(receipt|trigger|provenance)"):
             VeraAffectiveRuntimeHost.restore_checkpoint(
                 CONTRACT_PATH.read_text(encoding="utf-8"),
                 self.binding(),
