@@ -26,6 +26,7 @@ class VeraAffectiveCycleTests(unittest.TestCase):
             host_scope="TEST_HOST",
             state_writer=state_rows.append,
             event_writer=event_rows.append,
+            non_atomic_test_mode=True,
         ), state_rows, event_rows
 
     def test_process_turn_updates_internal_state_modulates_planning_and_persists_checkpoint(self):
