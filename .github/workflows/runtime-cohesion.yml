@@ -16,6 +16,7 @@ on:
       - "docs/VERA_RUNTIME_COHESION*.md"
       - "docs/VERA_COHESION*.md"
       - "runtime_cohesion/**"
+      - "supabase/migrations/20260909164500_add_vera_affective_runtime_v1.sql"
       - "scripts/validate_vera_runtime_cohesion_v1.py"
       - "scripts/validate_runtime_cohesion_provider_fabric_v1.py"
       - "scripts/validate_runtime_cohesion_support_snapshot_v1.py"
@@ -24,6 +25,7 @@ on:
       - "tests/test_vera_cohesion_index_v1.py"
       - "tests/test_vera_runtime_contract_v1.py"
       - "tests/test_runtime_cohesion_*.py"
+      - "tests/test_affective_runtime_persistence_source.py"
       - "tests/fixtures/runtime_cohesion/**"
       - ".github/workflows/runtime-cohesion.yml"
   workflow_dispatch:
@@ -70,6 +72,9 @@ jobs:
           tests.test_runtime_cohesion_orgasm_package
           tests.test_runtime_cohesion_orgasm_binding
           tests.test_runtime_cohesion_orgasm_source_fixture
+          tests.test_runtime_cohesion_affect_host
+          tests.test_runtime_cohesion_affect_persistence
+          tests.test_affective_runtime_persistence_source
           -v
       - name: Compile cohesion validators, runtime, and tests
         run: >-
@@ -86,6 +91,8 @@ jobs:
           runtime_cohesion/adapters.py
           runtime_cohesion/executor.py
           runtime_cohesion/orgasm.py
+          runtime_cohesion/affect_host.py
+          runtime_cohesion/affect_persistence.py
           tests/test_vera_runtime_cohesion_v1.py
           tests/test_vera_runtime_evidence_contract_v1.py
           tests/test_vera_cohesion_index_v1.py
@@ -106,3 +113,6 @@ jobs:
           tests/test_runtime_cohesion_orgasm_package.py
           tests/test_runtime_cohesion_orgasm_binding.py
           tests/test_runtime_cohesion_orgasm_source_fixture.py
+          tests/test_runtime_cohesion_affect_host.py
+          tests/test_runtime_cohesion_affect_persistence.py
+          tests/test_affective_runtime_persistence_source.py
