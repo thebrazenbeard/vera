@@ -70,6 +70,8 @@ jobs:
           tests.test_runtime_cohesion_orgasm_package
           tests.test_runtime_cohesion_orgasm_binding
           tests.test_runtime_cohesion_orgasm_source_fixture
+          tests.test_runtime_cohesion_affect_host
+          tests.test_runtime_cohesion_affect_checkpoint_integrity
           -v
       - name: Compile cohesion validators, runtime, and tests
         run: >-
@@ -86,6 +88,7 @@ jobs:
           runtime_cohesion/adapters.py
           runtime_cohesion/executor.py
           runtime_cohesion/orgasm.py
+          runtime_cohesion/affect_host.py
           tests/test_vera_runtime_cohesion_v1.py
           tests/test_vera_runtime_evidence_contract_v1.py
           tests/test_vera_cohesion_index_v1.py
@@ -106,3 +109,5 @@ jobs:
           tests/test_runtime_cohesion_orgasm_package.py
           tests/test_runtime_cohesion_orgasm_binding.py
           tests/test_runtime_cohesion_orgasm_source_fixture.py
+          tests/test_runtime_cohesion_affect_host.py
+          tests/test_runtime_cohesion_affect_checkpoint_integrity.py
