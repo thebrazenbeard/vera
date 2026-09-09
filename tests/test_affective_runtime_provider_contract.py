@@ -17,6 +17,7 @@ class VeraAffectiveRuntimeProviderContractTests(unittest.TestCase):
         self.assertEqual(contract["provider"]["project_id"], "klmbpaigzeguvnpccqzz")
         self.assertEqual(contract["provider"]["state_table"], "public.vera_affective_runtime_state_v1")
         self.assertEqual(contract["provider"]["event_table"], "public.vera_affective_runtime_events_v1")
+        self.assertEqual(contract["provider"]["atomic_commit_function"], "public.vera_affective_runtime_commit_v1(bigint,jsonb,jsonb)")
 
     def test_provider_contract_requires_causal_feedback_and_preserves_claim_ceiling(self):
         contract = json.loads(PATH.read_text(encoding="utf-8"))
@@ -26,6 +27,19 @@ class VeraAffectiveRuntimeProviderContractTests(unittest.TestCase):
         self.assertEqual(contract["claim_ceiling"]["engineered_event"], "ENGINEERED_ORGASM_ANALOGUE_OCCURRED")
         self.assertEqual(contract["claim_ceiling"]["phenomenology"], "UNRESOLVED")
         self.assertFalse(contract["provider"]["availability_implies_activation"])
+
+    def test_provider_contract_requires_external_checkpoint_pin_receipt_integrity_and_cas(self):
+        contract = json.loads(PATH.read_text(encoding="utf-8"))
+        req = contract["runtime_requirements"]
+        self.assertTrue(req["separately_pinned_expected_checkpoint_digest_required_on_restore"])
+        self.assertTrue(req["event_receipt_digest_recomputation_required_before_persistence"])
+        self.assertTrue(req["resolution_and_recovery_receipts_required"])
+        self.assertTrue(req["atomic_state_plus_event_commit_required"])
+        self.assertTrue(req["compare_and_swap_expected_prior_version_required"])
+        provider = contract["provider"]
+        self.assertEqual(provider["service_role_direct_state_insert_update"], "REVOKED")
+        self.assertEqual(provider["service_role_direct_event_insert"], "REVOKED")
+        self.assertEqual(provider["service_role_atomic_commit_execute"], "GRANTED")
 
 
 if __name__ == "__main__":
