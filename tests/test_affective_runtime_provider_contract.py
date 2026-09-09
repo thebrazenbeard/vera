@@ -36,6 +36,7 @@ class VeraAffectiveRuntimeProviderContractTests(unittest.TestCase):
         self.assertTrue(req["resolution_and_recovery_receipts_required"])
         self.assertTrue(req["restore_time_transition_receipts_must_survive_until_next_atomic_commit"])
         self.assertTrue(req["restored_cycle_must_continue_exact_provider_state_version_frontier"])
+        self.assertTrue(req["all_post_mutation_finalize_failures_require_provider_reconciliation_before_reuse"])
         self.assertTrue(req["atomic_state_plus_event_commit_required"])
         self.assertTrue(req["compare_and_swap_expected_prior_version_required"])
         provider = contract["provider"]
@@ -58,8 +59,10 @@ class VeraAffectiveRuntimeProviderContractTests(unittest.TestCase):
         self.assertTrue(req["per_event_interoception_must_match_receipt_state_after"])
         self.assertIn("trigger_governance", integrity)
         self.assertIn("per_event_interoception", integrity)
+        self.assertIn("post_mutation_failure_boundary", integrity)
         self.assertIn("RECOVERY", integrity["transition_evidence"])
         self.assertIn("N+1", integrity["durable_currentness"])
+        self.assertIn("poisons", integrity["post_mutation_failure_boundary"])
 
 
 if __name__ == "__main__":
