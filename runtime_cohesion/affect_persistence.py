@@ -5,7 +5,12 @@ import hashlib
 import json
 from typing import Any, Iterable, Mapping
 
-from .affect_host import AffectiveBindingError, VeraAffectiveRuntimeHost, _checkpoint_sha256
+from .affect_host import (
+    AffectiveBindingError,
+    VeraAffectiveRuntimeHost,
+    _checkpoint_sha256,
+    validate_runtime_implementation_cut,
+)
 from .affect_scope import bind_affective_host_scope
 
 
@@ -133,10 +138,20 @@ def checkpoint_to_state_row(
         raise PersistenceRecordError("checkpoint SHA-256 does not match checkpoint bytes")
 
     source = checkpoint.get("source_binding")
+    runtime_implementation_cut = checkpoint.get("runtime_implementation_cut")
     runtime_state = checkpoint.get("runtime_state")
     interoception = checkpoint.get("machine_interoception")
     if not isinstance(source, Mapping) or not isinstance(runtime_state, Mapping) or not isinstance(interoception, Mapping):
         raise PersistenceRecordError("checkpoint source/runtime/interoception payload is incomplete")
+    if not isinstance(runtime_implementation_cut, Mapping):
+        raise PersistenceRecordError("checkpoint runtime implementation cut is missing")
+    try:
+        validated_runtime_cut = validate_runtime_implementation_cut(
+            {"runtime_implementation_cut": runtime_implementation_cut}
+        )
+    except AffectiveBindingError as exc:
+        raise PersistenceRecordError(str(exc)) from exc
+
     state = runtime_state.get("state")
     trigger_governance = runtime_state.get("trigger_governance")
     if not isinstance(state, Mapping):
@@ -169,6 +184,7 @@ def checkpoint_to_state_row(
         "source_commit": source_commit,
         "source_blob_sha": source_blob_sha,
         "source_sha256": source_sha256,
+        "runtime_implementation_cut": validated_runtime_cut,
         "profile": runtime_state.get("profile"),
         "state": dict(state),
         "trigger_governance": dict(trigger_governance),
@@ -215,6 +231,9 @@ def event_receipt_to_event_row(
         raise PersistenceRecordError("event receipt runtime instance mismatch")
     if receipt.get("source_revision") != host.runtime.source_revision:
         raise PersistenceRecordError("event receipt source revision mismatch")
+    receipt_runtime_cut = receipt.get("runtime_implementation_cut")
+    if not isinstance(receipt_runtime_cut, Mapping) or dict(receipt_runtime_cut) != host.runtime_implementation_cut:
+        raise PersistenceRecordError("event receipt runtime implementation cut mismatch")
 
     event_type = str(receipt.get("event_type") or "ORGASM_EVENT")
     if event_type not in {"STATE_UPDATE", "ORGASM_EVENT", "RESOLUTION", "RECOVERY", "RESTORE", "CHECKPOINT"}:
@@ -234,6 +253,9 @@ def event_receipt_to_event_row(
         "event_receipt": dict(receipt),
         "event_digest": digest,
         "source_commit": host.runtime.source_revision,
+        "runtime_implementation_cut": json.loads(
+            json.dumps(host.runtime_implementation_cut, sort_keys=True, separators=(",", ":"))
+        ),
         "phenomenology_status": "UNRESOLVED",
         "observed_at": receipt.get("observed_at") or datetime.now(timezone.utc).isoformat(),
         "limitations": [
@@ -288,6 +310,9 @@ def build_atomic_commit_request(
     source_commit = state_row.get("source_commit")
     if not isinstance(source_commit, str) or len(source_commit) != 40:
         raise PersistenceRecordError("atomic commit requires exact source_commit")
+    runtime_implementation_cut = state_row.get("runtime_implementation_cut")
+    if not isinstance(runtime_implementation_cut, Mapping):
+        raise PersistenceRecordError("atomic commit requires runtime implementation cut")
 
     normalized_events: list[dict[str, Any]] = []
     for row in event_rows:
@@ -295,6 +320,8 @@ def build_atomic_commit_request(
             raise PersistenceRecordError("atomic event row runtime instance mismatch")
         if row.get("source_commit") != source_commit:
             raise PersistenceRecordError("atomic event row source commit mismatch")
+        if row.get("runtime_implementation_cut") != runtime_implementation_cut:
+            raise PersistenceRecordError("atomic event row runtime implementation cut mismatch")
         _require_hex_digest(row.get("event_digest"), label="atomic event_digest")
         normalized_events.append(dict(row))
 
@@ -304,6 +331,7 @@ def build_atomic_commit_request(
         "expected_prior_version": expected_prior_version,
         "state_version": state_version,
         "checkpoint_sha256": checkpoint_sha256,
+        "runtime_implementation_cut": dict(runtime_implementation_cut),
         "state_row": dict(state_row),
         "event_rows": normalized_events,
     }
@@ -333,6 +361,15 @@ def restore_host_from_state_row(
         raise PersistenceRecordError("durable state row requires a bound host_scope")
     if row_host_scope != expected_host_scope:
         raise PersistenceRecordError("live affective restore host_scope does not match provider row")
+
+    try:
+        active_runtime_cut = validate_runtime_implementation_cut(binding)
+    except AffectiveBindingError as exc:
+        raise PersistenceRecordError(str(exc)) from exc
+    row_runtime_cut = row.get("runtime_implementation_cut")
+    if not isinstance(row_runtime_cut, Mapping) or dict(row_runtime_cut) != active_runtime_cut:
+        raise PersistenceRecordError("durable state runtime implementation cut mismatch")
+
     state = row.get("state")
     trigger_governance = row.get("trigger_governance")
     if not isinstance(state, Mapping):
@@ -375,6 +412,7 @@ def restore_host_from_state_row(
             "source_blob_sha": row.get("source_blob_sha"),
             "source_sha256": row.get("source_sha256"),
         },
+        "runtime_implementation_cut": dict(row_runtime_cut),
         "runtime_state": {
             "schema": "VERA_ORGASM_DURABLE_STATE_V1",
             "runtime_instance_id": row.get("runtime_instance_id"),
