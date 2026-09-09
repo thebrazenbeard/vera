@@ -107,6 +107,25 @@ class VeraOrgasmRefractoryReentryTests(unittest.TestCase):
                 source_revision="sexuality:test-revision",
             )
 
+    def test_restore_rejects_quiescent_state_with_unresolved_recovery_load(self):
+        runtime = self.make_runtime("REFRACTORY_COUPLED")
+        record = copy.deepcopy(runtime.export_state())
+        state = record["state"]
+        state["reentry_allowed"] = True
+        state["next_eligible_at"] = None
+        state["phase"] = "QUIESCENT"
+        state["satiation"] = 0.90
+        state["resolution_intensity"] = 1.0
+        state["refractory_strength"] = 0.85
+        state["action_tendency"] = "HOLD"
+
+        with self.assertRaisesRegex(ContractError, "QUIESCENT recovery semantics"):
+            OrgasmRuntime.restore_state(
+                CONTRACT,
+                record,
+                source_revision="sexuality:test-revision",
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
