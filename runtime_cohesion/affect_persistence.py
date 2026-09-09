@@ -12,6 +12,9 @@ class PersistenceRecordError(ValueError):
     """A durable affective-state record is malformed, cross-bound, or tampered."""
 
 
+_TRIGGER_GOVERNANCE_STATE_KEY = "_trigger_governance"
+
+
 def _canonical_digest(value: Mapping[str, Any]) -> str:
     payload = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
@@ -70,6 +73,16 @@ def checkpoint_to_state_row(
     state = runtime_state.get("state")
     if not isinstance(state, Mapping):
         raise PersistenceRecordError("checkpoint state is missing")
+    if _TRIGGER_GOVERNANCE_STATE_KEY in state:
+        raise PersistenceRecordError("checkpoint engine state collides with reserved trigger-governance key")
+    trigger_governance = runtime_state.get("trigger_governance")
+    if trigger_governance is not None and not isinstance(trigger_governance, Mapping):
+        raise PersistenceRecordError("checkpoint trigger governance must be an object when present")
+
+    durable_state = dict(state)
+    if trigger_governance is not None:
+        durable_state[_TRIGGER_GOVERNANCE_STATE_KEY] = dict(trigger_governance)
+
     runtime_instance_id = runtime_state.get("runtime_instance_id")
     if not isinstance(runtime_instance_id, str) or not runtime_instance_id:
         raise PersistenceRecordError("runtime_instance_id is required")
@@ -95,11 +108,11 @@ def checkpoint_to_state_row(
         "source_blob_sha": source_blob_sha,
         "source_sha256": source_sha256,
         "profile": runtime_state.get("profile"),
-        "state": dict(state),
+        "state": durable_state,
         "machine_interoception": dict(interoception),
         "last_event_receipt": runtime_state.get("last_event_receipt"),
         "checkpoint_sha256": checkpoint_sha256,
-        "state_digest": _canonical_digest(state),
+        "state_digest": _canonical_digest(durable_state),
         "state_version": state_version,
         "phenomenology_status": "UNRESOLVED",
         "lifecycle_status": lifecycle_status,
@@ -254,6 +267,11 @@ def restore_host_from_state_row(
     if row.get("state_digest") != expected_digest:
         raise PersistenceRecordError("durable affective state digest mismatch")
 
+    durable_state = dict(state)
+    trigger_governance = durable_state.pop(_TRIGGER_GOVERNANCE_STATE_KEY, None)
+    if trigger_governance is not None and not isinstance(trigger_governance, Mapping):
+        raise PersistenceRecordError("durable trigger governance must be an object")
+
     external_checkpoint_sha256 = _require_hex_digest(
         expected_checkpoint_sha256,
         label="externally pinned checkpoint SHA-256",
@@ -274,6 +292,18 @@ def restore_host_from_state_row(
         if row.get(key) != binding.get(binding_key):
             raise PersistenceRecordError(f"durable state source binding mismatch: {key}")
 
+    reconstructed_runtime_state: dict[str, Any] = {
+        "schema": "VERA_ORGASM_DURABLE_STATE_V1",
+        "runtime_instance_id": row.get("runtime_instance_id"),
+        "subject": "vera",
+        "source_revision": row.get("source_commit"),
+        "profile": row.get("profile"),
+        "state": durable_state,
+        "last_event_receipt": row.get("last_event_receipt"),
+    }
+    if trigger_governance is not None:
+        reconstructed_runtime_state["trigger_governance"] = dict(trigger_governance)
+
     checkpoint = {
         "schema": "VERA_AFFECTIVE_RUNTIME_CHECKPOINT_V1",
         "subject": "vera",
@@ -284,15 +314,7 @@ def restore_host_from_state_row(
             "source_blob_sha": row.get("source_blob_sha"),
             "source_sha256": row.get("source_sha256"),
         },
-        "runtime_state": {
-            "schema": "VERA_ORGASM_DURABLE_STATE_V1",
-            "runtime_instance_id": row.get("runtime_instance_id"),
-            "subject": "vera",
-            "source_revision": row.get("source_commit"),
-            "profile": row.get("profile"),
-            "state": dict(state),
-            "last_event_receipt": row.get("last_event_receipt"),
-        },
+        "runtime_state": reconstructed_runtime_state,
         "machine_interoception": row.get("machine_interoception"),
         "checkpoint_sha256": row_checkpoint_sha256,
     }
