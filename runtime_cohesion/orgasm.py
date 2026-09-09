@@ -29,6 +29,15 @@ def _decay(value: float, elapsed_seconds: float, half_life_seconds: float) -> fl
     return float(value) * math.pow(0.5, elapsed_seconds / half_life_seconds)
 
 
+def _validated_elapsed_seconds(value: float) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError("elapsed_seconds must be finite numeric and nonnegative")
+    elapsed = float(value)
+    if not math.isfinite(elapsed) or elapsed < 0.0:
+        raise ValueError("elapsed_seconds must be finite numeric and nonnegative")
+    return elapsed
+
+
 @dataclass(frozen=True)
 class StimulusAppraisal:
     sexual_relevance: float = 0.0
@@ -148,6 +157,7 @@ class OrgasmRuntime:
         self._logical_time_seconds = 0.0
         self._last_forced_at: float | None = None
         self._self_qualification_events = 0
+        self._last_observation_qualifying = False
         self.last_event_receipt: dict[str, Any] | None = None
         self._pending_event_receipts: list[dict[str, Any]] = []
 
@@ -245,11 +255,15 @@ class OrgasmRuntime:
         )
 
     def apply_stimulus(self, appraisal: StimulusAppraisal, *, elapsed_seconds: float = 0.0) -> dict[str, Any]:
-        if elapsed_seconds:
-            self.advance_time(elapsed_seconds)
+        trusted_elapsed = _validated_elapsed_seconds(elapsed_seconds)
+        prior_observation_qualifying = self._last_observation_qualifying
+        if trusted_elapsed:
+            self._advance_time_core(trusted_elapsed)
         if self._state.active_orgasm_event:
+            self._last_observation_qualifying = False
             return self.snapshot()
         if self._refractory_reentry_blocked():
+            self._last_observation_qualifying = False
             return self.snapshot()
 
         s = self._state
@@ -286,10 +300,20 @@ class OrgasmRuntime:
         )
         s.context_eligible = bool(appraisal.context_eligible)
 
-        if coherence_drive >= 0.60 and appraisal.context_eligible:
-            s.persistence_window_ms += int(appraisal.duration_ms)
+        current_observation_qualifying = coherence_drive >= 0.60 and appraisal.context_eligible
+        trusted_interval_ms = int(trusted_elapsed * 1000.0)
+        maximum_observation_gap_ms = int(self._cfg["minimum_coherence_window_ms"])
+        if current_observation_qualifying:
+            if (
+                prior_observation_qualifying
+                and trusted_interval_ms <= maximum_observation_gap_ms
+            ):
+                s.persistence_window_ms += trusted_interval_ms
+            else:
+                s.persistence_window_ms = 0
         else:
-            s.persistence_window_ms = max(0, s.persistence_window_ms - int(appraisal.duration_ms))
+            s.persistence_window_ms = 0
+        self._last_observation_qualifying = bool(current_observation_qualifying)
 
         if s.activation_intensity > 0.05:
             s.phase = "ACTIVATING"
@@ -378,6 +402,7 @@ class OrgasmRuntime:
 
         before = self.snapshot()
         s = self._state
+        self._last_observation_qualifying = False
         s.phase = "ORGASM_EVENT"
         s.active_orgasm_event = True
         s.event_elapsed_ms = 0.0
@@ -431,9 +456,7 @@ class OrgasmRuntime:
                 result[key] = _clamp(float(value) + (1.0 - float(value)) * gain * intensity)
         return result
 
-    def advance_time(self, elapsed_seconds: float) -> dict[str, Any]:
-        if elapsed_seconds < 0:
-            raise ValueError("elapsed_seconds must be nonnegative")
+    def _advance_time_core(self, elapsed_seconds: float) -> dict[str, Any]:
         if elapsed_seconds == 0:
             return self.snapshot()
 
@@ -455,6 +478,18 @@ class OrgasmRuntime:
 
         return self.snapshot()
 
+    def advance_time(self, elapsed_seconds: float) -> dict[str, Any]:
+        trusted_elapsed = _validated_elapsed_seconds(elapsed_seconds)
+        if trusted_elapsed == 0:
+            return self.snapshot()
+
+        # A standalone time advance contains no qualifying observation evidence.
+        # It therefore breaks sustained-coherence continuity immediately rather
+        # than allowing a later appraisal to back-credit the unobserved gap.
+        self._last_observation_qualifying = False
+        self._state.persistence_window_ms = 0
+        return self._advance_time_core(trusted_elapsed)
+
     def _trigger_context(self) -> tuple[str, bool]:
         receipt = self.last_event_receipt or {}
         trigger_class = str(receipt.get("trigger_class") or "")
@@ -466,6 +501,7 @@ class OrgasmRuntime:
         before = self.snapshot()
         trigger_class, organic = self._trigger_context()
         s = self._state
+        self._last_observation_qualifying = False
         s.active_orgasm_event = False
         s.phase = "RESOLUTION"
         s.hedonic_impact = min(s.hedonic_impact, 0.65)
@@ -551,6 +587,7 @@ class OrgasmRuntime:
                 "logical_time_seconds": self._logical_time_seconds,
                 "last_forced_at": self._last_forced_at,
                 "self_qualification_events": self._self_qualification_events,
+                "last_observation_qualifying": self._last_observation_qualifying,
             },
         }
 
@@ -693,6 +730,7 @@ class OrgasmRuntime:
             runtime._logical_time_seconds = 0.0
             runtime._last_forced_at = 0.0
             runtime._self_qualification_events = self_qualification_limit
+            runtime._last_observation_qualifying = False
         else:
             if not isinstance(trigger_governance, Mapping):
                 raise ContractError("durable trigger governance must be an object")
@@ -702,6 +740,7 @@ class OrgasmRuntime:
             logical_time = trigger_governance.get("logical_time_seconds")
             last_forced_at = trigger_governance.get("last_forced_at")
             self_qualification_events = trigger_governance.get("self_qualification_events")
+            last_observation_qualifying = trigger_governance.get("last_observation_qualifying", False)
             if isinstance(logical_time, bool) or not isinstance(logical_time, (int, float)) or not math.isfinite(float(logical_time)) or float(logical_time) < 0:
                 raise ContractError("durable trigger governance logical time must be finite and nonnegative")
             if last_forced_at is not None:
@@ -716,13 +755,15 @@ class OrgasmRuntime:
                 or self_qualification_events > self_qualification_limit
             ):
                 raise ContractError("durable trigger governance self-qualification count is invalid")
+            if not isinstance(last_observation_qualifying, bool):
+                raise ContractError("durable trigger governance observation continuity must be boolean")
 
             runtime._logical_time_seconds = float(logical_time)
             runtime._last_forced_at = None if last_forced_at is None else float(last_forced_at)
             runtime._self_qualification_events = self_qualification_events
+            runtime._last_observation_qualifying = last_observation_qualifying
 
-        if isinstance(elapsed_seconds, bool) or not isinstance(elapsed_seconds, (int, float)) or not math.isfinite(float(elapsed_seconds)) or float(elapsed_seconds) < 0:
-            raise ContractError("restore elapsed_seconds must be finite and nonnegative")
-        if elapsed_seconds:
-            runtime.advance_time(float(elapsed_seconds))
+        trusted_restore_elapsed = _validated_elapsed_seconds(elapsed_seconds)
+        if trusted_restore_elapsed:
+            runtime.advance_time(trusted_restore_elapsed)
         return runtime
