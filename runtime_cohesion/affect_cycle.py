@@ -30,8 +30,8 @@ class AffectiveCycleResult:
     event_row: dict[str, Any] | None
     event_receipts: list[dict[str, Any]]
     event_rows: list[dict[str, Any]]
-    resume_token: dict[str, Any]
-    commit_request: dict[str, Any]
+    resume_token: dict[str, Any] | None
+    commit_request: dict[str, Any] | None
     commit_result: Any
     atomic_commit_used: bool
     durability_mode: str
@@ -182,12 +182,16 @@ class VeraAffectiveCycle:
         planning_state: Mapping[str, Any],
         event_receipts: Sequence[Mapping[str, Any]] | None,
     ) -> AffectiveCycleResult:
-        """Build and commit the durable frontier after the host has mutated.
+        """Build the cycle result and, only in atomic mode, a durable frontier.
 
-        Any exception in this phase is durability-ambiguous from the caller's
-        point of view: the in-memory host has already advanced, while the exact
-        provider frontier may not have. Poison the cycle for *all* finalize
-        failures, not only failures returned by the provider writer.
+        Provider-qualified commit/resume artifacts exist only for ATOMIC_DURABLE
+        execution. EPHEMERAL and NON_ATOMIC_TEST execution may expose diagnostic
+        checkpoint/state/event material, but cannot mint artifacts that downstream
+        code could mistake for an exact provider CAS/resume frontier.
+
+        Any exception in this phase occurs after the in-memory host has advanced.
+        Poison the cycle so callers must reconcile before continuing rather than
+        assuming an uncertain partial finalize is reusable.
         """
         try:
             planning_context = self.host.build_planning_context(planning_state)
@@ -201,17 +205,19 @@ class VeraAffectiveCycle:
 
             receipt_copies = [dict(receipt) for receipt in (event_receipts or ())]
             event_rows = [event_receipt_to_event_row(self.host, receipt) for receipt in receipt_copies]
-            expected_prior_version = state_version - 1
-            commit_request = build_atomic_commit_request(
-                state_row,
-                event_rows,
-                expected_prior_version=expected_prior_version,
-            )
-            resume_token = build_affective_resume_token(state_row)
-
+            commit_request: dict[str, Any] | None = None
+            resume_token: dict[str, Any] | None = None
             commit_result: Any = None
             atomic_commit_used = self.atomic_commit_writer is not None
+
             if self.atomic_commit_writer is not None:
+                expected_prior_version = state_version - 1
+                commit_request = build_atomic_commit_request(
+                    state_row,
+                    event_rows,
+                    expected_prior_version=expected_prior_version,
+                )
+                resume_token = build_affective_resume_token(state_row)
                 commit_result = self.atomic_commit_writer(dict(commit_request))
                 self._validate_atomic_commit_ack(
                     commit_result,
@@ -243,8 +249,8 @@ class VeraAffectiveCycle:
             event_row=dict(last_event_row) if last_event_row is not None else None,
             event_receipts=receipt_copies,
             event_rows=[dict(row) for row in event_rows],
-            resume_token=dict(resume_token),
-            commit_request=dict(commit_request),
+            resume_token=dict(resume_token) if resume_token is not None else None,
+            commit_request=dict(commit_request) if commit_request is not None else None,
             commit_result=commit_result,
             atomic_commit_used=atomic_commit_used,
             durability_mode=self.durability_mode,
