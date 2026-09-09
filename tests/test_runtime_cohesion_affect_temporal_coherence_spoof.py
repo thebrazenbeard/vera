@@ -102,6 +102,21 @@ class TemporalCoherenceSpoofTests(unittest.TestCase):
         self.assertEqual(snapshot["persistence_window_ms"], 0)
         self.assertFalse(snapshot["active_orgasm_event"])
 
+    def test_long_unobserved_gap_cannot_be_backcredited_from_two_endpoint_observations(self):
+        runtime = self.make_runtime()
+        runtime.apply_stimulus(
+            self.strong_appraisal(duration_ms=0),
+            elapsed_seconds=0.0,
+        )
+        runtime.apply_stimulus(
+            self.strong_appraisal(duration_ms=0),
+            elapsed_seconds=10.0,
+        )
+
+        snapshot = runtime.snapshot()
+        self.assertEqual(snapshot["persistence_window_ms"], 0)
+        self.assertFalse(snapshot["active_orgasm_event"])
+
 
 if __name__ == "__main__":
     unittest.main()
