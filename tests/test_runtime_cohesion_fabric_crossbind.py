@@ -90,6 +90,13 @@ class ProviderFabricCrossBindTests(unittest.TestCase):
         errors = validate_provider_fabric(index, self.contract, self.fabric)
         self.assertTrue(any("VISUAL_SELF_REPRESENTATION" in error and "incoming" in error.lower() for error in errors))
 
+    def test_governing_hard_prerequisite_cycle_is_rejected(self):
+        index = copy.deepcopy(self.index)
+        domains = {row["id"]: row for row in index["domains"]}
+        domains["CURRENT_TASK_CORRECTION_PERMISSION_CONSENT"]["dependencies"] = ["CONTROL_AND_GOVERNANCE"]
+        errors = validate_provider_fabric(index, self.contract, self.fabric)
+        self.assertTrue(any("hard prerequisite" in error.lower() and "cycle" in error.lower() for error in errors))
+
 
 if __name__ == "__main__":
     unittest.main()
