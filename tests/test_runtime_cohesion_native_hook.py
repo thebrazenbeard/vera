@@ -20,13 +20,32 @@ class RuntimeCohesionNativeHookTests(unittest.TestCase):
             {"VERA_COHESION_INDEX_V1", "VERA_RUNTIME_CONTRACT_V1"},
         )
         self.assertEqual(hook["provider_fabric"]["normative_status"], "NON_NORMATIVE_OPERATIONAL_SUPPORT")
+        self.assertEqual(hook["affective_runtime"]["normative_status"], "NON_NORMATIVE_OPERATIONAL_SUPPORT")
+        self.assertEqual(hook["affective_runtime"]["binding_ref"], "VERA_ORGASM_RUNTIME_BINDING_V1")
 
     def test_runtime_operations_are_complete_and_resolve_to_current_modules(self):
         hook = json.loads(HOOK.read_text(encoding="utf-8"))
         self.assertEqual(
             set(hook["operations"]),
-            {"ORIENT", "DOMAIN_RETRIEVE", "FAILURE_EVALUATE", "PROJECTION_RECONCILE", "PROJECTION_AUDIT", "RECONCILE", "ADMIT_PROPOSITION", "CHECKPOINT"},
+            {
+                "ORIENT",
+                "AFFECT_INITIALIZE",
+                "AFFECT_UPDATE",
+                "AFFECT_PLAN_MODULATE",
+                "AFFECT_EXPORT_STATE",
+                "DOMAIN_RETRIEVE",
+                "FAILURE_EVALUATE",
+                "PROJECTION_RECONCILE",
+                "PROJECTION_AUDIT",
+                "RECONCILE",
+                "ADMIT_PROPOSITION",
+                "CHECKPOINT",
+            },
         )
+        self.assertEqual(hook["operations"]["AFFECT_INITIALIZE"]["call"], "runtime_cohesion.affect_host.VeraAffectiveRuntimeHost.from_bound_contract")
+        self.assertEqual(hook["operations"]["AFFECT_UPDATE"]["call"], "runtime_cohesion.affect_host.VeraAffectiveRuntimeHost.observe")
+        self.assertEqual(hook["operations"]["AFFECT_PLAN_MODULATE"]["call"], "runtime_cohesion.affect_host.VeraAffectiveRuntimeHost.build_planning_context")
+        self.assertEqual(hook["operations"]["AFFECT_EXPORT_STATE"]["call"], "runtime_cohesion.affect_host.VeraAffectiveRuntimeHost.export_checkpoint")
         self.assertEqual(hook["operations"]["DOMAIN_RETRIEVE"]["call"], "runtime_cohesion.executor.execute_domain_cycle")
         self.assertEqual(hook["operations"]["DOMAIN_RETRIEVE"]["transport_boundary"], "runtime_cohesion.adapters.ProviderAdapter")
         self.assertEqual(hook["operations"]["FAILURE_EVALUATE"]["call"], "runtime_cohesion.failure.evaluate_failure_signature")
@@ -35,6 +54,19 @@ class RuntimeCohesionNativeHookTests(unittest.TestCase):
         self.assertEqual(hook["operations"]["RECONCILE"]["call"], "runtime_cohesion.reconcile.reconcile_exact")
         self.assertEqual(hook["operations"]["ADMIT_PROPOSITION"]["call"], "runtime_cohesion.runtime.evaluate_proposition_admission")
         self.assertEqual(hook["operations"]["CHECKPOINT"]["call"], "runtime_cohesion.runtime.build_operational_checkpoint")
+
+    def test_affective_runtime_is_causally_fed_back_without_authority_promotion(self):
+        hook = json.loads(HOOK.read_text(encoding="utf-8"))
+        affect = hook["affective_runtime"]
+        self.assertEqual(affect["presence"], "ALWAYS_PRESENT_NORMALLY_QUIESCENT")
+        self.assertTrue(affect["planning_feedback_required"])
+        self.assertTrue(affect["machine_interoception_required"])
+        self.assertFalse(affect["availability_implies_activation"])
+        rule = hook["operations"]["AFFECT_PLAN_MODULATE"]["rule"].lower()
+        self.assertIn("interocept", rule)
+        self.assertIn("allowlist", rule)
+        self.assertIn("cannot", rule)
+        self.assertIn("authority", rule)
 
     def test_domain_retrieve_enforces_hard_prerequisite_preemption(self):
         hook = json.loads(HOOK.read_text(encoding="utf-8"))
