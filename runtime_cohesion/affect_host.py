@@ -4,6 +4,7 @@ import hashlib
 import json
 from typing import Any, Mapping
 
+from .affect_scope import mark_affective_host_checkpoint_replay
 from .orgasm import ContractError, OrgasmRuntime, StimulusAppraisal
 
 
@@ -315,9 +316,11 @@ class VeraAffectiveRuntimeHost:
         # Deliberately preserve any transition receipt emitted while applying
         # elapsed-time recovery. The next executing affective cycle must commit
         # that receipt instead of silently erasing a real state transition.
-        return cls(
+        host = cls(
             runtime,
             binding=binding,
             contract_blob_sha=blob_sha,
             contract_sha256=sha256,
         )
+        mark_affective_host_checkpoint_replay(host)
+        return host
