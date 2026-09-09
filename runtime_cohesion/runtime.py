@@ -93,6 +93,41 @@ def _decisive_evidence_requirements(
     return all_of, any_of
 
 
+def _admissible_evidence_class(
+    item: Any,
+    *,
+    domain_id: str,
+    proposition_or_effect_class: str,
+    referent_scope: str,
+) -> str | None:
+    evidence_class = getattr(item, "evidence_class", None)
+    if not isinstance(evidence_class, str) or not evidence_class:
+        return None
+
+    # Lightweight abstract evidence objects remain supported for isolated policy
+    # tests. Rich provider envelopes, however, cannot discard their own binding,
+    # conflict, or currentness state merely by crossing the admission boundary.
+    rich_fields = ("referent", "supersession_state", "conflict_state", "metadata")
+    if not any(hasattr(item, field) for field in rich_fields):
+        return evidence_class
+    if not all(hasattr(item, field) for field in rich_fields):
+        return None
+    if getattr(item, "referent") != domain_id:
+        return None
+    if getattr(item, "supersession_state") != "CURRENT_OBSERVATION":
+        return None
+    if getattr(item, "conflict_state") != "NONE":
+        return None
+    metadata = getattr(item, "metadata")
+    if not isinstance(metadata, Mapping):
+        return None
+    if metadata.get("proposition_or_effect_class") != proposition_or_effect_class:
+        return None
+    if metadata.get("referent_scope") != referent_scope:
+        return None
+    return evidence_class
+
+
 def evaluate_proposition_admission(
     domain_id: str,
     proposition_or_effect_class: str,
@@ -126,7 +161,12 @@ def evaluate_proposition_admission(
     observed = tuple(sorted({
         evidence_class
         for item in observations
-        if isinstance((evidence_class := getattr(item, "evidence_class", None)), str) and evidence_class
+        if (evidence_class := _admissible_evidence_class(
+            item,
+            domain_id=domain_id,
+            proposition_or_effect_class=proposition_or_effect_class,
+            referent_scope=referent_scope,
+        )) is not None
     }))
 
     if not candidates:
