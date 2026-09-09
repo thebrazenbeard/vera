@@ -31,6 +31,9 @@ class FakeAdapter:
             reason="fixture probe",
         )
 
+    def evidence_class_for(self, request):
+        return self.evidence_class
+
     def read(self, request):
         self.reads.append(request)
         return ProviderEvidenceEnvelope(
@@ -38,7 +41,7 @@ class FakeAdapter:
             locator=f"{self.provider}:{request.source_ref}",
             revision=self.read_revision,
             observed_at="2026-09-09T00:00:01Z",
-            evidence_class=self.evidence_class,
+            evidence_class=self.evidence_class_for(request),
             referent=request.domain_id,
             scope="RETRIEVED_ITEM",
             privacy_class=request.privacy_class,
@@ -47,6 +50,14 @@ class FakeAdapter:
             conflict_state="NONE",
             metadata={"route_ref": request.route_ref, "source_ref": request.source_ref},
         )
+
+
+class ControlGitHubAdapter(FakeAdapter):
+    def evidence_class_for(self, request):
+        return {
+            "vera-control-plane": "control_source",
+            "vera": "source_provenance",
+        }.get(request.source_ref, "source_provenance")
 
 
 class RuntimeCohesionExecutorTests(unittest.TestCase):
@@ -96,6 +107,40 @@ class RuntimeCohesionExecutorTests(unittest.TestCase):
         self.assertEqual(result.status, "UNRESOLVED")
         self.assertEqual(len(adapter.probes), 1)
         self.assertEqual(adapter.reads, [])
+
+    def test_unresolved_governing_prerequisite_does_not_probe_dependent_providers(self):
+        live = FakeAdapter("live_conversation", evidence_class="current_user_authority")
+        github = ControlGitHubAdapter("github")
+        result = execute_domain_cycle(
+            "CONTROL_AND_GOVERNANCE",
+            INDEX,
+            CONTRACT,
+            FABRIC,
+            AdapterRegistry({"live_conversation": live, "github": github}),
+            privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED"},
+            governing_dependency_states={},
+        )
+        self.assertEqual(github.probes, [])
+        self.assertGreaterEqual(len(live.probes), 1)
+        self.assertEqual(result.status, "EXECUTED_WITH_UNRESOLVED")
+        self.assertTrue(any("HARD_PREREQUISITE_UNRESOLVED" in item for item in result.unresolved))
+
+    def test_satisfied_governing_prerequisite_releases_dependent_providers(self):
+        live = FakeAdapter("live_conversation", evidence_class="current_user_authority")
+        github = ControlGitHubAdapter("github")
+        result = execute_domain_cycle(
+            "CONTROL_AND_GOVERNANCE",
+            INDEX,
+            CONTRACT,
+            FABRIC,
+            AdapterRegistry({"live_conversation": live, "github": github}),
+            privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED"},
+            governing_dependency_states={"CURRENT_TASK_CORRECTION_PERMISSION_CONSENT": "SATISFIED"},
+        )
+        self.assertTrue(any(request.route_ref == "route:vera-control-plane" for request in github.probes))
+        self.assertTrue(any(request.route_ref == "route:vera" for request in github.probes))
+        self.assertTrue(any(request.route_ref == "route:vera-control-plane" for request in github.reads))
+        self.assertIn(result.status, {"EXECUTED", "EXECUTED_WITH_UNRESOLVED"})
 
     def test_adapter_provider_must_match_registered_route_provider(self):
         bad = FakeAdapter("supabase", evidence_class="representation")
