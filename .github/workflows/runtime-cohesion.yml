@@ -1,33 +1,8 @@
 name: Vera Runtime Cohesion
 
+# Manual-only while account billing/spending state prevents runner allocation.
+# Do not re-enable automatic PR execution without explicit cost authorization.
 on:
-  pull_request:
-    paths:
-      - "architecture/VERA_SYSTEM_MANIFEST_V1.json"
-      - "architecture/VERA_RUNTIME_ROUTING_CONTRACT_V1.json"
-      - "architecture/VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json"
-      - "architecture/VERA_RUNTIME_EVIDENCE_CONTRACT_V1.json"
-      - "architecture/VERA_COHESION_INDEX_V1.json"
-      - "architecture/VERA_RUNTIME_CONTRACT_V1.json"
-      - "architecture/VERA_PROVIDER_FABRIC_V1.json"
-      - "architecture/VERA_RUNTIME_COHESION_NATIVE_HOOK_V1.json"
-      - "architecture/VERA_COHESION_PAIR_RECEIPT_V1.json"
-      - "architecture/VERA_ORGASM_RUNTIME_BINDING_V1.json"
-      - "docs/VERA_RUNTIME_COHESION*.md"
-      - "docs/VERA_COHESION*.md"
-      - "runtime_cohesion/**"
-      - "supabase/migrations/20260909164500_add_vera_affective_runtime_v1.sql"
-      - "scripts/validate_vera_runtime_cohesion_v1.py"
-      - "scripts/validate_runtime_cohesion_provider_fabric_v1.py"
-      - "scripts/validate_runtime_cohesion_support_snapshot_v1.py"
-      - "tests/test_vera_runtime_cohesion_v1.py"
-      - "tests/test_vera_runtime_evidence_contract_v1.py"
-      - "tests/test_vera_cohesion_index_v1.py"
-      - "tests/test_vera_runtime_contract_v1.py"
-      - "tests/test_runtime_cohesion_*.py"
-      - "tests/test_affective_runtime_persistence_source.py"
-      - "tests/fixtures/runtime_cohesion/**"
-      - ".github/workflows/runtime-cohesion.yml"
   workflow_dispatch:
 
 permissions:
@@ -75,6 +50,7 @@ jobs:
           tests.test_runtime_cohesion_affect_host
           tests.test_runtime_cohesion_affect_persistence
           tests.test_runtime_cohesion_affect_cycle
+          tests.test_runtime_cohesion_affect_durable_integrity
           tests.test_affective_runtime_persistence_source
           -v
       - name: Compile cohesion validators, runtime, and tests
@@ -118,4 +94,5 @@ jobs:
           tests/test_runtime_cohesion_affect_host.py
           tests/test_runtime_cohesion_affect_persistence.py
           tests/test_runtime_cohesion_affect_cycle.py
+          tests/test_runtime_cohesion_affect_durable_integrity.py
           tests/test_affective_runtime_persistence_source.py
