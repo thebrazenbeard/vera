@@ -69,6 +69,7 @@ jobs:
           tests.test_runtime_cohesion_live_sources
           tests.test_runtime_cohesion_holder_freshness
           tests.test_runtime_cohesion_memory_provenance
+          tests.test_runtime_cohesion_semantic_scope
           tests.test_runtime_cohesion_orgasm
           tests.test_runtime_cohesion_orgasm_package
           tests.test_runtime_cohesion_orgasm_binding
@@ -108,6 +109,7 @@ jobs:
           tests/test_runtime_cohesion_live_sources.py
           tests/test_runtime_cohesion_holder_freshness.py
           tests/test_runtime_cohesion_memory_provenance.py
+          tests/test_runtime_cohesion_semantic_scope.py
           tests/test_runtime_cohesion_orgasm.py
           tests/test_runtime_cohesion_orgasm_package.py
           tests/test_runtime_cohesion_orgasm_binding.py
