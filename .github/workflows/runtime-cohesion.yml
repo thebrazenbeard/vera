@@ -12,6 +12,7 @@ on:
       - "architecture/VERA_PROVIDER_FABRIC_V1.json"
       - "architecture/VERA_RUNTIME_COHESION_NATIVE_HOOK_V1.json"
       - "architecture/VERA_COHESION_PAIR_RECEIPT_V1.json"
+      - "architecture/VERA_ORGASM_RUNTIME_BINDING_V1.json"
       - "docs/VERA_RUNTIME_COHESION*.md"
       - "docs/VERA_COHESION*.md"
       - "runtime_cohesion/**"
@@ -67,6 +68,7 @@ jobs:
           tests.test_runtime_cohesion_native_hook
           tests.test_runtime_cohesion_orgasm
           tests.test_runtime_cohesion_orgasm_package
+          tests.test_runtime_cohesion_orgasm_binding
           -v
       - name: Compile cohesion validators, runtime, and tests
         run: >-
@@ -101,3 +103,4 @@ jobs:
           tests/test_runtime_cohesion_native_hook.py
           tests/test_runtime_cohesion_orgasm.py
           tests/test_runtime_cohesion_orgasm_package.py
+          tests/test_runtime_cohesion_orgasm_binding.py
