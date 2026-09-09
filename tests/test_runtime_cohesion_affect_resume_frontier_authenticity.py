@@ -1,6 +1,7 @@
 import inspect
 import json
 from pathlib import Path
+from types import SimpleNamespace
 import unittest
 
 from runtime_cohesion.affect_cycle import VeraAffectiveCycle
@@ -11,78 +12,16 @@ from runtime_cohesion.affect_persistence import (
     checkpoint_to_state_row,
     restore_host_from_state_row,
 )
+from runtime_cohesion.evidence import ProviderEvidenceEnvelope
 
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_RUNTIME_CONTRACT_V1.json"
 BINDING_PATH = ROOT / "architecture" / "VERA_ORGASM_RUNTIME_BINDING_V1.json"
 
-
-class TrustedResumeFrontierVerifierDouble:
-    """Test double for a separately retained provider/read trust boundary.
-
-    The verifier owns a snapshot captured before the candidate restore row is
-    presented. A token freshly projected from the candidate row cannot change
-    that retained frontier.
-    """
-
-    verifier_id = "trusted-affective-provider-read-test-double"
-    provider_class = "SUPABASE_POSTGRES"
-    provider_project_id = "klmbpaigzeguvnpccqzz"
-
-    def __init__(self, trusted_row):
-        self.calls = 0
-        self._trusted = {
-            "runtime_instance_id": trusted_row["runtime_instance_id"],
-            "state_version": trusted_row["state_version"],
-            "checkpoint_sha256": trusted_row["checkpoint_sha256"],
-            "source_commit": trusted_row["source_commit"],
-        }
-
-    def verify(self, candidate_row, *, expected_resume_token):
-        self.calls += 1
-        candidate = {
-            "runtime_instance_id": candidate_row.get("runtime_instance_id"),
-            "state_version": candidate_row.get("state_version"),
-            "checkpoint_sha256": candidate_row.get("checkpoint_sha256"),
-            "source_commit": candidate_row.get("source_commit"),
-        }
-        if candidate != self._trusted:
-            return None
-
-        token = dict(expected_resume_token)
-        expected_token = {
-            "schema": "VERA_AFFECTIVE_RUNTIME_RESUME_TOKEN_V1",
-            **self._trusted,
-        }
-        if token != expected_token:
-            return None
-
-        evidence_core = {
-            "verifier_id": self.verifier_id,
-            "provider_class": self.provider_class,
-            "provider_project_id": self.provider_project_id,
-            "runtime_instance_id": self._trusted["runtime_instance_id"],
-            "state_version": self._trusted["state_version"],
-            "checkpoint_sha256": self._trusted["checkpoint_sha256"],
-            "source_commit": self._trusted["source_commit"],
-        }
-        canonical = json.dumps(
-            evidence_core,
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-        )
-        return {
-            **evidence_core,
-            "evidence_id": (
-                f"provider-read:{self._trusted['runtime_instance_id']}:"
-                f"{self._trusted['state_version']}"
-            ),
-            "evidence_digest": __import__("hashlib").sha256(
-                canonical.encode("utf-8")
-            ).hexdigest(),
-        }
+PROVIDER_PROJECT_ID = "klmbpaigzeguvnpccqzz"
+PROVIDER_TABLE = "public.vera_affective_runtime_state_v1"
+FRONTIER_SCOPE = "VERA_AFFECTIVE_RUNTIME_PROVIDER_FRONTIER_V1"
 
 
 class VeraAffectiveResumeFrontierAuthenticityTests(unittest.TestCase):
@@ -108,13 +47,49 @@ class VeraAffectiveResumeFrontierAuthenticityTests(unittest.TestCase):
         )
         return checkpoint, row, build_affective_resume_token(row)
 
-    def test_live_restore_surfaces_require_independent_frontier_verifier(self):
+    @staticmethod
+    def provider_read_evidence(row):
+        """Model the typed result of an independently executed provider read.
+
+        Production trust belongs to the runtime-owned provider adapter/read
+        boundary. The candidate row does not select a verifier and this evidence
+        does not grant semantic authority; it only binds an observed provider
+        frontier.
+        """
+        return ProviderEvidenceEnvelope(
+            provider="supabase",
+            locator=(
+                f"supabase:{PROVIDER_PROJECT_ID}/{PROVIDER_TABLE}/"
+                f"{row['runtime_instance_id']}"
+            ),
+            revision=f"state-version:{row['state_version']}",
+            observed_at=row["updated_at"],
+            evidence_class="persisted_provider_record",
+            referent=row["runtime_instance_id"],
+            scope=FRONTIER_SCOPE,
+            privacy_class="GOVERNED",
+            currentness_basis="fresh exact provider readback",
+            supersession_state="CURRENT_OBSERVATION",
+            conflict_state="NONE",
+            content_digest=row["checkpoint_sha256"],
+            metadata={
+                "provider_project_id": PROVIDER_PROJECT_ID,
+                "provider_table": PROVIDER_TABLE,
+                "runtime_instance_id": row["runtime_instance_id"],
+                "host_scope": row["host_scope"],
+                "state_version": row["state_version"],
+                "checkpoint_sha256": row["checkpoint_sha256"],
+                "source_commit": row["source_commit"],
+            },
+        )
+
+    def test_live_restore_surfaces_require_typed_provider_read_evidence(self):
         self.assertIn(
-            "resume_frontier_verifier",
+            "resume_frontier_evidence",
             inspect.signature(VeraAffectiveCycle.restore_from_state_row).parameters,
         )
         self.assertIn(
-            "resume_frontier_verifier",
+            "resume_frontier_evidence",
             inspect.signature(restore_host_from_state_row).parameters,
         )
 
@@ -124,7 +99,7 @@ class VeraAffectiveResumeFrontierAuthenticityTests(unittest.TestCase):
 
         with self.assertRaisesRegex(
             (PersistenceRecordError, ValueError),
-            r"(?i)(frontier|provider|verif|attest|trusted|resume)",
+            r"(?i)(frontier|provider|evidence|current|readback|resume)",
         ):
             restore_host_from_state_row(
                 contract_text,
@@ -133,13 +108,13 @@ class VeraAffectiveResumeFrontierAuthenticityTests(unittest.TestCase):
                 expected_host_scope="TEST_HOST",
                 expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
                 expected_resume_token=token,
-                resume_frontier_verifier=None,
+                resume_frontier_evidence=None,
             )
 
-    def test_lower_restore_positive_crosses_separately_retained_provider_frontier(self):
+    def test_lower_restore_accepts_exact_typed_current_provider_readback(self):
         checkpoint, row, token = self.make_row()
         contract_text, binding = self.contract_text_and_binding()
-        verifier = TrustedResumeFrontierVerifierDouble(row)
+        evidence = self.provider_read_evidence(row)
 
         host = restore_host_from_state_row(
             contract_text,
@@ -148,19 +123,15 @@ class VeraAffectiveResumeFrontierAuthenticityTests(unittest.TestCase):
             expected_host_scope="TEST_HOST",
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
             expected_resume_token=token,
-            resume_frontier_verifier=verifier,
+            resume_frontier_evidence=evidence,
         )
 
-        self.assertEqual(verifier.calls, 1)
-        self.assertEqual(
-            host.runtime.runtime_instance_id,
-            row["runtime_instance_id"],
-        )
+        self.assertEqual(host.runtime.runtime_instance_id, row["runtime_instance_id"])
 
-    def test_cycle_restore_uses_the_same_independent_frontier_boundary(self):
+    def test_cycle_restore_accepts_the_same_exact_typed_provider_readback(self):
         checkpoint, row, token = self.make_row()
         contract_text, binding = self.contract_text_and_binding()
-        verifier = TrustedResumeFrontierVerifierDouble(row)
+        evidence = self.provider_read_evidence(row)
 
         cycle = VeraAffectiveCycle.restore_from_state_row(
             contract_text,
@@ -169,35 +140,32 @@ class VeraAffectiveResumeFrontierAuthenticityTests(unittest.TestCase):
             host_scope="TEST_HOST",
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
             expected_resume_token=token,
-            resume_frontier_verifier=verifier,
+            resume_frontier_evidence=evidence,
         )
 
-        self.assertEqual(verifier.calls, 1)
         self.assertEqual(cycle._next_state_version, row["state_version"] + 1)
 
-    def test_fresh_candidate_derived_token_cannot_rewrite_trusted_provider_frontier(self):
+    def test_candidate_row_and_freshly_derived_token_cannot_rewrite_provider_readback(self):
         checkpoint, trusted_row, _trusted_token = self.make_row(state_version=7)
         contract_text, binding = self.contract_text_and_binding()
-        verifier = TrustedResumeFrontierVerifierDouble(trusted_row)
+        evidence = self.provider_read_evidence(trusted_row)
 
         replayed = dict(trusted_row)
         replayed["state_version"] = 8
-        candidate_derived_token = build_affective_resume_token(replayed)
+        candidate_token = build_affective_resume_token(replayed)
 
-        # The mutable candidate row and its deterministic token now agree with
-        # each other. Only the separately retained provider frontier disagrees.
+        # Candidate row and deterministic token agree. The independent typed
+        # provider observation still binds the actually observed version 7.
+        self.assertEqual(candidate_token["state_version"], replayed["state_version"])
         self.assertEqual(
-            candidate_derived_token["state_version"],
-            replayed["state_version"],
-        )
-        self.assertEqual(
-            candidate_derived_token["checkpoint_sha256"],
+            candidate_token["checkpoint_sha256"],
             replayed["checkpoint_sha256"],
         )
+        self.assertEqual(evidence.metadata["state_version"], 7)
 
         with self.assertRaisesRegex(
             (PersistenceRecordError, ValueError),
-            r"(?i)(frontier|provider|verif|attest|trusted|resume)",
+            r"(?i)(frontier|provider|evidence|current|revision|version|resume)",
         ):
             restore_host_from_state_row(
                 contract_text,
@@ -205,24 +173,22 @@ class VeraAffectiveResumeFrontierAuthenticityTests(unittest.TestCase):
                 replayed,
                 expected_host_scope="TEST_HOST",
                 expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
-                expected_resume_token=candidate_derived_token,
-                resume_frontier_verifier=verifier,
+                expected_resume_token=candidate_token,
+                resume_frontier_evidence=evidence,
             )
-
-        self.assertEqual(verifier.calls, 1)
 
     def test_cycle_restore_rejects_candidate_row_and_token_that_only_vouch_for_each_other(self):
         checkpoint, trusted_row, _trusted_token = self.make_row(state_version=7)
         contract_text, binding = self.contract_text_and_binding()
-        verifier = TrustedResumeFrontierVerifierDouble(trusted_row)
+        evidence = self.provider_read_evidence(trusted_row)
 
         replayed = dict(trusted_row)
         replayed["state_version"] = 8
-        candidate_derived_token = build_affective_resume_token(replayed)
+        candidate_token = build_affective_resume_token(replayed)
 
         with self.assertRaisesRegex(
             (PersistenceRecordError, ValueError),
-            r"(?i)(frontier|provider|verif|attest|trusted|resume)",
+            r"(?i)(frontier|provider|evidence|current|revision|version|resume)",
         ):
             VeraAffectiveCycle.restore_from_state_row(
                 contract_text,
@@ -230,11 +196,82 @@ class VeraAffectiveResumeFrontierAuthenticityTests(unittest.TestCase):
                 replayed,
                 host_scope="TEST_HOST",
                 expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
-                expected_resume_token=candidate_derived_token,
-                resume_frontier_verifier=verifier,
+                expected_resume_token=candidate_token,
+                resume_frontier_evidence=evidence,
             )
 
-        self.assertEqual(verifier.calls, 1)
+    def test_duck_typed_provider_read_lookalike_is_not_equivalent_to_provider_evidence(self):
+        checkpoint, row, token = self.make_row()
+        contract_text, binding = self.contract_text_and_binding()
+        real = self.provider_read_evidence(row)
+        lookalike = SimpleNamespace(**real.__dict__)
+
+        with self.assertRaisesRegex(
+            (PersistenceRecordError, TypeError, ValueError),
+            r"(?i)(provider|evidence|envelope|frontier|type|readback)",
+        ):
+            restore_host_from_state_row(
+                contract_text,
+                binding,
+                row,
+                expected_host_scope="TEST_HOST",
+                expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+                expected_resume_token=token,
+                resume_frontier_evidence=lookalike,
+            )
+
+    def test_noncurrent_or_conflicted_provider_evidence_cannot_establish_live_frontier(self):
+        checkpoint, row, token = self.make_row()
+        contract_text, binding = self.contract_text_and_binding()
+
+        cases = (
+            ("superseded", {"supersession_state": "SUPERSEDED"}),
+            ("conflict", {"conflict_state": "CONFLICT"}),
+        )
+        for label, overrides in cases:
+            with self.subTest(case=label):
+                kwargs = dict(
+                    provider="supabase",
+                    locator=(
+                        f"supabase:{PROVIDER_PROJECT_ID}/{PROVIDER_TABLE}/"
+                        f"{row['runtime_instance_id']}"
+                    ),
+                    revision=f"state-version:{row['state_version']}",
+                    observed_at=row["updated_at"],
+                    evidence_class="persisted_provider_record",
+                    referent=row["runtime_instance_id"],
+                    scope=FRONTIER_SCOPE,
+                    privacy_class="GOVERNED",
+                    currentness_basis="fresh exact provider readback",
+                    supersession_state="CURRENT_OBSERVATION",
+                    conflict_state="NONE",
+                    content_digest=row["checkpoint_sha256"],
+                    metadata={
+                        "provider_project_id": PROVIDER_PROJECT_ID,
+                        "provider_table": PROVIDER_TABLE,
+                        "runtime_instance_id": row["runtime_instance_id"],
+                        "host_scope": row["host_scope"],
+                        "state_version": row["state_version"],
+                        "checkpoint_sha256": row["checkpoint_sha256"],
+                        "source_commit": row["source_commit"],
+                    },
+                )
+                kwargs.update(overrides)
+                evidence = ProviderEvidenceEnvelope(**kwargs)
+
+                with self.assertRaisesRegex(
+                    (PersistenceRecordError, ValueError),
+                    r"(?i)(current|supersed|conflict|provider|frontier|evidence)",
+                ):
+                    restore_host_from_state_row(
+                        contract_text,
+                        binding,
+                        row,
+                        expected_host_scope="TEST_HOST",
+                        expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+                        expected_resume_token=token,
+                        resume_frontier_evidence=evidence,
+                    )
 
 
 if __name__ == "__main__":
