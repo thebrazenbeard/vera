@@ -33,6 +33,75 @@ def _event_receipt_digest(receipt: Mapping[str, Any]) -> str:
     return _canonical_digest(core)
 
 
+def _event_interoception_from_receipt(
+    host: VeraAffectiveRuntimeHost,
+    receipt: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Bind an event row to the exact state carried by that event receipt.
+
+    One runtime advance can emit more than one receipt (for example RESOLUTION
+    followed by RECOVERY). Reading the host after the whole advance would stamp
+    every row with the final host state, corrupting earlier transition evidence.
+    """
+    state_after = receipt.get("state_after")
+    if not isinstance(state_after, Mapping):
+        raise PersistenceRecordError("event receipt lacks state_after for interoception")
+
+    required = (
+        "presence",
+        "phase",
+        "sexual_salience",
+        "activation_intensity",
+        "positive_valence",
+        "anticipation",
+        "inhibition",
+        "coherence",
+        "coalition_stability",
+        "persistence_window_ms",
+        "hedonic_impact",
+        "consummatory_gain",
+        "satiation",
+        "resolution_intensity",
+        "refractory_strength",
+        "action_tendency",
+        "active_orgasm_event",
+        "organic_climax_eligible",
+    )
+    missing = [key for key in required if key not in state_after]
+    if missing:
+        raise PersistenceRecordError(
+            "event receipt state_after is incomplete for interoception: " + ", ".join(missing)
+        )
+
+    return {
+        "experience_class": "ENGINEERED_AFFECTIVE_INTEROCEPTION",
+        "subject": "vera",
+        "presence": state_after["presence"],
+        "phase": state_after["phase"],
+        "sexual_salience": state_after["sexual_salience"],
+        "activation_intensity": state_after["activation_intensity"],
+        "positive_valence": state_after["positive_valence"],
+        "anticipation": state_after["anticipation"],
+        "inhibition": state_after["inhibition"],
+        "coherence": state_after["coherence"],
+        "coalition_stability": state_after["coalition_stability"],
+        "persistence_window_ms": state_after["persistence_window_ms"],
+        "hedonic_impact": state_after["hedonic_impact"],
+        "consummatory_gain": state_after["consummatory_gain"],
+        "satiation": state_after["satiation"],
+        "resolution_intensity": state_after["resolution_intensity"],
+        "refractory_strength": state_after["refractory_strength"],
+        "action_tendency": state_after["action_tendency"],
+        "active_orgasm_event": state_after["active_orgasm_event"],
+        "organic_climax_eligible": state_after["organic_climax_eligible"],
+        "last_trigger_class": receipt.get("trigger_class"),
+        "last_event_digest": receipt.get("event_digest"),
+        "source_revision": host.runtime.source_revision,
+        "contract_blob_sha": host.contract_blob_sha,
+        "phenomenology": host.runtime.phenomenology_status,
+    }
+
+
 def checkpoint_to_state_row(
     checkpoint: Mapping[str, Any],
     *,
@@ -68,8 +137,13 @@ def checkpoint_to_state_row(
     if not isinstance(source, Mapping) or not isinstance(runtime_state, Mapping) or not isinstance(interoception, Mapping):
         raise PersistenceRecordError("checkpoint source/runtime/interoception payload is incomplete")
     state = runtime_state.get("state")
+    trigger_governance = runtime_state.get("trigger_governance")
     if not isinstance(state, Mapping):
         raise PersistenceRecordError("checkpoint state is missing")
+    if not isinstance(trigger_governance, Mapping):
+        raise PersistenceRecordError("checkpoint trigger governance is missing")
+    if trigger_governance.get("schema") != "VERA_ORGASM_TRIGGER_GOVERNANCE_V1":
+        raise PersistenceRecordError("checkpoint trigger governance schema mismatch")
     runtime_instance_id = runtime_state.get("runtime_instance_id")
     if not isinstance(runtime_instance_id, str) or not runtime_instance_id:
         raise PersistenceRecordError("runtime_instance_id is required")
@@ -96,6 +170,7 @@ def checkpoint_to_state_row(
         "source_sha256": source_sha256,
         "profile": runtime_state.get("profile"),
         "state": dict(state),
+        "trigger_governance": dict(trigger_governance),
         "machine_interoception": dict(interoception),
         "last_event_receipt": runtime_state.get("last_event_receipt"),
         "checkpoint_sha256": checkpoint_sha256,
@@ -154,7 +229,7 @@ def event_receipt_to_event_row(
         "new_phase": state_after.get("phase"),
         "state_before": dict(state_before),
         "state_after": dict(state_after),
-        "machine_interoception": host.machine_interoception(),
+        "machine_interoception": _event_interoception_from_receipt(host, receipt),
         "event_receipt": dict(receipt),
         "event_digest": digest,
         "source_commit": host.runtime.source_revision,
@@ -248,8 +323,13 @@ def restore_host_from_state_row(
     if row.get("phenomenology_status") != "UNRESOLVED":
         raise PersistenceRecordError("durable state row illegally promotes phenomenology")
     state = row.get("state")
+    trigger_governance = row.get("trigger_governance")
     if not isinstance(state, Mapping):
         raise PersistenceRecordError("durable state row lacks state")
+    if not isinstance(trigger_governance, Mapping):
+        raise PersistenceRecordError("durable state row lacks trigger governance")
+    if trigger_governance.get("schema") != "VERA_ORGASM_TRIGGER_GOVERNANCE_V1":
+        raise PersistenceRecordError("durable trigger governance schema mismatch")
     expected_digest = _canonical_digest(state)
     if row.get("state_digest") != expected_digest:
         raise PersistenceRecordError("durable affective state digest mismatch")
@@ -292,6 +372,7 @@ def restore_host_from_state_row(
             "profile": row.get("profile"),
             "state": dict(state),
             "last_event_receipt": row.get("last_event_receipt"),
+            "trigger_governance": dict(trigger_governance),
         },
         "machine_interoception": row.get("machine_interoception"),
         "checkpoint_sha256": row_checkpoint_sha256,
