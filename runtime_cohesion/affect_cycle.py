@@ -9,6 +9,7 @@ from .affect_persistence import (
     build_atomic_commit_request,
     checkpoint_to_state_row,
     event_receipt_to_event_row,
+    restore_host_from_state_row,
 )
 from .orgasm import StimulusAppraisal
 
@@ -66,6 +67,46 @@ class VeraAffectiveCycle:
         self.atomic_commit_writer = atomic_commit_writer
         self._next_state_version = initial_state_version
         self._durability_uncertain = False
+
+    @classmethod
+    def restore_from_state_row(
+        cls,
+        contract_text: str,
+        binding: Mapping[str, Any],
+        row: Mapping[str, Any],
+        *,
+        host_scope: str,
+        expected_checkpoint_sha256: str,
+        elapsed_seconds: float = 0.0,
+        state_writer: StateWriter | None = None,
+        event_writer: EventWriter | None = None,
+        atomic_commit_writer: AtomicCommitWriter | None = None,
+    ) -> "VeraAffectiveCycle":
+        """Restore exact durable state and continue its provider CAS frontier.
+
+        The provider row's state_version is the committed frontier. A restored
+        cycle therefore starts at exactly state_version + 1, so its first
+        atomic commit compares against the row that was independently read back
+        and pinned rather than accidentally restarting at version 1.
+        """
+        state_version = row.get("state_version")
+        if isinstance(state_version, bool) or not isinstance(state_version, int) or state_version < 1:
+            raise ValueError("durable state row requires a positive integer state_version")
+        host = restore_host_from_state_row(
+            contract_text,
+            binding,
+            row,
+            elapsed_seconds=elapsed_seconds,
+            expected_checkpoint_sha256=expected_checkpoint_sha256,
+        )
+        return cls(
+            host,
+            host_scope=host_scope,
+            state_writer=state_writer,
+            event_writer=event_writer,
+            atomic_commit_writer=atomic_commit_writer,
+            initial_state_version=state_version + 1,
+        )
 
     def _require_usable_frontier(self) -> None:
         if self._durability_uncertain:
@@ -128,15 +169,9 @@ class VeraAffectiveCycle:
                     event_count=len(event_rows),
                 )
             except Exception:
-                # The host has already advanced in memory. Without an exact
-                # provider acknowledgement, the durable outcome/frontier is not
-                # known well enough to continue from this object safely.
                 self._durability_uncertain = True
                 raise
         else:
-            # Backward-compatible in-memory/test path only. A qualified durable
-            # provider must bind atomic_commit_writer so stale state and event
-            # append cannot split across transactions.
             if self.state_writer is not None:
                 self.state_writer(dict(state_row))
             if self.event_writer is not None:
