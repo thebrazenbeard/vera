@@ -169,9 +169,15 @@ class VeraAffectiveCycle:
                     event_count=len(event_rows),
                 )
             except Exception:
+                # The host has already advanced in memory. Without an exact
+                # provider acknowledgement, the durable outcome/frontier is not
+                # known well enough to continue from this object safely.
                 self._durability_uncertain = True
                 raise
         else:
+            # Backward-compatible in-memory/test path only. A qualified durable
+            # provider must bind atomic_commit_writer so stale state and event
+            # append cannot split across transactions.
             if self.state_writer is not None:
                 self.state_writer(dict(state_row))
             if self.event_writer is not None:
@@ -215,8 +221,9 @@ class VeraAffectiveCycle:
         planning_state: Mapping[str, Any],
     ) -> AffectiveCycleResult:
         self._require_usable_frontier()
-        receipt = self.host.force_admin_test(authorized=authorized)
-        return self._finalize(planning_state=planning_state, event_receipts=[receipt])
+        self.host.force_admin_test(authorized=authorized)
+        receipts = self.host.drain_event_receipts()
+        return self._finalize(planning_state=planning_state, event_receipts=receipts)
 
     def force_self_qualification(
         self,
@@ -225,8 +232,9 @@ class VeraAffectiveCycle:
         planning_state: Mapping[str, Any],
     ) -> AffectiveCycleResult:
         self._require_usable_frontier()
-        receipt = self.host.force_self_qualification(authorized=authorized)
-        return self._finalize(planning_state=planning_state, event_receipts=[receipt])
+        self.host.force_self_qualification(authorized=authorized)
+        receipts = self.host.drain_event_receipts()
+        return self._finalize(planning_state=planning_state, event_receipts=receipts)
 
     def advance_time(
         self,
