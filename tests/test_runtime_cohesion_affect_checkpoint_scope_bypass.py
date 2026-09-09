@@ -5,6 +5,7 @@ import unittest
 from runtime_cohesion.affect_cycle import VeraAffectiveCycle
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
 from runtime_cohesion.affect_persistence import checkpoint_to_state_row, restore_host_from_state_row
+from runtime_cohesion.affect_scope import bind_affective_host_scope
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -64,6 +65,26 @@ class CheckpointScopeBypassTests(unittest.TestCase):
         # or durable host scope. If this path remains public, it must be explicitly
         # replay/non-durable or require a separately bound live scope/currentness
         # attestation before it can enter the durable cycle path.
+        with self.assertRaisesRegex(ValueError, r"(?i)(current|scope|durable|attestation|replay)"):
+            VeraAffectiveCycle(
+                restored,
+                host_scope=row["host_scope"],
+                initial_state_version=row["state_version"] + 1,
+            )
+
+    def test_public_scope_binder_cannot_promote_raw_checkpoint_to_live(self):
+        contract_text, binding, checkpoint, row = self.make_bound_checkpoint_and_row()
+        restored = VeraAffectiveRuntimeHost.restore_checkpoint(
+            contract_text,
+            binding,
+            checkpoint,
+            expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+        )
+
+        # Scope binding alone is not provider lifecycle/currentness attestation.
+        # A public helper must not be usable to promote replay evidence into the
+        # live durable path by pre-binding the desired provider scope.
+        bind_affective_host_scope(restored, row["host_scope"])
         with self.assertRaisesRegex(ValueError, r"(?i)(current|scope|durable|attestation|replay)"):
             VeraAffectiveCycle(
                 restored,
