@@ -147,12 +147,19 @@ def evaluate_route_binding(expected_route: Any, observed_route: Any) -> dict[str
 
 
 def classify_semantic_snapshot(snapshot: Mapping[str, Any]) -> dict[str, Any]:
-    """Classify a materialized Semantic Atlas snapshot by its own authority scope."""
-    if snapshot.get("authority_scope") != "CANONICAL_LEDGER":
+    """Classify a materialized Semantic Atlas snapshot by its explicit authority scope."""
+    authority_scope = snapshot.get("authority_scope")
+    if authority_scope == "RESEARCH_STAGING":
         return {
             "status": "RESEARCH_STAGING_ONLY",
             "canonical_runtime_semantics": False,
-            "reason": "Non-CANONICAL_LEDGER authority scope cannot become canonical runtime semantics.",
+            "reason": "RESEARCH_STAGING materialization cannot become canonical runtime semantics.",
+        }
+    if authority_scope != "CANONICAL_LEDGER":
+        return {
+            "status": "UNRESOLVED",
+            "canonical_runtime_semantics": False,
+            "reason": "Semantic authority scope is missing or unrecognized; do not retype it as research staging or canonical ledger.",
         }
     if snapshot.get("state") != "ACTIVE" or snapshot.get("validation_state") != "VERIFIED":
         return {
