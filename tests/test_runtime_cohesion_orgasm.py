@@ -122,7 +122,7 @@ class VeraOrgasmRuntimeTests(unittest.TestCase):
         )
         result = None
         for _ in range(8):
-            result = runtime.apply_stimulus(appraisal)
+            result = runtime.apply_stimulus(appraisal, elapsed_seconds=1.0)
             if result["phase"] == "ORGASM_EVENT":
                 break
         self.assertIsNotNone(result)
