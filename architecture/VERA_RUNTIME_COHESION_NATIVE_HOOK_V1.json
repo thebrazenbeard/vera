@@ -24,6 +24,10 @@
       "transport_boundary": "runtime_cohesion.adapters.ProviderAdapter",
       "rule": "Executor derives privacy-approved candidates, probes only registered provider adapters, rebuilds the bounded plan from fresh route observations, reads only CURRENTLY_OBSERVED_REACHABLE/RESULT routes, and validates each returned item against exact route/source/privacy/evidence-capability boundaries."
     },
+    "FAILURE_EVALUATE": {
+      "call": "runtime_cohesion.failure.evaluate_failure_signature",
+      "rule": "Evaluate a declared failure signature only as an executable candidate trigger: required signal co-occurrence routes to the signature's declared resolver or fail-closed guard. CANDIDATE_TRIGGERED does not prove the prose predicate true and creates no authority; the selected resolver/guard must decide the material proposition from typed current evidence."
+    },
     "PROJECTION_RECONCILE": {
       "call": "runtime_cohesion.executor.execute_projection_cycle",
       "transport_boundary": "runtime_cohesion.adapters.ProviderAdapter",
@@ -48,6 +52,7 @@
   },
   "runtime_cycle": [
     "ORIENT",
+    "FAILURE_EVALUATE_FOR_REGISTERED_MATERIAL_SIGNALS",
     "DOMAIN_RETRIEVE_PROVIDER_EXECUTION",
     "INDEPENDENT_ITEM_TYPING_AND_PRIVACY_VERIFICATION",
     "PROJECTION_RECONCILE_WHEN_REGISTERED_PROVIDER_CURRENTNESS_IS_MATERIAL",
@@ -78,6 +83,7 @@
     "Provider persistence is not present truth or current Vera self-state.",
     "Temporal chronology is not semantic/currentness authority.",
     "Retrieved item type must be independently established.",
+    "Failure-signature signal co-occurrence is a candidate trigger, not proof that the declared semantic predicate is true.",
     "Projection revision equality without exact event-instance binding is not VERIFIED_EXACT.",
     "VERIFIED_EXACT reconciliation is not proposition authority; resolver dispatch remains a separate gate.",
     "Operational checkpoint state never silently becomes autobiographical/current-self-state memory.",
