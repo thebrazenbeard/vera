@@ -10,8 +10,8 @@
   "source_commit_semantics": "GIT_TREE_CONTAINS_EXACT_BOUND_A_B_BLOBS",
   "validator_path": "scripts/validate_vera_runtime_cohesion_v1.py",
   "validator_blob_sha": "5a7384e10249833fdb1ed09fab16cef22b9bdd1b",
-  "compatibility_generation": "A2+B1+OPERATIONAL_FABRIC_V1_EVENT_BOUND_HARD_DEPENDENCIES",
-  "operational_support_source_commit": "f6f79200f2be4f13cec4dc2477f5f92c32eaae20",
+  "compatibility_generation": "A2+B1+OPERATIONAL_FABRIC_V1_EVENT_BOUND_HARD_DEPENDENCIES_DERIVED_GOVERNING_RESOLUTION",
+  "operational_support_source_commit": "cf65a0acb49960781f04fe9d0bd19c9939c52f7d",
   "operational_support_source_commit_semantics": "GIT_TREE_CONTAINS_EXACT_OPERATIONAL_SUPPORT_PATH_BLOBS",
   "operational_support_snapshot_validator": {
     "path": "scripts/validate_runtime_cohesion_support_snapshot_v1.py",
@@ -25,7 +25,7 @@
     },
     "provider_validator": {
       "path": "scripts/validate_runtime_cohesion_provider_fabric_v1.py",
-      "blob_sha": "6990dd76172482ad241fc7ccb6b0e7de1af8d0ea"
+      "blob_sha": "0556d1f63b0c34073d1c89eb02c7406bb125eeda"
     },
     "evidence_module": {
       "path": "runtime_cohesion/evidence.py",
@@ -37,7 +37,7 @@
     },
     "runtime_planner_module": {
       "path": "runtime_cohesion/runtime.py",
-      "blob_sha": "91a7b8f3fe96a097defd5ab1fe2baf453950a1d2"
+      "blob_sha": "d2d5fef90f23a38eef0c850ec1b3edb1b81a7198"
     },
     "adapter_contract": {
       "path": "runtime_cohesion/adapters.py",
@@ -49,7 +49,7 @@
     },
     "provider_executor": {
       "path": "runtime_cohesion/executor.py",
-      "blob_sha": "e8a24452beb522e52b024c6de0d7f0cb6d114a15"
+      "blob_sha": "6d21c0ad88de14216e83949bf1eef5854e4767a2"
     },
     "failure_candidate_router": {
       "path": "runtime_cohesion/failure.py",
@@ -58,7 +58,7 @@
     },
     "package_surface": {
       "path": "runtime_cohesion/__init__.py",
-      "blob_sha": "f5b5ac71f51a4b10192c940f0b985de616863e6f"
+      "blob_sha": "f410390040c37008f628aff63f931bf28c34cdaa"
     },
     "native_hook": {
       "path": "architecture/VERA_RUNTIME_COHESION_NATIVE_HOOK_V1.json",
@@ -71,11 +71,12 @@
     "m5_event_binding_result": "BOUNDED_RECONSTRUCTED_GREEN_WRONG_EVENT_CONFLICT_AND_EXACT_TARGET_SELECTOR",
     "m2_failure_wiring_result": "BOUNDED_RECONSTRUCTED_GREEN_RESOLVER_AND_FAIL_CLOSED_GUARD_CANDIDATE_ROUTING",
     "m1_dependency_result": "BOUNDED_RECONSTRUCTED_GREEN_HARD_PREREQUISITE_PREEMPTION_BLOCKING_CONTEXTUAL_NONBLOCKING_CYCLE_TERMINATION_NATIVE_HOOK_AND_SOURCE_CROSS_VALIDATION",
-    "m4_operational_binding_result": "SOURCE_VALIDATOR_NOW_REQUIRES_EVERY_OPERATIONAL_SUPPORT_PATH_TO_RESOLVE_INSIDE_REPOSITORY_AND_MATCH_ITS_EXACT_GIT_BLOB",
-    "m4_operational_snapshot_result": "BOUNDED_RED_GREEN_REPRODUCED_WORKTREE_ONLY_GAP_AND_ADDS_SINGLE_IMMUTABLE_GIT_TREE_BINDING",
-    "scope": "Implementation-focused evidence only. M1/M2/M5 cases were exercised in bounded reconstruction after deliberate red cases; M4 operational-support receipt binding has source-level negative tests for wrong blob, missing path, and repository escape. M4 immutable-snapshot binding was also exercised in a bounded synthetic Git repository: the pre-fix worktree-only check accepted an invalid snapshot pointer, while the successor snapshot validator rejected it and accepted a real committed snapshot. Exact-branch GitHub CI remains unavailable before runner steps; this evidence does not qualify native runtime behavior."
+    "m1_governing_resolution_boundary_result": "HOSTILE_SOURCE_CASES_ADDED_FOR_NAKED_STATUS_NON_DECISIVE_EVIDENCE_CONFLICT_WRONG_REFERENT_AND_EXACT_DERIVED_RELEASE; EXACT_BRANCH_TEST_EXECUTION_NOT_AVAILABLE",
+    "m4_operational_binding_result": "SOURCE_VALIDATOR_REQUIRES_EVERY_OPERATIONAL_SUPPORT_PATH_TO_RESOLVE_INSIDE_REPOSITORY_AND_MATCH_ITS_EXACT_GIT_BLOB",
+    "m4_operational_snapshot_result": "OPERATIONAL_SUPPORT_REBOUND_TO_IMMUTABLE_CF65A0AC_CUT_AFTER_RUNTIME_PROVIDER_VALIDATOR_EXECUTOR_AND_PACKAGE_SURFACE_DRIFT",
+    "scope": "Implementation-focused evidence only. Prior M1/M2/M5 cases were exercised in bounded reconstruction after deliberate red cases. The derived-governing-resolution hostile suite is source-present but has not been executed by exact-branch GitHub CI because runner execution remains unavailable. The current receipt binds the complete support set to immutable commit cf65a0acb49960781f04fe9d0bd19c9939c52f7d. This evidence does not qualify native runtime behavior."
   },
-  "validation_result": "SOURCE_VALIDATION_NOT_YET_EXECUTED",
+  "validation_result": "SOURCE_RECEIPT_REBOUND_EXACT_BRANCH_TEST_EXECUTION_UNAVAILABLE",
   "ci_execution_state": "CI_EXECUTION_UNAVAILABLE_ZERO_RUNNER_STEPS_OBSERVED",
-  "evidence_ceiling": "This receipt binds exact A+B source objects, mechanically requires source_commit to contain those exact blobs, mechanically checks every recorded operational-support path/blob pair against the current worktree, and additionally binds that complete support set to one immutable Git tree at operational_support_source_commit. The snapshot validator is itself Git-blob-bound by this receipt. It does not prove merge, installation, current-route activation, automatic background execution, runtime consumption, behavioral qualification, or phenomenology."
+  "evidence_ceiling": "This receipt binds exact A+B source objects without modifying them, mechanically requires source_commit to contain those exact blobs, and binds the complete current operational-support set to immutable Git commit cf65a0acb49960781f04fe9d0bd19c9939c52f7d. The executor support at that cut derives governing release from fresh exact-referent evidence plus A+B resolver/admission dispatch rather than accepting caller-supplied SATISFIED strings. This is source/operational-support evidence only; it does not prove merge, installation, current-route activation, runtime consumption, behavioral qualification, or phenomenology."
 }
