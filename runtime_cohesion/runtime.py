@@ -71,12 +71,14 @@ def _validate_selector_narrowing(
 
 
 def _decisive_evidence_requirements(
-    selected: Mapping[str, Any],
+    dispatch_id: str,
+    contract: Mapping[str, Any],
 ) -> tuple[set[str], set[str]] | None:
-    decisive = selected.get("decisive_evidence")
-    if not isinstance(decisive, Mapping):
+    registry = contract.get("resolver_dispatch_decisive_evidence")
+    if not isinstance(registry, Mapping):
         return None
-    if set(decisive) != {"all_of", "any_of"}:
+    decisive = registry.get(dispatch_id)
+    if not isinstance(decisive, Mapping) or set(decisive) != {"all_of", "any_of"}:
         return None
     all_raw = decisive.get("all_of")
     any_raw = decisive.get("any_of")
@@ -102,9 +104,10 @@ def evaluate_proposition_admission(
 
     Transport, readability, persistence, and exact cross-provider reconciliation
     are not proposition authority. Dispatch selection occurs before terminal
-    resolver acceptance. Every dispatch must declare `decisive_evidence` with
-    explicit `all_of` and `any_of` semantics; the resolver's broader accepted set
-    is only a capability ceiling and never silently becomes the deciding rule.
+    resolver acceptance. Every dispatch must have an entry in the separate
+    `resolver_dispatch_decisive_evidence` registry with explicit `all_of` and
+    `any_of` semantics; the resolver's broader accepted set is only a capability
+    ceiling and never silently becomes the deciding rule.
     """
 
     dispatch_rows = contract.get("resolver_dispatch", [])
@@ -175,7 +178,7 @@ def evaluate_proposition_admission(
         value for value in resolver.get("accepted_evidence_classes", [])
         if isinstance(value, str) and value
     }
-    decisive = _decisive_evidence_requirements(selected)
+    decisive = _decisive_evidence_requirements(dispatch_id, contract)
     if decisive is None:
         return AdmissionDecision(
             status="UNRESOLVED",
@@ -183,7 +186,7 @@ def evaluate_proposition_admission(
             resolver_ref=resolver_ref,
             required_evidence_classes=(),
             observed_evidence_classes=observed,
-            reason="Selected dispatch exposes no explicit valid decisive_evidence rule; implicit resolver fallback is forbidden.",
+            reason="Selected dispatch has no explicit valid decisive-evidence registry entry; implicit resolver fallback is forbidden.",
         )
 
     all_of, any_of = decisive
