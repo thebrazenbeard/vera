@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_RUNTIME_CONTRACT_V1.json"
 BINDING_PATH = ROOT / "architecture" / "VERA_ORGASM_RUNTIME_BINDING_V1.json"
 REQUIRED_RUNTIME_PATHS = {
+    "runtime_cohesion/__init__.py",
     "runtime_cohesion/orgasm.py",
     "runtime_cohesion/affect_host.py",
     "runtime_cohesion/affect_cycle.py",
