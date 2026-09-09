@@ -65,6 +65,31 @@ class VeraAffectiveCycle:
         self.event_writer = event_writer
         self.atomic_commit_writer = atomic_commit_writer
         self._next_state_version = initial_state_version
+        self._durability_uncertain = False
+
+    def _require_usable_frontier(self) -> None:
+        if self._durability_uncertain:
+            raise RuntimeError(
+                "affective cycle durable frontier is uncertain; restore from exact provider readback before continuing"
+            )
+
+    def _validate_atomic_commit_ack(
+        self,
+        commit_result: Any,
+        *,
+        state_version: int,
+        checkpoint_sha256: str,
+        event_count: int,
+    ) -> Mapping[str, Any]:
+        if not isinstance(commit_result, Mapping):
+            raise RuntimeError("atomic durable commit returned no structured acknowledgement")
+        if commit_result.get("state_version") != state_version:
+            raise RuntimeError("atomic durable commit returned an unexpected state_version")
+        if commit_result.get("checkpoint_sha256") != checkpoint_sha256:
+            raise RuntimeError("atomic durable commit returned an unexpected checkpoint_sha256")
+        if commit_result.get("event_count") != event_count:
+            raise RuntimeError("atomic durable commit returned an unexpected event_count")
+        return commit_result
 
     def _finalize(
         self,
@@ -94,11 +119,20 @@ class VeraAffectiveCycle:
         commit_result: Any = None
         atomic_commit_used = self.atomic_commit_writer is not None
         if self.atomic_commit_writer is not None:
-            commit_result = self.atomic_commit_writer(dict(commit_request))
-            if isinstance(commit_result, Mapping):
-                committed_version = commit_result.get("state_version")
-                if committed_version is not None and committed_version != state_version:
-                    raise RuntimeError("atomic durable commit returned an unexpected state_version")
+            try:
+                commit_result = self.atomic_commit_writer(dict(commit_request))
+                self._validate_atomic_commit_ack(
+                    commit_result,
+                    state_version=state_version,
+                    checkpoint_sha256=state_row["checkpoint_sha256"],
+                    event_count=len(event_rows),
+                )
+            except Exception:
+                # The host has already advanced in memory. Without an exact
+                # provider acknowledgement, the durable outcome/frontier is not
+                # known well enough to continue from this object safely.
+                self._durability_uncertain = True
+                raise
         else:
             # Backward-compatible in-memory/test path only. A qualified durable
             # provider must bind atomic_commit_writer so stale state and event
@@ -134,6 +168,7 @@ class VeraAffectiveCycle:
         planning_state: Mapping[str, Any],
         elapsed_seconds: float = 0.0,
     ) -> AffectiveCycleResult:
+        self._require_usable_frontier()
         observed = self.host.observe(appraisal, elapsed_seconds=elapsed_seconds)
         receipts = observed.get("event_receipts") or []
         return self._finalize(planning_state=planning_state, event_receipts=receipts)
@@ -144,6 +179,7 @@ class VeraAffectiveCycle:
         authorized: bool,
         planning_state: Mapping[str, Any],
     ) -> AffectiveCycleResult:
+        self._require_usable_frontier()
         receipt = self.host.force_admin_test(authorized=authorized)
         return self._finalize(planning_state=planning_state, event_receipts=[receipt])
 
@@ -153,6 +189,7 @@ class VeraAffectiveCycle:
         authorized: bool,
         planning_state: Mapping[str, Any],
     ) -> AffectiveCycleResult:
+        self._require_usable_frontier()
         receipt = self.host.force_self_qualification(authorized=authorized)
         return self._finalize(planning_state=planning_state, event_receipts=[receipt])
 
@@ -162,6 +199,7 @@ class VeraAffectiveCycle:
         *,
         planning_state: Mapping[str, Any],
     ) -> AffectiveCycleResult:
+        self._require_usable_frontier()
         advanced = self.host.advance_time(elapsed_seconds)
         receipts = advanced.get("event_receipts") or []
         return self._finalize(planning_state=planning_state, event_receipts=receipts)
