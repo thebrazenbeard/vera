@@ -75,6 +75,25 @@ class VeraAffectiveDurableIntegrityTests(unittest.TestCase):
         )
         self.assertEqual(restored.machine_interoception()["phase"], "QUIESCENT")
 
+    def test_low_level_restore_cannot_be_rewrapped_to_different_live_scope(self):
+        host = self.make_host()
+        checkpoint = host.export_checkpoint()
+        row = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=1)
+        restored = restore_host_from_state_row(
+            CONTRACT_PATH.read_text(encoding="utf-8"),
+            json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+            row,
+            expected_host_scope="TEST_HOST",
+            expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+        )
+
+        with self.assertRaises(ValueError):
+            VeraAffectiveCycle(
+                restored,
+                host_scope="OTHER_HOST",
+                initial_state_version=2,
+            )
+
     def test_event_receipt_digest_is_recomputed_before_persistence(self):
         host = self.make_host()
         receipt = host.force_admin_test(authorized=True)
