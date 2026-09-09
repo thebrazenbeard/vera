@@ -4,7 +4,7 @@ import unittest
 
 from runtime_cohesion.affect_cycle import VeraAffectiveCycle
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
-from runtime_cohesion.affect_persistence import checkpoint_to_state_row
+from runtime_cohesion.affect_persistence import checkpoint_to_state_row, restore_host_from_state_row
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -70,6 +70,22 @@ class CheckpointScopeBypassTests(unittest.TestCase):
                 host_scope=row["host_scope"],
                 initial_state_version=row["state_version"] + 1,
             )
+
+    def test_provider_row_restore_remains_live_eligible_under_validated_scope(self):
+        contract_text, binding, checkpoint, row = self.make_bound_checkpoint_and_row()
+        restored = restore_host_from_state_row(
+            contract_text,
+            binding,
+            row,
+            expected_host_scope="TEST_HOST",
+            expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+        )
+        cycle = VeraAffectiveCycle(
+            restored,
+            host_scope="TEST_HOST",
+            initial_state_version=row["state_version"] + 1,
+        )
+        self.assertEqual(cycle.host_scope, "TEST_HOST")
 
 
 if __name__ == "__main__":
