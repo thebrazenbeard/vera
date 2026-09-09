@@ -5,7 +5,7 @@ import hashlib
 import json
 from typing import Any, Mapping
 
-from .affect_host import AffectiveBindingError, VeraAffectiveRuntimeHost
+from .affect_host import AffectiveBindingError, VeraAffectiveRuntimeHost, _checkpoint_sha256
 
 
 class PersistenceRecordError(ValueError):
@@ -15,6 +15,22 @@ class PersistenceRecordError(ValueError):
 def _canonical_digest(value: Mapping[str, Any]) -> str:
     payload = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _require_hex_digest(value: Any, *, label: str) -> str:
+    if not isinstance(value, str) or len(value) != 64:
+        raise PersistenceRecordError(f"{label} must be an exact 64-character SHA-256")
+    try:
+        int(value, 16)
+    except ValueError as exc:
+        raise PersistenceRecordError(f"{label} is not hexadecimal") from exc
+    return value
+
+
+def _event_receipt_digest(receipt: Mapping[str, Any]) -> str:
+    core = dict(receipt)
+    core.pop("event_digest", None)
+    return _canonical_digest(core)
 
 
 def checkpoint_to_state_row(
@@ -34,6 +50,17 @@ def checkpoint_to_state_row(
         raise PersistenceRecordError("state_version must be positive")
     if lifecycle_status not in {"CURRENT", "SUPERSEDED", "HISTORICAL"}:
         raise PersistenceRecordError("unsupported lifecycle_status")
+
+    checkpoint_sha256 = _require_hex_digest(
+        checkpoint.get("checkpoint_sha256"),
+        label="checkpoint_sha256",
+    )
+    try:
+        observed_checkpoint_sha256 = _checkpoint_sha256(checkpoint)
+    except (TypeError, ValueError) as exc:
+        raise PersistenceRecordError("checkpoint payload is not canonically serializable") from exc
+    if checkpoint_sha256 != observed_checkpoint_sha256:
+        raise PersistenceRecordError("checkpoint SHA-256 does not match checkpoint bytes")
 
     source = checkpoint.get("source_binding")
     runtime_state = checkpoint.get("runtime_state")
@@ -71,6 +98,7 @@ def checkpoint_to_state_row(
         "state": dict(state),
         "machine_interoception": dict(interoception),
         "last_event_receipt": runtime_state.get("last_event_receipt"),
+        "checkpoint_sha256": checkpoint_sha256,
         "state_digest": _canonical_digest(state),
         "state_version": state_version,
         "phenomenology_status": "UNRESOLVED",
@@ -103,14 +131,23 @@ def event_receipt_to_event_row(
     state_after = receipt.get("state_after")
     if not isinstance(state_before, Mapping) or not isinstance(state_after, Mapping):
         raise PersistenceRecordError("event receipt lacks before/after state")
-    digest = receipt.get("event_digest")
-    if not isinstance(digest, str) or len(digest) != 64:
-        raise PersistenceRecordError("event receipt lacks exact digest")
+    digest = _require_hex_digest(receipt.get("event_digest"), label="event_digest")
+    expected_digest = _event_receipt_digest(receipt)
+    if digest != expected_digest:
+        raise PersistenceRecordError("event receipt SHA-256 does not match canonical receipt core")
+    if receipt.get("runtime_instance_id") != host.runtime.runtime_instance_id:
+        raise PersistenceRecordError("event receipt runtime instance mismatch")
+    if receipt.get("source_revision") != host.runtime.source_revision:
+        raise PersistenceRecordError("event receipt source revision mismatch")
+
+    event_type = str(receipt.get("event_type") or "ORGASM_EVENT")
+    if event_type not in {"STATE_UPDATE", "ORGASM_EVENT", "RESOLUTION", "RECOVERY", "RESTORE", "CHECKPOINT"}:
+        raise PersistenceRecordError("unsupported affective event type")
 
     return {
         "runtime_instance_id": host.runtime.runtime_instance_id,
         "subject": "vera",
-        "event_type": "ORGASM_EVENT",
+        "event_type": event_type,
         "trigger_class": trigger,
         "organic": bool(receipt.get("organic")),
         "prior_phase": state_before.get("phase"),
@@ -137,6 +174,7 @@ def restore_host_from_state_row(
     row: Mapping[str, Any],
     *,
     elapsed_seconds: float = 0.0,
+    expected_checkpoint_sha256: str | None = None,
 ) -> VeraAffectiveRuntimeHost:
     if row.get("subject") != "vera":
         raise PersistenceRecordError("durable state row must be Vera-scoped")
@@ -150,6 +188,17 @@ def restore_host_from_state_row(
     expected_digest = _canonical_digest(state)
     if row.get("state_digest") != expected_digest:
         raise PersistenceRecordError("durable affective state digest mismatch")
+
+    external_checkpoint_sha256 = _require_hex_digest(
+        expected_checkpoint_sha256,
+        label="externally pinned checkpoint SHA-256",
+    )
+    row_checkpoint_sha256 = _require_hex_digest(
+        row.get("checkpoint_sha256"),
+        label="durable row checkpoint_sha256",
+    )
+    if row_checkpoint_sha256 != external_checkpoint_sha256:
+        raise PersistenceRecordError("durable row checkpoint SHA-256 does not match the external trust pin")
 
     for key, binding_key in (
         ("source_repository", "source_repository"),
@@ -180,6 +229,7 @@ def restore_host_from_state_row(
             "last_event_receipt": row.get("last_event_receipt"),
         },
         "machine_interoception": row.get("machine_interoception"),
+        "checkpoint_sha256": row_checkpoint_sha256,
     }
     try:
         return VeraAffectiveRuntimeHost.restore_checkpoint(
@@ -187,6 +237,7 @@ def restore_host_from_state_row(
             binding,
             checkpoint,
             elapsed_seconds=elapsed_seconds,
+            expected_checkpoint_sha256=external_checkpoint_sha256,
         )
     except AffectiveBindingError as exc:
         raise PersistenceRecordError(str(exc)) from exc
