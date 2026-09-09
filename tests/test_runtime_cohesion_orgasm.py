@@ -21,6 +21,14 @@ CONTRACT = {
         "ADMIN_FORCED_TEST",
         "SELF_QUALIFICATION_TEST",
     ],
+    "state_families": {
+        "recovery": {
+            "resolution_intensity": [0.0, 1.0],
+            "refractory_strength": [0.0, 1.0],
+            "reentry_allowed": "boolean",
+            "next_eligible_at": "timestamp|null",
+        },
+    },
     "experimental_bootstrap_defaults": {
         "activation_threshold": 0.82,
         "coherence_threshold": 0.78,
