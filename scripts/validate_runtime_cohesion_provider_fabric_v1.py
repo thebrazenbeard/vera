@@ -17,6 +17,101 @@ def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _validate_dependency_semantics(index: Mapping[str, Any]) -> list[str]:
+    errors: list[str] = []
+    domain_rows = index.get("domains")
+    if not isinstance(domain_rows, list) or not domain_rows:
+        return ["cohesion index requires domains before dependency_semantics can be validated"]
+
+    domain_ids: set[str] = set()
+    dependencies_by_domain: dict[str, list[str]] = {}
+    for row in domain_rows:
+        if not isinstance(row, Mapping):
+            errors.append("cohesion index domain rows must be mappings")
+            continue
+        domain_id = row.get("id")
+        if not isinstance(domain_id, str) or not domain_id:
+            errors.append("cohesion index domain requires id")
+            continue
+        if domain_id in domain_ids:
+            errors.append(f"duplicate cohesion domain id {domain_id!r}")
+            continue
+        domain_ids.add(domain_id)
+        declared = row.get("dependencies", [])
+        if not isinstance(declared, list) or any(not isinstance(dep, str) or not dep for dep in declared):
+            errors.append(f"domain {domain_id!r} dependencies must be a list of non-empty domain ids")
+            dependencies_by_domain[domain_id] = []
+        else:
+            dependencies_by_domain[domain_id] = list(declared)
+
+    for domain_id, dependencies in dependencies_by_domain.items():
+        for dependency in dependencies:
+            if dependency not in domain_ids:
+                errors.append(f"domain {domain_id!r} references unknown dependency {dependency!r}")
+
+    semantics = index.get("dependency_semantics")
+    if not isinstance(semantics, Mapping):
+        errors.append("cohesion index dependency_semantics mapping is required")
+        return errors
+
+    for field in ("classification_rule", "hard_prerequisite_rule", "contextual_dependency_rule"):
+        value = semantics.get(field)
+        if not isinstance(value, str) or not value.strip():
+            errors.append(f"dependency_semantics requires non-empty {field}")
+
+    hard_raw = semantics.get("hard_prerequisite_domains")
+    if not isinstance(hard_raw, list) or not hard_raw or any(not isinstance(value, str) or not value for value in hard_raw):
+        errors.append("dependency_semantics.hard_prerequisite_domains must be a non-empty list of domain ids")
+        return errors
+    if len(hard_raw) != len(set(hard_raw)):
+        errors.append("dependency_semantics.hard_prerequisite_domains contains duplicates")
+    hard_domains = set(hard_raw)
+
+    for hard_domain in sorted(hard_domains):
+        if hard_domain not in domain_ids:
+            errors.append(f"dependency_semantics references unknown hard prerequisite domain {hard_domain!r}")
+
+    incoming_targets = {
+        dependency
+        for dependencies in dependencies_by_domain.values()
+        for dependency in dependencies
+    }
+    for hard_domain in sorted(hard_domains.intersection(domain_ids)):
+        if hard_domain not in incoming_targets:
+            errors.append(
+                f"hard prerequisite domain {hard_domain!r} has no declared incoming dependency edge and cannot govern any dependent domain"
+            )
+
+    hard_graph: dict[str, list[str]] = {
+        domain_id: [dependency for dependency in dependencies if dependency in hard_domains]
+        for domain_id, dependencies in dependencies_by_domain.items()
+    }
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit(domain_id: str, path: tuple[str, ...]) -> None:
+        if domain_id in visited:
+            return
+        if domain_id in visiting:
+            cycle_start = path.index(domain_id) if domain_id in path else 0
+            cycle = path[cycle_start:] + (domain_id,)
+            errors.append("hard prerequisite dependency cycle: " + " -> ".join(cycle))
+            return
+        visiting.add(domain_id)
+        next_path = path + (domain_id,)
+        for dependency in hard_graph.get(domain_id, []):
+            if dependency in domain_ids:
+                visit(dependency, next_path)
+        visiting.remove(domain_id)
+        visited.add(domain_id)
+
+    for domain_id in sorted(domain_ids):
+        if domain_id not in visited:
+            visit(domain_id, ())
+
+    return errors
+
+
 def validate_provider_fabric(
     index: Mapping[str, Any],
     contract: Mapping[str, Any],
@@ -33,6 +128,8 @@ def validate_provider_fabric(
         "VERA_RUNTIME_CONTRACT_V1",
     }:
         errors.append("provider fabric normative_pair_refs must point only to the A+B schemas")
+
+    errors.extend(_validate_dependency_semantics(index))
 
     evidence_classes = set(contract.get("evidence_classes", {}))
     privacy_classes = set(contract.get("privacy_classes", []))
