@@ -23,7 +23,7 @@ from .runtime import (
     RetrievalPlan,
     build_operational_checkpoint,
     build_retrieval_plan,
-    evaluate_proposition_admission as evaluate_abstract_proposition_admission,
+    evaluate_abstract_proposition_admission,
 )
 
 # Public package-level admission is provider-strict. Lightweight policy fixtures
