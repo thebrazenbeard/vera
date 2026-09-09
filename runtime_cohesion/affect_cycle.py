@@ -112,7 +112,8 @@ class VeraAffectiveCycle:
         superseded rows cannot be turned back into CURRENT state by constructing
         a new cycle, the caller cannot rebind a provider row to another host
         scope, and the externally retained resume token must bind the exact
-        runtime/version/checkpoint/source frontier being restored.
+        runtime/version/checkpoint/source frontier being restored. The exported
+        lower-level host restore enforces the same boundary independently.
         """
         state_version = row.get("state_version")
         if isinstance(state_version, bool) or not isinstance(state_version, int) or state_version < 1:
@@ -133,6 +134,8 @@ class VeraAffectiveCycle:
             contract_text,
             binding,
             row,
+            expected_host_scope=row_host_scope,
+            expected_resume_token=expected_resume_token,
             elapsed_seconds=elapsed_seconds,
             expected_checkpoint_sha256=expected_checkpoint_sha256,
         )
