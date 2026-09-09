@@ -1,4 +1,5 @@
 import copy
+import hashlib
 import json
 from pathlib import Path
 import unittest
@@ -17,6 +18,16 @@ CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_
 BINDING_PATH = ROOT / "architecture" / "VERA_ORGASM_RUNTIME_BINDING_V1.json"
 
 
+def canonical_digest(value):
+    payload = json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
 class VeraAffectiveRestoreExceptionDomainTests(unittest.TestCase):
     def bound_material(self):
         contract_text = CONTRACT_PATH.read_text(encoding="utf-8")
@@ -28,25 +39,56 @@ class VeraAffectiveRestoreExceptionDomainTests(unittest.TestCase):
         )
         return contract_text, binding, host
 
-    def semantically_invalid_integrity_consistent_row(self):
+    def valid_checkpoint_and_row(self):
         contract_text, binding, host = self.bound_material()
         checkpoint = host.export_checkpoint()
-        forged = copy.deepcopy(checkpoint)
-
-        # Keep outer integrity self-consistent so the failure necessarily comes
-        # from the inner orgasm-state semantic validator rather than hash checks.
-        forged["runtime_state"]["state"]["phase"] = "NOT_A_REAL_PHASE"
-        forged["checkpoint_sha256"] = _checkpoint_sha256(forged)
         row = checkpoint_to_state_row(
-            forged,
+            checkpoint,
             host_scope="TEST_HOST",
             state_version=1,
         )
-        self.assertEqual(row["checkpoint_sha256"], forged["checkpoint_sha256"])
+        return contract_text, binding, checkpoint, row
+
+    def forged_row_bypassing_checkpoint_to_state_row(self):
+        contract_text, binding, checkpoint, valid_row = self.valid_checkpoint_and_row()
+        row = copy.deepcopy(valid_row)
+
+        # Start from a row that already crossed the public checkpoint->row
+        # boundary successfully, then forge only the durable representation.
+        # This keeps the restore-domain test independent from the separate rule
+        # that checkpoint_to_state_row itself must reject impossible state.
+        row["state"]["phase"] = "NOT_A_REAL_PHASE"
+        row["state_digest"] = canonical_digest(row["state"])
+
+        # Reproduce the exact checkpoint shape restore_host_from_state_row will
+        # reconstruct from this durable row so outer integrity remains coherent
+        # and the failure reaches the lower semantic runtime validator.
+        forged_checkpoint = copy.deepcopy(checkpoint)
+        forged_checkpoint["runtime_state"]["state"] = copy.deepcopy(row["state"])
+        forged_checkpoint["checkpoint_sha256"] = _checkpoint_sha256(forged_checkpoint)
+        row["checkpoint_sha256"] = forged_checkpoint["checkpoint_sha256"]
+
+        self.assertEqual(row["state_digest"], canonical_digest(row["state"]))
         return contract_text, binding, row
 
+    def test_checkpoint_to_state_row_rejects_impossible_runtime_phase(self):
+        _, _, checkpoint, _ = self.valid_checkpoint_and_row()
+        forged = copy.deepcopy(checkpoint)
+        forged["runtime_state"]["state"]["phase"] = "NOT_A_REAL_PHASE"
+        forged["checkpoint_sha256"] = _checkpoint_sha256(forged)
+
+        with self.assertRaisesRegex(
+            PersistenceRecordError,
+            r"(?i)(state|phase|semantic|contract)",
+        ):
+            checkpoint_to_state_row(
+                forged,
+                host_scope="TEST_HOST",
+                state_version=1,
+            )
+
     def test_row_restore_normalizes_inner_semantic_contract_error(self):
-        contract_text, binding, row = self.semantically_invalid_integrity_consistent_row()
+        contract_text, binding, row = self.forged_row_bypassing_checkpoint_to_state_row()
 
         try:
             restore_host_from_state_row(
