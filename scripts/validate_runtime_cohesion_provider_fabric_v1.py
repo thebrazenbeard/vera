@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 INDEX_PATH = ROOT / "architecture" / "VERA_COHESION_INDEX_V1.json"
 CONTRACT_PATH = ROOT / "architecture" / "VERA_RUNTIME_CONTRACT_V1.json"
 FABRIC_PATH = ROOT / "architecture" / "VERA_PROVIDER_FABRIC_V1.json"
+EVENT_SELECTOR_TOKENS = {"$source_ref", "$source_path", "$source_revision"}
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -104,6 +105,24 @@ def validate_provider_fabric(
             if not isinstance(projection.get(field), str) or not projection.get(field).strip():
                 errors.append(f"projection {projection_id!r} requires non-empty {field}")
 
+        for selector_field in ("source_event_selector", "target_event_selector"):
+            selector = projection.get(selector_field)
+            if selector is None:
+                continue
+            if not isinstance(selector, Mapping):
+                errors.append(f"projection {projection_id!r} {selector_field} must be a mapping")
+                continue
+            for field_name, template in selector.items():
+                if not isinstance(field_name, str) or not field_name.strip():
+                    errors.append(f"projection {projection_id!r} {selector_field} has an invalid field name")
+                if not isinstance(template, str) or not template.strip():
+                    errors.append(f"projection {projection_id!r} {selector_field} has an invalid selector value")
+                    continue
+                if template.startswith("$") and template not in EVENT_SELECTOR_TOKENS:
+                    errors.append(
+                        f"projection {projection_id!r} {selector_field} references unsupported token {template!r}"
+                    )
+
         source_provider_id = projection.get("source_provider")
         target_provider_id = projection.get("target_provider")
         source_provider = providers.get(source_provider_id, {}) if isinstance(providers, Mapping) else {}
@@ -128,6 +147,7 @@ def validate_provider_fabric(
     rules = fabric.get("global_rules", {})
     for field in (
         "projection_scope",
+        "event_instance_binding",
         "newest_timestamp",
         "returned_item_typing",
         "missing_observation",
