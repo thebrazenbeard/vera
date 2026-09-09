@@ -106,7 +106,11 @@ class CurrentHeadRuntimeImplementationCutTests(unittest.TestCase):
         checkpoint = host.export_checkpoint()
         self.assertEqual(checkpoint["runtime_implementation_cut"], cut)
 
-        receipt = host.force_admin_test(authorized=True)
+        # Use the private event-emission unit deliberately so this provenance
+        # regression does not depend on the independently unresolved authority
+        # boundary of force_admin_test(). This test is about evidence provenance,
+        # not permission to request a forced event.
+        receipt = host.runtime._enter_orgasm_event("ADMIN_FORCED_TEST", organic=False)
         self.assertEqual(receipt["runtime_implementation_cut"], cut)
 
         state_row = checkpoint_to_state_row(
