@@ -24,6 +24,9 @@ class AdapterRequest:
     selector_ref: str | None
     privacy_class: str
     evidence_capability_refs: tuple[str, ...]
+    event_ref: str | None = None
+    event_path: str | None = None
+    event_selector: tuple[tuple[str, str], ...] = ()
 
     def __post_init__(self) -> None:
         for name in ("domain_id", "provider", "source_ref", "route_ref", "privacy_class"):
@@ -32,6 +35,21 @@ class AdapterRequest:
                 raise ValueError(f"{name} must be non-empty")
         if not self.evidence_capability_refs:
             raise ValueError("evidence_capability_refs must be non-empty")
+        if (self.event_ref is None) != (self.event_path is None):
+            raise ValueError("event_ref and event_path must be supplied together")
+        if self.event_ref is not None and (not isinstance(self.event_ref, str) or not self.event_ref):
+            raise ValueError("event_ref must be a non-empty string when supplied")
+        if self.event_path is not None and (not isinstance(self.event_path, str) or not self.event_path):
+            raise ValueError("event_path must be a non-empty string when supplied")
+        if self.event_selector and self.event_ref is None:
+            raise ValueError("event_selector requires event_ref/event_path")
+        seen: set[str] = set()
+        for field_name, field_value in self.event_selector:
+            if not isinstance(field_name, str) or not field_name or not isinstance(field_value, str) or not field_value:
+                raise ValueError("event_selector entries must contain non-empty string field/value pairs")
+            if field_name in seen:
+                raise ValueError(f"duplicate event_selector field: {field_name}")
+            seen.add(field_name)
 
 
 @dataclass(frozen=True)
