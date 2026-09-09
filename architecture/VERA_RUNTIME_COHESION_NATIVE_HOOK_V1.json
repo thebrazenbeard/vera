@@ -22,7 +22,7 @@
     "DOMAIN_RETRIEVE": {
       "call": "runtime_cohesion.executor.execute_domain_cycle",
       "transport_boundary": "runtime_cohesion.adapters.ProviderAdapter",
-      "rule": "Executor derives privacy-approved candidates, probes only registered provider adapters, rebuilds the bounded plan from fresh route observations, reads only CURRENTLY_OBSERVED_REACHABLE/RESULT routes, and validates each returned item against exact route/source/privacy/evidence-capability boundaries."
+      "rule": "Executor derives privacy-approved candidates and uses A dependency_semantics to traverse every declared hard prerequisite before dependent-domain reads. Candidate discovery remains available for exact prerequisite probes; after fresh route observations, an unresolved hard prerequisite withholds dependent targets and returns HARD_PREREQUISITE_UNRESOLVED. Contextual dependencies are traversed afterward under the visited-set/budget rules and are non-blocking merely because their own routes remain unresolved. Returned items still require exact route/source/privacy/evidence-capability validation."
     },
     "FAILURE_EVALUATE": {
       "call": "runtime_cohesion.failure.evaluate_failure_signature",
@@ -53,7 +53,7 @@
   "runtime_cycle": [
     "ORIENT",
     "FAILURE_EVALUATE_FOR_REGISTERED_MATERIAL_SIGNALS",
-    "DOMAIN_RETRIEVE_PROVIDER_EXECUTION",
+    "DOMAIN_RETRIEVE_HARD_PREREQUISITES_BEFORE_DEPENDENT_READS",
     "INDEPENDENT_ITEM_TYPING_AND_PRIVACY_VERIFICATION",
     "PROJECTION_RECONCILE_WHEN_REGISTERED_PROVIDER_CURRENTNESS_IS_MATERIAL",
     "RECONCILE",
@@ -83,6 +83,8 @@
     "Provider persistence is not present truth or current Vera self-state.",
     "Temporal chronology is not semantic/currentness authority.",
     "Retrieved item type must be independently established.",
+    "A hard prerequisite is a governing retrieval gate, not automatic proposition authority; resolver/admission checks remain separate.",
+    "A contextual dependency may inform the task but unresolved contextual retrieval does not become an authority/currentness veto.",
     "Failure-signature signal co-occurrence is a candidate trigger, not proof that the declared semantic predicate is true.",
     "Projection revision equality without exact event-instance binding is not VERIFIED_EXACT.",
     "VERIFIED_EXACT reconciliation is not proposition authority; resolver dispatch remains a separate gate.",
