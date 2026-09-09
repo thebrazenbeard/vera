@@ -56,7 +56,7 @@
     },
     "native_hook": {
       "path": "architecture/VERA_RUNTIME_COHESION_NATIVE_HOOK_V1.json",
-      "blob_sha": "15a1b8eec07ec6ab21ed412d7574512c9847ea9f",
+      "blob_sha": "505feee7768801455690a4d19f55f28e9e6e0a04",
       "status": "SOURCE_ONLY_NOT_INSTALLED"
     }
   },
@@ -64,7 +64,7 @@
     "prior_result": "42_FOCUSED_RUNTIME_PROVIDER_TESTS_PASS_IN_RECONSTRUCTED_LOCAL_WORKSPACE",
     "m5_event_binding_result": "BOUNDED_RECONSTRUCTED_GREEN_WRONG_EVENT_CONFLICT_AND_EXACT_TARGET_SELECTOR",
     "m2_failure_wiring_result": "BOUNDED_RECONSTRUCTED_GREEN_RESOLVER_AND_FAIL_CLOSED_GUARD_CANDIDATE_ROUTING",
-    "m1_dependency_result": "BOUNDED_RECONSTRUCTED_GREEN_HARD_PREREQUISITE_PREEMPTION_BLOCKING_CONTEXTUAL_NONBLOCKING_AND_CYCLE_TERMINATION",
+    "m1_dependency_result": "BOUNDED_RECONSTRUCTED_GREEN_HARD_PREREQUISITE_PREEMPTION_BLOCKING_CONTEXTUAL_NONBLOCKING_CYCLE_TERMINATION_AND_NATIVE_HOOK_CONTRACT",
     "scope": "Implementation-focused evidence only. M1/M2/M5 cases were exercised in bounded reconstruction after deliberate red cases. Exact-branch GitHub CI remains unavailable before runner steps; this evidence does not qualify native runtime behavior."
   },
   "validation_result": "SOURCE_VALIDATION_NOT_YET_EXECUTED",
