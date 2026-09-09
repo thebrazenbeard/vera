@@ -132,6 +132,7 @@ class VeraAffectiveDurableIntegrityTests(unittest.TestCase):
             host_scope="TEST_HOST",
             state_writer=state_rows.append,
             event_writer=event_rows.append,
+            non_atomic_test_mode=True,
         )
         cycle.force_admin_test(authorized=True, planning_state={"truth": 1.0})
         result = cycle.advance_time(5.1, planning_state={"truth": 1.0})
