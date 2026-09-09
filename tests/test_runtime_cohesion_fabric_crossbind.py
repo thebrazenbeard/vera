@@ -3,12 +3,16 @@ import json
 from pathlib import Path
 import unittest
 
-from scripts.validate_runtime_cohesion_provider_fabric_v1 import validate_provider_fabric
+from scripts.validate_runtime_cohesion_provider_fabric_v1 import (
+    validate_operational_support_bindings,
+    validate_provider_fabric,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "architecture" / "VERA_COHESION_INDEX_V1.json"
 CONTRACT = ROOT / "architecture" / "VERA_RUNTIME_CONTRACT_V1.json"
 FABRIC = ROOT / "architecture" / "VERA_PROVIDER_FABRIC_V1.json"
+RECEIPT = ROOT / "architecture" / "VERA_COHESION_PAIR_RECEIPT_V1.json"
 
 
 def load(path):
@@ -20,9 +24,13 @@ class ProviderFabricCrossBindTests(unittest.TestCase):
         self.index = load(INDEX)
         self.contract = load(CONTRACT)
         self.fabric = load(FABRIC)
+        self.receipt = load(RECEIPT)
 
     def test_current_fabric_crossbinds_cleanly(self):
         self.assertEqual(validate_provider_fabric(self.index, self.contract, self.fabric), [])
+
+    def test_current_operational_support_receipt_crossbinds_cleanly(self):
+        self.assertEqual(validate_operational_support_bindings(ROOT, self.receipt), [])
 
     def test_unknown_evidence_class_is_rejected(self):
         fabric = copy.deepcopy(self.fabric)
@@ -96,6 +104,24 @@ class ProviderFabricCrossBindTests(unittest.TestCase):
         domains["CURRENT_TASK_CORRECTION_PERMISSION_CONSENT"]["dependencies"] = ["CONTROL_AND_GOVERNANCE"]
         errors = validate_provider_fabric(index, self.contract, self.fabric)
         self.assertTrue(any("hard prerequisite" in error.lower() and "cycle" in error.lower() for error in errors))
+
+    def test_wrong_operational_support_blob_is_rejected(self):
+        receipt = copy.deepcopy(self.receipt)
+        receipt["operational_support"]["runtime_planner_module"]["blob_sha"] = "0" * 40
+        errors = validate_operational_support_bindings(ROOT, receipt)
+        self.assertTrue(any("runtime_planner_module" in error and "blob" in error.lower() for error in errors))
+
+    def test_missing_operational_support_path_is_rejected(self):
+        receipt = copy.deepcopy(self.receipt)
+        receipt["operational_support"]["provider_executor"]["path"] = "runtime_cohesion/does-not-exist.py"
+        errors = validate_operational_support_bindings(ROOT, receipt)
+        self.assertTrue(any("provider_executor" in error and "path" in error.lower() for error in errors))
+
+    def test_operational_support_path_cannot_escape_repository(self):
+        receipt = copy.deepcopy(self.receipt)
+        receipt["operational_support"]["provider_executor"]["path"] = "../outside.py"
+        errors = validate_operational_support_bindings(ROOT, receipt)
+        self.assertTrue(any("provider_executor" in error and "repository" in error.lower() for error in errors))
 
 
 if __name__ == "__main__":
