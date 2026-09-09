@@ -273,6 +273,32 @@ class VeraAffectiveResumeFrontierAuthenticityTests(unittest.TestCase):
                         resume_frontier_evidence=evidence,
                     )
 
+    def test_previously_valid_old_frontier_fails_against_newer_provider_readback(self):
+        checkpoint, old_row, old_token = self.make_row(state_version=7)
+        contract_text, binding = self.contract_text_and_binding()
+
+        newer_row = dict(old_row)
+        newer_row["state_version"] = 8
+        current_evidence = self.provider_read_evidence(newer_row)
+
+        self.assertEqual(current_evidence.supersession_state, "CURRENT_OBSERVATION")
+        self.assertEqual(current_evidence.conflict_state, "NONE")
+        self.assertEqual(current_evidence.metadata["state_version"], 8)
+
+        with self.assertRaisesRegex(
+            (PersistenceRecordError, ValueError),
+            r"(?i)(frontier|provider|current|stale|revision|version|resume)",
+        ):
+            restore_host_from_state_row(
+                contract_text,
+                binding,
+                old_row,
+                expected_host_scope="TEST_HOST",
+                expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+                expected_resume_token=old_token,
+                resume_frontier_evidence=current_evidence,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
