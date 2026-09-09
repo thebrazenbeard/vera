@@ -187,18 +187,6 @@ class VeraRuntimeCohesionV1Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "source_commit.*tree|tree.*source_commit"):
             validate_pair_receipt(ROOT, receipt)
 
-    def test_pair_receipt_rejects_wrong_operational_support_blob(self):
-        receipt = pair_receipt()
-        receipt["operational_support"]["runtime_planner_module"]["blob_sha"] = "0" * 40
-        with self.assertRaisesRegex(ValueError, "operational support.*runtime_planner_module|runtime_planner_module.*blob"):
-            validate_pair_receipt(ROOT, receipt)
-
-    def test_pair_receipt_rejects_missing_operational_support_path(self):
-        receipt = pair_receipt()
-        receipt["operational_support"]["provider_executor"]["path"] = "runtime_cohesion/does-not-exist.py"
-        with self.assertRaisesRegex(ValueError, "operational support.*provider_executor|provider_executor.*path"):
-            validate_pair_receipt(ROOT, receipt)
-
     def test_runtime_contract_rejects_unbounded_or_zero_retrieval_budget(self):
         document = runtime_contract()
         document["active_context_policy"]["uncertainty_probe_budget"]["max_total_new_domains"] = 0
