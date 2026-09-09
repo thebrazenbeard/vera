@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+import subprocess
 from typing import Any
 
 WORKSTREAM = "VERA_RUNTIME_COHESION_V1"
@@ -49,6 +50,28 @@ def git_blob_sha(path: Path) -> str:
 def _require(condition: bool, message: str) -> None:
     if not condition:
         raise ValueError(message)
+
+
+def git_tree_blob_sha(root: Path, source_commit: str, relative_path: str) -> str:
+    process = subprocess.run(
+        ["git", "-C", str(root), "ls-tree", source_commit, "--", relative_path],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    _require(
+        process.returncode == 0,
+        f"pair receipt source_commit tree unavailable for {source_commit}: {process.stderr.strip() or 'git ls-tree failed'}",
+    )
+    rows = [row for row in process.stdout.splitlines() if row.strip()]
+    _require(len(rows) == 1, f"pair receipt source_commit tree must resolve exactly one object for {relative_path}")
+    header, sep, path = rows[0].partition("\t")
+    _require(bool(sep) and path == relative_path, f"pair receipt source_commit tree path mismatch for {relative_path}")
+    fields = header.split()
+    _require(len(fields) == 3 and fields[1] == "blob", f"pair receipt source_commit tree object must be a blob for {relative_path}")
+    blob_sha = fields[2]
+    _require(len(blob_sha) == 40 and all(char in "0123456789abcdef" for char in blob_sha), f"pair receipt source_commit tree returned invalid blob SHA for {relative_path}")
+    return blob_sha
 
 
 def _unique(values: list[Any], label: str) -> None:
@@ -363,6 +386,15 @@ def validate_pair_receipt(root: Path, receipt: dict[str, Any]) -> None:
     _require(receipt.get("validator_blob_sha") == git_blob_sha(root / receipt.get("validator_path", "")), "pair receipt validator blob mismatch")
     source_commit = receipt.get("source_commit")
     _require(isinstance(source_commit, str) and len(source_commit) == 40 and all(char in "0123456789abcdef" for char in source_commit), "pair receipt source_commit must be exact SHA")
+    _require(receipt.get("source_commit_semantics") == "GIT_TREE_CONTAINS_EXACT_BOUND_A_B_BLOBS", "pair receipt source_commit semantics must be explicit")
+    _require(
+        git_tree_blob_sha(root, source_commit, "architecture/VERA_COHESION_INDEX_V1.json") == receipt.get("index_blob_sha"),
+        "pair receipt source_commit tree does not contain exact bound A blob",
+    )
+    _require(
+        git_tree_blob_sha(root, source_commit, "architecture/VERA_RUNTIME_CONTRACT_V1.json") == receipt.get("contract_blob_sha"),
+        "pair receipt source_commit tree does not contain exact bound B blob",
+    )
     _require(receipt.get("validation_result") == "SOURCE_VALIDATION_NOT_YET_EXECUTED", "pair receipt must not claim validation success without execution evidence")
 
 
