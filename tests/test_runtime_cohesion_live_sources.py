@@ -48,6 +48,23 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
         ):
             self.assertEqual(rows[repo]["activation_mode"], "NO_AUTO_BIND")
 
+    def test_brigit_sexuality_repo_is_mechanism_research_only_for_vera(self):
+        rows = {row["repository"]: row for row in self.registry["repository_sources"]}
+        sexuality = rows["thebrazenbeard/sexuality"]
+        self.assertEqual(sexuality["runtime_role"], "EXTERNAL_IDENTITY_MECHANISM_RESEARCH_SOURCE")
+        self.assertEqual(sexuality["activation_mode"], "GENERAL_MECHANISM_RESEARCH_ONLY")
+        self.assertNotIn("VERA", sexuality["activation_mode"])
+        self.assertFalse(sexuality["availability_implies_activation"])
+
+    def test_vera_ark_is_external_action_adapter_not_memory_or_control(self):
+        rows = {row["repository"]: row for row in self.registry["repository_sources"]}
+        ark = rows["thebrazenbeard/vera_ark"]
+        self.assertEqual(ark["runtime_role"], "EXTERNAL_APPLICATION_ACTION_ADAPTER")
+        self.assertEqual(ark["activation_mode"], "EXACT_TASK_AND_EFFECT_AUTHORITY_REQUIRED")
+        self.assertNotIn("ARCHIVE", ark["runtime_role"])
+        self.assertNotIn("CONTROL", ark["runtime_role"])
+        self.assertFalse(ark["availability_implies_activation"])
+
     def test_vera_supabase_surfaces_are_registered_without_authority_promotion(self):
         supabase = self.registry["provider_sources"]["supabase_vera"]
         self.assertEqual(supabase["project_id"], "klmbpaigzeguvnpccqzz")
