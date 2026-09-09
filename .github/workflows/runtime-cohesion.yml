@@ -61,6 +61,7 @@ jobs:
           tests.test_runtime_cohesion_support_snapshot
           tests.test_runtime_cohesion_audit
           tests.test_runtime_cohesion_executor
+          tests.test_runtime_cohesion_governing_resolution
           tests.test_runtime_cohesion_projection_executor
           tests.test_runtime_cohesion_admission
           tests.test_runtime_cohesion_failure_wiring
@@ -92,6 +93,7 @@ jobs:
           tests/test_runtime_cohesion_support_snapshot.py
           tests/test_runtime_cohesion_audit.py
           tests/test_runtime_cohesion_executor.py
+          tests/test_runtime_cohesion_governing_resolution.py
           tests/test_runtime_cohesion_projection_executor.py
           tests/test_runtime_cohesion_admission.py
           tests/test_runtime_cohesion_failure_wiring.py
