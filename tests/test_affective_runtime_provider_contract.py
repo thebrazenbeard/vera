@@ -34,6 +34,8 @@ class VeraAffectiveRuntimeProviderContractTests(unittest.TestCase):
         self.assertTrue(req["separately_pinned_expected_checkpoint_digest_required_on_restore"])
         self.assertTrue(req["event_receipt_digest_recomputation_required_before_persistence"])
         self.assertTrue(req["resolution_and_recovery_receipts_required"])
+        self.assertTrue(req["restore_time_transition_receipts_must_survive_until_next_atomic_commit"])
+        self.assertTrue(req["restored_cycle_must_continue_exact_provider_state_version_frontier"])
         self.assertTrue(req["atomic_state_plus_event_commit_required"])
         self.assertTrue(req["compare_and_swap_expected_prior_version_required"])
         provider = contract["provider"]
@@ -56,6 +58,8 @@ class VeraAffectiveRuntimeProviderContractTests(unittest.TestCase):
         self.assertTrue(req["per_event_interoception_must_match_receipt_state_after"])
         self.assertIn("trigger_governance", integrity)
         self.assertIn("per_event_interoception", integrity)
+        self.assertIn("RECOVERY", integrity["transition_evidence"])
+        self.assertIn("N+1", integrity["durable_currentness"])
 
 
 if __name__ == "__main__":
