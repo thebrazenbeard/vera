@@ -1,6 +1,8 @@
 import copy
 import json
 from pathlib import Path
+import subprocess
+import tempfile
 import unittest
 
 from scripts.validate_runtime_cohesion_provider_fabric_v1 import (
@@ -17,6 +19,16 @@ RECEIPT = ROOT / "architecture" / "VERA_COHESION_PAIR_RECEIPT_V1.json"
 
 def load(path):
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def git_blob_sha(path: Path) -> str:
+    result = subprocess.run(
+        ["git", "hash-object", str(path)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return result.stdout.strip()
 
 
 class ProviderFabricCrossBindTests(unittest.TestCase):
@@ -65,7 +77,7 @@ class ProviderFabricCrossBindTests(unittest.TestCase):
     def test_event_instance_binding_global_rule_is_required(self):
         fabric = copy.deepcopy(self.fabric)
         fabric["global_rules"].pop("event_instance_binding")
-        errors = validate_provider_fabric(self.index, self.contract, fabric)
+        errors = validate_provider_fabric(self.index, self.contract, self.fabric)
         self.assertTrue(any("event_instance_binding" in error for error in errors))
 
     def test_unknown_event_selector_token_is_rejected(self):
@@ -122,6 +134,40 @@ class ProviderFabricCrossBindTests(unittest.TestCase):
         receipt["operational_support"]["provider_executor"]["path"] = "../outside.py"
         errors = validate_operational_support_bindings(ROOT, receipt)
         self.assertTrue(any("provider_executor" in error and "repository" in error.lower() for error in errors))
+
+    def test_operational_support_source_commit_is_required_and_must_resolve(self):
+        receipt = copy.deepcopy(self.receipt)
+        receipt["operational_support_source_commit"] = "0" * 40
+        errors = validate_operational_support_bindings(ROOT, receipt)
+        self.assertTrue(any("operational_support_source_commit" in error for error in errors))
+
+    def test_operational_support_is_bound_to_commit_not_mutable_worktree(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            subprocess.run(["git", "init", "-q", str(root)], check=True)
+            subprocess.run(["git", "-C", str(root), "config", "user.email", "test@example.invalid"], check=True)
+            subprocess.run(["git", "-C", str(root), "config", "user.name", "Cohesion Test"], check=True)
+            support_file = root / "support.txt"
+            support_file.write_text("bound\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(root), "add", "support.txt"], check=True)
+            subprocess.run(["git", "-C", str(root), "commit", "-q", "-m", "bound support"], check=True)
+            source_commit = subprocess.run(
+                ["git", "-C", str(root), "rev-parse", "HEAD"],
+                capture_output=True,
+                text=True,
+                check=True,
+            ).stdout.strip()
+            blob_sha = git_blob_sha(support_file)
+            receipt = {
+                "operational_support_source_commit": source_commit,
+                "operational_support_source_commit_semantics": "GIT_TREE_CONTAINS_EXACT_OPERATIONAL_SUPPORT_BLOBS",
+                "operational_support": {
+                    "normative_status": "NON_NORMATIVE_OPERATIONAL_SUPPORT",
+                    "support": {"path": "support.txt", "blob_sha": blob_sha},
+                },
+            }
+            support_file.write_text("mutated worktree\n", encoding="utf-8")
+            self.assertEqual(validate_operational_support_bindings(root, receipt), [])
 
 
 if __name__ == "__main__":
