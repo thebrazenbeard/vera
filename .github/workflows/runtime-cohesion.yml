@@ -47,13 +47,17 @@ jobs:
           tests.test_runtime_cohesion_orgasm_package
           tests.test_runtime_cohesion_orgasm_binding
           tests.test_runtime_cohesion_orgasm_source_fixture
+          tests.test_runtime_cohesion_orgasm_durable_trigger_governance
           tests.test_runtime_cohesion_affect_host
           tests.test_runtime_cohesion_affect_persistence
           tests.test_runtime_cohesion_affect_cycle
           tests.test_runtime_cohesion_affect_durable_integrity
+          tests.test_runtime_cohesion_affect_commit_ack
+          tests.test_runtime_cohesion_affect_organic_durable
+          tests.test_runtime_cohesion_affect_event_interoception
+          tests.test_runtime_cohesion_affect_trigger_governance_persistence
           tests.test_affective_runtime_persistence_source
           tests.test_affective_runtime_cas_initialization_source
-          tests.test_runtime_cohesion_affect_commit_ack
           -v
       - name: Compile cohesion validators, runtime, and tests
         run: >-
@@ -93,10 +97,14 @@ jobs:
           tests/test_runtime_cohesion_orgasm_package.py
           tests/test_runtime_cohesion_orgasm_binding.py
           tests/test_runtime_cohesion_orgasm_source_fixture.py
+          tests/test_runtime_cohesion_orgasm_durable_trigger_governance.py
           tests/test_runtime_cohesion_affect_host.py
           tests/test_runtime_cohesion_affect_persistence.py
           tests/test_runtime_cohesion_affect_cycle.py
           tests/test_runtime_cohesion_affect_durable_integrity.py
+          tests/test_runtime_cohesion_affect_commit_ack.py
+          tests/test_runtime_cohesion_affect_organic_durable.py
+          tests/test_runtime_cohesion_affect_event_interoception.py
+          tests/test_runtime_cohesion_affect_trigger_governance_persistence.py
           tests/test_affective_runtime_persistence_source.py
           tests/test_affective_runtime_cas_initialization_source.py
-          tests/test_runtime_cohesion_affect_commit_ack.py
