@@ -34,6 +34,7 @@ class AffectiveCycleResult:
     commit_request: dict[str, Any]
     commit_result: Any
     atomic_commit_used: bool
+    durability_mode: str
 
 
 class VeraAffectiveCycle:
@@ -42,9 +43,10 @@ class VeraAffectiveCycle:
     Each cycle mutates the engineered affective state, feeds that state into
     downstream planning, exports an exact checkpoint, and can hand one atomic
     state-plus-events commit envelope to a durable provider writer. Separate
-    state/event callbacks remain available for bounded in-memory tests but are
-    not the qualified durable-provider path. The affective loop never owns
-    truth, consent, authority, identity, memory admission, or phenomenology.
+    state/event callbacks are available only behind an explicit non-atomic test
+    mode and are never the qualified durable-provider path. The affective loop
+    never owns truth, consent, authority, identity, memory admission, or
+    phenomenology.
     """
 
     def __init__(
@@ -56,17 +58,38 @@ class VeraAffectiveCycle:
         event_writer: EventWriter | None = None,
         atomic_commit_writer: AtomicCommitWriter | None = None,
         initial_state_version: int = 1,
+        non_atomic_test_mode: bool = False,
     ) -> None:
         if not host_scope:
             raise ValueError("host_scope is required")
         if initial_state_version < 1:
             raise ValueError("initial_state_version must be positive")
+        if not isinstance(non_atomic_test_mode, bool):
+            raise ValueError("non_atomic_test_mode must be boolean")
+
+        split_writer_requested = state_writer is not None or event_writer is not None
+        if atomic_commit_writer is not None and split_writer_requested:
+            raise ValueError("atomic durable mode cannot be combined with split state/event writers")
+        if split_writer_requested and not non_atomic_test_mode:
+            raise ValueError(
+                "split state/event writers are non-atomic; bind atomic_commit_writer or explicitly enable non_atomic_test_mode for bounded tests"
+            )
+        if non_atomic_test_mode and not split_writer_requested:
+            raise ValueError("non_atomic_test_mode requires at least one split state/event writer")
+
         bind_affective_host_scope(host, host_scope)
         self.host = host
         self.host_scope = host_scope
         self.state_writer = state_writer
         self.event_writer = event_writer
         self.atomic_commit_writer = atomic_commit_writer
+        self.non_atomic_test_mode = non_atomic_test_mode
+        if atomic_commit_writer is not None:
+            self.durability_mode = "ATOMIC_DURABLE"
+        elif split_writer_requested:
+            self.durability_mode = "NON_ATOMIC_TEST"
+        else:
+            self.durability_mode = "EPHEMERAL"
         self._next_state_version = initial_state_version
         self._durability_uncertain = False
 
@@ -91,6 +114,12 @@ class VeraAffectiveCycle:
         a new cycle, and the caller cannot rebind a provider row to another host
         scope. Historical evidence remains readable as evidence, not live state.
         """
+        split_writer_requested = state_writer is not None or event_writer is not None
+        if split_writer_requested:
+            if atomic_commit_writer is None:
+                raise ValueError("live durable restore rejects non-atomic split state/event writers")
+            raise ValueError("live durable restore cannot mix atomic and split state/event writers")
+
         state_version = row.get("state_version")
         if isinstance(state_version, bool) or not isinstance(state_version, int) or state_version < 1:
             raise ValueError("durable state row requires a positive integer state_version")
@@ -186,9 +215,8 @@ class VeraAffectiveCycle:
                     event_count=len(event_rows),
                 )
             else:
-                # Backward-compatible in-memory/test path only. A qualified durable
-                # provider must bind atomic_commit_writer so stale state and event
-                # append cannot split across transactions.
+                # Explicit non-atomic test mode only. Qualified durable execution
+                # must bind atomic_commit_writer so state and events cannot split.
                 if self.state_writer is not None:
                     self.state_writer(dict(state_row))
                 if self.event_writer is not None:
@@ -214,6 +242,7 @@ class VeraAffectiveCycle:
             commit_request=dict(commit_request),
             commit_result=commit_result,
             atomic_commit_used=atomic_commit_used,
+            durability_mode=self.durability_mode,
         )
 
     def process_turn(
