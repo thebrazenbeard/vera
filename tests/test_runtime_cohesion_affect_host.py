@@ -109,6 +109,7 @@ class VeraAffectiveRuntimeHostTests(unittest.TestCase):
             json.loads(BINDING_PATH.read_text(encoding="utf-8")),
             checkpoint,
             elapsed_seconds=600,
+            expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
         )
         after = restored.machine_interoception()["activation_intensity"]
         self.assertLess(after, before)
