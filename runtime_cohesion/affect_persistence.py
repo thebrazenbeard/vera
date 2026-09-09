@@ -400,3 +400,195 @@ def restore_host_from_state_row(
         raise PersistenceRecordError(str(exc)) from exc
     bind_affective_host_scope(restored_host, row_host_scope)
     return restored_host
+
+
+class AffectiveProviderRestoreBoundary:
+    """Restore CURRENT affective state only after a prebound provider read.
+
+    This object is a composition boundary, not caller-supplied evidence. A live
+    application must construct it from its runtime-owned adapter registry and
+    fixed provider route before claimant row/token material enters this API.
+    """
+
+    FRONTIER_SCOPE = "VERA_AFFECTIVE_RUNTIME_PROVIDER_FRONTIER_V1"
+    _EVIDENCE_CAPABILITY_REF = "VERA_RUNTIME_CONTRACT_V1#evidence_classes.persisted_provider_record"
+
+    def __init__(
+        self,
+        *,
+        adapters: Any,
+        provider: str,
+        provider_route: str,
+        provider_source: str,
+        provider_project_id: str,
+        provider_table: str,
+    ) -> None:
+        from .adapters import AdapterRegistry
+
+        if not isinstance(adapters, AdapterRegistry):
+            raise TypeError("affective provider restore requires an AdapterRegistry")
+        for label, value in (
+            ("provider", provider),
+            ("provider_route", provider_route),
+            ("provider_source", provider_source),
+            ("provider_project_id", provider_project_id),
+            ("provider_table", provider_table),
+        ):
+            if not isinstance(value, str) or not value:
+                raise ValueError(f"{label} must be non-empty")
+        self._adapters = adapters
+        self._provider = provider
+        self._provider_route = provider_route
+        self._provider_source = provider_source
+        self._provider_project_id = provider_project_id
+        self._provider_table = provider_table
+
+    def _validate_resume_token(
+        self,
+        row: Mapping[str, Any],
+        expected_resume_token: Mapping[str, Any],
+    ) -> None:
+        if not isinstance(expected_resume_token, Mapping):
+            raise PersistenceRecordError("live resume requires an exact resume token")
+        expected = build_affective_resume_token(row)
+        if dict(expected_resume_token) != expected:
+            raise PersistenceRecordError("resume token does not bind the candidate durable frontier")
+
+    def _read_current_frontier(self, row: Mapping[str, Any]) -> None:
+        from .adapters import AdapterProbeResult, AdapterRequest
+        from .evidence import ProviderEvidenceEnvelope, validate_envelope
+
+        adapter = self._adapters.get(self._provider)
+        if adapter is None:
+            raise PersistenceRecordError("configured provider adapter is unavailable")
+        if getattr(adapter, "provider", None) != self._provider:
+            raise PersistenceRecordError("provider adapter identity does not match the configured provider")
+
+        request = AdapterRequest(
+            domain_id=self.FRONTIER_SCOPE,
+            provider=self._provider,
+            source_ref=self._provider_source,
+            route_ref=self._provider_route,
+            selector_ref=None,
+            privacy_class="GOVERNED",
+            evidence_capability_refs=(self._EVIDENCE_CAPABILITY_REF,),
+        )
+        probe = adapter.probe(request)
+        if not isinstance(probe, AdapterProbeResult):
+            raise PersistenceRecordError("provider probe did not return a typed probe result")
+        if probe.provider != self._provider or probe.route_ref != self._provider_route:
+            raise PersistenceRecordError("provider probe is cross-bound to a different route")
+        if probe.state not in {"CURRENTLY_OBSERVED_REACHABLE", "RESULT"}:
+            raise PersistenceRecordError("provider frontier is not currently readable")
+
+        observed = adapter.read(request)
+        if not isinstance(observed, ProviderEvidenceEnvelope):
+            raise PersistenceRecordError("provider read did not return typed provider evidence")
+        try:
+            validate_envelope(observed)
+        except ValueError as exc:
+            raise PersistenceRecordError("provider read evidence is invalid") from exc
+
+        runtime_instance_id = row.get("runtime_instance_id")
+        host_scope = row.get("host_scope")
+        state_version = row.get("state_version")
+        checkpoint_sha256 = row.get("checkpoint_sha256")
+        source_commit = row.get("source_commit")
+        if not isinstance(runtime_instance_id, str) or not runtime_instance_id:
+            raise PersistenceRecordError("candidate frontier lacks runtime_instance_id")
+        if not isinstance(host_scope, str) or not host_scope:
+            raise PersistenceRecordError("candidate frontier lacks host_scope")
+        if isinstance(state_version, bool) or not isinstance(state_version, int) or state_version < 1:
+            raise PersistenceRecordError("candidate frontier lacks a positive state_version")
+        _require_hex_digest(checkpoint_sha256, label="candidate frontier checkpoint_sha256")
+        if not isinstance(source_commit, str) or len(source_commit) != 40:
+            raise PersistenceRecordError("candidate frontier lacks exact source_commit")
+
+        expected_locator = f"{self._provider_source}/{runtime_instance_id}"
+        if observed.provider != self._provider:
+            raise PersistenceRecordError("provider read evidence provider mismatch")
+        if observed.locator != expected_locator:
+            raise PersistenceRecordError("provider read evidence locator mismatch")
+        if observed.revision != f"state-version:{state_version}":
+            raise PersistenceRecordError("provider read evidence state-version frontier mismatch")
+        if observed.evidence_class != "persisted_provider_record":
+            raise PersistenceRecordError("provider read evidence class mismatch")
+        if observed.referent != runtime_instance_id:
+            raise PersistenceRecordError("provider read evidence runtime referent mismatch")
+        if observed.scope != self.FRONTIER_SCOPE:
+            raise PersistenceRecordError("provider read evidence scope mismatch")
+        if observed.privacy_class != "GOVERNED":
+            raise PersistenceRecordError("provider read evidence privacy class mismatch")
+        if observed.supersession_state != "CURRENT_OBSERVATION":
+            raise PersistenceRecordError("provider read evidence is not current")
+        if observed.conflict_state != "NONE":
+            raise PersistenceRecordError("provider read evidence is conflicted")
+        if observed.content_digest != checkpoint_sha256:
+            raise PersistenceRecordError("provider read evidence checkpoint digest mismatch")
+
+        metadata = observed.metadata
+        if not isinstance(metadata, Mapping):
+            raise PersistenceRecordError("provider read evidence metadata is missing")
+        expected_metadata = {
+            "route_ref": self._provider_route,
+            "source_ref": self._provider_source,
+            "provider_project_id": self._provider_project_id,
+            "provider_table": self._provider_table,
+            "runtime_instance_id": runtime_instance_id,
+            "host_scope": host_scope,
+            "state_version": state_version,
+            "checkpoint_sha256": checkpoint_sha256,
+            "source_commit": source_commit,
+        }
+        for key, expected_value in expected_metadata.items():
+            if metadata.get(key) != expected_value:
+                raise PersistenceRecordError(f"provider read evidence {key} frontier mismatch")
+
+    def restore_host_from_state_row(
+        self,
+        contract_text: str,
+        binding: Mapping[str, Any],
+        row: Mapping[str, Any],
+        *,
+        expected_host_scope: str,
+        expected_checkpoint_sha256: str,
+        expected_resume_token: Mapping[str, Any],
+    ) -> VeraAffectiveRuntimeHost:
+        self._validate_resume_token(row, expected_resume_token)
+        self._read_current_frontier(row)
+        return restore_host_from_state_row(
+            contract_text,
+            binding,
+            row,
+            expected_host_scope=expected_host_scope,
+            expected_checkpoint_sha256=expected_checkpoint_sha256,
+        )
+
+    def restore_cycle_from_state_row(
+        self,
+        contract_text: str,
+        binding: Mapping[str, Any],
+        row: Mapping[str, Any],
+        *,
+        host_scope: str,
+        expected_checkpoint_sha256: str,
+        expected_resume_token: Mapping[str, Any],
+    ) -> Any:
+        from .affect_cycle import VeraAffectiveCycle
+
+        host = self.restore_host_from_state_row(
+            contract_text,
+            binding,
+            row,
+            expected_host_scope=host_scope,
+            expected_checkpoint_sha256=expected_checkpoint_sha256,
+            expected_resume_token=expected_resume_token,
+        )
+        state_version = row.get("state_version")
+        if isinstance(state_version, bool) or not isinstance(state_version, int) or state_version < 1:
+            raise PersistenceRecordError("durable state row requires a positive integer state_version")
+        return VeraAffectiveCycle(
+            host,
+            host_scope=host_scope,
+            initial_state_version=state_version + 1,
+        )
