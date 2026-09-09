@@ -16,14 +16,19 @@ from .executor import (
     execute_projection_cycle,
 )
 from .failure import FailureEvaluationResult, evaluate_failure_signature, validate_failure_wiring
+from .provider_admission import evaluate_provider_proposition_admission
 from .reconcile import ReconciliationResult, reconcile_exact
 from .runtime import (
     AdmissionDecision,
     RetrievalPlan,
     build_operational_checkpoint,
     build_retrieval_plan,
-    evaluate_proposition_admission,
+    evaluate_proposition_admission as evaluate_abstract_proposition_admission,
 )
+
+# Public package-level admission is provider-strict. Lightweight policy fixtures
+# remain available only through the explicitly named abstract evaluator.
+evaluate_proposition_admission = evaluate_provider_proposition_admission
 
 __all__ = [
     "AdapterProbeResult",
@@ -50,4 +55,6 @@ __all__ = [
     "build_operational_checkpoint",
     "build_retrieval_plan",
     "evaluate_proposition_admission",
+    "evaluate_provider_proposition_admission",
+    "evaluate_abstract_proposition_admission",
 ]
