@@ -72,6 +72,24 @@ class ProviderFabricCrossBindTests(unittest.TestCase):
         errors = validate_provider_fabric(self.index, self.contract, fabric)
         self.assertTrue(any("target_event_selector" in error for error in errors))
 
+    def test_dependency_semantics_is_required(self):
+        index = copy.deepcopy(self.index)
+        index.pop("dependency_semantics")
+        errors = validate_provider_fabric(index, self.contract, self.fabric)
+        self.assertTrue(any("dependency_semantics" in error for error in errors))
+
+    def test_unknown_hard_prerequisite_domain_is_rejected(self):
+        index = copy.deepcopy(self.index)
+        index["dependency_semantics"]["hard_prerequisite_domains"].append("UNKNOWN_GOVERNING_DOMAIN")
+        errors = validate_provider_fabric(index, self.contract, self.fabric)
+        self.assertTrue(any("UNKNOWN_GOVERNING_DOMAIN" in error for error in errors))
+
+    def test_current_hard_prerequisite_domains_have_declared_incoming_edges(self):
+        index = copy.deepcopy(self.index)
+        index["dependency_semantics"]["hard_prerequisite_domains"].append("VISUAL_SELF_REPRESENTATION")
+        errors = validate_provider_fabric(index, self.contract, self.fabric)
+        self.assertTrue(any("VISUAL_SELF_REPRESENTATION" in error and "incoming" in error.lower() for error in errors))
+
 
 if __name__ == "__main__":
     unittest.main()
