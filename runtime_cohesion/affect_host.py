@@ -134,31 +134,32 @@ class VeraAffectiveRuntimeHost:
         }
 
     def observe(self, appraisal: StimulusAppraisal, *, elapsed_seconds: float = 0.0) -> dict[str, Any]:
-        prior_receipt_id = (
-            self.runtime.last_event_receipt.get("receipt_id")
-            if self.runtime.last_event_receipt is not None
-            else None
-        )
         state = self.runtime.apply_stimulus(appraisal, elapsed_seconds=elapsed_seconds)
-        receipt = self.runtime.last_event_receipt
-        new_receipt = None
-        if receipt is not None and receipt.get("receipt_id") != prior_receipt_id:
-            new_receipt = dict(receipt)
+        receipts = self.runtime.drain_event_receipts()
         return {
             "state": state,
             "machine_interoception": self.machine_interoception(),
-            "event_receipt": new_receipt,
+            "event_receipts": receipts,
+            "event_receipt": receipts[-1] if receipts else None,
         }
 
     def force_admin_test(self, *, authorized: bool) -> dict[str, Any]:
-        return self.runtime.force_admin_test(authorized=authorized)
+        receipt = self.runtime.force_admin_test(authorized=authorized)
+        self.runtime.drain_event_receipts()
+        return receipt
 
     def force_self_qualification(self, *, authorized: bool) -> dict[str, Any]:
-        return self.runtime.force_self_qualification(authorized=authorized)
+        receipt = self.runtime.force_self_qualification(authorized=authorized)
+        self.runtime.drain_event_receipts()
+        return receipt
 
     def advance_time(self, elapsed_seconds: float) -> dict[str, Any]:
         self.runtime.advance_time(elapsed_seconds)
-        return self.machine_interoception()
+        receipts = self.runtime.drain_event_receipts()
+        frame = self.machine_interoception()
+        frame["event_receipts"] = receipts
+        frame["event_receipt"] = receipts[-1] if receipts else None
+        return frame
 
     def experience_control_vector(self) -> dict[str, float]:
         """Return the machine-side affect vector that downstream planning consumes.
@@ -307,6 +308,7 @@ class VeraAffectiveRuntimeHost:
             source_revision=str(binding["source_commit"]),
             elapsed_seconds=elapsed_seconds,
         )
+        runtime.drain_event_receipts()
         return cls(
             runtime,
             binding=binding,
