@@ -92,6 +92,10 @@
       "privacy_class": "GOVERNED",
       "source_ref_pattern": "refs/heads/research/**",
       "source_path_pattern": "ledger/**|evidence/**|state/**|runtime-manifest/**",
+      "target_event_selector": {
+        "git_ref": "$source_ref",
+        "git_commit_sha": "$source_revision"
+      },
       "comparison_mode": "EXACT_REVISION",
       "source_revision_field": "git_commit_sha",
       "target_revision_field": "git_commit_sha",
@@ -111,6 +115,10 @@
       "source_ref_pattern": "refs/heads/bus/**",
       "source_path_pattern": "messages/**",
       "projection_trigger_ref": "github:thebrazenbeard/chat-communication-bus/.github/workflows/radar-bus-projection.yml",
+      "target_event_selector": {
+        "payload.source_ref": "$source_ref",
+        "payload.source_path": "$source_path"
+      },
       "comparison_mode": "EXACT_REVISION",
       "source_revision_field": "source_commit",
       "target_revision_field": "source_commit",
@@ -129,6 +137,11 @@
       "privacy_class": "PRIVATE_AUTOBIOGRAPHICAL",
       "source_ref_pattern": "logical-memory:R9B0",
       "source_path_pattern": "memory-epoch-object",
+      "target_event_selector": {
+        "provider_class": "GOOGLE_DRIVE_DURABLE",
+        "provider_revision_or_version": "$source_revision",
+        "epoch_id": "R9B0"
+      },
       "comparison_mode": "EXACT_RECEIPT",
       "source_revision_field": "provider_revision_or_version",
       "target_revision_field": "provider_revision_or_version",
@@ -155,6 +168,7 @@
   ],
   "global_rules": {
     "projection_scope": "A source change is eligible for stale-projection evaluation only when it matches the registered projection source provider, subject, ref scope, and path scope. Out-of-scope source activity is NOT_APPLICABLE, not stale evidence.",
+    "event_instance_binding": "For an in-scope projection event, the exact caller source ref/path must cross the adapter boundary and both returned observations must independently bind that event identity (or an exact provider-native equivalent). Collection targets must receive a provider-native event selector. Matching revisions/digests for a different event never qualify as VERIFIED_EXACT; absent binding is UNRESOLVED and demonstrably different binding is CONFLICT.",
     "newest_timestamp": "Observation time may describe chronology or lag but never resolves revision/digest conflict and never grants current authority.",
     "returned_item_typing": "Each returned item must be independently typed from its own provenance/content/receipt/currentness evidence; provider capability is not item type.",
     "missing_observation": "Missing, unavailable, or ambiguous provider evidence remains bounded as such; do not infer a successful projection or current state.",
