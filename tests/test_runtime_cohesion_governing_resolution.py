@@ -14,9 +14,9 @@ FABRIC = json.loads((ROOT / "architecture" / "VERA_PROVIDER_FABRIC_V1.json").rea
 
 
 class EvidenceAdapter:
-    def __init__(self, provider, evidence_by_domain, *, conflict_state="NONE", referent_override=None):
+    def __init__(self, provider, evidence_by_request, *, conflict_state="NONE", referent_override=None):
         self.provider = provider
-        self.evidence_by_domain = dict(evidence_by_domain)
+        self.evidence_by_request = dict(evidence_by_request)
         self.conflict_state = conflict_state
         self.referent_override = referent_override
         self.probes = []
@@ -34,7 +34,10 @@ class EvidenceAdapter:
 
     def read(self, request):
         self.reads.append(request)
-        evidence_class = self.evidence_by_domain.get(request.domain_id, "source_provenance")
+        evidence_class = self.evidence_by_request.get(
+            (request.domain_id, request.source_ref),
+            self.evidence_by_request.get(request.domain_id, "source_provenance"),
+        )
         return ProviderEvidenceEnvelope(
             provider=self.provider,
             locator=f"{self.provider}:{request.domain_id}:{request.source_ref}",
@@ -65,7 +68,8 @@ class GoverningResolutionBoundaryTests(unittest.TestCase):
         github = EvidenceAdapter(
             "github",
             {
-                "CONTROL_AND_GOVERNANCE": "control_source",
+                ("CONTROL_AND_GOVERNANCE", "vera-control-plane"): "control_source",
+                ("CONTROL_AND_GOVERNANCE", "vera"): "source_provenance",
             },
         )
         return live, github, AdapterRegistry({"live_conversation": live, "github": github})
