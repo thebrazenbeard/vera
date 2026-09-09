@@ -214,16 +214,33 @@ def build_retrieval_plan(
 ) -> RetrievalPlan:
     """Build the smallest bounded retrieval plan from supplied route observations.
 
-    The function performs no provider I/O. `candidate_targets` are the targets
-    that survive domain/dependency/privacy/budget/selector checks and are safe to
-    probe. `targets` are the subset whose exact routes have fresh supplied state
-    CURRENTLY_OBSERVED_REACHABLE or RESULT.
+    The function performs no provider I/O. Governing hard prerequisites are
+    traversed before a dependent domain and may withhold that domain's reads when
+    no prerequisite target has fresh CURRENTLY_OBSERVED_REACHABLE/RESULT evidence.
+    Contextual dependencies are traversed afterward, may be cyclic under the
+    visited-set/budget rules, and never block the primary/dependent domain merely
+    because their own routes are unresolved.
+
+    `candidate_targets` are targets that survive domain/privacy/budget/selector
+    checks and are safe to probe. Candidate discovery is preserved even when a
+    hard prerequisite is unresolved so the executor can probe the exact routes
+    needed to resolve the gate. `targets` are the subset whose routes are freshly
+    reachable and whose hard prerequisites are satisfied.
     """
 
     domains = _rows_by_id(index.get("domains", []), "domain")
     selectors = _rows_by_id(index.get("selector_declarations", []), "selector")
     if domain_id not in domains:
         raise ValueError(f"unknown domain: {domain_id}")
+
+    dependency_semantics = index.get("dependency_semantics", {})
+    hard_domains_raw = dependency_semantics.get("hard_prerequisite_domains", [])
+    if not isinstance(hard_domains_raw, list) or not all(isinstance(value, str) and value for value in hard_domains_raw):
+        raise ValueError("dependency_semantics.hard_prerequisite_domains must be a list of domain ids")
+    hard_domains = set(hard_domains_raw)
+    unknown_hard_domains = hard_domains.difference(domains)
+    if unknown_hard_domains:
+        raise ValueError(f"unknown hard prerequisite domains: {sorted(unknown_hard_domains)!r}")
 
     policy = contract.get("active_context_policy", {})
     budget = policy.get("uncertainty_probe_budget", {})
@@ -234,6 +251,7 @@ def build_retrieval_plan(
 
     visited: list[str] = []
     visited_set: set[str] = set()
+    visiting: set[str] = set()
     candidate_targets: list[dict[str, Any]] = []
     candidate_keys: set[tuple[Any, ...]] = set()
     targets: list[dict[str, Any]] = []
@@ -241,72 +259,134 @@ def build_retrieval_plan(
     unresolved: list[str] = []
     privacy_seen: set[str] = set()
     budget_state = BUDGET_OK
+    domain_has_reachable_target: dict[str, bool] = {}
 
-    queue: list[tuple[str, int]] = [(domain_id, 0)]
-    while queue:
-        current_id, depth = queue.pop(0)
+    def classify_dependencies(current: Mapping[str, Any]) -> tuple[list[str], list[str]]:
+        declared = current.get("dependencies", [])
+        if not isinstance(declared, list):
+            raise ValueError(f"{current.get('id')}: dependencies must be a list")
+        hard: list[str] = []
+        contextual: list[str] = []
+        for dependency in declared:
+            if not isinstance(dependency, str) or not dependency:
+                raise ValueError(f"{current.get('id')}: dependency ids must be non-empty strings")
+            if dependency in hard_domains:
+                hard.append(dependency)
+            else:
+                contextual.append(dependency)
+        return hard, contextual
+
+    def visit(current_id: str, depth: int) -> None:
+        nonlocal budget_state
+
         if current_id in visited_set:
-            continue
+            return
+        if current_id in visiting:
+            return
         if depth > max_depth or len(visited_set) >= max_domains:
             budget_state = BUDGET_EXHAUSTED
             unresolved.append(f"BUDGET_EXHAUSTED:{current_id}")
-            continue
+            return
 
         current = domains.get(current_id)
         if current is None:
             unresolved.append(f"UNKNOWN_DEPENDENCY:{current_id}")
-            continue
+            return
+
+        visiting.add(current_id)
+        hard_dependencies, contextual_dependencies = classify_dependencies(current)
+
+        # Governing prerequisites are evaluated before the dependent domain.
+        for dependency in hard_dependencies:
+            if dependency in visited_set:
+                continue
+            if depth + 1 > max_depth or len(visited_set) >= max_domains:
+                budget_state = BUDGET_EXHAUSTED
+                unresolved.append(f"BUDGET_EXHAUSTED:{dependency}")
+                continue
+            visit(dependency, depth + 1)
+
+        if current_id in visited_set:
+            visiting.discard(current_id)
+            return
+        if len(visited_set) >= max_domains:
+            budget_state = BUDGET_EXHAUSTED
+            unresolved.append(f"BUDGET_EXHAUSTED:{current_id}")
+            visiting.discard(current_id)
+            return
 
         visited_set.add(current_id)
         visited.append(current_id)
         privacy_class = current.get("privacy_class")
         if not isinstance(privacy_class, str) or not privacy_class:
             unresolved.append(f"MISSING_PRIVACY_CLASS:{current_id}")
-            continue
+            domain_has_reachable_target[current_id] = False
+            visiting.discard(current_id)
+            return
         privacy_seen.add(privacy_class)
 
         if privacy_class not in privacy_allowlist and "*" not in privacy_allowlist:
             unresolved.append(f"PRIVACY_NOT_ELIGIBLE:{current_id}:{privacy_class}")
-            continue
+            domain_has_reachable_target[current_id] = False
+        else:
+            hard_unresolved = [
+                dependency
+                for dependency in hard_dependencies
+                if not domain_has_reachable_target.get(dependency, False)
+            ]
+            for dependency in hard_unresolved:
+                unresolved.append(f"HARD_PREREQUISITE_UNRESOLVED:{current_id}:{dependency}")
 
-        for target in current.get("retrieval_targets", []):
-            _validate_selector_narrowing(target, selectors)
-            route_ref = target.get("route_ref")
-            if not isinstance(route_ref, str) or not route_ref:
-                unresolved.append(f"MISSING_ROUTE_REF:{current_id}")
-                continue
-            key = (target.get("source_ref"), route_ref, target.get("selector_ref"))
-            candidate = {
-                "domain_id": current_id,
-                "source_ref": target.get("source_ref"),
-                "route_ref": route_ref,
-                "selector_ref": target.get("selector_ref"),
-                "evidence_capability_refs": tuple(target.get("evidence_capability_refs", [])),
-                "privacy_class": privacy_class,
-            }
-            if key not in candidate_keys:
-                candidate_keys.add(key)
-                candidate_targets.append(candidate)
+            reachable_here = False
+            for target in current.get("retrieval_targets", []):
+                _validate_selector_narrowing(target, selectors)
+                route_ref = target.get("route_ref")
+                if not isinstance(route_ref, str) or not route_ref:
+                    unresolved.append(f"MISSING_ROUTE_REF:{current_id}")
+                    continue
+                key = (target.get("source_ref"), route_ref, target.get("selector_ref"))
+                candidate = {
+                    "domain_id": current_id,
+                    "source_ref": target.get("source_ref"),
+                    "route_ref": route_ref,
+                    "selector_ref": target.get("selector_ref"),
+                    "evidence_capability_refs": tuple(target.get("evidence_capability_refs", [])),
+                    "privacy_class": privacy_class,
+                }
+                if key not in candidate_keys:
+                    candidate_keys.add(key)
+                    candidate_targets.append(candidate)
 
-            route_state = observed_route_states.get(route_ref)
-            if route_state not in RETRIEVABLE_ROUTE_STATES:
-                unresolved.append(
-                    f"ROUTE_NOT_CURRENTLY_OBSERVED_REACHABLE:{current_id}:{route_ref}:{route_state or 'UNOBSERVED'}"
-                )
-                continue
-            if key in target_keys:
-                continue
-            target_keys.add(key)
-            targets.append({**candidate, "observed_route_state": route_state})
+                route_state = observed_route_states.get(route_ref)
+                if route_state not in RETRIEVABLE_ROUTE_STATES:
+                    unresolved.append(
+                        f"ROUTE_NOT_CURRENTLY_OBSERVED_REACHABLE:{current_id}:{route_ref}:{route_state or 'UNOBSERVED'}"
+                    )
+                    continue
+                if hard_unresolved:
+                    continue
+                reachable_here = True
+                if key in target_keys:
+                    continue
+                target_keys.add(key)
+                targets.append({**candidate, "observed_route_state": route_state})
 
-        for dependency in current.get("dependencies", []):
-            if dependency in visited_set:
+            domain_has_reachable_target[current_id] = reachable_here
+
+        # Contextual relevance expands after the dependent domain. It may cycle,
+        # but it is not an authority/currentness gate on the domain already read.
+        for dependency in contextual_dependencies:
+            if dependency in visited_set or dependency in visiting:
                 continue
-            if depth + 1 > max_depth or len(visited_set) + len(queue) >= max_domains:
+            if depth + 1 > max_depth or len(visited_set) >= max_domains:
                 budget_state = BUDGET_EXHAUSTED
                 unresolved.append(f"BUDGET_EXHAUSTED:{dependency}")
                 continue
-            queue.append((dependency, depth + 1))
+            visit(dependency, depth + 1)
+
+        visiting.discard(current_id)
+
+    visit(domain_id, 0)
 
     if budget_state == BUDGET_EXHAUSTED:
         reason = "Retrieval expansion exhausted the configured ACTIVE_CONTEXT_SET budget and remains unresolved."
@@ -320,7 +400,7 @@ def build_retrieval_plan(
         candidate_targets=tuple(candidate_targets),
         targets=tuple(targets),
         visited_domains=tuple(visited),
-        unresolved=tuple(unresolved),
+        unresolved=tuple(dict.fromkeys(unresolved)),
         budget_state=budget_state,
         reason=reason,
         privacy_classes=tuple(sorted(privacy_seen)),
