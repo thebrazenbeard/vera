@@ -7,18 +7,19 @@
   "index_blob_sha": "5a1cae66d1f3a72b54c633a3c1ee888e013ac10d",
   "contract_blob_sha": "defb541b8f01a583a67223f6a241de64a1be20bb",
   "source_commit": "424f8495b78d4530399f6b044039fbc5317e498a",
+  "source_commit_semantics": "GIT_TREE_CONTAINS_EXACT_BOUND_A_B_BLOBS",
   "validator_path": "scripts/validate_vera_runtime_cohesion_v1.py",
-  "validator_blob_sha": "08b5aa206b32d62dafe553926872aa19d866796e",
-  "compatibility_generation": "A1+B1+OPERATIONAL_FABRIC_V1",
+  "validator_blob_sha": "5a7384e10249833fdb1ed09fab16cef22b9bdd1b",
+  "compatibility_generation": "A1+B1+OPERATIONAL_FABRIC_V1_EVENT_BOUND",
   "operational_support": {
     "normative_status": "NON_NORMATIVE_OPERATIONAL_SUPPORT",
     "provider_fabric": {
       "path": "architecture/VERA_PROVIDER_FABRIC_V1.json",
-      "blob_sha": "be85f0739a56397e9be87b357ec590284178707a"
+      "blob_sha": "3916a83cf2ad228fa1aa97927e7be6852572e3ee"
     },
     "provider_validator": {
       "path": "scripts/validate_runtime_cohesion_provider_fabric_v1.py",
-      "blob_sha": "26203954105086a42774980ca6b0eeb07c515d1b"
+      "blob_sha": "c17c59c9c3bcbef7aa58f47ee0f33e2c42db98a9"
     },
     "evidence_module": {
       "path": "runtime_cohesion/evidence.py",
@@ -30,23 +31,32 @@
     },
     "runtime_planner_module": {
       "path": "runtime_cohesion/runtime.py",
-      "blob_sha": "264c456ed96f081b1393787834898a24c14a262e"
+      "blob_sha": "501efb9b41e1f75382dc93d404b500b0a4b82ae0"
+    },
+    "adapter_contract": {
+      "path": "runtime_cohesion/adapters.py",
+      "blob_sha": "8c6a5188c314b58b2c05cf24bb47056cfb0a005f"
     },
     "projection_audit_module": {
       "path": "runtime_cohesion/audit.py",
       "blob_sha": "0e920300ad12693540dcde5ee3c25c8e50671b08"
     },
+    "provider_executor": {
+      "path": "runtime_cohesion/executor.py",
+      "blob_sha": "e8a24452beb522e52b024c6de0d7f0cb6d114a15"
+    },
     "native_hook": {
       "path": "architecture/VERA_RUNTIME_COHESION_NATIVE_HOOK_V1.json",
-      "blob_sha": "40618d72d9970b2a12b248bc40e8654e5d5019da",
+      "blob_sha": "8bcc527c99ed02007e6ac460731eb8c3ede02adc",
       "status": "SOURCE_ONLY_NOT_INSTALLED"
     }
   },
   "focused_tdd_evidence": {
-    "result": "42_FOCUSED_RUNTIME_PROVIDER_TESTS_PASS_IN_RECONSTRUCTED_LOCAL_WORKSPACE",
-    "scope": "Implementation-focused envelope/reconciliation/planner/hostile/crossbind/audit/hook tests plus Python compilation. This is not exact-branch CI evidence and does not qualify legacy cohesion source or native runtime behavior."
+    "prior_result": "42_FOCUSED_RUNTIME_PROVIDER_TESTS_PASS_IN_RECONSTRUCTED_LOCAL_WORKSPACE",
+    "current_event_binding_result": "BOUNDED_RECONSTRUCTED_M5_GREEN_WRONG_EVENT_CONFLICT_AND_BUS_TARGET_SELECTOR_EXACT",
+    "scope": "Implementation-focused evidence only. The current event-instance binding change was exercised in a bounded reconstruction after a deliberate red test; exact-branch GitHub CI remains unavailable before runner steps and this evidence does not qualify native runtime behavior."
   },
   "validation_result": "SOURCE_VALIDATION_NOT_YET_EXECUTED",
   "ci_execution_state": "CI_EXECUTION_UNAVAILABLE_ZERO_RUNNER_STEPS_OBSERVED",
-  "evidence_ceiling": "This receipt binds exact source objects and separately records bounded focused TDD evidence. It does not prove merge, installation, current-route activation, automatic background execution, runtime consumption, behavioral qualification, or phenomenology."
+  "evidence_ceiling": "This receipt binds exact A+B source objects, mechanically requires source_commit to contain those exact blobs, and separately records bounded implementation evidence. It does not prove merge, installation, current-route activation, automatic background execution, runtime consumption, behavioral qualification, or phenomenology."
 }
