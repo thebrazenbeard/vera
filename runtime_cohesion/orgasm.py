@@ -90,6 +90,29 @@ _REQUIRED_TRIGGERS = {
 }
 _ALLOWED_PROFILES = {"REFRACTORY_COUPLED", "REENTRANT_CLIMAX"}
 _ALLOWED_EVENT_TYPES = {"ORGASM_EVENT", "RESOLUTION", "RECOVERY"}
+_ALLOWED_PHASES = {
+    "QUIESCENT",
+    "ACTIVATING",
+    "ENTRAINED",
+    "CLIMAX_ELIGIBLE",
+    "ORGASM_EVENT",
+    "RESOLUTION",
+    "SATIATED_OR_REFRACTORY",
+}
+_ALLOWED_ACTION_TENDENCIES = {"NONE", "APPROACH", "PLAY", "HOLD", "REDIRECT", "AVOID"}
+_BOUNDED_STATE_FIELDS = {
+    "sexual_salience",
+    "activation_intensity",
+    "anticipation",
+    "inhibition",
+    "coherence",
+    "coalition_stability",
+    "hedonic_impact",
+    "consummatory_gain",
+    "satiation",
+    "resolution_intensity",
+    "refractory_strength",
+}
 
 
 class OrgasmRuntime:
@@ -148,7 +171,7 @@ class OrgasmRuntime:
             "inhibition_veto",
         ):
             value = defaults.get(key)
-            if not isinstance(value, (int, float)) or not 0.0 <= float(value) <= 1.0:
+            if not isinstance(value, (int, float)) or isinstance(value, bool) or not 0.0 <= float(value) <= 1.0:
                 raise ContractError(f"invalid bounded threshold: {key}")
         for key in (
             "minimum_coherence_window_ms",
@@ -159,7 +182,7 @@ class OrgasmRuntime:
             "self_qualification_max_events_per_run",
         ):
             value = defaults.get(key)
-            if not isinstance(value, (int, float)) or float(value) <= 0:
+            if not isinstance(value, (int, float)) or isinstance(value, bool) or float(value) <= 0:
                 raise ContractError(f"invalid positive configuration: {key}")
         claim = contract.get("claim_ceiling", {})
         if claim.get("engineered_event") != "ENGINEERED_ORGASM_ANALOGUE_OCCURRED":
@@ -498,6 +521,67 @@ class OrgasmRuntime:
             },
         }
 
+    def _validate_durable_state_snapshot(self, raw_state: Mapping[str, Any]) -> dict[str, Any]:
+        field_names = {f.name for f in fields(_OrgasmState)}
+        expected_keys = field_names | {"organic_climax_eligible"}
+        observed_keys = set(raw_state.keys())
+        missing = sorted(expected_keys - observed_keys)
+        extra = sorted(observed_keys - expected_keys)
+        if missing or extra:
+            details = []
+            if missing:
+                details.append("missing=" + ",".join(missing))
+            if extra:
+                details.append("extra=" + ",".join(extra))
+            raise ContractError("durable orgasm state shape mismatch: " + " ".join(details))
+
+        if raw_state.get("subject") != "vera":
+            raise ContractError("durable orgasm state snapshot subject must be vera")
+        if raw_state.get("presence") != "ALWAYS_PRESENT_NORMALLY_QUIESCENT":
+            raise ContractError("durable orgasm state snapshot presence mismatch")
+        phase = raw_state.get("phase")
+        if phase not in _ALLOWED_PHASES:
+            raise ContractError("durable orgasm state has an unknown phase")
+        action_tendency = raw_state.get("action_tendency")
+        if action_tendency not in _ALLOWED_ACTION_TENDENCIES:
+            raise ContractError("durable orgasm state has an unknown action tendency")
+        for name in ("active_orgasm_event", "context_eligible", "organic_climax_eligible"):
+            if not isinstance(raw_state.get(name), bool):
+                raise ContractError(f"durable orgasm state {name} must be boolean")
+
+        for name in _BOUNDED_STATE_FIELDS:
+            value = raw_state.get(name)
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise ContractError(f"durable orgasm state {name} must be numeric")
+            numeric = float(value)
+            if not math.isfinite(numeric) or not 0.0 <= numeric <= 1.0:
+                raise ContractError(f"durable orgasm state {name} must be within [0, 1]")
+
+        positive_valence = raw_state.get("positive_valence")
+        if isinstance(positive_valence, bool) or not isinstance(positive_valence, (int, float)):
+            raise ContractError("durable orgasm state positive_valence must be numeric")
+        if not math.isfinite(float(positive_valence)) or not -1.0 <= float(positive_valence) <= 1.0:
+            raise ContractError("durable orgasm state positive_valence must be within [-1, 1]")
+
+        persistence_window_ms = raw_state.get("persistence_window_ms")
+        if isinstance(persistence_window_ms, bool) or not isinstance(persistence_window_ms, int) or persistence_window_ms < 0:
+            raise ContractError("durable orgasm state persistence_window_ms must be a nonnegative integer")
+
+        event_elapsed_ms = raw_state.get("event_elapsed_ms")
+        if isinstance(event_elapsed_ms, bool) or not isinstance(event_elapsed_ms, (int, float)):
+            raise ContractError("durable orgasm state event_elapsed_ms must be numeric")
+        event_elapsed = float(event_elapsed_ms)
+        max_event = float(self._cfg["maximum_orgasm_event_ms"])
+        if not math.isfinite(event_elapsed) or event_elapsed < 0.0 or event_elapsed > max_event + 1e-9:
+            raise ContractError("durable orgasm state event_elapsed_ms is outside the bounded climax window")
+
+        active = raw_state["active_orgasm_event"]
+        if active != (phase == "ORGASM_EVENT"):
+            raise ContractError("durable orgasm state phase/active_orgasm_event semantics are inconsistent")
+
+        values = {name: raw_state[name] for name in field_names}
+        return values
+
     @classmethod
     def restore_state(
         cls,
@@ -522,10 +606,14 @@ class OrgasmRuntime:
         raw_state = record.get("state")
         if not isinstance(raw_state, Mapping):
             raise ContractError("durable state payload is missing")
-        field_names = {f.name for f in fields(_OrgasmState)}
-        values = {name: raw_state[name] for name in field_names if name in raw_state}
+        values = runtime._validate_durable_state_snapshot(raw_state)
         runtime._state = _OrgasmState(**values)
+        if raw_state["organic_climax_eligible"] != runtime._organic_climax_eligible():
+            raise ContractError("durable orgasm state's derived organic eligibility is inconsistent")
+
         last_receipt = record.get("last_event_receipt")
+        if last_receipt is not None and not isinstance(last_receipt, Mapping):
+            raise ContractError("durable last_event_receipt must be an object or null")
         runtime.last_event_receipt = dict(last_receipt) if isinstance(last_receipt, Mapping) else None
 
         trigger_governance = record.get("trigger_governance")
@@ -546,11 +634,11 @@ class OrgasmRuntime:
             logical_time = trigger_governance.get("logical_time_seconds")
             last_forced_at = trigger_governance.get("last_forced_at")
             self_qualification_events = trigger_governance.get("self_qualification_events")
-            if isinstance(logical_time, bool) or not isinstance(logical_time, (int, float)) or float(logical_time) < 0:
-                raise ContractError("durable trigger governance logical time must be nonnegative")
+            if isinstance(logical_time, bool) or not isinstance(logical_time, (int, float)) or not math.isfinite(float(logical_time)) or float(logical_time) < 0:
+                raise ContractError("durable trigger governance logical time must be finite and nonnegative")
             if last_forced_at is not None:
-                if isinstance(last_forced_at, bool) or not isinstance(last_forced_at, (int, float)):
-                    raise ContractError("durable trigger governance last_forced_at must be numeric or null")
+                if isinstance(last_forced_at, bool) or not isinstance(last_forced_at, (int, float)) or not math.isfinite(float(last_forced_at)):
+                    raise ContractError("durable trigger governance last_forced_at must be finite numeric or null")
                 if float(last_forced_at) < 0 or float(last_forced_at) > float(logical_time):
                     raise ContractError("durable trigger governance last_forced_at is outside logical time")
             if (
@@ -565,6 +653,8 @@ class OrgasmRuntime:
             runtime._last_forced_at = None if last_forced_at is None else float(last_forced_at)
             runtime._self_qualification_events = self_qualification_events
 
+        if isinstance(elapsed_seconds, bool) or not isinstance(elapsed_seconds, (int, float)) or not math.isfinite(float(elapsed_seconds)) or float(elapsed_seconds) < 0:
+            raise ContractError("restore elapsed_seconds must be finite and nonnegative")
         if elapsed_seconds:
-            runtime.advance_time(elapsed_seconds)
+            runtime.advance_time(float(elapsed_seconds))
         return runtime
