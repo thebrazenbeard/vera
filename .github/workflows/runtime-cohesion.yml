@@ -59,6 +59,7 @@ jobs:
           tests.test_runtime_cohesion_executor
           tests.test_runtime_cohesion_projection_executor
           tests.test_runtime_cohesion_admission
+          tests.test_runtime_cohesion_failure_wiring
           tests.test_runtime_cohesion_native_hook
           -v
       - name: Compile cohesion validators, runtime, and tests
@@ -70,6 +71,7 @@ jobs:
           runtime_cohesion/evidence.py
           runtime_cohesion/reconcile.py
           runtime_cohesion/runtime.py
+          runtime_cohesion/failure.py
           runtime_cohesion/audit.py
           runtime_cohesion/adapters.py
           runtime_cohesion/executor.py
@@ -86,4 +88,5 @@ jobs:
           tests/test_runtime_cohesion_executor.py
           tests/test_runtime_cohesion_projection_executor.py
           tests/test_runtime_cohesion_admission.py
+          tests/test_runtime_cohesion_failure_wiring.py
           tests/test_runtime_cohesion_native_hook.py
