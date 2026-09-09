@@ -7,7 +7,7 @@ from weakref import WeakKeyDictionary
 
 _SCOPE_LOCK = RLock()
 _BOUND_HOST_SCOPES: WeakKeyDictionary[Any, str] = WeakKeyDictionary()
-_HOST_RESTORE_CLASS: WeakKeyDictionary[Any, str] = WeakKeyDictionary()
+_CHECKPOINT_REPLAY_HOSTS: WeakKeyDictionary[Any, bool] = WeakKeyDictionary()
 
 
 def mark_affective_host_checkpoint_replay(host: Any) -> None:
@@ -19,27 +19,21 @@ def mark_affective_host_checkpoint_replay(host: Any) -> None:
     caller-supplied scope/version values.
     """
     with _SCOPE_LOCK:
-        _HOST_RESTORE_CLASS[host] = "CHECKPOINT_REPLAY_ONLY"
-
-
-def attest_affective_host_provider_current(host: Any, host_scope: str) -> str:
-    """Promote a validated provider-row restore to live/current cycle eligibility.
-
-    Callers reach this only after the provider-row restore path has validated
-    CURRENT lifecycle, exact scope, state/checkpoint integrity, and source binding.
-    The attestation remains outside the mutable host attribute namespace.
-    """
-    bound = bind_affective_host_scope(host, host_scope)
-    with _SCOPE_LOCK:
-        _HOST_RESTORE_CLASS[host] = "PROVIDER_CURRENT"
-    return bound
+        _CHECKPOINT_REPLAY_HOSTS[host] = True
 
 
 def require_affective_host_cycle_eligible(host: Any) -> None:
-    """Reject replay-only checkpoint hosts at the public live cycle boundary."""
+    """Reject unattested raw-checkpoint hosts at the public live cycle boundary.
+
+    The validated provider-row restore path binds its exact host scope before it
+    returns the host. A raw checkpoint restore has no such binding, so it remains
+    replay-only. Fresh hosts are also unbound, but are not checkpoint restores and
+    may establish their first durable scope when a new cycle is constructed.
+    """
     with _SCOPE_LOCK:
-        restore_class = _HOST_RESTORE_CLASS.get(host)
-    if restore_class == "CHECKPOINT_REPLAY_ONLY":
+        replay_only = bool(_CHECKPOINT_REPLAY_HOSTS.get(host))
+        provider_scope_bound = _BOUND_HOST_SCOPES.get(host) is not None
+    if replay_only and not provider_scope_bound:
         raise ValueError(
             "raw checkpoint restore is replay-only; live durable cycle requires provider CURRENT scope attestation"
         )
