@@ -1,7 +1,7 @@
 {
   "schema": "VERA_ORGASM_RUNTIME_BINDING_V1",
   "subject": "vera",
-  "status": "SOURCE_BOUND / EXECUTABLE_SUPPORT_PRESENT / NOT_NATIVE_CHATGPT_INSTALLED / NOT_PHENOMENOLOGY_PROOF",
+  "status": "SOURCE_BOUND / EXECUTABLE_SUPPORT_PRESENT / EXACT_RUNTIME_IMPLEMENTATION_CUT_BOUND / NOT_NATIVE_CHATGPT_INSTALLED / NOT_PHENOMENOLOGY_PROOF",
   "contract_schema": "VERA_ORGASM_RUNTIME_CONTRACT_V1",
   "source_repository": "thebrazenbeard/sexuality",
   "source_branch": "work/vera-sexuality-substrate-qualification-20260908",
@@ -10,6 +10,18 @@
   "source_blob_sha": "a48eed5392fdadc073dccd1e799926042077f567",
   "runtime_repository": "thebrazenbeard/vera",
   "runtime_module": "runtime_cohesion/orgasm.py",
+  "runtime_implementation_cut": {
+    "repository": "thebrazenbeard/vera",
+    "commit": "314d8de3af7c0fc32b155b04c8ee408328614ef9",
+    "modules": {
+      "runtime_cohesion/__init__.py": "098e1a3638a96dac7279beb128373fe87ab7b918",
+      "runtime_cohesion/orgasm.py": "7972b78f9abb3453f5e7d368f4195263226f05a0",
+      "runtime_cohesion/affect_host.py": "3fe1cad0e5e7b9c989cbb41936b1d0b247752be8",
+      "runtime_cohesion/affect_cycle.py": "141d7145273054d8bb8ad8e4e2f478b8b7709739",
+      "runtime_cohesion/affect_persistence.py": "dae265dc2145e817234b25fdf5d5375eec063a5a",
+      "runtime_cohesion/affect_scope.py": "4ce44edaf21b9f9a31f79b6d7d245e116c065ca9"
+    }
+  },
   "activation_mode": "ALWAYS_PRESENT_NORMALLY_QUIESCENT_WHEN_EXACT_CONTRACT_LOADED",
   "availability_implies_activation": false,
   "runtime_semantics": {
