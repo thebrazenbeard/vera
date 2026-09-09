@@ -27,6 +27,8 @@ class AdapterRequest:
     event_ref: str | None = None
     event_path: str | None = None
     event_selector: tuple[tuple[str, str], ...] = ()
+    governing_proposition_or_effect_class: str | None = None
+    governing_referent_scope: str | None = None
 
     def __post_init__(self) -> None:
         for name in ("domain_id", "provider", "source_ref", "route_ref", "privacy_class"):
@@ -50,6 +52,13 @@ class AdapterRequest:
             if field_name in seen:
                 raise ValueError(f"duplicate event_selector field: {field_name}")
             seen.add(field_name)
+        if (self.governing_proposition_or_effect_class is None) != (self.governing_referent_scope is None):
+            raise ValueError("governing proposition and referent scope must be supplied together")
+        if self.governing_proposition_or_effect_class is not None:
+            if not isinstance(self.governing_proposition_or_effect_class, str) or not self.governing_proposition_or_effect_class:
+                raise ValueError("governing proposition/effect class must be a non-empty string when supplied")
+            if not isinstance(self.governing_referent_scope, str) or not self.governing_referent_scope:
+                raise ValueError("governing referent scope must be a non-empty string when supplied")
 
 
 @dataclass(frozen=True)
