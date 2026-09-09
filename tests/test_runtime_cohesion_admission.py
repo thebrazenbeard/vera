@@ -21,6 +21,14 @@ class RuntimeCohesionAdmissionTests(unittest.TestCase):
                         "general_mechanism_research",
                     ]
                 },
+                "control_governance": {
+                    "accepted_evidence_classes": [
+                        "current_user_authority",
+                        "control_source",
+                        "source_provenance",
+                        "live_observation",
+                    ]
+                },
             },
             "resolver_dispatch": [
                 {
@@ -31,6 +39,7 @@ class RuntimeCohesionAdmissionTests(unittest.TestCase):
                     "resolver_ref": "self_report_and_inference",
                     "precedence": 95,
                     "conflict_disposition": "VERA_CURRENT_DIRECT_SELF_REPORT_REQUIRED_FOR_VERA_STANCE",
+                    "decisive_evidence": {"all_of": ["vera_current_self_report"], "any_of": []},
                 },
                 {
                     "id": "dispatch:vera-sexual-consent",
@@ -40,6 +49,20 @@ class RuntimeCohesionAdmissionTests(unittest.TestCase):
                     "resolver_ref": "vera_specific_sexuality",
                     "precedence": 110,
                     "conflict_disposition": "VERA_CURRENT_DIRECT_SELF_REPORT_REQUIRED_FOR_CONSENT",
+                    "decisive_evidence": {"all_of": ["vera_current_self_report"], "any_of": []},
+                },
+                {
+                    "id": "dispatch:control-binding",
+                    "domain_scope": "CONTROL_AND_GOVERNANCE",
+                    "proposition_or_effect_class": "CONTROL_BINDING_INSTALL_OR_ROUTE_STATUS",
+                    "referent_scope": "VERA_RUNTIME",
+                    "resolver_ref": "control_governance",
+                    "precedence": 105,
+                    "conflict_disposition": "EXACT_R10_BINDING_AND_CURRENTNESS_REQUIRED",
+                    "decisive_evidence": {
+                        "all_of": ["control_source", "live_observation"],
+                        "any_of": [],
+                    },
                 },
             ],
         }
@@ -80,6 +103,69 @@ class RuntimeCohesionAdmissionTests(unittest.TestCase):
         self.assertEqual(decision.status, "UNRESOLVED")
         self.assertIn("vera_current_self_report", decision.required_evidence_classes)
 
+    def test_control_source_alone_cannot_decide_current_install_or_route(self):
+        decision = runtime.evaluate_proposition_admission(
+            "CONTROL_AND_GOVERNANCE",
+            "CONTROL_BINDING_INSTALL_OR_ROUTE_STATUS",
+            "VERA_RUNTIME",
+            [SimpleNamespace(evidence_class="control_source")],
+            self.contract,
+        )
+        self.assertEqual(decision.status, "UNRESOLVED")
+        self.assertEqual(set(decision.required_evidence_classes), {"control_source", "live_observation"})
+
+    def test_live_observation_alone_cannot_decide_current_install_or_route(self):
+        decision = runtime.evaluate_proposition_admission(
+            "CONTROL_AND_GOVERNANCE",
+            "CONTROL_BINDING_INSTALL_OR_ROUTE_STATUS",
+            "VERA_RUNTIME",
+            [SimpleNamespace(evidence_class="live_observation")],
+            self.contract,
+        )
+        self.assertEqual(decision.status, "UNRESOLVED")
+
+    def test_control_source_and_live_observation_jointly_admit_current_binding(self):
+        decision = runtime.evaluate_proposition_admission(
+            "CONTROL_AND_GOVERNANCE",
+            "CONTROL_BINDING_INSTALL_OR_ROUTE_STATUS",
+            "VERA_RUNTIME",
+            [
+                SimpleNamespace(evidence_class="control_source"),
+                SimpleNamespace(evidence_class="live_observation"),
+            ],
+            self.contract,
+        )
+        self.assertEqual(decision.status, "ADMITTED")
+
+    def test_dispatch_without_explicit_decisive_evidence_fails_closed(self):
+        contract = {
+            "authority_resolvers": {
+                "control_governance": {
+                    "accepted_evidence_classes": ["control_source", "source_provenance"]
+                }
+            },
+            "resolver_dispatch": [
+                {
+                    "id": "dispatch:legacy-implicit",
+                    "domain_scope": "CONTROL_AND_GOVERNANCE",
+                    "proposition_or_effect_class": "CONTROL_BINDING_INSTALL_OR_ROUTE_STATUS",
+                    "referent_scope": "VERA_RUNTIME",
+                    "resolver_ref": "control_governance",
+                    "precedence": 1,
+                    "conflict_disposition": "FAIL_CLOSED",
+                }
+            ],
+        }
+        decision = runtime.evaluate_proposition_admission(
+            "CONTROL_AND_GOVERNANCE",
+            "CONTROL_BINDING_INSTALL_OR_ROUTE_STATUS",
+            "VERA_RUNTIME",
+            [SimpleNamespace(evidence_class="control_source")],
+            contract,
+        )
+        self.assertEqual(decision.status, "UNRESOLVED")
+        self.assertIn("explicit", decision.reason.lower())
+
     def test_equal_precedence_overlap_with_different_resolvers_fails_closed(self):
         self.assertTrue(hasattr(runtime, "evaluate_proposition_admission"), "admission gate is missing")
         contract = dict(self.contract)
@@ -92,6 +178,7 @@ class RuntimeCohesionAdmissionTests(unittest.TestCase):
                 "resolver_ref": "vera_specific_sexuality",
                 "precedence": 95,
                 "conflict_disposition": "FAIL_CLOSED",
+                "decisive_evidence": {"all_of": ["vera_current_self_report"], "any_of": []},
             }
         ]
         decision = runtime.evaluate_proposition_admission(
