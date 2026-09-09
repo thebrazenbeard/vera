@@ -46,6 +46,26 @@ class AffectiveSplitWriterDowngradeTests(unittest.TestCase):
             atomic_commit_writer=lambda request: None,
         )
         self.assertIsNotNone(cycle.atomic_commit_writer)
+        self.assertEqual(cycle.durability_mode, "ATOMIC_DURABLE")
+
+    def test_explicit_non_atomic_test_mode_is_distinguishable(self):
+        cycle = VeraAffectiveCycle(
+            self.make_host(),
+            host_scope="TEST_HOST",
+            state_writer=lambda row: None,
+            non_atomic_test_mode=True,
+        )
+        self.assertTrue(cycle.non_atomic_test_mode)
+        self.assertEqual(cycle.durability_mode, "NON_ATOMIC_TEST")
+
+    def test_atomic_writer_cannot_be_mixed_with_split_callbacks(self):
+        with self.assertRaisesRegex(ValueError, r"(?i)(atomic|split|durab)"):
+            VeraAffectiveCycle(
+                self.make_host(),
+                host_scope="TEST_HOST",
+                state_writer=lambda row: None,
+                atomic_commit_writer=lambda request: None,
+            )
 
 
 if __name__ == "__main__":
