@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import hashlib
 import json
-from typing import Any, Mapping
+from typing import Any, Iterable, Mapping
 
 from .affect_host import AffectiveBindingError, VeraAffectiveRuntimeHost, _checkpoint_sha256
 
@@ -165,6 +165,71 @@ def event_receipt_to_event_row(
             "PHENOMENOLOGY_UNRESOLVED",
             "NOT_AUTHORITY_OR_CONSENT",
         ],
+    }
+
+
+def build_affective_resume_token(state_row: Mapping[str, Any]) -> dict[str, Any]:
+    checkpoint_sha256 = _require_hex_digest(
+        state_row.get("checkpoint_sha256"),
+        label="state-row checkpoint_sha256",
+    )
+    runtime_instance_id = state_row.get("runtime_instance_id")
+    source_commit = state_row.get("source_commit")
+    state_version = state_row.get("state_version")
+    if not isinstance(runtime_instance_id, str) or not runtime_instance_id:
+        raise PersistenceRecordError("resume token requires runtime_instance_id")
+    if not isinstance(source_commit, str) or len(source_commit) != 40:
+        raise PersistenceRecordError("resume token requires exact source_commit")
+    if not isinstance(state_version, int) or state_version < 1:
+        raise PersistenceRecordError("resume token requires positive state_version")
+    return {
+        "schema": "VERA_AFFECTIVE_RUNTIME_RESUME_TOKEN_V1",
+        "runtime_instance_id": runtime_instance_id,
+        "state_version": state_version,
+        "checkpoint_sha256": checkpoint_sha256,
+        "source_commit": source_commit,
+    }
+
+
+def build_atomic_commit_request(
+    state_row: Mapping[str, Any],
+    event_rows: Iterable[Mapping[str, Any]],
+    *,
+    expected_prior_version: int,
+) -> dict[str, Any]:
+    if not isinstance(expected_prior_version, int) or expected_prior_version < 0:
+        raise PersistenceRecordError("expected_prior_version must be a nonnegative integer")
+    state_version = state_row.get("state_version")
+    if not isinstance(state_version, int) or state_version != expected_prior_version + 1:
+        raise PersistenceRecordError("new state_version must equal expected_prior_version + 1")
+    runtime_instance_id = state_row.get("runtime_instance_id")
+    if not isinstance(runtime_instance_id, str) or not runtime_instance_id:
+        raise PersistenceRecordError("atomic commit requires runtime_instance_id")
+    checkpoint_sha256 = _require_hex_digest(
+        state_row.get("checkpoint_sha256"),
+        label="atomic-commit checkpoint_sha256",
+    )
+    source_commit = state_row.get("source_commit")
+    if not isinstance(source_commit, str) or len(source_commit) != 40:
+        raise PersistenceRecordError("atomic commit requires exact source_commit")
+
+    normalized_events: list[dict[str, Any]] = []
+    for row in event_rows:
+        if row.get("runtime_instance_id") != runtime_instance_id:
+            raise PersistenceRecordError("atomic event row runtime instance mismatch")
+        if row.get("source_commit") != source_commit:
+            raise PersistenceRecordError("atomic event row source commit mismatch")
+        _require_hex_digest(row.get("event_digest"), label="atomic event_digest")
+        normalized_events.append(dict(row))
+
+    return {
+        "schema": "VERA_AFFECTIVE_RUNTIME_ATOMIC_COMMIT_V1",
+        "runtime_instance_id": runtime_instance_id,
+        "expected_prior_version": expected_prior_version,
+        "state_version": state_version,
+        "checkpoint_sha256": checkpoint_sha256,
+        "state_row": dict(state_row),
+        "event_rows": normalized_events,
     }
 
 
