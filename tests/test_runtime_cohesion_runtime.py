@@ -67,14 +67,61 @@ class RuntimeCohesionPlannerTests(unittest.TestCase):
         self.assertEqual(plan.targets, ())
         self.assertTrue(any("PRIVACY" in item for item in plan.unresolved))
 
-    def test_dependency_cycle_terminates_with_visited_set(self):
+    def test_hard_prerequisite_is_traversed_before_dependent_domain(self):
+        plan = build_retrieval_plan(
+            "CONTROL_AND_GOVERNANCE",
+            self.index,
+            self.contract,
+            observed_route_states={},
+            privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED"},
+        )
+        self.assertGreaterEqual(len(plan.candidate_targets), 2)
+        self.assertEqual(plan.candidate_targets[0]["domain_id"], "CURRENT_TASK_CORRECTION_PERMISSION_CONSENT")
+        self.assertIn("CONTROL_AND_GOVERNANCE", {target["domain_id"] for target in plan.candidate_targets})
+
+    def test_unreachable_hard_prerequisite_blocks_dependent_reads(self):
+        plan = build_retrieval_plan(
+            "CONTROL_AND_GOVERNANCE",
+            self.index,
+            self.contract,
+            observed_route_states={
+                "route:vera-control-plane": "CURRENTLY_OBSERVED_REACHABLE",
+                "route:vera": "CURRENTLY_OBSERVED_REACHABLE",
+            },
+            privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED"},
+        )
+        self.assertFalse(any(target["domain_id"] == "CONTROL_AND_GOVERNANCE" for target in plan.targets))
+        self.assertTrue(any(item.startswith("HARD_PREREQUISITE_UNRESOLVED:CONTROL_AND_GOVERNANCE:CURRENT_TASK_CORRECTION_PERMISSION_CONSENT") for item in plan.unresolved))
+
+    def test_unreachable_contextual_dependency_does_not_block_primary_domain(self):
         index = copy.deepcopy(self.index)
         domains = {row["id"]: row for row in index["domains"]}
-        domains["VISUAL_SELF_REPRESENTATION"]["dependencies"] = ["SEMANTICS_PROVENANCE_CURRENTNESS"]
-        domains["SEMANTICS_PROVENANCE_CURRENTNESS"]["dependencies"] = ["VISUAL_SELF_REPRESENTATION"]
+        domains["VISUAL_SELF_REPRESENTATION"]["dependencies"] = ["PERSONIFICATION"]
+        plan = build_retrieval_plan(
+            "VISUAL_SELF_REPRESENTATION",
+            index,
+            self.contract,
+            observed_route_states={"route:selfimage": "CURRENTLY_OBSERVED_REACHABLE"},
+            privacy_allowlist={"PRIVATE_REPRESENTATION", "PRIVATE_SELF_STATE", "CONVERSATION_SCOPED"},
+        )
+        self.assertTrue(any(target["domain_id"] == "VISUAL_SELF_REPRESENTATION" for target in plan.targets))
+        self.assertFalse(any(item.startswith("HARD_PREREQUISITE_UNRESOLVED:VISUAL_SELF_REPRESENTATION") for item in plan.unresolved))
+
+    def test_contextual_dependency_cycle_terminates_with_visited_set(self):
+        index = copy.deepcopy(self.index)
+        domains = {row["id"]: row for row in index["domains"]}
+        domains["VISUAL_SELF_REPRESENTATION"]["dependencies"] = ["SELF_APPRAISAL_AND_EMPATHY"]
+        domains["SELF_APPRAISAL_AND_EMPATHY"]["dependencies"] = [
+            "CURRENT_TASK_CORRECTION_PERMISSION_CONSENT",
+            "VISUAL_SELF_REPRESENTATION",
+        ]
         route_states = {
             target["route_ref"]: "CURRENTLY_OBSERVED_REACHABLE"
-            for domain_id in ("VISUAL_SELF_REPRESENTATION", "SEMANTICS_PROVENANCE_CURRENTNESS")
+            for domain_id in (
+                "VISUAL_SELF_REPRESENTATION",
+                "SELF_APPRAISAL_AND_EMPATHY",
+                "CURRENT_TASK_CORRECTION_PERMISSION_CONSENT",
+            )
             for target in domains[domain_id]["retrieval_targets"]
         }
         plan = build_retrieval_plan(
@@ -82,9 +129,12 @@ class RuntimeCohesionPlannerTests(unittest.TestCase):
             index,
             self.contract,
             observed_route_states=route_states,
-            privacy_allowlist={"PRIVATE_REPRESENTATION", "GOVERNED"},
+            privacy_allowlist={"PRIVATE_REPRESENTATION", "PRIVATE_RELATIONAL", "CONVERSATION_SCOPED"},
         )
-        self.assertEqual(set(plan.visited_domains), {"VISUAL_SELF_REPRESENTATION", "SEMANTICS_PROVENANCE_CURRENTNESS"})
+        self.assertEqual(
+            set(plan.visited_domains),
+            {"VISUAL_SELF_REPRESENTATION", "SELF_APPRAISAL_AND_EMPATHY", "CURRENT_TASK_CORRECTION_PERMISSION_CONSENT"},
+        )
 
     def test_budget_exhaustion_is_explicit_unresolved_result(self):
         contract = copy.deepcopy(self.contract)
