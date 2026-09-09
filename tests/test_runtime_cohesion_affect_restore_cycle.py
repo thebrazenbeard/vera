@@ -4,7 +4,7 @@ import unittest
 
 from runtime_cohesion.affect_cycle import VeraAffectiveCycle
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
-from runtime_cohesion.affect_persistence import checkpoint_to_state_row
+from runtime_cohesion.affect_persistence import build_affective_resume_token, checkpoint_to_state_row
 from runtime_cohesion.orgasm import StimulusAppraisal
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,6 +54,10 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
         return checkpoint, row
 
     @staticmethod
+    def token(row):
+        return build_affective_resume_token(row)
+
+    @staticmethod
     def exact_writer_recorder(requests):
         def exact_writer(request):
             requests.append(dict(request))
@@ -73,6 +77,7 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
             row,
             host_scope="TEST_HOST",
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+            expected_resume_token=self.token(row),
             elapsed_seconds=60.0,
             atomic_commit_writer=self.exact_writer_recorder(requests),
         )
@@ -96,6 +101,7 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
             row,
             host_scope="TEST_HOST",
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+            expected_resume_token=self.token(row),
             elapsed_seconds=7200.0,
             atomic_commit_writer=self.exact_writer_recorder(requests),
         )
@@ -124,6 +130,7 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
             row,
             host_scope="TEST_HOST",
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+            expected_resume_token=self.token(row),
             elapsed_seconds=7200.0,
             atomic_commit_writer=self.exact_writer_recorder(requests),
         )
@@ -145,6 +152,7 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
 
     def test_restore_factory_rejects_missing_or_invalid_state_version(self):
         checkpoint, row = self.make_state_row(state_version=7)
+        token = self.token(row)
         for invalid in (None, 0, -1, True, 7.0, "7"):
             with self.subTest(state_version=invalid):
                 bad = dict(row)
@@ -156,10 +164,12 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
                         bad,
                         host_scope="TEST_HOST",
                         expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+                        expected_resume_token=token,
                     )
 
     def test_live_restore_rejects_historical_and_superseded_rows(self):
         checkpoint, row = self.make_state_row(state_version=7)
+        token = self.token(row)
         for lifecycle in ("HISTORICAL", "SUPERSEDED"):
             with self.subTest(lifecycle=lifecycle):
                 stale = dict(row)
@@ -171,6 +181,7 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
                         stale,
                         host_scope="TEST_HOST",
                         expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+                        expected_resume_token=token,
                     )
 
     def test_live_restore_binds_host_scope_to_provider_row(self):
@@ -182,6 +193,7 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
                 row,
                 host_scope="OTHER_HOST",
                 expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+                expected_resume_token=self.token(row),
             )
 
 
