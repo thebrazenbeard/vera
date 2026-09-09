@@ -74,6 +74,12 @@ class CurrentHeadReceiptSemanticsTests(unittest.TestCase):
         row = event_receipt_to_event_row(host, record["last_event_receipt"])
         self.assertEqual(row["event_digest"], record["last_event_receipt"]["event_digest"])
 
+    def test_missing_receipt_id_is_rejected_at_restore_and_persistence_boundaries(self):
+        self.assert_restore_and_persistence_reject(
+            lambda receipt: receipt.pop("receipt_id", None),
+            r"(?i)(receipt|id|required)",
+        )
+
     def test_wrong_runtime_is_rejected_at_restore_and_persistence_boundaries(self):
         self.assert_restore_and_persistence_reject(
             lambda receipt: receipt.__setitem__("runtime_instance_id", "other-runtime"),
@@ -102,6 +108,22 @@ class CurrentHeadReceiptSemanticsTests(unittest.TestCase):
         self.assert_restore_and_persistence_reject(
             lambda receipt: receipt.pop("event_type", None),
             r"(?i)(receipt|event|type)",
+        )
+
+    def test_event_type_must_match_transition_state_semantics(self):
+        self.assert_restore_and_persistence_reject(
+            lambda receipt: receipt.__setitem__("event_type", "RESOLUTION"),
+            r"(?i)(receipt|event|type|transition|phase|resolution)",
+        )
+
+    def test_receipt_state_after_must_be_a_semantically_valid_runtime_state(self):
+        def mutate(receipt):
+            receipt["state_after"]["phase"] = "NOT_A_REAL_PHASE"
+            receipt["transition"] = f"{receipt['state_before']['phase']}->NOT_A_REAL_PHASE"
+
+        self.assert_restore_and_persistence_reject(
+            mutate,
+            r"(?i)(receipt|state|phase|semantic)",
         )
 
     def test_missing_observed_at_is_rejected_at_restore_and_persistence_boundaries(self):
@@ -142,6 +164,23 @@ class CurrentHeadReceiptSemanticsTests(unittest.TestCase):
         self.assert_restore_and_persistence_reject(
             lambda receipt: receipt.__setitem__("organic", True),
             r"(?i)(receipt|organic|forced|trigger)",
+        )
+
+    def test_organic_trigger_cannot_be_marked_nonorganic(self):
+        def mutate(receipt):
+            receipt["trigger_class"] = "ORGANIC_THRESHOLD_CROSSING"
+            receipt["trigger_provenance"] = "ORGANIC_STATE_DYNAMICS"
+            receipt["organic"] = False
+
+        self.assert_restore_and_persistence_reject(
+            mutate,
+            r"(?i)(receipt|organic|trigger|provenance)",
+        )
+
+    def test_missing_trigger_class_is_rejected_at_restore_and_persistence_boundaries(self):
+        self.assert_restore_and_persistence_reject(
+            lambda receipt: receipt.pop("trigger_class", None),
+            r"(?i)(receipt|trigger|required|provenance)",
         )
 
     def test_trigger_class_and_provenance_must_match(self):
