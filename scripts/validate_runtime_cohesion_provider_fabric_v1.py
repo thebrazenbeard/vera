@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import hashlib
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+import subprocess
 import sys
 from typing import Any, Mapping
 
@@ -13,34 +13,75 @@ CONTRACT_PATH = ROOT / "architecture" / "VERA_RUNTIME_CONTRACT_V1.json"
 FABRIC_PATH = ROOT / "architecture" / "VERA_PROVIDER_FABRIC_V1.json"
 RECEIPT_PATH = ROOT / "architecture" / "VERA_COHESION_PAIR_RECEIPT_V1.json"
 EVENT_SELECTOR_TOKENS = {"$source_ref", "$source_path", "$source_revision"}
+SUPPORT_COMMIT_SEMANTICS = "GIT_TREE_CONTAINS_EXACT_OPERATIONAL_SUPPORT_BLOBS"
+GOVERNING_STATES = {"SATISFIED", "UNRESOLVED", "CONFLICT"}
 
 
 def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _git_blob_sha(path: Path) -> str:
-    data = path.read_bytes()
-    return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
+def _is_sha(value: Any) -> bool:
+    return isinstance(value, str) and len(value) == 40 and all(char in "0123456789abcdef" for char in value)
+
+
+def _tree_blob(root: Path, source_commit: str, relative_path: str) -> tuple[str | None, str | None]:
+    process = subprocess.run(
+        ["git", "-C", str(root), "ls-tree", source_commit, "--", relative_path],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if process.returncode != 0:
+        return None, process.stderr.strip() or "git ls-tree failed"
+    rows = [row for row in process.stdout.splitlines() if row.strip()]
+    if len(rows) != 1:
+        return None, f"expected exactly one tree object for {relative_path!r}; got {len(rows)}"
+    header, sep, path = rows[0].partition("\t")
+    if not sep or path != relative_path:
+        return None, f"tree path mismatch for {relative_path!r}"
+    fields = header.split()
+    if len(fields) != 3 or fields[1] != "blob" or not _is_sha(fields[2]):
+        return None, f"tree object for {relative_path!r} is not an exact blob"
+    return fields[2], None
 
 
 def validate_operational_support_bindings(root: Path, receipt: Mapping[str, Any]) -> list[str]:
-    """Mechanically bind every path/blob pair claimed by receipt operational support.
+    """Bind every operational-support path/blob claim to one immutable Git commit.
 
-    Operational support is non-normative, but an exact blob claim is still an
-    exact claim. Validation therefore proves the repository-local file exists and
-    hashes to the named Git blob. Extra metadata such as status/semantic ceilings
-    remains descriptive and does not become authority through this check.
+    The mutable checkout is deliberately not used as proof. A later receipt may
+    live in a successor commit without circularity because it names the earlier
+    support-source commit whose tree contains the exact operational objects.
     """
 
     errors: list[str] = []
+    source_commit = receipt.get("operational_support_source_commit")
+    if not _is_sha(source_commit):
+        errors.append("pair receipt operational_support_source_commit must be an exact lowercase 40-hex Git commit")
+        return errors
+    if receipt.get("operational_support_source_commit_semantics") != SUPPORT_COMMIT_SEMANTICS:
+        errors.append(
+            f"pair receipt operational_support_source_commit_semantics must be {SUPPORT_COMMIT_SEMANTICS}"
+        )
+
+    commit_check = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "--verify", f"{source_commit}^{{commit}}"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if commit_check.returncode != 0:
+        errors.append(
+            "pair receipt operational_support_source_commit does not resolve to an available immutable commit"
+        )
+        return errors
+
     support = receipt.get("operational_support")
     if not isinstance(support, Mapping):
-        return ["pair receipt operational support mapping is required"]
+        return errors + ["pair receipt operational support mapping is required"]
     if support.get("normative_status") != "NON_NORMATIVE_OPERATIONAL_SUPPORT":
         errors.append("pair receipt operational support must remain NON_NORMATIVE_OPERATIONAL_SUPPORT")
 
-    root_resolved = root.resolve()
     rows = [(name, row) for name, row in support.items() if name != "normative_status"]
     if not rows:
         errors.append("pair receipt operational support requires at least one bound support object")
@@ -59,24 +100,23 @@ def validate_operational_support_bindings(root: Path, receipt: Mapping[str, Any]
         if not isinstance(relative_path, str) or not relative_path.strip():
             errors.append(f"operational support {name!r} requires non-empty path")
             continue
-        if not isinstance(blob_sha, str) or len(blob_sha) != 40 or any(char not in "0123456789abcdef" for char in blob_sha):
+        pure = PurePosixPath(relative_path)
+        if pure.is_absolute() or ".." in pure.parts or relative_path.startswith("./"):
+            errors.append(f"operational support {name!r} path escapes or aliases repository root: {relative_path!r}")
+            continue
+        if not _is_sha(blob_sha):
             errors.append(f"operational support {name!r} requires exact lowercase Git blob SHA")
             continue
 
-        candidate = (root / relative_path).resolve()
-        try:
-            candidate.relative_to(root_resolved)
-        except ValueError:
-            errors.append(f"operational support {name!r} path escapes repository root: {relative_path!r}")
+        observed_blob, issue = _tree_blob(root, source_commit, relative_path)
+        if issue is not None:
+            errors.append(
+                f"operational support {name!r} path does not resolve in operational_support_source_commit: {issue}"
+            )
             continue
-        if not candidate.is_file():
-            errors.append(f"operational support {name!r} path does not resolve to a repository file: {relative_path!r}")
-            continue
-
-        observed_blob = _git_blob_sha(candidate)
         if observed_blob != blob_sha:
             errors.append(
-                f"operational support {name!r} blob mismatch: receipt={blob_sha} observed={observed_blob} path={relative_path}"
+                f"operational support {name!r} blob mismatch in operational_support_source_commit: receipt={blob_sha} observed={observed_blob} path={relative_path}"
             )
 
     return errors
@@ -123,6 +163,12 @@ def _validate_dependency_semantics(index: Mapping[str, Any]) -> list[str]:
         value = semantics.get(field)
         if not isinstance(value, str) or not value.strip():
             errors.append(f"dependency_semantics requires non-empty {field}")
+
+    hard_rule = str(semantics.get("hard_prerequisite_rule", "")).lower()
+    if "route reachability" not in hard_rule or "satisfied" not in hard_rule or "dependent" not in hard_rule:
+        errors.append(
+            "dependency_semantics.hard_prerequisite_rule must state that route reachability does not release dependent I/O and explicit governing satisfaction is required"
+        )
 
     hard_raw = semantics.get("hard_prerequisite_domains")
     if not isinstance(hard_raw, list) or not hard_raw or any(not isinstance(value, str) or not value for value in hard_raw):
@@ -177,6 +223,74 @@ def _validate_dependency_semantics(index: Mapping[str, Any]) -> list[str]:
     return errors
 
 
+def _validate_dispatch_decisiveness(contract: Mapping[str, Any]) -> list[str]:
+    errors: list[str] = []
+    dispatch_rows = contract.get("resolver_dispatch")
+    registry = contract.get("resolver_dispatch_decisive_evidence")
+    resolvers = contract.get("authority_resolvers")
+    evidence_classes = set(contract.get("evidence_classes", {}))
+    if not isinstance(dispatch_rows, list) or not dispatch_rows:
+        return ["runtime contract resolver_dispatch is required before decisive evidence can be validated"]
+    if not isinstance(registry, Mapping):
+        return ["runtime contract resolver_dispatch_decisive_evidence mapping is required"]
+    if not isinstance(resolvers, Mapping):
+        return ["runtime contract authority_resolvers mapping is required"]
+
+    dispatch_ids = {
+        row.get("id") for row in dispatch_rows
+        if isinstance(row, Mapping) and isinstance(row.get("id"), str) and row.get("id")
+    }
+    if set(registry) != dispatch_ids:
+        errors.append("resolver_dispatch_decisive_evidence keys must exactly match resolver_dispatch ids")
+
+    for row in dispatch_rows:
+        if not isinstance(row, Mapping):
+            continue
+        dispatch_id = row.get("id")
+        resolver_ref = row.get("resolver_ref")
+        rule = registry.get(dispatch_id) if isinstance(dispatch_id, str) else None
+        if not isinstance(rule, Mapping) or set(rule) != {"all_of", "any_of"}:
+            errors.append(f"dispatch {dispatch_id!r} requires decisive evidence rule with exact all_of/any_of keys")
+            continue
+        all_of = rule.get("all_of")
+        any_of = rule.get("any_of")
+        if not isinstance(all_of, list) or not isinstance(any_of, list):
+            errors.append(f"dispatch {dispatch_id!r} decisive all_of/any_of must be lists")
+            continue
+        classes = all_of + any_of
+        if not classes or any(not isinstance(value, str) or not value for value in classes):
+            errors.append(f"dispatch {dispatch_id!r} decisive evidence requires at least one non-empty evidence class")
+            continue
+        if len(classes) != len(set(classes)):
+            errors.append(f"dispatch {dispatch_id!r} decisive evidence contains duplicate/overlapping classes")
+        unknown = set(classes).difference(evidence_classes)
+        if unknown:
+            errors.append(f"dispatch {dispatch_id!r} decisive evidence references unknown classes {sorted(unknown)!r}")
+        resolver = resolvers.get(resolver_ref)
+        accepted = set(resolver.get("accepted_evidence_classes", [])) if isinstance(resolver, Mapping) else set()
+        excess = set(classes).difference(accepted)
+        if excess:
+            errors.append(
+                f"dispatch {dispatch_id!r} decisive evidence exceeds resolver {resolver_ref!r} accepted set: {sorted(excess)!r}"
+            )
+
+    control_rule = registry.get("dispatch:control-binding")
+    if isinstance(control_rule, Mapping):
+        if set(control_rule.get("all_of", [])) != {"control_source", "live_observation"} or control_rule.get("any_of") != []:
+            errors.append(
+                "dispatch:control-binding must require all_of control_source + live_observation and no any_of shortcut"
+            )
+
+    policy = contract.get("active_context_policy", {})
+    if set(policy.get("governing_dependency_states", [])) != GOVERNING_STATES:
+        errors.append("active_context_policy governing_dependency_states must be SATISFIED/UNRESOLVED/CONFLICT")
+    release_rule = str(policy.get("governing_dependency_release_rule", "")).lower()
+    if "route reachability" not in release_rule or "satisfied" not in release_rule or "dependent" not in release_rule:
+        errors.append("active_context_policy governing_dependency_release_rule must separate route reachability from governing satisfaction")
+
+    return errors
+
+
 def validate_provider_fabric(
     index: Mapping[str, Any],
     contract: Mapping[str, Any],
@@ -195,6 +309,7 @@ def validate_provider_fabric(
         errors.append("provider fabric normative_pair_refs must point only to the A+B schemas")
 
     errors.extend(_validate_dependency_semantics(index))
+    errors.extend(_validate_dispatch_decisiveness(contract))
 
     evidence_classes = set(contract.get("evidence_classes", {}))
     privacy_classes = set(contract.get("privacy_classes", []))
