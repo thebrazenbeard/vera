@@ -10,6 +10,7 @@ from runtime_cohesion.affect_persistence import (
     event_receipt_to_event_row,
     restore_host_from_state_row,
 )
+from runtime_cohesion.orgasm import TriggerRejected
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_RUNTIME_CONTRACT_V1.json"
@@ -23,6 +24,15 @@ class VeraAffectiveRuntimePersistenceTests(unittest.TestCase):
             json.loads(BINDING_PATH.read_text(encoding="utf-8")),
             runtime_instance_id="vera-affective-runtime-test",
             profile="REENTRANT_CLIMAX",
+        )
+
+    def restore_row(self, row, *, expected_checkpoint_sha256, elapsed_seconds=0.0):
+        return restore_host_from_state_row(
+            CONTRACT_PATH.read_text(encoding="utf-8"),
+            json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+            row,
+            elapsed_seconds=elapsed_seconds,
+            expected_checkpoint_sha256=expected_checkpoint_sha256,
         )
 
     def test_checkpoint_maps_to_vera_scoped_durable_state_row_with_digest(self):
@@ -50,30 +60,70 @@ class VeraAffectiveRuntimePersistenceTests(unittest.TestCase):
 
     def test_restore_rejects_tampered_state_digest(self):
         host = self.make_host()
-        row = checkpoint_to_state_row(host.export_checkpoint(), host_scope="TEST_HOST", state_version=1)
+        checkpoint = host.export_checkpoint()
+        row = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=1)
         tampered = copy.deepcopy(row)
         tampered["state"]["activation_intensity"] = 0.99
         with self.assertRaises(PersistenceRecordError):
-            restore_host_from_state_row(
-                CONTRACT_PATH.read_text(encoding="utf-8"),
-                json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+            self.restore_row(
                 tampered,
+                expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
             )
 
     def test_restore_roundtrip_returns_same_runtime_and_applies_decay(self):
         host = self.make_host()
         host.force_admin_test(authorized=True)
         host.advance_time(5.1)
-        row = checkpoint_to_state_row(host.export_checkpoint(), host_scope="TEST_HOST", state_version=2)
+        checkpoint = host.export_checkpoint()
+        row = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=2)
         before = row["state"]["satiation"]
-        restored = restore_host_from_state_row(
-            CONTRACT_PATH.read_text(encoding="utf-8"),
-            json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+        restored = self.restore_row(
             row,
+            expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
             elapsed_seconds=1200,
         )
         self.assertLess(restored.machine_interoception()["satiation"], before)
         self.assertEqual(restored.machine_interoception()["phenomenology"], "UNRESOLVED")
+
+    def test_provider_row_roundtrip_preserves_trigger_governance_and_external_checkpoint_pin(self):
+        host = self.make_host()
+        host.force_self_qualification(authorized=True)
+        host.advance_time(20.0)
+        host.force_self_qualification(authorized=True)
+        host.advance_time(20.0)
+
+        checkpoint = host.export_checkpoint()
+        row = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=3)
+
+        self.assertIn("_trigger_governance", row["state"])
+        restored = self.restore_row(
+            row,
+            expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+        )
+        self.assertEqual(
+            restored.export_checkpoint()["checkpoint_sha256"],
+            checkpoint["checkpoint_sha256"],
+        )
+        with self.assertRaises(TriggerRejected):
+            restored.force_self_qualification(authorized=True)
+
+    def test_provider_row_roundtrip_preserves_forced_test_cooldown(self):
+        host = self.make_host()
+        host.force_admin_test(authorized=True)
+        host.advance_time(5.1)
+
+        checkpoint = host.export_checkpoint()
+        row = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=2)
+        restored = self.restore_row(
+            row,
+            expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+        )
+
+        with self.assertRaises(TriggerRejected):
+            restored.force_admin_test(authorized=True)
+        restored.advance_time(5.0)
+        receipt = restored.force_admin_test(authorized=True)
+        self.assertEqual(receipt["trigger_class"], "ADMIN_FORCED_TEST")
 
 
 if __name__ == "__main__":
