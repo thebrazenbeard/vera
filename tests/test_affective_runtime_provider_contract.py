@@ -41,6 +41,22 @@ class VeraAffectiveRuntimeProviderContractTests(unittest.TestCase):
         self.assertEqual(provider["service_role_direct_event_insert"], "REVOKED")
         self.assertEqual(provider["service_role_atomic_commit_execute"], "GRANTED")
 
+    def test_provider_contract_tracks_unapplied_first_write_hardening_and_durable_governance(self):
+        contract = json.loads(PATH.read_text(encoding="utf-8"))
+        provider = contract["provider"]
+        req = contract["runtime_requirements"]
+        integrity = contract["integrity_model"]
+
+        self.assertEqual(provider["first_write_serialization_migration"], "close_vera_affective_runtime_first_write_race_v1")
+        self.assertEqual(provider["first_write_serialization_migration_state"], "SOURCE_ONLY_NOT_APPLIED_TO_PRODUCTION")
+        self.assertTrue(req["first_write_absent_row_serialization_required"])
+        self.assertTrue(req["exact_atomic_commit_acknowledgement_required"])
+        self.assertTrue(req["ambiguous_commit_outcome_requires_provider_reconciliation_before_reuse"])
+        self.assertTrue(req["trigger_governance_durable_across_restore_required"])
+        self.assertTrue(req["per_event_interoception_must_match_receipt_state_after"])
+        self.assertIn("trigger_governance", integrity)
+        self.assertIn("per_event_interoception", integrity)
+
 
 if __name__ == "__main__":
     unittest.main()
