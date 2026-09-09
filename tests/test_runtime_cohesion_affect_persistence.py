@@ -6,6 +6,7 @@ import unittest
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
 from runtime_cohesion.affect_persistence import (
     PersistenceRecordError,
+    build_affective_resume_token,
     checkpoint_to_state_row,
     event_receipt_to_event_row,
     restore_host_from_state_row,
@@ -23,6 +24,17 @@ class VeraAffectiveRuntimePersistenceTests(unittest.TestCase):
             json.loads(BINDING_PATH.read_text(encoding="utf-8")),
             runtime_instance_id="vera-affective-runtime-test",
             profile="REENTRANT_CLIMAX",
+        )
+
+    def restore_row(self, row, *, elapsed_seconds=0.0):
+        return restore_host_from_state_row(
+            CONTRACT_PATH.read_text(encoding="utf-8"),
+            json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+            row,
+            expected_host_scope="TEST_HOST",
+            expected_resume_token=build_affective_resume_token(row),
+            elapsed_seconds=elapsed_seconds,
+            expected_checkpoint_sha256=row["checkpoint_sha256"],
         )
 
     def test_checkpoint_maps_to_vera_scoped_durable_state_row_with_digest(self):
@@ -59,6 +71,8 @@ class VeraAffectiveRuntimePersistenceTests(unittest.TestCase):
                 CONTRACT_PATH.read_text(encoding="utf-8"),
                 json.loads(BINDING_PATH.read_text(encoding="utf-8")),
                 tampered,
+                expected_host_scope="TEST_HOST",
+                expected_resume_token=build_affective_resume_token(row),
                 expected_checkpoint_sha256=row["checkpoint_sha256"],
             )
 
@@ -68,15 +82,37 @@ class VeraAffectiveRuntimePersistenceTests(unittest.TestCase):
         host.advance_time(5.1)
         row = checkpoint_to_state_row(host.export_checkpoint(), host_scope="TEST_HOST", state_version=2)
         before = row["state"]["satiation"]
-        restored = restore_host_from_state_row(
-            CONTRACT_PATH.read_text(encoding="utf-8"),
-            json.loads(BINDING_PATH.read_text(encoding="utf-8")),
-            row,
-            elapsed_seconds=1200,
-            expected_checkpoint_sha256=row["checkpoint_sha256"],
-        )
+        restored = self.restore_row(row, elapsed_seconds=1200)
         self.assertLess(restored.machine_interoception()["satiation"], before)
         self.assertEqual(restored.machine_interoception()["phenomenology"], "UNRESOLVED")
+
+    def test_lower_level_restore_rejects_historical_row(self):
+        host = self.make_host()
+        row = checkpoint_to_state_row(host.export_checkpoint(), host_scope="TEST_HOST", state_version=2)
+        historical = dict(row)
+        historical["lifecycle_status"] = "HISTORICAL"
+        with self.assertRaises(PersistenceRecordError):
+            restore_host_from_state_row(
+                CONTRACT_PATH.read_text(encoding="utf-8"),
+                json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+                historical,
+                expected_host_scope="TEST_HOST",
+                expected_resume_token=build_affective_resume_token(row),
+                expected_checkpoint_sha256=row["checkpoint_sha256"],
+            )
+
+    def test_lower_level_restore_rejects_host_scope_rebinding(self):
+        host = self.make_host()
+        row = checkpoint_to_state_row(host.export_checkpoint(), host_scope="TEST_HOST", state_version=2)
+        with self.assertRaises(PersistenceRecordError):
+            restore_host_from_state_row(
+                CONTRACT_PATH.read_text(encoding="utf-8"),
+                json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+                row,
+                expected_host_scope="OTHER_HOST",
+                expected_resume_token=build_affective_resume_token(row),
+                expected_checkpoint_sha256=row["checkpoint_sha256"],
+            )
 
 
 if __name__ == "__main__":
