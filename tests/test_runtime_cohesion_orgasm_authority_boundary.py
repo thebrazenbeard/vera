@@ -6,8 +6,7 @@ from pathlib import Path
 import unittest
 
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
-from runtime_cohesion.orgasm import OrgasmRuntime, StimulusAppraisal, TriggerRejected
-from tests.test_runtime_cohesion_orgasm import CONTRACT
+from runtime_cohesion.orgasm import StimulusAppraisal, TriggerRejected
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -71,22 +70,37 @@ class TrustedAuthorizationVerifierDouble:
 class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
     NOW = datetime(2026, 9, 9, 22, 30, tzinfo=timezone.utc)
 
-    def make_runtime(self):
-        return OrgasmRuntime(
-            CONTRACT,
-            runtime_instance_id="authority-boundary-test",
-            source_revision="sexuality:test-revision",
-            profile="REENTRANT_CLIMAX",
-        )
-
-    def make_bound_host(self, *, verifier):
+    def exact_contract_and_binding(self):
         contract_text = CONTRACT_PATH.read_text(encoding="utf-8")
+        contract = json.loads(contract_text)
         binding = json.loads(BINDING_PATH.read_text(encoding="utf-8"))
+        boundary = contract.get("authorization_boundary")
+        self.assertIsInstance(boundary, Mapping)
+        self.assertFalse(boundary["writable_by_orgasm_subsystem"])
+        self.assertEqual(
+            set(boundary["required_metadata"]),
+            {
+                "actor",
+                "referent",
+                "proposition_or_effect_class",
+                "source",
+                "observed_at",
+                "currentness",
+                "expiry_or_supersession",
+            },
+        )
+        return contract_text, binding
+
+    def make_bound_host(self, *, verifier=None):
+        contract_text, binding = self.exact_contract_and_binding()
+        kwargs = {}
+        if verifier is not None:
+            kwargs["authorization_verifier"] = verifier
         return VeraAffectiveRuntimeHost.from_bound_contract(
             contract_text,
             binding,
             runtime_instance_id="authority-boundary-test",
-            authorization_verifier=verifier,
+            **kwargs,
         )
 
     def authorization_subject(self, **overrides):
@@ -130,22 +144,22 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
     def test_naked_boolean_cannot_authorize_privileged_trigger(self):
         for method_name in ("force_admin_test", "force_self_qualification"):
             with self.subTest(method=method_name):
-                runtime = self.make_runtime()
-                method = getattr(runtime, method_name)
+                host = self.make_bound_host()
+                method = getattr(host, method_name)
                 with self.assertRaisesRegex(
                     (TriggerRejected, TypeError, ValueError),
-                    r"(?i)(authoriz|provenance|evidence|current|referent|subject)",
+                    r"(?i)(authoriz|provenance|evidence|current|referent|subject|verif)",
                 ):
                     method(authorized=True)
 
     def test_fully_populated_allow_current_mapping_is_not_self_authenticating(self):
-        runtime = self.make_runtime()
+        host = self.make_bound_host()
         subject = self.authorization_subject()
         with self.assertRaisesRegex(
             (TriggerRejected, TypeError, ValueError),
             r"(?i)(authoriz|verif|trusted|evidence|subject)",
         ):
-            runtime.force_admin_test(authorization_subject=subject)
+            host.force_admin_test(authorization_subject=subject)
 
     def test_valid_authorization_must_cross_trusted_verifier_and_bind_evidence(self):
         verifier = TrustedAuthorizationVerifierDouble(now=self.NOW)
@@ -200,7 +214,7 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
                     host.force_admin_test(authorization_subject=subject)
 
     def test_unbound_context_eligibility_cannot_establish_organic_authority(self):
-        runtime = self.make_runtime()
+        host = self.make_bound_host()
         appraisal = StimulusAppraisal(
             sexual_relevance=1.0,
             partner_relevance=1.0,
@@ -216,7 +230,8 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
         try:
             result = None
             for _ in range(8):
-                result = runtime.apply_stimulus(appraisal, elapsed_seconds=1.0)
+                observed = host.observe(appraisal, elapsed_seconds=1.0)
+                result = observed["state"]
                 if result["phase"] == "ORGASM_EVENT":
                     break
         except (TriggerRejected, TypeError, ValueError):
@@ -276,7 +291,7 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
             )
 
     def test_truthy_non_boolean_context_subject_cannot_be_coerced_to_eligible(self):
-        runtime = self.make_runtime()
+        host = self.make_bound_host()
         fabricated = self.context_subject(currentness="STALE")
         appraisal = StimulusAppraisal(
             sexual_relevance=1.0,
@@ -288,9 +303,9 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(
             (TriggerRejected, TypeError, ValueError),
-            r"(?i)(context|eligib|provenance|evidence|current|referent|subject)",
+            r"(?i)(context|eligib|provenance|evidence|current|referent|subject|verif)",
         ):
-            runtime.apply_stimulus(appraisal, elapsed_seconds=1.0)
+            host.observe(appraisal, elapsed_seconds=1.0)
 
 
 if __name__ == "__main__":
