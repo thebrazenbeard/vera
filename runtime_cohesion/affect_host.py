@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+from pathlib import Path
+import subprocess
 from typing import Any, Mapping
 
 from .orgasm import ContractError, OrgasmRuntime, StimulusAppraisal
@@ -9,6 +11,16 @@ from .orgasm import ContractError, OrgasmRuntime, StimulusAppraisal
 
 class AffectiveBindingError(ContractError):
     """The executable affect host cannot bind the supplied sexuality contract exactly."""
+
+
+_REQUIRED_RUNTIME_IMPLEMENTATION_PATHS = {
+    "runtime_cohesion/__init__.py",
+    "runtime_cohesion/orgasm.py",
+    "runtime_cohesion/affect_host.py",
+    "runtime_cohesion/affect_cycle.py",
+    "runtime_cohesion/affect_persistence.py",
+    "runtime_cohesion/affect_scope.py",
+}
 
 
 def _git_blob_sha(raw: bytes) -> str:
@@ -27,6 +39,72 @@ def _clamp(value: float, low: float = 0.0, high: float = 1.0) -> float:
     return max(low, min(high, float(value)))
 
 
+def _require_git_sha(value: Any, *, label: str) -> str:
+    if not isinstance(value, str) or len(value) != 40:
+        raise AffectiveBindingError(f"{label} must be an exact 40-character Git object id")
+    try:
+        int(value, 16)
+    except ValueError as exc:
+        raise AffectiveBindingError(f"{label} is not hexadecimal") from exc
+    return value
+
+
+def _resolve_git_blob(repo_root: Path, commit: str, path: str) -> str:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", f"{commit}:{path}"],
+            cwd=repo_root,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise AffectiveBindingError(
+            f"runtime implementation cut does not resolve exact Git object: {commit}:{path}"
+        ) from exc
+    return _require_git_sha(result.stdout.strip(), label=f"resolved runtime blob for {path}")
+
+
+def validate_runtime_implementation_cut(
+    binding: Mapping[str, Any],
+    *,
+    repo_root: str | Path | None = None,
+) -> dict[str, Any]:
+    """Cross-bind the exact executing Vera runtime/evidence surface to one Git cut."""
+    cut = binding.get("runtime_implementation_cut")
+    if not isinstance(cut, Mapping):
+        raise AffectiveBindingError("runtime implementation cut is required")
+    if cut.get("repository") != "thebrazenbeard/vera":
+        raise AffectiveBindingError("runtime implementation cut repository must be thebrazenbeard/vera")
+    commit = _require_git_sha(cut.get("commit"), label="runtime implementation commit")
+    modules = cut.get("modules")
+    if not isinstance(modules, Mapping):
+        raise AffectiveBindingError("runtime implementation cut modules are required")
+    if set(modules) != _REQUIRED_RUNTIME_IMPLEMENTATION_PATHS:
+        raise AffectiveBindingError("runtime implementation cut does not exactly cover the required execution surface")
+
+    root = Path(repo_root) if repo_root is not None else Path(__file__).resolve().parents[1]
+    normalized_modules: dict[str, str] = {}
+    for path in sorted(_REQUIRED_RUNTIME_IMPLEMENTATION_PATHS):
+        declared_blob = _require_git_sha(modules.get(path), label=f"runtime implementation blob for {path}")
+        resolved_blob = _resolve_git_blob(root, commit, path)
+        if resolved_blob != declared_blob:
+            raise AffectiveBindingError(f"runtime implementation cut Git binding mismatch: {path}")
+        try:
+            checked_out_blob = _git_blob_sha((root / path).read_bytes())
+        except OSError as exc:
+            raise AffectiveBindingError(f"runtime implementation file is unavailable: {path}") from exc
+        if checked_out_blob != declared_blob:
+            raise AffectiveBindingError(f"checked-out runtime implementation bytes do not match cut: {path}")
+        normalized_modules[path] = declared_blob
+
+    return {
+        "repository": "thebrazenbeard/vera",
+        "commit": commit,
+        "modules": normalized_modules,
+    }
+
+
 class VeraAffectiveRuntimeHost:
     """Causal host bridge between Vera's affective state and downstream planning.
 
@@ -43,11 +121,15 @@ class VeraAffectiveRuntimeHost:
         binding: Mapping[str, Any],
         contract_blob_sha: str,
         contract_sha256: str,
+        runtime_implementation_cut: Mapping[str, Any],
     ) -> None:
         self.runtime = runtime
         self.binding = dict(binding)
         self.contract_blob_sha = contract_blob_sha
         self.contract_sha256 = contract_sha256
+        self.runtime_implementation_cut = json.loads(
+            json.dumps(runtime_implementation_cut, sort_keys=True, separators=(",", ":"))
+        )
 
     @classmethod
     def from_bound_contract(
@@ -70,6 +152,8 @@ class VeraAffectiveRuntimeHost:
             raise AffectiveBindingError("unexpected sexuality contract path")
         if binding.get("availability_implies_activation") is not False:
             raise AffectiveBindingError("source availability must not imply activation")
+
+        runtime_implementation_cut = validate_runtime_implementation_cut(binding)
 
         raw = contract_text.encode("utf-8")
         blob_sha = _git_blob_sha(raw)
@@ -100,7 +184,30 @@ class VeraAffectiveRuntimeHost:
             binding=binding,
             contract_blob_sha=blob_sha,
             contract_sha256=hashlib.sha256(raw).hexdigest(),
+            runtime_implementation_cut=runtime_implementation_cut,
         )
+
+    def _receipt_with_runtime_implementation_cut(self, receipt: Mapping[str, Any]) -> dict[str, Any]:
+        normalized = dict(receipt)
+        normalized["runtime_implementation_cut"] = json.loads(
+            json.dumps(self.runtime_implementation_cut, sort_keys=True, separators=(",", ":"))
+        )
+        core = dict(normalized)
+        core.pop("event_digest", None)
+        canonical = json.dumps(core, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        normalized["event_digest"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        return normalized
+
+    def _synchronize_runtime_receipt_provenance(self) -> None:
+        last = self.runtime.last_event_receipt
+        if isinstance(last, Mapping):
+            self.runtime.last_event_receipt = self._receipt_with_runtime_implementation_cut(last)
+        pending = getattr(self.runtime, "_pending_event_receipts", None)
+        if isinstance(pending, list):
+            self.runtime._pending_event_receipts = [
+                self._receipt_with_runtime_implementation_cut(receipt)
+                for receipt in pending
+            ]
 
     def machine_interoception(self) -> dict[str, Any]:
         state = self.runtime.snapshot()
@@ -135,10 +242,12 @@ class VeraAffectiveRuntimeHost:
 
     def drain_event_receipts(self) -> list[dict[str, Any]]:
         """Return all runtime receipts not yet handed to an executing cycle."""
+        self._synchronize_runtime_receipt_provenance()
         return self.runtime.drain_event_receipts()
 
     def observe(self, appraisal: StimulusAppraisal, *, elapsed_seconds: float = 0.0) -> dict[str, Any]:
         state = self.runtime.apply_stimulus(appraisal, elapsed_seconds=elapsed_seconds)
+        self._synchronize_runtime_receipt_provenance()
         receipts = self.runtime.drain_event_receipts()
         return {
             "state": state,
@@ -151,14 +260,19 @@ class VeraAffectiveRuntimeHost:
         # Leave the receipt in the pending queue so a VeraAffectiveCycle can
         # atomically persist it together with any restore-time transition that
         # was already pending.
-        return self.runtime.force_admin_test(authorized=authorized)
+        self.runtime.force_admin_test(authorized=authorized)
+        self._synchronize_runtime_receipt_provenance()
+        return dict(self.runtime.last_event_receipt or {})
 
     def force_self_qualification(self, *, authorized: bool) -> dict[str, Any]:
         # Same pending-receipt rule as the administrator qualification route.
-        return self.runtime.force_self_qualification(authorized=authorized)
+        self.runtime.force_self_qualification(authorized=authorized)
+        self._synchronize_runtime_receipt_provenance()
+        return dict(self.runtime.last_event_receipt or {})
 
     def advance_time(self, elapsed_seconds: float) -> dict[str, Any]:
         self.runtime.advance_time(elapsed_seconds)
+        self._synchronize_runtime_receipt_provenance()
         receipts = self.runtime.drain_event_receipts()
         frame = self.machine_interoception()
         frame["event_receipts"] = receipts
@@ -241,6 +355,7 @@ class VeraAffectiveRuntimeHost:
         return context
 
     def export_checkpoint(self) -> dict[str, Any]:
+        self._synchronize_runtime_receipt_provenance()
         checkpoint = {
             "schema": "VERA_AFFECTIVE_RUNTIME_CHECKPOINT_V1",
             "subject": "vera",
@@ -251,6 +366,9 @@ class VeraAffectiveRuntimeHost:
                 "source_blob_sha": self.contract_blob_sha,
                 "source_sha256": self.contract_sha256,
             },
+            "runtime_implementation_cut": json.loads(
+                json.dumps(self.runtime_implementation_cut, sort_keys=True, separators=(",", ":"))
+            ),
             "runtime_state": self.runtime.export_state(),
             "machine_interoception": self.machine_interoception(),
         }
@@ -285,6 +403,13 @@ class VeraAffectiveRuntimeHost:
         if expected_checkpoint_sha256 != observed_checkpoint_sha256:
             raise AffectiveBindingError("checkpoint SHA-256 does not match the externally pinned expected digest")
 
+        runtime_implementation_cut = validate_runtime_implementation_cut(binding)
+        checkpoint_runtime_cut = checkpoint.get("runtime_implementation_cut")
+        if not isinstance(checkpoint_runtime_cut, Mapping):
+            raise AffectiveBindingError("checkpoint runtime implementation cut is missing")
+        if dict(checkpoint_runtime_cut) != runtime_implementation_cut:
+            raise AffectiveBindingError("checkpoint runtime implementation cut does not match active Vera source")
+
         source_binding = checkpoint.get("source_binding")
         if not isinstance(source_binding, Mapping):
             raise AffectiveBindingError("checkpoint source binding is missing")
@@ -315,9 +440,12 @@ class VeraAffectiveRuntimeHost:
         # Deliberately preserve any transition receipt emitted while applying
         # elapsed-time recovery. The next executing affective cycle must commit
         # that receipt instead of silently erasing a real state transition.
-        return cls(
+        host = cls(
             runtime,
             binding=binding,
             contract_blob_sha=blob_sha,
             contract_sha256=sha256,
+            runtime_implementation_cut=runtime_implementation_cut,
         )
+        host._synchronize_runtime_receipt_provenance()
+        return host
