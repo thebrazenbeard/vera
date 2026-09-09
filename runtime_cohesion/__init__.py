@@ -7,6 +7,12 @@ Provider I/O occurs only when a runtime explicitly invokes registered adapters.
 
 from .adapters import AdapterProbeResult, AdapterRegistry, AdapterRequest, ProviderAdapter
 from .affect_host import AffectiveBindingError, VeraAffectiveRuntimeHost
+from .affect_persistence import (
+    PersistenceRecordError,
+    checkpoint_to_state_row,
+    event_receipt_to_event_row,
+    restore_host_from_state_row,
+)
 from .audit import ProjectionAuditResult, audit_registered_projections
 from .evidence import ProviderEvidenceEnvelope, load_provider_fabric, validate_envelope
 from .executor import (
@@ -38,6 +44,10 @@ __all__ = [
     "ProviderAdapter",
     "AffectiveBindingError",
     "VeraAffectiveRuntimeHost",
+    "PersistenceRecordError",
+    "checkpoint_to_state_row",
+    "event_receipt_to_event_row",
+    "restore_host_from_state_row",
     "ProjectionAuditResult",
     "audit_registered_projections",
     "ProviderEvidenceEnvelope",
