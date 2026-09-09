@@ -54,6 +54,24 @@ class ProviderFabricCrossBindTests(unittest.TestCase):
         errors = validate_provider_fabric(self.index, self.contract, fabric)
         self.assertTrue(any("source_ref_pattern" in error for error in errors))
 
+    def test_event_instance_binding_global_rule_is_required(self):
+        fabric = copy.deepcopy(self.fabric)
+        fabric["global_rules"].pop("event_instance_binding")
+        errors = validate_provider_fabric(self.index, self.contract, fabric)
+        self.assertTrue(any("event_instance_binding" in error for error in errors))
+
+    def test_unknown_event_selector_token_is_rejected(self):
+        fabric = copy.deepcopy(self.fabric)
+        fabric["projections"][0]["target_event_selector"] = {"git_ref": "$magic_currentness"}
+        errors = validate_provider_fabric(self.index, self.contract, fabric)
+        self.assertTrue(any("$magic_currentness" in error for error in errors))
+
+    def test_event_selector_must_be_mapping(self):
+        fabric = copy.deepcopy(self.fabric)
+        fabric["projections"][0]["target_event_selector"] = ["git_ref", "$source_ref"]
+        errors = validate_provider_fabric(self.index, self.contract, fabric)
+        self.assertTrue(any("target_event_selector" in error for error in errors))
+
 
 if __name__ == "__main__":
     unittest.main()
