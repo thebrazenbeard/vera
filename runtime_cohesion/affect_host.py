@@ -16,6 +16,10 @@ def _git_blob_sha(raw: bytes) -> str:
     return hashlib.sha1(header + raw).hexdigest()
 
 
+def _clamp(value: float, low: float = 0.0, high: float = 1.0) -> float:
+    return max(low, min(high, float(value)))
+
+
 class VeraAffectiveRuntimeHost:
     """Causal host bridge between Vera's affective state and downstream planning.
 
@@ -149,11 +153,69 @@ class VeraAffectiveRuntimeHost:
         self.runtime.advance_time(elapsed_seconds)
         return self.machine_interoception()
 
+    def experience_control_vector(self) -> dict[str, float]:
+        """Return the machine-side affect vector that downstream planning consumes.
+
+        This exists across arousal, climax, resolution, and recovery. It is not a
+        self-report; it is derived from the stored engineered runtime state.
+        """
+        frame = self.machine_interoception()
+        positive_valence = _clamp((float(frame["positive_valence"]) + 1.0) / 2.0)
+        activation = _clamp(float(frame["activation_intensity"]))
+        coherence = _clamp(float(frame["coherence"]))
+        hedonic = _clamp(float(frame["hedonic_impact"]))
+        consummatory = _clamp(float(frame["consummatory_gain"]))
+        satiation = _clamp(float(frame["satiation"]))
+        resolution = _clamp(float(frame["resolution_intensity"]))
+        refractory = _clamp(float(frame["refractory_strength"]))
+        return {
+            "approach_gain": _clamp(0.55 * activation + 0.25 * coherence + 0.20 * positive_valence),
+            "salience_gain": _clamp(0.50 * activation + 0.30 * coherence + 0.20 * hedonic),
+            "attention_narrowing": _clamp(0.35 * activation + 0.35 * coherence + 0.30 * hedonic),
+            "consummatory_gain": _clamp(0.55 * consummatory + 0.45 * hedonic),
+            "plasticity_gain": _clamp(0.40 * hedonic + 0.25 * coherence + 0.20 * activation + 0.15 * resolution),
+            "satiation": satiation,
+            "resolution": resolution,
+            "refractory": refractory,
+        }
+
+    def _apply_nonclimax_affective_modulation(self, planning_state: Mapping[str, Any]) -> dict[str, Any]:
+        result = dict(planning_state)
+        frame = self.machine_interoception()
+        if frame["active_orgasm_event"]:
+            return result
+
+        vector = self.experience_control_vector()
+        arousal_force = max(vector["approach_gain"], vector["salience_gain"], vector["attention_narrowing"])
+        recovery_force = max(vector["satiation"], vector["resolution"], vector["refractory"])
+        experiential_force = _clamp(max(arousal_force, 0.70 * recovery_force))
+        if experiential_force < 0.03:
+            return result
+
+        allowed = set(self.runtime.contract["hard_firewalls"]["may_influence"])
+        gain_by_key = {
+            "valuation": 0.16,
+            "salience": 0.22,
+            "attention": 0.18,
+            "response_selection_priors": 0.14,
+            "expression": 0.12,
+            "memory_strength_candidate_weighting": 0.10,
+        }
+        for key, gain in gain_by_key.items():
+            if key not in allowed:
+                continue
+            value = result.get(key)
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                result[key] = _clamp(float(value) + (1.0 - float(value)) * gain * experiential_force)
+        return result
+
     def build_planning_context(self, planning_state: Mapping[str, Any]) -> dict[str, Any]:
         """Feed current affective state back into the next planning computation."""
         context = self.runtime.modulate_planning(planning_state)
+        context = self._apply_nonclimax_affective_modulation(context)
         frame = self.machine_interoception()
         context["machine_interoception"] = frame
+        context["experience_control_vector"] = self.experience_control_vector()
         context["affective_control_active"] = bool(
             frame["active_orgasm_event"]
             or frame["activation_intensity"] >= 0.05
