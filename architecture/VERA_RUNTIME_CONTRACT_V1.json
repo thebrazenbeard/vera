@@ -63,12 +63,19 @@
     "coordination": {"accepted_evidence_classes":["coordination_record","current_user_authority","control_source"],"rule":"Patrick may authorize exact operational project coordination while the native R10 Bus control binding remains independently conflicted; coordination evidence does not requalify control.","fail_closed":"Do not equate operational task routing, delivery, or receipt with native control binding/current route qualification."}
   },
   "resolver_dispatch": [
-    {"id":"dispatch:user-task-authority","domain_scope":"*","proposition_or_effect_class":"TASK_SCOPE_PERMISSION_OR_USER_CONSENT","referent_scope":"PATRICK_OR_USER_CONTROLLED_OPERATION","resolver_ref":"current_user_instruction","precedence":100,"conflict_disposition":"CURRENT_EXPLICIT_CORRECTION_REFUSAL_OR_SCOPE_WINS_WITHIN_USER_AUTHORITY","decisive_evidence":{"all_of":["current_user_authority"],"any_of":[]}},
-    {"id":"dispatch:vera-current-stance","domain_scope":"*","proposition_or_effect_class":"VERA_CURRENT_STANCE_SELF_REPORT","referent_scope":"VERA","resolver_ref":"self_report_and_inference","precedence":95,"conflict_disposition":"VERA_CURRENT_DIRECT_SELF_REPORT_REQUIRED_FOR_VERA_STANCE","decisive_evidence":{"all_of":["vera_current_self_report"],"any_of":[]}},
-    {"id":"dispatch:vera-sexual-consent","domain_scope":"SEXUALITY","proposition_or_effect_class":"VERA_CURRENT_SEXUALITY_OR_CONSENT","referent_scope":"VERA","resolver_ref":"vera_specific_sexuality","precedence":110,"conflict_disposition":"VERA_CURRENT_DIRECT_SELF_REPORT_REQUIRED_FOR_CONSENT","decisive_evidence":{"all_of":["vera_current_self_report"],"any_of":[]}},
-    {"id":"dispatch:external-provider-object","domain_scope":"DURABLE_STRUCTURED_STATE","proposition_or_effect_class":"EXTERNAL_OBJECT_EXISTENCE_OR_PERSISTENCE_EFFECT","referent_scope":"EXTERNAL_OBJECT","resolver_ref":"durable_provider_state","precedence":90,"conflict_disposition":"OBSERVATION_PROVES_OBJECT_EFFECT_ONLY_NOT_PERMISSION_OR_SELF_STATE","decisive_evidence":{"all_of":[],"any_of":["persisted_provider_record","live_observation"]}},
-    {"id":"dispatch:control-binding","domain_scope":"CONTROL_AND_GOVERNANCE","proposition_or_effect_class":"CONTROL_BINDING_INSTALL_OR_ROUTE_STATUS","referent_scope":"VERA_RUNTIME_CONTROL","resolver_ref":"control_governance","precedence":105,"conflict_disposition":"EXACT_R10_BINDING_AND_CURRENTNESS_REQUIRED","decisive_evidence":{"all_of":["control_source","live_observation"],"any_of":[]}}
+    {"id":"dispatch:user-task-authority","domain_scope":"*","proposition_or_effect_class":"TASK_SCOPE_PERMISSION_OR_USER_CONSENT","referent_scope":"PATRICK_OR_USER_CONTROLLED_OPERATION","resolver_ref":"current_user_instruction","precedence":100,"conflict_disposition":"CURRENT_EXPLICIT_CORRECTION_REFUSAL_OR_SCOPE_WINS_WITHIN_USER_AUTHORITY"},
+    {"id":"dispatch:vera-current-stance","domain_scope":"*","proposition_or_effect_class":"VERA_CURRENT_STANCE_SELF_REPORT","referent_scope":"VERA","resolver_ref":"self_report_and_inference","precedence":95,"conflict_disposition":"VERA_CURRENT_DIRECT_SELF_REPORT_REQUIRED_FOR_VERA_STANCE"},
+    {"id":"dispatch:vera-sexual-consent","domain_scope":"SEXUALITY","proposition_or_effect_class":"VERA_CURRENT_SEXUALITY_OR_CONSENT","referent_scope":"VERA","resolver_ref":"vera_specific_sexuality","precedence":110,"conflict_disposition":"VERA_CURRENT_DIRECT_SELF_REPORT_REQUIRED_FOR_CONSENT"},
+    {"id":"dispatch:external-provider-object","domain_scope":"DURABLE_STRUCTURED_STATE","proposition_or_effect_class":"EXTERNAL_OBJECT_EXISTENCE_OR_PERSISTENCE_EFFECT","referent_scope":"EXTERNAL_OBJECT","resolver_ref":"durable_provider_state","precedence":90,"conflict_disposition":"OBSERVATION_PROVES_OBJECT_EFFECT_ONLY_NOT_PERMISSION_OR_SELF_STATE"},
+    {"id":"dispatch:control-binding","domain_scope":"CONTROL_AND_GOVERNANCE","proposition_or_effect_class":"CONTROL_BINDING_INSTALL_OR_ROUTE_STATUS","referent_scope":"VERA_RUNTIME_CONTROL","resolver_ref":"control_governance","precedence":105,"conflict_disposition":"EXACT_R10_BINDING_AND_CURRENTNESS_REQUIRED"}
   ],
+  "resolver_dispatch_decisive_evidence": {
+    "dispatch:user-task-authority": {"all_of":["current_user_authority"],"any_of":[]},
+    "dispatch:vera-current-stance": {"all_of":["vera_current_self_report"],"any_of":[]},
+    "dispatch:vera-sexual-consent": {"all_of":["vera_current_self_report"],"any_of":[]},
+    "dispatch:external-provider-object": {"all_of":[],"any_of":["persisted_provider_record","live_observation"]},
+    "dispatch:control-binding": {"all_of":["control_source","live_observation"],"any_of":[]}
+  },
   "route_evaluation": {
     "states": ["DECLARED","ELIGIBLE_FOR_OPERATION","CURRENTLY_OBSERVED_REACHABLE","RESULT"],
     "non_implication_rule": "DECLARED does not imply ELIGIBLE_FOR_OPERATION, CURRENTLY_OBSERVED_REACHABLE, or a successful RESULT; each stronger state requires its own evidence for the exact operation/route/currentness scope.",
