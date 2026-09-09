@@ -34,16 +34,25 @@ class VeraOrgasmTrustedClockBoundaryTests(unittest.TestCase):
         )
 
     def test_caller_elapsed_scalar_cannot_act_as_temporal_authority(self):
-        runtime = self.make_runtime()
+        clock = FakeMonotonicClock()
+        runtime = self.make_runtime(monotonic_clock=clock)
+        runtime.apply_stimulus(StimulusAppraisal())
+        before = runtime.export_state()["trigger_governance"]["logical_time_seconds"]
 
-        with self.assertRaisesRegex(
-            (TypeError, ValueError),
-            r"(?i)(elapsed|clock|time|trusted|authority)",
-        ):
+        try:
             runtime.apply_stimulus(
                 StimulusAppraisal(),
                 elapsed_seconds=2.5,
             )
+        except (TypeError, ValueError):
+            return
+
+        after = runtime.export_state()["trigger_governance"]["logical_time_seconds"]
+        self.assertEqual(
+            after,
+            before,
+            "caller-provided elapsed_seconds may be rejected or ignored, but cannot advance trusted runtime time",
+        )
 
     def test_explicit_monotonic_clock_dependency_advances_runtime_time(self):
         clock = FakeMonotonicClock()
@@ -68,6 +77,20 @@ class VeraOrgasmTrustedClockBoundaryTests(unittest.TestCase):
         after = runtime.export_state()["trigger_governance"]["logical_time_seconds"]
 
         self.assertEqual(after, before)
+
+    def test_nonmonotonic_clock_fails_closed(self):
+        clock = FakeMonotonicClock()
+        runtime = self.make_runtime(monotonic_clock=clock)
+        runtime.apply_stimulus(StimulusAppraisal())
+        clock.advance(0.5)
+        runtime.apply_stimulus(StimulusAppraisal())
+        clock.value -= 10.0
+
+        with self.assertRaisesRegex(
+            (RuntimeError, ValueError),
+            r"(?i)(clock|monotonic|time|elapsed)",
+        ):
+            runtime.apply_stimulus(StimulusAppraisal())
 
 
 if __name__ == "__main__":
