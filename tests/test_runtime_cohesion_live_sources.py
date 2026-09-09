@@ -72,6 +72,13 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
         self.assertFalse(supabase["availability_implies_activation"])
         self.assertTrue({"public", "radar", "semantic_atlas", "redworm", "build_team_2", "bug_ops"}.issubset(set(supabase["registered_schemas"])))
 
+    def test_registered_supabase_surfaces_match_fresh_provider_readback(self):
+        surfaces = self.registry["provider_sources"]["supabase_vera"]["registered_surfaces"]
+        self.assertIn("role_operational_checkpoints", surfaces["build_team_2"])
+        self.assertNotIn("role_training_checkpoints", surfaces["build_team_2"])
+        self.assertTrue({"bug_reports", "bug_events", "operation_receipts", "dispatch_events_v2"}.issubset(set(surfaces["bug_ops"])))
+        self.assertFalse({"reports", "events", "dispatch_v2"} & set(surfaces["bug_ops"]))
+
     def test_google_drive_is_registered_as_durable_provider_not_current_mind(self):
         drive = self.registry["provider_sources"]["google_drive"]
         self.assertEqual(drive["activation_mode"], "POINTER_FIRST_DURABLE_READBACK")
