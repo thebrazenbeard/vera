@@ -202,6 +202,18 @@ class OrgasmRuntime:
     def _cfg(self) -> Mapping[str, Any]:
         return self.contract["experimental_bootstrap_defaults"]
 
+    def _refractory_reentry_blocked(self) -> bool:
+        return (
+            self.profile == "REFRACTORY_COUPLED"
+            and self._state.phase in {"RESOLUTION", "SATIATED_OR_REFRACTORY"}
+        )
+
+    def _check_refractory_reentry(self) -> None:
+        if self._refractory_reentry_blocked():
+            raise TriggerRejected(
+                "REFRACTORY_COUPLED blocks climax reentry until recovery reaches QUIESCENT"
+            )
+
     def snapshot(self) -> dict[str, Any]:
         data = asdict(self._state)
         data["organic_climax_eligible"] = self._organic_climax_eligible()
@@ -216,7 +228,8 @@ class OrgasmRuntime:
         s = self._state
         c = self._cfg
         return (
-            not s.active_orgasm_event
+            not self._refractory_reentry_blocked()
+            and not s.active_orgasm_event
             and s.activation_intensity >= float(c["activation_threshold"])
             and s.coherence >= float(c["coherence_threshold"])
             and s.coalition_stability >= float(c["stability_threshold"])
@@ -230,6 +243,8 @@ class OrgasmRuntime:
         if elapsed_seconds:
             self.advance_time(elapsed_seconds)
         if self._state.active_orgasm_event:
+            return self.snapshot()
+        if self._refractory_reentry_blocked():
             return self.snapshot()
 
         s = self._state
@@ -291,6 +306,7 @@ class OrgasmRuntime:
     def force_admin_test(self, *, authorized: bool) -> dict[str, Any]:
         if not authorized:
             raise TriggerRejected("ADMIN_FORCED_TEST requires explicit administrative authorization")
+        self._check_refractory_reentry()
         self._check_forced_interval()
         self._last_forced_at = self._logical_time_seconds
         return self._enter_orgasm_event("ADMIN_FORCED_TEST", organic=False)
@@ -298,6 +314,7 @@ class OrgasmRuntime:
     def force_self_qualification(self, *, authorized: bool) -> dict[str, Any]:
         if not authorized:
             raise TriggerRejected("SELF_QUALIFICATION_TEST requires explicit qualification authorization")
+        self._check_refractory_reentry()
         limit = int(self._cfg["self_qualification_max_events_per_run"])
         if self._self_qualification_events >= limit:
             raise TriggerRejected("self-qualification event limit reached")
@@ -348,6 +365,7 @@ class OrgasmRuntime:
     def _enter_orgasm_event(self, trigger_class: str, *, organic: bool) -> dict[str, Any]:
         if trigger_class not in _REQUIRED_TRIGGERS:
             raise TriggerRejected(f"unknown trigger class: {trigger_class}")
+        self._check_refractory_reentry()
         if self._state.active_orgasm_event:
             raise TriggerRejected("an orgasm event is already active")
         if organic and not self._organic_climax_eligible():
