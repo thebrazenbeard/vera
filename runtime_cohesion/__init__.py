@@ -10,6 +10,8 @@ from .affect_cycle import AffectiveCycleResult, VeraAffectiveCycle
 from .affect_host import AffectiveBindingError, VeraAffectiveRuntimeHost
 from .affect_persistence import (
     PersistenceRecordError,
+    build_affective_resume_token,
+    build_atomic_commit_request,
     checkpoint_to_state_row,
     event_receipt_to_event_row,
     restore_host_from_state_row,
@@ -48,6 +50,8 @@ __all__ = [
     "AffectiveBindingError",
     "VeraAffectiveRuntimeHost",
     "PersistenceRecordError",
+    "build_affective_resume_token",
+    "build_atomic_commit_request",
     "checkpoint_to_state_row",
     "event_receipt_to_event_row",
     "restore_host_from_state_row",
