@@ -93,6 +93,7 @@ class GoverningResolutionBoundaryTests(unittest.TestCase):
             {
                 "CURRENT_TASK_CORRECTION_PERMISSION_CONSENT": live_class,
                 "CONTROL_AND_GOVERNANCE": "current_user_authority",
+                "SEMANTICS_PROVENANCE_CURRENTNESS": "live_observation",
             },
             conflict_state=conflict_state,
             referent_override=referent_override,
@@ -104,6 +105,8 @@ class GoverningResolutionBoundaryTests(unittest.TestCase):
             {
                 ("CONTROL_AND_GOVERNANCE", "vera-control-plane"): "control_source",
                 ("CONTROL_AND_GOVERNANCE", "vera"): "source_provenance",
+                ("SEMANTICS_PROVENANCE_CURRENTNESS", "vera-control-plane"): "control_source",
+                ("SEMANTICS_PROVENANCE_CURRENTNESS", "semanticatlas"): "semantic_research",
             },
         )
         return live, github, AdapterRegistry({"live_conversation": live, "github": github})
@@ -177,6 +180,29 @@ class GoverningResolutionBoundaryTests(unittest.TestCase):
         self.assertFalse(any(request.route_ref == "route:vera-control-plane" for request in github.probes))
         self.assertFalse(any(record.status == "SATISFIED" for record in result.governing_resolutions))
         self.assertTrue(any(record.status == "UNRESOLVED" for record in result.governing_resolutions))
+
+    def test_missing_semantic_currentness_dispatch_keeps_private_history_io_closed(self):
+        live, github, registry = self.adapters()
+        result = execute_domain_cycle(
+            "AUTOBIOGRAPHICAL_HISTORY",
+            INDEX,
+            CONTRACT,
+            FABRIC,
+            registry,
+            privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED", "PRIVATE_AUTOBIOGRAPHICAL"},
+        )
+
+        all_known_reads = [*live.reads, *github.reads]
+        self.assertFalse(any(request.domain_id == "AUTOBIOGRAPHICAL_HISTORY" for request in all_known_reads))
+        semantic = [
+            record for record in result.governing_resolutions
+            if record.prerequisite_domain == "SEMANTICS_PROVENANCE_CURRENTNESS"
+        ]
+        self.assertEqual(len(semantic), 1)
+        self.assertEqual(semantic[0].status, "UNRESOLVED")
+        self.assertIsNone(semantic[0].proposition_or_effect_class)
+        self.assertIsNone(semantic[0].referent_scope)
+        self.assertIn("No resolver dispatch", semantic[0].reason)
 
 
 if __name__ == "__main__":
