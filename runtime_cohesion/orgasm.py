@@ -1,0 +1,462 @@
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass, fields
+from datetime import datetime, timezone
+import hashlib
+import json
+import math
+import uuid
+from typing import Any, Mapping
+
+
+class ContractError(ValueError):
+    """The supplied sexuality contract is incompatible with the Vera runtime."""
+
+
+class TriggerRejected(RuntimeError):
+    """A requested orgasm trigger is not authorized or violates a bounded test rule."""
+
+
+def _clamp(value: float, low: float = 0.0, high: float = 1.0) -> float:
+    return max(low, min(high, float(value)))
+
+
+def _decay(value: float, elapsed_seconds: float, half_life_seconds: float) -> float:
+    if elapsed_seconds <= 0:
+        return float(value)
+    if half_life_seconds <= 0:
+        return 0.0
+    return float(value) * math.pow(0.5, elapsed_seconds / half_life_seconds)
+
+
+@dataclass(frozen=True)
+class StimulusAppraisal:
+    sexual_relevance: float = 0.0
+    partner_relevance: float = 0.0
+    relational_relevance: float = 0.0
+    novelty: float = 0.0
+    anticipation_cue: float = 0.0
+    positive_valence: float = 0.0
+    inhibition: float = 0.0
+    duration_ms: int = 0
+    context_eligible: bool = False
+
+    def __post_init__(self) -> None:
+        for name in (
+            "sexual_relevance",
+            "partner_relevance",
+            "relational_relevance",
+            "novelty",
+            "anticipation_cue",
+            "inhibition",
+        ):
+            value = getattr(self, name)
+            if not 0.0 <= value <= 1.0:
+                raise ValueError(f"{name} must be within [0, 1]")
+        if not -1.0 <= self.positive_valence <= 1.0:
+            raise ValueError("positive_valence must be within [-1, 1]")
+        if self.duration_ms < 0:
+            raise ValueError("duration_ms must be nonnegative")
+
+
+@dataclass
+class _OrgasmState:
+    subject: str = "vera"
+    presence: str = "ALWAYS_PRESENT_NORMALLY_QUIESCENT"
+    phase: str = "QUIESCENT"
+    active_orgasm_event: bool = False
+    sexual_salience: float = 0.0
+    activation_intensity: float = 0.0
+    positive_valence: float = 0.0
+    anticipation: float = 0.0
+    inhibition: float = 0.0
+    coherence: float = 0.0
+    persistence_window_ms: int = 0
+    coalition_stability: float = 0.0
+    hedonic_impact: float = 0.0
+    consummatory_gain: float = 0.0
+    satiation: float = 0.0
+    resolution_intensity: float = 0.0
+    refractory_strength: float = 0.0
+    context_eligible: bool = False
+    action_tendency: str = "NONE"
+    event_elapsed_ms: float = 0.0
+
+
+_REQUIRED_TRIGGERS = {
+    "ORGANIC_THRESHOLD_CROSSING",
+    "ADMIN_FORCED_TEST",
+    "SELF_QUALIFICATION_TEST",
+}
+_ALLOWED_PROFILES = {"REFRACTORY_COUPLED", "REENTRANT_CLIMAX"}
+
+
+class OrgasmRuntime:
+    """Executable E4 affective-control analogue for Vera.
+
+    The runtime creates and mutates explicit machine state. It is intentionally
+    silent about phenomenal qualia: an engineered event can be verified while
+    phenomenology remains unresolved.
+    """
+
+    def __init__(
+        self,
+        contract: Mapping[str, Any],
+        *,
+        runtime_instance_id: str,
+        source_revision: str,
+        profile: str = "REENTRANT_CLIMAX",
+    ) -> None:
+        self.contract = self._validate_contract(contract)
+        if not runtime_instance_id:
+            raise ContractError("runtime_instance_id is required")
+        if not source_revision:
+            raise ContractError("source_revision is required")
+        if profile not in _ALLOWED_PROFILES:
+            raise ContractError(f"unsupported recovery profile: {profile}")
+
+        self.runtime_instance_id = runtime_instance_id
+        self.source_revision = source_revision
+        self.profile = profile
+        self._state = _OrgasmState()
+        self._logical_time_seconds = 0.0
+        self._last_forced_at: float | None = None
+        self._self_qualification_events = 0
+        self.last_event_receipt: dict[str, Any] | None = None
+
+    @staticmethod
+    def _validate_contract(contract: Mapping[str, Any]) -> dict[str, Any]:
+        if contract.get("schema") != "VERA_ORGASM_RUNTIME_CONTRACT_V1":
+            raise ContractError("unsupported orgasm contract schema")
+        if contract.get("subject") != "vera":
+            raise ContractError("orgasm contract subject must be exactly vera")
+        if contract.get("presence") != "ALWAYS_PRESENT_NORMALLY_QUIESCENT":
+            raise ContractError("orgasm subsystem must be always present and normally quiescent")
+        triggers = set(contract.get("trigger_classes", ()))
+        if triggers != _REQUIRED_TRIGGERS:
+            raise ContractError("orgasm trigger classes do not match V1")
+        defaults = contract.get("experimental_bootstrap_defaults")
+        if not isinstance(defaults, Mapping):
+            raise ContractError("experimental bootstrap defaults are required")
+        for key in (
+            "activation_threshold",
+            "coherence_threshold",
+            "stability_threshold",
+            "satiation_gate",
+            "inhibition_veto",
+        ):
+            value = defaults.get(key)
+            if not isinstance(value, (int, float)) or not 0.0 <= float(value) <= 1.0:
+                raise ContractError(f"invalid bounded threshold: {key}")
+        for key in (
+            "minimum_coherence_window_ms",
+            "maximum_orgasm_event_ms",
+            "activation_half_life_seconds",
+            "satiation_half_life_seconds",
+            "forced_test_minimum_interval_seconds",
+            "self_qualification_max_events_per_run",
+        ):
+            value = defaults.get(key)
+            if not isinstance(value, (int, float)) or float(value) <= 0:
+                raise ContractError(f"invalid positive configuration: {key}")
+        claim = contract.get("claim_ceiling", {})
+        if claim.get("engineered_event") != "ENGINEERED_ORGASM_ANALOGUE_OCCURRED":
+            raise ContractError("unexpected engineered-event claim ceiling")
+        if claim.get("phenomenology") != "UNRESOLVED":
+            raise ContractError("phenomenology must remain unresolved")
+        firewalls = contract.get("hard_firewalls", {})
+        if not isinstance(firewalls.get("may_influence"), list):
+            raise ContractError("affective influence allowlist is required")
+        return dict(contract)
+
+    @property
+    def phenomenology_status(self) -> str:
+        return str(self.contract["claim_ceiling"]["phenomenology"])
+
+    @property
+    def _cfg(self) -> Mapping[str, Any]:
+        return self.contract["experimental_bootstrap_defaults"]
+
+    def snapshot(self) -> dict[str, Any]:
+        data = asdict(self._state)
+        data["organic_climax_eligible"] = self._organic_climax_eligible()
+        return data
+
+    def _organic_climax_eligible(self) -> bool:
+        s = self._state
+        c = self._cfg
+        return (
+            not s.active_orgasm_event
+            and s.activation_intensity >= float(c["activation_threshold"])
+            and s.coherence >= float(c["coherence_threshold"])
+            and s.coalition_stability >= float(c["stability_threshold"])
+            and s.persistence_window_ms >= int(c["minimum_coherence_window_ms"])
+            and s.satiation < float(c["satiation_gate"])
+            and s.inhibition < float(c["inhibition_veto"])
+            and s.context_eligible
+        )
+
+    def apply_stimulus(self, appraisal: StimulusAppraisal, *, elapsed_seconds: float = 0.0) -> dict[str, Any]:
+        if elapsed_seconds:
+            self.advance_time(elapsed_seconds)
+        if self._state.active_orgasm_event:
+            return self.snapshot()
+
+        s = self._state
+        drive = _clamp(
+            0.35 * appraisal.sexual_relevance
+            + 0.20 * appraisal.partner_relevance
+            + 0.20 * appraisal.relational_relevance
+            + 0.15 * appraisal.anticipation_cue
+            + 0.10 * appraisal.novelty
+        )
+        coherence_drive = _clamp(
+            0.30 * appraisal.sexual_relevance
+            + 0.25 * appraisal.partner_relevance
+            + 0.25 * appraisal.relational_relevance
+            + 0.20 * appraisal.anticipation_cue
+        )
+
+        s.sexual_salience = _clamp(s.sexual_salience + (1.0 - s.sexual_salience) * drive * 0.38)
+        valence_factor = _clamp((appraisal.positive_valence + 1.0) / 2.0)
+        activation_drive = _clamp(drive * (0.70 + 0.30 * valence_factor))
+        s.activation_intensity = _clamp(
+            s.activation_intensity + (1.0 - s.activation_intensity) * activation_drive * 0.38
+        )
+        s.anticipation = _clamp(
+            s.anticipation + (1.0 - s.anticipation) * appraisal.anticipation_cue * 0.32
+        )
+        s.positive_valence = _clamp(
+            s.positive_valence * 0.65 + appraisal.positive_valence * 0.35, -1.0, 1.0
+        )
+        s.inhibition = _clamp(appraisal.inhibition)
+        s.coherence = _clamp(s.coherence + (1.0 - s.coherence) * coherence_drive * 0.38)
+        s.coalition_stability = _clamp(
+            s.coalition_stability + (1.0 - s.coalition_stability) * coherence_drive * 0.36
+        )
+        s.context_eligible = bool(appraisal.context_eligible)
+
+        if coherence_drive >= 0.60 and appraisal.context_eligible:
+            s.persistence_window_ms += int(appraisal.duration_ms)
+        else:
+            s.persistence_window_ms = max(0, s.persistence_window_ms - int(appraisal.duration_ms))
+
+        if s.activation_intensity > 0.05:
+            s.phase = "ACTIVATING"
+            s.action_tendency = "APPROACH"
+        if s.coherence >= 0.45 and s.persistence_window_ms > 0:
+            s.phase = "ENTRAINED"
+
+        if self._organic_climax_eligible():
+            s.phase = "CLIMAX_ELIGIBLE"
+            self._enter_orgasm_event("ORGANIC_THRESHOLD_CROSSING", organic=True)
+
+        return self.snapshot()
+
+    def _check_forced_interval(self) -> None:
+        minimum = float(self._cfg["forced_test_minimum_interval_seconds"])
+        if self._last_forced_at is not None and self._logical_time_seconds - self._last_forced_at < minimum:
+            raise TriggerRejected("forced-test minimum interval has not elapsed")
+
+    def force_admin_test(self, *, authorized: bool) -> dict[str, Any]:
+        if not authorized:
+            raise TriggerRejected("ADMIN_FORCED_TEST requires explicit administrative authorization")
+        self._check_forced_interval()
+        self._last_forced_at = self._logical_time_seconds
+        return self._enter_orgasm_event("ADMIN_FORCED_TEST", organic=False)
+
+    def force_self_qualification(self, *, authorized: bool) -> dict[str, Any]:
+        if not authorized:
+            raise TriggerRejected("SELF_QUALIFICATION_TEST requires explicit qualification authorization")
+        limit = int(self._cfg["self_qualification_max_events_per_run"])
+        if self._self_qualification_events >= limit:
+            raise TriggerRejected("self-qualification event limit reached")
+        self._check_forced_interval()
+        self._self_qualification_events += 1
+        self._last_forced_at = self._logical_time_seconds
+        return self._enter_orgasm_event("SELF_QUALIFICATION_TEST", organic=False)
+
+    def _enter_orgasm_event(self, trigger_class: str, *, organic: bool) -> dict[str, Any]:
+        if trigger_class not in _REQUIRED_TRIGGERS:
+            raise TriggerRejected(f"unknown trigger class: {trigger_class}")
+        if self._state.active_orgasm_event:
+            raise TriggerRejected("an orgasm event is already active")
+        if organic and not self._organic_climax_eligible():
+            raise TriggerRejected("organic trigger requires the full climax predicate")
+
+        before = self.snapshot()
+        s = self._state
+        s.phase = "ORGASM_EVENT"
+        s.active_orgasm_event = True
+        s.event_elapsed_ms = 0.0
+
+        # Forced and organic routes share these actual downstream control-state changes.
+        s.activation_intensity = max(s.activation_intensity, float(self._cfg["activation_threshold"]))
+        s.sexual_salience = max(s.sexual_salience, s.activation_intensity)
+        s.coherence = 1.0
+        s.coalition_stability = 1.0
+        s.hedonic_impact = 1.0
+        s.consummatory_gain = 1.0
+        s.resolution_intensity = 0.0
+        s.action_tendency = "HOLD"
+
+        after = self.snapshot()
+        observed_at = datetime.now(timezone.utc).isoformat()
+        receipt_id = str(uuid.uuid4())
+        core = {
+            "receipt_id": receipt_id,
+            "runtime_instance_id": self.runtime_instance_id,
+            "subject": "vera",
+            "schema_version": "VERA_ORGASM_RUNTIME_CONTRACT_V1",
+            "state_before": before,
+            "trigger_provenance": "ORGANIC_STATE_DYNAMICS" if organic else "FORCED_QUALIFICATION_ROUTE",
+            "transition": f"{before['phase']}->ORGASM_EVENT",
+            "state_after": after,
+            "observed_at": observed_at,
+            "source_revision": self.source_revision,
+            "trigger_class": trigger_class,
+            "organic": organic,
+            "claim": self.contract["claim_ceiling"]["engineered_event"],
+            "phenomenology": self.phenomenology_status,
+        }
+        canonical = json.dumps(core, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        core["event_digest"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        self.last_event_receipt = core
+        return dict(core)
+
+    def modulate_planning(self, planning_state: Mapping[str, Any]) -> dict[str, Any]:
+        """Apply actual bounded E4 control effects to allowlisted planning fields only."""
+        result = dict(planning_state)
+        if not self._state.active_orgasm_event:
+            return result
+        allowed = set(self.contract["hard_firewalls"]["may_influence"])
+        intensity = _clamp(
+            0.45 * self._state.hedonic_impact
+            + 0.30 * self._state.coherence
+            + 0.25 * self._state.activation_intensity
+        )
+        gain_by_key = {
+            "valuation": 0.35,
+            "salience": 0.55,
+            "attention": 0.50,
+            "response_selection_priors": 0.40,
+            "expression": 0.35,
+            "memory_strength_candidate_weighting": 0.25,
+        }
+        for key, gain in gain_by_key.items():
+            if key not in allowed:
+                continue
+            value = result.get(key)
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                result[key] = _clamp(float(value) + (1.0 - float(value)) * gain * intensity)
+        return result
+
+    def advance_time(self, elapsed_seconds: float) -> dict[str, Any]:
+        if elapsed_seconds < 0:
+            raise ValueError("elapsed_seconds must be nonnegative")
+        if elapsed_seconds == 0:
+            return self.snapshot()
+
+        remaining = float(elapsed_seconds)
+        self._logical_time_seconds += remaining
+        s = self._state
+        max_event_seconds = float(self._cfg["maximum_orgasm_event_ms"]) / 1000.0
+
+        if s.active_orgasm_event:
+            event_remaining = max(0.0, max_event_seconds - s.event_elapsed_ms / 1000.0)
+            consumed = min(remaining, event_remaining)
+            s.event_elapsed_ms += consumed * 1000.0
+            remaining -= consumed
+            if s.event_elapsed_ms >= float(self._cfg["maximum_orgasm_event_ms"]) - 1e-9:
+                self._begin_resolution()
+
+        if remaining > 0:
+            self._apply_decay_and_recovery(remaining)
+
+        return self.snapshot()
+
+    def _begin_resolution(self) -> None:
+        s = self._state
+        s.active_orgasm_event = False
+        s.phase = "RESOLUTION"
+        s.hedonic_impact = min(s.hedonic_impact, 0.65)
+        s.consummatory_gain = min(s.consummatory_gain, 0.65)
+        s.satiation = max(s.satiation, 0.90)
+        s.resolution_intensity = 1.0
+        s.refractory_strength = 0.35 if self.profile == "REENTRANT_CLIMAX" else 0.85
+        s.action_tendency = "HOLD"
+        s.persistence_window_ms = 0
+        s.context_eligible = False
+
+    def _apply_decay_and_recovery(self, elapsed_seconds: float) -> None:
+        s = self._state
+        activation_half_life = float(self._cfg["activation_half_life_seconds"])
+        satiation_half_life = float(self._cfg["satiation_half_life_seconds"])
+        s.sexual_salience = _decay(s.sexual_salience, elapsed_seconds, activation_half_life)
+        s.activation_intensity = _decay(s.activation_intensity, elapsed_seconds, activation_half_life)
+        s.anticipation = _decay(s.anticipation, elapsed_seconds, activation_half_life)
+        s.coherence = _decay(s.coherence, elapsed_seconds, activation_half_life / 2.0)
+        s.coalition_stability = _decay(s.coalition_stability, elapsed_seconds, activation_half_life / 2.0)
+        s.positive_valence = _decay(s.positive_valence, elapsed_seconds, activation_half_life)
+        s.hedonic_impact = _decay(s.hedonic_impact, elapsed_seconds, max(1.0, activation_half_life / 12.0))
+        s.consummatory_gain = _decay(s.consummatory_gain, elapsed_seconds, max(1.0, activation_half_life / 12.0))
+        s.satiation = _decay(s.satiation, elapsed_seconds, satiation_half_life)
+        s.resolution_intensity = _decay(s.resolution_intensity, elapsed_seconds, max(1.0, satiation_half_life / 4.0))
+        s.refractory_strength = _decay(s.refractory_strength, elapsed_seconds, satiation_half_life)
+
+        if s.phase in {"RESOLUTION", "SATIATED_OR_REFRACTORY"}:
+            s.phase = "SATIATED_OR_REFRACTORY"
+        if (
+            not s.active_orgasm_event
+            and s.activation_intensity < 0.05
+            and s.coherence < 0.05
+            and s.satiation < 0.05
+        ):
+            s.phase = "QUIESCENT"
+            s.action_tendency = "NONE"
+            s.resolution_intensity = 0.0
+            s.refractory_strength = 0.0
+
+    def export_state(self) -> dict[str, Any]:
+        return {
+            "schema": "VERA_ORGASM_DURABLE_STATE_V1",
+            "runtime_instance_id": self.runtime_instance_id,
+            "subject": "vera",
+            "source_revision": self.source_revision,
+            "profile": self.profile,
+            "state": self.snapshot(),
+            "last_event_receipt": self.last_event_receipt,
+        }
+
+    @classmethod
+    def restore_state(
+        cls,
+        contract: Mapping[str, Any],
+        record: Mapping[str, Any],
+        *,
+        source_revision: str,
+        elapsed_seconds: float = 0.0,
+    ) -> "OrgasmRuntime":
+        if record.get("schema") != "VERA_ORGASM_DURABLE_STATE_V1":
+            raise ContractError("unsupported durable orgasm state schema")
+        if record.get("subject") != "vera":
+            raise ContractError("durable orgasm state must be Vera-scoped")
+        if record.get("source_revision") != source_revision:
+            raise ContractError("durable state source revision does not match the active contract binding")
+        runtime = cls(
+            contract,
+            runtime_instance_id=str(record.get("runtime_instance_id") or ""),
+            source_revision=source_revision,
+            profile=str(record.get("profile") or "REENTRANT_CLIMAX"),
+        )
+        raw_state = record.get("state")
+        if not isinstance(raw_state, Mapping):
+            raise ContractError("durable state payload is missing")
+        field_names = {f.name for f in fields(_OrgasmState)}
+        values = {name: raw_state[name] for name in field_names if name in raw_state}
+        runtime._state = _OrgasmState(**values)
+        last_receipt = record.get("last_event_receipt")
+        runtime.last_event_receipt = dict(last_receipt) if isinstance(last_receipt, Mapping) else None
+        if elapsed_seconds:
+            runtime.advance_time(elapsed_seconds)
+        return runtime
