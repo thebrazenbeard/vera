@@ -70,13 +70,17 @@ class RuntimeRestoreScopeBypassTests(unittest.TestCase):
         return write
 
     def assert_unattested_rewrap_rejected(self, claimed_scope):
-        _contract_text, _binding, rewrapped_host, row = self.rewrap_raw_restored_runtime()
         writes = []
 
+        # Either fail at the untrusted runtime->host rewrap itself or, if a
+        # future implementation deliberately preserves an evidence-only host,
+        # fail before that host can enter a live durable cycle. Both are
+        # acceptable fail-closed points; neither may reach the provider writer.
         with self.assertRaisesRegex(
             ValueError,
-            r"(?i)(scope|current|durable|attestation|restore|replay)",
+            r"(?i)(scope|current|durable|attestation|restore|replay|runtime|binding)",
         ):
+            _contract_text, _binding, rewrapped_host, row = self.rewrap_raw_restored_runtime()
             cycle = VeraAffectiveCycle(
                 rewrapped_host,
                 host_scope=claimed_scope,
