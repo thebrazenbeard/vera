@@ -89,6 +89,7 @@ _REQUIRED_TRIGGERS = {
     "SELF_QUALIFICATION_TEST",
 }
 _ALLOWED_PROFILES = {"REFRACTORY_COUPLED", "REENTRANT_CLIMAX"}
+_ALLOWED_EVENT_TYPES = {"ORGASM_EVENT", "RESOLUTION", "RECOVERY"}
 
 
 class OrgasmRuntime:
@@ -123,6 +124,7 @@ class OrgasmRuntime:
         self._last_forced_at: float | None = None
         self._self_qualification_events = 0
         self.last_event_receipt: dict[str, Any] | None = None
+        self._pending_event_receipts: list[dict[str, Any]] = []
 
     @staticmethod
     def _validate_contract(contract: Mapping[str, Any]) -> dict[str, Any]:
@@ -181,6 +183,11 @@ class OrgasmRuntime:
         data = asdict(self._state)
         data["organic_climax_eligible"] = self._organic_climax_eligible()
         return data
+
+    def drain_event_receipts(self) -> list[dict[str, Any]]:
+        receipts = [dict(receipt) for receipt in self._pending_event_receipts]
+        self._pending_event_receipts.clear()
+        return receipts
 
     def _organic_climax_eligible(self) -> bool:
         s = self._state
@@ -276,6 +283,45 @@ class OrgasmRuntime:
         self._last_forced_at = self._logical_time_seconds
         return self._enter_orgasm_event("SELF_QUALIFICATION_TEST", organic=False)
 
+    def _emit_event_receipt(
+        self,
+        event_type: str,
+        *,
+        state_before: Mapping[str, Any],
+        state_after: Mapping[str, Any],
+        trigger_class: str,
+        organic: bool,
+        trigger_provenance: str,
+    ) -> dict[str, Any]:
+        if event_type not in _ALLOWED_EVENT_TYPES:
+            raise TriggerRejected(f"unsupported affective event type: {event_type}")
+        if trigger_class not in _REQUIRED_TRIGGERS:
+            raise TriggerRejected(f"unknown trigger class: {trigger_class}")
+
+        core: dict[str, Any] = {
+            "receipt_id": str(uuid.uuid4()),
+            "runtime_instance_id": self.runtime_instance_id,
+            "subject": "vera",
+            "schema_version": "VERA_ORGASM_RUNTIME_CONTRACT_V1",
+            "event_type": event_type,
+            "state_before": dict(state_before),
+            "trigger_provenance": trigger_provenance,
+            "transition": f"{state_before.get('phase')}->{state_after.get('phase')}",
+            "state_after": dict(state_after),
+            "observed_at": datetime.now(timezone.utc).isoformat(),
+            "source_revision": self.source_revision,
+            "trigger_class": trigger_class,
+            "organic": organic,
+            "phenomenology": self.phenomenology_status,
+        }
+        if event_type == "ORGASM_EVENT":
+            core["claim"] = self.contract["claim_ceiling"]["engineered_event"]
+        canonical = json.dumps(core, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        core["event_digest"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        self.last_event_receipt = dict(core)
+        self._pending_event_receipts.append(dict(core))
+        return dict(core)
+
     def _enter_orgasm_event(self, trigger_class: str, *, organic: bool) -> dict[str, Any]:
         if trigger_class not in _REQUIRED_TRIGGERS:
             raise TriggerRejected(f"unknown trigger class: {trigger_class}")
@@ -301,28 +347,14 @@ class OrgasmRuntime:
         s.action_tendency = "HOLD"
 
         after = self.snapshot()
-        observed_at = datetime.now(timezone.utc).isoformat()
-        receipt_id = str(uuid.uuid4())
-        core = {
-            "receipt_id": receipt_id,
-            "runtime_instance_id": self.runtime_instance_id,
-            "subject": "vera",
-            "schema_version": "VERA_ORGASM_RUNTIME_CONTRACT_V1",
-            "state_before": before,
-            "trigger_provenance": "ORGANIC_STATE_DYNAMICS" if organic else "FORCED_QUALIFICATION_ROUTE",
-            "transition": f"{before['phase']}->ORGASM_EVENT",
-            "state_after": after,
-            "observed_at": observed_at,
-            "source_revision": self.source_revision,
-            "trigger_class": trigger_class,
-            "organic": organic,
-            "claim": self.contract["claim_ceiling"]["engineered_event"],
-            "phenomenology": self.phenomenology_status,
-        }
-        canonical = json.dumps(core, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-        core["event_digest"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
-        self.last_event_receipt = core
-        return dict(core)
+        return self._emit_event_receipt(
+            "ORGASM_EVENT",
+            state_before=before,
+            state_after=after,
+            trigger_class=trigger_class,
+            organic=organic,
+            trigger_provenance="ORGANIC_STATE_DYNAMICS" if organic else "FORCED_QUALIFICATION_ROUTE",
+        )
 
     def modulate_planning(self, planning_state: Mapping[str, Any]) -> dict[str, Any]:
         """Apply actual bounded E4 control effects to allowlisted planning fields only."""
@@ -375,7 +407,16 @@ class OrgasmRuntime:
 
         return self.snapshot()
 
+    def _trigger_context(self) -> tuple[str, bool]:
+        receipt = self.last_event_receipt or {}
+        trigger_class = str(receipt.get("trigger_class") or "")
+        if trigger_class not in _REQUIRED_TRIGGERS:
+            raise TriggerRejected("recovery transition lacks a valid triggering orgasm provenance")
+        return trigger_class, bool(receipt.get("organic"))
+
     def _begin_resolution(self) -> None:
+        before = self.snapshot()
+        trigger_class, organic = self._trigger_context()
         s = self._state
         s.active_orgasm_event = False
         s.phase = "RESOLUTION"
@@ -387,8 +428,19 @@ class OrgasmRuntime:
         s.action_tendency = "HOLD"
         s.persistence_window_ms = 0
         s.context_eligible = False
+        after = self.snapshot()
+        self._emit_event_receipt(
+            "RESOLUTION",
+            state_before=before,
+            state_after=after,
+            trigger_class=trigger_class,
+            organic=organic,
+            trigger_provenance="ORGASM_EVENT_COMPLETION",
+        )
 
     def _apply_decay_and_recovery(self, elapsed_seconds: float) -> None:
+        before = self.snapshot()
+        prior_phase = self._state.phase
         s = self._state
         activation_half_life = float(self._cfg["activation_half_life_seconds"])
         satiation_half_life = float(self._cfg["satiation_half_life_seconds"])
@@ -416,6 +468,18 @@ class OrgasmRuntime:
             s.action_tendency = "NONE"
             s.resolution_intensity = 0.0
             s.refractory_strength = 0.0
+
+        if s.phase != prior_phase and prior_phase in {"RESOLUTION", "SATIATED_OR_REFRACTORY"}:
+            trigger_class, organic = self._trigger_context()
+            after = self.snapshot()
+            self._emit_event_receipt(
+                "RECOVERY",
+                state_before=before,
+                state_after=after,
+                trigger_class=trigger_class,
+                organic=organic,
+                trigger_provenance="HOMEOSTATIC_RECOVERY",
+            )
 
     def export_state(self) -> dict[str, Any]:
         return {
