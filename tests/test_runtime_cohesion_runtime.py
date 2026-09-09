@@ -67,7 +67,7 @@ class RuntimeCohesionPlannerTests(unittest.TestCase):
         self.assertEqual(plan.targets, ())
         self.assertTrue(any("PRIVACY" in item for item in plan.unresolved))
 
-    def test_hard_prerequisite_is_traversed_before_dependent_domain(self):
+    def test_hard_prerequisite_is_probed_before_dependent_domain_and_blocks_dependent_probe(self):
         plan = build_retrieval_plan(
             "CONTROL_AND_GOVERNANCE",
             self.index,
@@ -75,9 +75,58 @@ class RuntimeCohesionPlannerTests(unittest.TestCase):
             observed_route_states={},
             privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED"},
         )
-        self.assertGreaterEqual(len(plan.candidate_targets), 2)
+        self.assertGreaterEqual(len(plan.candidate_targets), 1)
         self.assertEqual(plan.candidate_targets[0]["domain_id"], "CURRENT_TASK_CORRECTION_PERMISSION_CONSENT")
+        self.assertNotIn("CONTROL_AND_GOVERNANCE", {target["domain_id"] for target in plan.candidate_targets})
+        self.assertTrue(any(item.startswith("HARD_PREREQUISITE_UNRESOLVED:CONTROL_AND_GOVERNANCE:CURRENT_TASK_CORRECTION_PERMISSION_CONSENT") for item in plan.unresolved))
+
+    def test_reachable_hard_prerequisite_still_blocks_until_governing_state_is_satisfied(self):
+        plan = build_retrieval_plan(
+            "CONTROL_AND_GOVERNANCE",
+            self.index,
+            self.contract,
+            observed_route_states={
+                "route:live-conversation": "CURRENTLY_OBSERVED_REACHABLE",
+                "route:vera-control-plane": "CURRENTLY_OBSERVED_REACHABLE",
+                "route:vera": "CURRENTLY_OBSERVED_REACHABLE",
+            },
+            privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED"},
+            governing_dependency_states={},
+        )
+        self.assertFalse(any(target["domain_id"] == "CONTROL_AND_GOVERNANCE" for target in plan.targets))
+        self.assertNotIn("CONTROL_AND_GOVERNANCE", {target["domain_id"] for target in plan.candidate_targets})
+
+    def test_satisfied_hard_prerequisite_releases_dependent_probe_and_read(self):
+        plan = build_retrieval_plan(
+            "CONTROL_AND_GOVERNANCE",
+            self.index,
+            self.contract,
+            observed_route_states={
+                "route:live-conversation": "CURRENTLY_OBSERVED_REACHABLE",
+                "route:vera-control-plane": "CURRENTLY_OBSERVED_REACHABLE",
+                "route:vera": "CURRENTLY_OBSERVED_REACHABLE",
+            },
+            privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED"},
+            governing_dependency_states={"CURRENT_TASK_CORRECTION_PERMISSION_CONSENT": "SATISFIED"},
+        )
         self.assertIn("CONTROL_AND_GOVERNANCE", {target["domain_id"] for target in plan.candidate_targets})
+        self.assertTrue(any(target["domain_id"] == "CONTROL_AND_GOVERNANCE" for target in plan.targets))
+
+    def test_conflicted_hard_prerequisite_fails_closed_even_when_routes_are_reachable(self):
+        plan = build_retrieval_plan(
+            "CONTROL_AND_GOVERNANCE",
+            self.index,
+            self.contract,
+            observed_route_states={
+                "route:live-conversation": "CURRENTLY_OBSERVED_REACHABLE",
+                "route:vera-control-plane": "CURRENTLY_OBSERVED_REACHABLE",
+                "route:vera": "CURRENTLY_OBSERVED_REACHABLE",
+            },
+            privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED"},
+            governing_dependency_states={"CURRENT_TASK_CORRECTION_PERMISSION_CONSENT": "CONFLICT"},
+        )
+        self.assertFalse(any(target["domain_id"] == "CONTROL_AND_GOVERNANCE" for target in plan.targets))
+        self.assertTrue(any("GOVERNING_STATE=CONFLICT" in item for item in plan.unresolved))
 
     def test_unreachable_hard_prerequisite_blocks_dependent_reads(self):
         plan = build_retrieval_plan(
@@ -89,9 +138,10 @@ class RuntimeCohesionPlannerTests(unittest.TestCase):
                 "route:vera": "CURRENTLY_OBSERVED_REACHABLE",
             },
             privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED"},
+            governing_dependency_states={"CURRENT_TASK_CORRECTION_PERMISSION_CONSENT": "SATISFIED"},
         )
-        self.assertFalse(any(target["domain_id"] == "CONTROL_AND_GOVERNANCE" for target in plan.targets))
-        self.assertTrue(any(item.startswith("HARD_PREREQUISITE_UNRESOLVED:CONTROL_AND_GOVERNANCE:CURRENT_TASK_CORRECTION_PERMISSION_CONSENT") for item in plan.unresolved))
+        self.assertFalse(any(target["domain_id"] == "CURRENT_TASK_CORRECTION_PERMISSION_CONSENT" for target in plan.targets))
+        self.assertTrue(any("route:live-conversation" in item for item in plan.unresolved))
 
     def test_unreachable_contextual_dependency_does_not_block_primary_domain(self):
         index = copy.deepcopy(self.index)
