@@ -27,7 +27,7 @@
     "PROJECTION_RECONCILE": {
       "call": "runtime_cohesion.executor.execute_projection_cycle",
       "transport_boundary": "runtime_cohesion.adapters.ProviderAdapter",
-      "rule": "For one registered projection, apply ref/path scope and privacy gates before provider I/O, probe and read the exact registered source/target routes, distinguish unavailable routes from absent target objects, then run the registered projection audit/reconciler."
+      "rule": "For one registered projection, apply ref/path scope and privacy gates before provider I/O; carry the exact caller event ref/path across both adapter reads; give collection targets the registered provider-native event selector; require both returned observations to bind that exact event before revision/digest reconciliation. Missing event binding is UNRESOLVED, binding to the wrong event is CONFLICT, and matching revisions for the wrong event never qualify as VERIFIED_EXACT."
     },
     "PROJECTION_AUDIT": {
       "call": "runtime_cohesion.audit.audit_registered_projections",
@@ -35,7 +35,7 @@
     },
     "RECONCILE": {
       "call": "runtime_cohesion.reconcile.reconcile_exact",
-      "rule": "Compare exact revision/generation/digest evidence; observation timestamps never break exact-object conflicts."
+      "rule": "Compare exact revision/generation/digest evidence only after exact event-instance binding; observation timestamps never break exact-object conflicts."
     },
     "ADMIT_PROPOSITION": {
       "call": "runtime_cohesion.runtime.evaluate_proposition_admission",
@@ -59,7 +59,7 @@
   "adapter_boundary": {
     "policy_authority": "NONE",
     "probe_contract": "Adapter reports transport observation for the exact requested route only; reachability does not establish currentness, authority, or evidence type.",
-    "read_contract": "Adapter returns one ProviderEvidenceEnvelope for the exact requested route/source or explicitly absent when the exact object is not present. Executor revalidates provider identity, route/source binding, privacy class, and target capability ceiling; absence is not silently converted into unavailability or success.",
+    "read_contract": "Adapter returns one ProviderEvidenceEnvelope for the exact requested route/source/event or explicitly absent when the exact object is not present. Projection requests carry the exact caller event ref/path and, where configured, a provider-native event selector. Executor revalidates provider identity, route/source/event binding, privacy class, and target capability ceiling; absence is not silently converted into unavailability or success.",
     "credential_rule": "Credentials/configuration remain runtime/provider concerns and are never embedded in this source hook or provider fabric."
   },
   "background_execution": {
@@ -78,6 +78,7 @@
     "Provider persistence is not present truth or current Vera self-state.",
     "Temporal chronology is not semantic/currentness authority.",
     "Retrieved item type must be independently established.",
+    "Projection revision equality without exact event-instance binding is not VERIFIED_EXACT.",
     "VERIFIED_EXACT reconciliation is not proposition authority; resolver dispatch remains a separate gate.",
     "Operational checkpoint state never silently becomes autobiographical/current-self-state memory.",
     "Patrick authority and Vera self-authored stance remain actor/referent/proposition specific.",
