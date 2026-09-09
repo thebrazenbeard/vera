@@ -8,6 +8,7 @@ RETRIEVABLE_ROUTE_STATES = {"CURRENTLY_OBSERVED_REACHABLE", "RESULT"}
 BUDGET_OK = "WITHIN_BUDGET"
 BUDGET_EXHAUSTED = "UNRESOLVED_RETRIEVAL_BUDGET_EXHAUSTED"
 ADMISSION_STATUSES = {"ADMITTED", "UNRESOLVED", "CONFLICT"}
+GOVERNING_DEPENDENCY_STATES = {"SATISFIED", "UNRESOLVED", "CONFLICT"}
 
 
 @dataclass(frozen=True)
@@ -69,6 +70,27 @@ def _validate_selector_narrowing(
         raise ValueError(f"selector broadens parent evidence capabilities: {selector_ref}")
 
 
+def _decisive_evidence_requirements(
+    selected: Mapping[str, Any],
+) -> tuple[set[str], set[str]] | None:
+    decisive = selected.get("decisive_evidence")
+    if not isinstance(decisive, Mapping):
+        return None
+    if set(decisive) != {"all_of", "any_of"}:
+        return None
+    all_raw = decisive.get("all_of")
+    any_raw = decisive.get("any_of")
+    if not isinstance(all_raw, list) or not isinstance(any_raw, list):
+        return None
+    if not all(isinstance(value, str) and value for value in all_raw + any_raw):
+        return None
+    all_of = set(all_raw)
+    any_of = set(any_raw)
+    if not all_of and not any_of:
+        return None
+    return all_of, any_of
+
+
 def evaluate_proposition_admission(
     domain_id: str,
     proposition_or_effect_class: str,
@@ -76,17 +98,13 @@ def evaluate_proposition_admission(
     observations: Iterable[Any],
     contract: Mapping[str, Any],
 ) -> AdmissionDecision:
-    """Fail closed unless B dispatch admits decisive evidence for the proposition.
+    """Fail closed unless B dispatch explicitly admits decisive evidence.
 
-    Transport, readability, and even exact cross-provider reconciliation are not
-    proposition authority. Dispatch is selected before terminal resolver
-    acceptance. Exact-domain rows outrank wildcard rows at equal precedence; an
-    equal-precedence/equal-specificity overlap that points to different resolvers
-    is a conflict rather than an arbitrary winner.
-
-    Current B rows encode actor-sensitive direct-self-report requirements in
-    `conflict_disposition`; an explicit future `required_evidence_classes` list on
-    a dispatch row takes precedence over that compatibility rule.
+    Transport, readability, persistence, and exact cross-provider reconciliation
+    are not proposition authority. Dispatch selection occurs before terminal
+    resolver acceptance. Every dispatch must declare `decisive_evidence` with
+    explicit `all_of` and `any_of` semantics; the resolver's broader accepted set
+    is only a capability ceiling and never silently becomes the deciding rule.
     """
 
     dispatch_rows = contract.get("resolver_dispatch", [])
@@ -157,23 +175,19 @@ def evaluate_proposition_admission(
         value for value in resolver.get("accepted_evidence_classes", [])
         if isinstance(value, str) and value
     }
-    explicit_required = selected.get("required_evidence_classes")
-    if isinstance(explicit_required, list) and explicit_required:
-        required = {value for value in explicit_required if isinstance(value, str) and value}
-    elif "DIRECT_SELF_REPORT_REQUIRED" in str(selected.get("conflict_disposition", "")).upper():
-        required = {"vera_current_self_report"}
-    else:
-        required = set(accepted)
-
-    if not required:
+    decisive = _decisive_evidence_requirements(selected)
+    if decisive is None:
         return AdmissionDecision(
             status="UNRESOLVED",
             dispatch_id=dispatch_id,
             resolver_ref=resolver_ref,
             required_evidence_classes=(),
             observed_evidence_classes=observed,
-            reason="Selected dispatch/resolver exposes no decisive evidence class.",
+            reason="Selected dispatch exposes no explicit valid decisive_evidence rule; implicit resolver fallback is forbidden.",
         )
+
+    all_of, any_of = decisive
+    required = all_of | any_of
     if not required.issubset(accepted):
         return AdmissionDecision(
             status="CONFLICT",
@@ -185,14 +199,16 @@ def evaluate_proposition_admission(
         )
 
     observed_set = set(observed)
-    if observed_set.intersection(required):
+    all_satisfied = all_of.issubset(observed_set)
+    any_satisfied = not any_of or bool(observed_set.intersection(any_of))
+    if all_satisfied and any_satisfied:
         return AdmissionDecision(
             status="ADMITTED",
             dispatch_id=dispatch_id,
             resolver_ref=resolver_ref,
             required_evidence_classes=tuple(sorted(required)),
             observed_evidence_classes=observed,
-            reason="Observed evidence includes a decisive class required by the selected non-bypassable dispatch.",
+            reason="Observed evidence satisfies the selected dispatch's explicit decisive all-of/any-of rule.",
         )
 
     return AdmissionDecision(
@@ -201,7 +217,7 @@ def evaluate_proposition_admission(
         resolver_ref=resolver_ref,
         required_evidence_classes=tuple(sorted(required)),
         observed_evidence_classes=observed,
-        reason="Readable/reconciled evidence is insufficient to decide this proposition under the selected dispatch.",
+        reason="Readable/reconciled evidence is insufficient to satisfy the selected dispatch's decisive evidence rule.",
     )
 
 
@@ -211,21 +227,21 @@ def build_retrieval_plan(
     contract: Mapping[str, Any],
     observed_route_states: Mapping[str, str],
     privacy_allowlist: set[str] | frozenset[str],
+    governing_dependency_states: Mapping[str, str] | None = None,
 ) -> RetrievalPlan:
-    """Build the smallest bounded retrieval plan from supplied route observations.
+    """Build the smallest bounded retrieval plan from supplied current evidence.
 
     The function performs no provider I/O. Governing hard prerequisites are
-    traversed before a dependent domain and may withhold that domain's reads when
-    no prerequisite target has fresh CURRENTLY_OBSERVED_REACHABLE/RESULT evidence.
-    Contextual dependencies are traversed afterward, may be cyclic under the
-    visited-set/budget rules, and never block the primary/dependent domain merely
-    because their own routes are unresolved.
+    traversed before a dependent domain. Route reachability is sufficient only to
+    probe/read the prerequisite itself; it never releases dependent-domain I/O.
+    A dependent domain becomes eligible only when every hard prerequisite has an
+    explicit `SATISFIED` governing state produced by the caller's resolver/
+    admission phase. Contextual dependencies are visited afterward and remain
+    non-blocking under the visited-set and finite-budget rules.
 
-    `candidate_targets` are targets that survive domain/privacy/budget/selector
-    checks and are safe to probe. Candidate discovery is preserved even when a
-    hard prerequisite is unresolved so the executor can probe the exact routes
-    needed to resolve the gate. `targets` are the subset whose routes are freshly
-    reachable and whose hard prerequisites are satisfied.
+    `candidate_targets` are safe probe targets. When a hard prerequisite is not
+    satisfied, only prerequisite candidates are exposed; dependent candidates are
+    withheld. `targets` additionally require a fresh reachable/result route.
     """
 
     domains = _rows_by_id(index.get("domains", []), "domain")
@@ -241,6 +257,18 @@ def build_retrieval_plan(
     unknown_hard_domains = hard_domains.difference(domains)
     if unknown_hard_domains:
         raise ValueError(f"unknown hard prerequisite domains: {sorted(unknown_hard_domains)!r}")
+
+    governing_states = dict(governing_dependency_states or {})
+    unknown_governing_domains = set(governing_states).difference(domains)
+    if unknown_governing_domains:
+        raise ValueError(f"unknown governing dependency states: {sorted(unknown_governing_domains)!r}")
+    invalid_governing_states = {
+        domain: state
+        for domain, state in governing_states.items()
+        if state not in GOVERNING_DEPENDENCY_STATES
+    }
+    if invalid_governing_states:
+        raise ValueError(f"invalid governing dependency states: {invalid_governing_states!r}")
 
     policy = contract.get("active_context_policy", {})
     budget = policy.get("uncertainty_probe_budget", {})
@@ -259,7 +287,6 @@ def build_retrieval_plan(
     unresolved: list[str] = []
     privacy_seen: set[str] = set()
     budget_state = BUDGET_OK
-    domain_has_reachable_target: dict[str, bool] = {}
 
     def classify_dependencies(current: Mapping[str, Any]) -> tuple[list[str], list[str]]:
         declared = current.get("dependencies", [])
@@ -279,9 +306,7 @@ def build_retrieval_plan(
     def visit(current_id: str, depth: int) -> None:
         nonlocal budget_state
 
-        if current_id in visited_set:
-            return
-        if current_id in visiting:
+        if current_id in visited_set or current_id in visiting:
             return
         if depth > max_depth or len(visited_set) >= max_domains:
             budget_state = BUDGET_EXHAUSTED
@@ -296,7 +321,6 @@ def build_retrieval_plan(
         visiting.add(current_id)
         hard_dependencies, contextual_dependencies = classify_dependencies(current)
 
-        # Governing prerequisites are evaluated before the dependent domain.
         for dependency in hard_dependencies:
             if dependency in visited_set:
                 continue
@@ -320,61 +344,55 @@ def build_retrieval_plan(
         privacy_class = current.get("privacy_class")
         if not isinstance(privacy_class, str) or not privacy_class:
             unresolved.append(f"MISSING_PRIVACY_CLASS:{current_id}")
-            domain_has_reachable_target[current_id] = False
             visiting.discard(current_id)
             return
         privacy_seen.add(privacy_class)
 
         if privacy_class not in privacy_allowlist and "*" not in privacy_allowlist:
             unresolved.append(f"PRIVACY_NOT_ELIGIBLE:{current_id}:{privacy_class}")
-            domain_has_reachable_target[current_id] = False
         else:
             hard_unresolved = [
                 dependency
                 for dependency in hard_dependencies
-                if not domain_has_reachable_target.get(dependency, False)
+                if governing_states.get(dependency) != "SATISFIED"
             ]
             for dependency in hard_unresolved:
-                unresolved.append(f"HARD_PREREQUISITE_UNRESOLVED:{current_id}:{dependency}")
+                state = governing_states.get(dependency, "UNRESOLVED")
+                unresolved.append(
+                    f"HARD_PREREQUISITE_UNRESOLVED:{current_id}:{dependency}:GOVERNING_STATE={state}"
+                )
 
-            reachable_here = False
-            for target in current.get("retrieval_targets", []):
-                _validate_selector_narrowing(target, selectors)
-                route_ref = target.get("route_ref")
-                if not isinstance(route_ref, str) or not route_ref:
-                    unresolved.append(f"MISSING_ROUTE_REF:{current_id}")
-                    continue
-                key = (target.get("source_ref"), route_ref, target.get("selector_ref"))
-                candidate = {
-                    "domain_id": current_id,
-                    "source_ref": target.get("source_ref"),
-                    "route_ref": route_ref,
-                    "selector_ref": target.get("selector_ref"),
-                    "evidence_capability_refs": tuple(target.get("evidence_capability_refs", [])),
-                    "privacy_class": privacy_class,
-                }
-                if key not in candidate_keys:
-                    candidate_keys.add(key)
-                    candidate_targets.append(candidate)
+            if not hard_unresolved:
+                for target in current.get("retrieval_targets", []):
+                    _validate_selector_narrowing(target, selectors)
+                    route_ref = target.get("route_ref")
+                    if not isinstance(route_ref, str) or not route_ref:
+                        unresolved.append(f"MISSING_ROUTE_REF:{current_id}")
+                        continue
+                    key = (target.get("source_ref"), route_ref, target.get("selector_ref"))
+                    candidate = {
+                        "domain_id": current_id,
+                        "source_ref": target.get("source_ref"),
+                        "route_ref": route_ref,
+                        "selector_ref": target.get("selector_ref"),
+                        "evidence_capability_refs": tuple(target.get("evidence_capability_refs", [])),
+                        "privacy_class": privacy_class,
+                    }
+                    if key not in candidate_keys:
+                        candidate_keys.add(key)
+                        candidate_targets.append(candidate)
 
-                route_state = observed_route_states.get(route_ref)
-                if route_state not in RETRIEVABLE_ROUTE_STATES:
-                    unresolved.append(
-                        f"ROUTE_NOT_CURRENTLY_OBSERVED_REACHABLE:{current_id}:{route_ref}:{route_state or 'UNOBSERVED'}"
-                    )
-                    continue
-                if hard_unresolved:
-                    continue
-                reachable_here = True
-                if key in target_keys:
-                    continue
-                target_keys.add(key)
-                targets.append({**candidate, "observed_route_state": route_state})
+                    route_state = observed_route_states.get(route_ref)
+                    if route_state not in RETRIEVABLE_ROUTE_STATES:
+                        unresolved.append(
+                            f"ROUTE_NOT_CURRENTLY_OBSERVED_REACHABLE:{current_id}:{route_ref}:{route_state or 'UNOBSERVED'}"
+                        )
+                        continue
+                    if key in target_keys:
+                        continue
+                    target_keys.add(key)
+                    targets.append({**candidate, "observed_route_state": route_state})
 
-            domain_has_reachable_target[current_id] = reachable_here
-
-        # Contextual relevance expands after the dependent domain. It may cycle,
-        # but it is not an authority/currentness gate on the domain already read.
         for dependency in contextual_dependencies:
             if dependency in visited_set or dependency in visiting:
                 continue
@@ -391,9 +409,9 @@ def build_retrieval_plan(
     if budget_state == BUDGET_EXHAUSTED:
         reason = "Retrieval expansion exhausted the configured ACTIVE_CONTEXT_SET budget and remains unresolved."
     elif unresolved:
-        reason = "Retrieval plan is bounded with explicit unresolved route/privacy/dependency state."
+        reason = "Retrieval plan is bounded with explicit unresolved route/privacy/governing-dependency state."
     else:
-        reason = "Retrieval plan is within budget and every selected target has fresh supplied reachability/result evidence."
+        reason = "Retrieval plan is within budget; governing prerequisites are satisfied and selected routes have fresh reachability/result evidence."
 
     return RetrievalPlan(
         domain_id=domain_id,
