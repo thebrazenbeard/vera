@@ -109,7 +109,7 @@ class RuntimeCohesionExecutorTests(unittest.TestCase):
         self.assertEqual(adapter.reads, [])
 
     def test_unresolved_governing_prerequisite_does_not_probe_dependent_providers(self):
-        live = FakeAdapter("live_conversation", evidence_class="current_user_authority")
+        live = FakeAdapter("live_conversation", evidence_class="current_user_report")
         github = ControlGitHubAdapter("github")
         result = execute_domain_cycle(
             "CONTROL_AND_GOVERNANCE",
@@ -118,14 +118,13 @@ class RuntimeCohesionExecutorTests(unittest.TestCase):
             FABRIC,
             AdapterRegistry({"live_conversation": live, "github": github}),
             privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED"},
-            governing_dependency_states={},
         )
         self.assertEqual(github.probes, [])
         self.assertGreaterEqual(len(live.probes), 1)
         self.assertEqual(result.status, "EXECUTED_WITH_UNRESOLVED")
         self.assertTrue(any("HARD_PREREQUISITE_UNRESOLVED" in item for item in result.unresolved))
 
-    def test_satisfied_governing_prerequisite_releases_dependent_providers(self):
+    def test_decisive_governing_prerequisite_is_derived_before_dependent_providers_release(self):
         live = FakeAdapter("live_conversation", evidence_class="current_user_authority")
         github = ControlGitHubAdapter("github")
         result = execute_domain_cycle(
@@ -135,11 +134,11 @@ class RuntimeCohesionExecutorTests(unittest.TestCase):
             FABRIC,
             AdapterRegistry({"live_conversation": live, "github": github}),
             privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED"},
-            governing_dependency_states={"CURRENT_TASK_CORRECTION_PERMISSION_CONSENT": "SATISFIED"},
         )
         self.assertTrue(any(request.route_ref == "route:vera-control-plane" for request in github.probes))
         self.assertTrue(any(request.route_ref == "route:vera" for request in github.probes))
         self.assertTrue(any(request.route_ref == "route:vera-control-plane" for request in github.reads))
+        self.assertTrue(any(record.status == "SATISFIED" for record in result.governing_resolutions))
         self.assertIn(result.status, {"EXECUTED", "EXECUTED_WITH_UNRESOLVED"})
 
     def test_adapter_provider_must_match_registered_route_provider(self):
