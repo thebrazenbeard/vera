@@ -4,13 +4,13 @@
   "normative_status": "NON_NORMATIVE_VALIDATION_SUPPORT",
   "index_schema": "VERA_COHESION_INDEX_V1",
   "contract_schema": "VERA_RUNTIME_CONTRACT_V1",
-  "index_blob_sha": "5a1cae66d1f3a72b54c633a3c1ee888e013ac10d",
+  "index_blob_sha": "82cdb03f8e2196cd6c87d18e4b81c839024a513c",
   "contract_blob_sha": "defb541b8f01a583a67223f6a241de64a1be20bb",
-  "source_commit": "424f8495b78d4530399f6b044039fbc5317e498a",
+  "source_commit": "32f142c1c92c99ede05c2db2ad40249f04ae8766",
   "source_commit_semantics": "GIT_TREE_CONTAINS_EXACT_BOUND_A_B_BLOBS",
   "validator_path": "scripts/validate_vera_runtime_cohesion_v1.py",
   "validator_blob_sha": "5a7384e10249833fdb1ed09fab16cef22b9bdd1b",
-  "compatibility_generation": "A1+B1+OPERATIONAL_FABRIC_V1_EVENT_BOUND",
+  "compatibility_generation": "A2+B1+OPERATIONAL_FABRIC_V1_EVENT_BOUND_HARD_DEPENDENCIES",
   "operational_support": {
     "normative_status": "NON_NORMATIVE_OPERATIONAL_SUPPORT",
     "provider_fabric": {
@@ -31,7 +31,7 @@
     },
     "runtime_planner_module": {
       "path": "runtime_cohesion/runtime.py",
-      "blob_sha": "501efb9b41e1f75382dc93d404b500b0a4b82ae0"
+      "blob_sha": "91a7b8f3fe96a097defd5ab1fe2baf453950a1d2"
     },
     "adapter_contract": {
       "path": "runtime_cohesion/adapters.py",
@@ -45,16 +45,27 @@
       "path": "runtime_cohesion/executor.py",
       "blob_sha": "e8a24452beb522e52b024c6de0d7f0cb6d114a15"
     },
+    "failure_candidate_router": {
+      "path": "runtime_cohesion/failure.py",
+      "blob_sha": "d69ed6e966c276effef327ce7345c7bcef2d8834",
+      "semantic_ceiling": "CANDIDATE_TRIGGER_WIRING_ONLY_PREDICATE_NOT_PROVEN"
+    },
+    "package_surface": {
+      "path": "runtime_cohesion/__init__.py",
+      "blob_sha": "f5b5ac71f51a4b10192c940f0b985de616863e6f"
+    },
     "native_hook": {
       "path": "architecture/VERA_RUNTIME_COHESION_NATIVE_HOOK_V1.json",
-      "blob_sha": "8bcc527c99ed02007e6ac460731eb8c3ede02adc",
+      "blob_sha": "15a1b8eec07ec6ab21ed412d7574512c9847ea9f",
       "status": "SOURCE_ONLY_NOT_INSTALLED"
     }
   },
   "focused_tdd_evidence": {
     "prior_result": "42_FOCUSED_RUNTIME_PROVIDER_TESTS_PASS_IN_RECONSTRUCTED_LOCAL_WORKSPACE",
-    "current_event_binding_result": "BOUNDED_RECONSTRUCTED_M5_GREEN_WRONG_EVENT_CONFLICT_AND_BUS_TARGET_SELECTOR_EXACT",
-    "scope": "Implementation-focused evidence only. The current event-instance binding change was exercised in a bounded reconstruction after a deliberate red test; exact-branch GitHub CI remains unavailable before runner steps and this evidence does not qualify native runtime behavior."
+    "m5_event_binding_result": "BOUNDED_RECONSTRUCTED_GREEN_WRONG_EVENT_CONFLICT_AND_EXACT_TARGET_SELECTOR",
+    "m2_failure_wiring_result": "BOUNDED_RECONSTRUCTED_GREEN_RESOLVER_AND_FAIL_CLOSED_GUARD_CANDIDATE_ROUTING",
+    "m1_dependency_result": "BOUNDED_RECONSTRUCTED_GREEN_HARD_PREREQUISITE_PREEMPTION_BLOCKING_CONTEXTUAL_NONBLOCKING_AND_CYCLE_TERMINATION",
+    "scope": "Implementation-focused evidence only. M1/M2/M5 cases were exercised in bounded reconstruction after deliberate red cases. Exact-branch GitHub CI remains unavailable before runner steps; this evidence does not qualify native runtime behavior."
   },
   "validation_result": "SOURCE_VALIDATION_NOT_YET_EXECUTED",
   "ci_execution_state": "CI_EXECUTION_UNAVAILABLE_ZERO_RUNNER_STEPS_OBSERVED",
