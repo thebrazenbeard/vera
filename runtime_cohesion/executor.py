@@ -7,12 +7,36 @@ from typing import Any, Mapping
 from .adapters import AdapterProbeResult, AdapterRegistry, AdapterRequest
 from .audit import AUDIT_STATUSES, ProjectionAuditResult, audit_registered_projections
 from .evidence import ProviderEvidenceEnvelope, validate_envelope
-from .runtime import build_operational_checkpoint, build_retrieval_plan
+from .runtime import build_operational_checkpoint, build_retrieval_plan, evaluate_proposition_admission
 
 
 EVIDENCE_PREFIX = "VERA_RUNTIME_CONTRACT_V1#evidence_classes."
 RETRIEVABLE_PROBE_STATES = {"CURRENTLY_OBSERVED_REACHABLE", "RESULT"}
 _EVENT_SELECTOR_TOKENS = {"$source_ref", "$source_path", "$source_revision"}
+_GOVERNING_RESOLUTION_STATES = {"SATISFIED", "UNRESOLVED", "CONFLICT"}
+_AUTHORITY_RESOLVER_PREFIX = "VERA_RUNTIME_CONTRACT_V1#authority_resolvers."
+
+
+@dataclass(frozen=True)
+class GoverningResolutionRecord:
+    prerequisite_domain: str
+    proposition_or_effect_class: str | None
+    referent_scope: str | None
+    status: str
+    admission_status: str
+    dispatch_id: str | None
+    resolver_ref: str | None
+    observed_evidence_classes: tuple[str, ...]
+    current_observation_count: int
+    reason: str
+
+    def __post_init__(self) -> None:
+        if self.status not in _GOVERNING_RESOLUTION_STATES:
+            raise ValueError(f"unsupported governing resolution status: {self.status}")
+        if self.admission_status not in {"ADMITTED", "UNRESOLVED", "CONFLICT"}:
+            raise ValueError(f"unsupported governing admission status: {self.admission_status}")
+        if self.status == "SATISFIED" and self.admission_status != "ADMITTED":
+            raise ValueError("SATISFIED governing resolution requires ADMITTED proposition evidence")
 
 
 @dataclass(frozen=True)
@@ -23,6 +47,7 @@ class DomainExecutionResult:
     observations: tuple[ProviderEvidenceEnvelope, ...]
     unresolved: tuple[str, ...]
     checkpoint: dict[str, Any]
+    governing_resolutions: tuple[GoverningResolutionRecord, ...] = ()
 
     def __post_init__(self) -> None:
         if self.status not in {"EXECUTED", "EXECUTED_WITH_UNRESOLVED", "UNRESOLVED"}:
@@ -68,6 +93,19 @@ def _request_for_candidate(candidate: Mapping[str, Any], provider: str) -> Adapt
         privacy_class=str(candidate["privacy_class"]),
         evidence_capability_refs=tuple(candidate.get("evidence_capability_refs", ())),
     )
+
+
+def _candidate_key(candidate: Mapping[str, Any]) -> tuple[str, str, str, str | None]:
+    return (
+        str(candidate["domain_id"]),
+        str(candidate["source_ref"]),
+        str(candidate["route_ref"]),
+        candidate.get("selector_ref"),
+    )
+
+
+def _request_key(request: AdapterRequest) -> tuple[str, str, str, str | None]:
+    return (request.domain_id, request.source_ref, request.route_ref, request.selector_ref)
 
 
 def _allowed_evidence_classes(request: AdapterRequest) -> set[str]:
@@ -116,12 +154,180 @@ def _validate_read(request: AdapterRequest, envelope: ProviderEvidenceEnvelope) 
         )
 
 
+def _validate_domain_read(request: AdapterRequest, envelope: ProviderEvidenceEnvelope) -> None:
+    _validate_read(request, envelope)
+    if envelope.referent != request.domain_id:
+        raise ValueError(
+            f"returned item referent mismatch: expected governing/task domain {request.domain_id!r}, got {envelope.referent!r}"
+        )
+
+
 def _checkpoint_with_unresolved(checkpoint: Mapping[str, Any], unresolved: list[str]) -> dict[str, Any]:
     result = dict(checkpoint)
     pointer = dict(result.get("minimum_necessary_payload_or_pointer", {}))
     pointer["unresolved"] = list(dict.fromkeys(unresolved))
     result["minimum_necessary_payload_or_pointer"] = pointer
     return result
+
+
+def _expected_governing_dispatch(
+    prerequisite_domain: str,
+    index: Mapping[str, Any],
+    contract: Mapping[str, Any],
+) -> tuple[Mapping[str, Any] | None, str]:
+    domain_rows = [row for row in index.get("domains", []) if row.get("id") == prerequisite_domain]
+    if len(domain_rows) != 1:
+        return None, "Governing prerequisite domain does not resolve exactly once in the cohesion index."
+
+    authority_ref = domain_rows[0].get("authority_resolver_ref")
+    if not isinstance(authority_ref, str) or not authority_ref.startswith(_AUTHORITY_RESOLVER_PREFIX):
+        return None, "Governing prerequisite lacks an exact runtime-contract authority resolver reference."
+    resolver_ref = authority_ref[len(_AUTHORITY_RESOLVER_PREFIX):]
+
+    candidates = [
+        row
+        for row in contract.get("resolver_dispatch", [])
+        if isinstance(row, Mapping)
+        and row.get("resolver_ref") == resolver_ref
+        and row.get("domain_scope") in {"*", prerequisite_domain}
+    ]
+    if not candidates:
+        return None, "No resolver dispatch binds the prerequisite domain's declared authority resolver to an exact proposition/referent."
+
+    def rank(row: Mapping[str, Any]) -> tuple[int, int]:
+        precedence = row.get("precedence")
+        if not isinstance(precedence, int):
+            precedence = -1
+        specificity = 1 if row.get("domain_scope") == prerequisite_domain else 0
+        return precedence, specificity
+
+    best_rank = max(rank(row) for row in candidates)
+    best = [row for row in candidates if rank(row) == best_rank]
+    if len(best) != 1:
+        return None, "Governing prerequisite authority resolver has an ambiguous highest-rank proposition/referent dispatch."
+
+    selected = best[0]
+    for field in ("id", "proposition_or_effect_class", "referent_scope", "resolver_ref"):
+        if not isinstance(selected.get(field), str) or not selected.get(field):
+            return None, f"Selected governing dispatch is missing {field}."
+    return selected, "Exact governing proposition/referent dispatch derived from A+B."
+
+
+def _derive_governing_resolution(
+    prerequisite_domain: str,
+    index: Mapping[str, Any],
+    contract: Mapping[str, Any],
+    observations: list[ProviderEvidenceEnvelope],
+) -> GoverningResolutionRecord:
+    expected, expected_reason = _expected_governing_dispatch(prerequisite_domain, index, contract)
+    relevant = [item for item in observations if item.referent == prerequisite_domain]
+    observed_classes = tuple(sorted({item.evidence_class for item in relevant}))
+
+    if expected is None:
+        return GoverningResolutionRecord(
+            prerequisite_domain=prerequisite_domain,
+            proposition_or_effect_class=None,
+            referent_scope=None,
+            status="UNRESOLVED",
+            admission_status="UNRESOLVED",
+            dispatch_id=None,
+            resolver_ref=None,
+            observed_evidence_classes=observed_classes,
+            current_observation_count=0,
+            reason=expected_reason,
+        )
+
+    proposition = str(expected["proposition_or_effect_class"])
+    referent_scope = str(expected["referent_scope"])
+    expected_dispatch_id = str(expected["id"])
+    expected_resolver_ref = str(expected["resolver_ref"])
+
+    if any(item.conflict_state in {"CONFLICT", "MISMATCH"} for item in relevant):
+        return GoverningResolutionRecord(
+            prerequisite_domain=prerequisite_domain,
+            proposition_or_effect_class=proposition,
+            referent_scope=referent_scope,
+            status="CONFLICT",
+            admission_status="CONFLICT",
+            dispatch_id=expected_dispatch_id,
+            resolver_ref=expected_resolver_ref,
+            observed_evidence_classes=observed_classes,
+            current_observation_count=0,
+            reason="Fresh prerequisite evidence contains an explicit conflict/mismatch and cannot release dependent I/O.",
+        )
+
+    current = [
+        item
+        for item in relevant
+        if item.supersession_state == "CURRENT_OBSERVATION" and item.conflict_state == "NONE"
+    ]
+    if not current:
+        return GoverningResolutionRecord(
+            prerequisite_domain=prerequisite_domain,
+            proposition_or_effect_class=proposition,
+            referent_scope=referent_scope,
+            status="UNRESOLVED",
+            admission_status="UNRESOLVED",
+            dispatch_id=expected_dispatch_id,
+            resolver_ref=expected_resolver_ref,
+            observed_evidence_classes=observed_classes,
+            current_observation_count=0,
+            reason="No conflict-free CURRENT_OBSERVATION evidence exists for the exact governing prerequisite.",
+        )
+
+    decision = evaluate_proposition_admission(
+        prerequisite_domain,
+        proposition,
+        referent_scope,
+        current,
+        contract,
+    )
+    if decision.dispatch_id != expected_dispatch_id or decision.resolver_ref != expected_resolver_ref:
+        return GoverningResolutionRecord(
+            prerequisite_domain=prerequisite_domain,
+            proposition_or_effect_class=proposition,
+            referent_scope=referent_scope,
+            status="CONFLICT",
+            admission_status="CONFLICT",
+            dispatch_id=decision.dispatch_id,
+            resolver_ref=decision.resolver_ref,
+            observed_evidence_classes=decision.observed_evidence_classes,
+            current_observation_count=len(current),
+            reason="Admission dispatch/resolver does not match the prerequisite's independently derived A+B binding.",
+        )
+
+    status = {
+        "ADMITTED": "SATISFIED",
+        "CONFLICT": "CONFLICT",
+        "UNRESOLVED": "UNRESOLVED",
+    }[decision.status]
+    return GoverningResolutionRecord(
+        prerequisite_domain=prerequisite_domain,
+        proposition_or_effect_class=proposition,
+        referent_scope=referent_scope,
+        status=status,
+        admission_status=decision.status,
+        dispatch_id=decision.dispatch_id,
+        resolver_ref=decision.resolver_ref,
+        observed_evidence_classes=decision.observed_evidence_classes,
+        current_observation_count=len(current),
+        reason=decision.reason,
+    )
+
+
+def _derive_governing_resolutions(
+    index: Mapping[str, Any],
+    contract: Mapping[str, Any],
+    observations: list[ProviderEvidenceEnvelope],
+) -> tuple[GoverningResolutionRecord, ...]:
+    raw = index.get("dependency_semantics", {}).get("hard_prerequisite_domains", [])
+    if not isinstance(raw, list):
+        raise ValueError("dependency_semantics.hard_prerequisite_domains must be a list")
+    return tuple(
+        _derive_governing_resolution(domain_id, index, contract, observations)
+        for domain_id in raw
+        if isinstance(domain_id, str) and domain_id
+    )
 
 
 def execute_domain_cycle(
@@ -132,53 +338,115 @@ def execute_domain_cycle(
     adapters: AdapterRegistry,
     *,
     privacy_allowlist: set[str] | frozenset[str],
-    governing_dependency_states: Mapping[str, str] | None = None,
 ) -> DomainExecutionResult:
-    """Execute one provider-backed cohesion retrieval cycle.
+    """Execute a bounded provider-backed cohesion retrieval/resolution cycle.
 
-    Governing resolution is supplied separately from transport reachability.
-    Until every hard prerequisite required by a dependent domain is explicitly
-    SATISFIED, only the prerequisite's own safe candidates can be probed/read.
-    Once the resolver/admission/currentness layer returns SATISFIED, the same
-    executor may release the dependent provider probes. Adapters supply transport;
-    A+B and the planner remain the policy/currentness boundary.
+    The executor never accepts a caller-supplied SATISFIED status. It first
+    retrieves safe hard-prerequisite evidence, independently derives the exact
+    governing proposition/referent dispatch from A+B, re-runs proposition
+    admission/currentness on the fresh exact-referent envelopes, and only then
+    feeds the derived governing status back into the planner. Dependent provider
+    I/O therefore cannot be released by an unbound status string.
     """
 
-    discovery = build_retrieval_plan(
+    probes: list[AdapterProbeResult] = []
+    observations: list[ProviderEvidenceEnvelope] = []
+    route_states: dict[str, str] = {}
+    execution_unresolved: list[str] = []
+    candidate_requests: dict[tuple[str, str, str, str | None], AdapterRequest] = {}
+    probed_keys: set[tuple[str, str, str, str | None]] = set()
+    read_keys: set[tuple[str, str, str, str | None]] = set()
+    governing_records = _derive_governing_resolutions(index, contract, observations)
+    governing_states = {record.prerequisite_domain: record.status for record in governing_records}
+
+    domains = index.get("domains", [])
+    max_rounds = max(2, (len(domains) if isinstance(domains, list) else 1) * 2 + 2)
+    plan = build_retrieval_plan(
         domain_id,
         index,
         contract,
-        observed_route_states={},
+        observed_route_states=route_states,
         privacy_allowlist=privacy_allowlist,
-        governing_dependency_states=governing_dependency_states,
+        governing_dependency_states=governing_states,
     )
 
-    probes: list[AdapterProbeResult] = []
-    route_states: dict[str, str] = {}
-    unresolved: list[str] = [
-        item for item in discovery.unresolved if not item.startswith("ROUTE_NOT_CURRENTLY_OBSERVED_REACHABLE:")
-    ]
+    for _round in range(max_rounds):
+        changed = False
+        plan = build_retrieval_plan(
+            domain_id,
+            index,
+            contract,
+            observed_route_states=route_states,
+            privacy_allowlist=privacy_allowlist,
+            governing_dependency_states=governing_states,
+        )
 
-    candidate_requests: dict[tuple[str, str, str | None], AdapterRequest] = {}
-    for candidate in discovery.candidate_targets:
-        route_ref = str(candidate["route_ref"])
-        provider = _provider_for_route(fabric, route_ref)
-        request = _request_for_candidate(candidate, provider)
-        key = (request.source_ref, request.route_ref, request.selector_ref)
-        candidate_requests[key] = request
+        for candidate in plan.candidate_targets:
+            key = _candidate_key(candidate)
+            provider = _provider_for_route(fabric, str(candidate["route_ref"]))
+            request = _request_for_candidate(candidate, provider)
+            candidate_requests[key] = request
+            if key in probed_keys:
+                continue
+            probed_keys.add(key)
+            changed = True
 
-        adapter = adapters.get(provider)
-        if adapter is None:
-            unresolved.append(f"MISSING_ADAPTER:{provider}:{route_ref}")
-            continue
-        if getattr(adapter, "provider", None) != provider:
-            raise ValueError(
-                f"adapter registry/provider mismatch for {provider!r}: adapter reports {getattr(adapter, 'provider', None)!r}"
-            )
-        probe = adapter.probe(request)
-        _validate_probe(request, probe)
-        probes.append(probe)
-        route_states[route_ref] = probe.state
+            adapter = adapters.get(provider)
+            if adapter is None:
+                execution_unresolved.append(f"MISSING_ADAPTER:{provider}:{request.route_ref}")
+                continue
+            if getattr(adapter, "provider", None) != provider:
+                raise ValueError(
+                    f"adapter registry/provider mismatch for {provider!r}: adapter reports {getattr(adapter, 'provider', None)!r}"
+                )
+            probe = adapter.probe(request)
+            _validate_probe(request, probe)
+            probes.append(probe)
+            route_states[request.route_ref] = probe.state
+
+        plan = build_retrieval_plan(
+            domain_id,
+            index,
+            contract,
+            observed_route_states=route_states,
+            privacy_allowlist=privacy_allowlist,
+            governing_dependency_states=governing_states,
+        )
+
+        for target in plan.targets:
+            key = _candidate_key(target)
+            if key in read_keys:
+                continue
+            read_keys.add(key)
+            changed = True
+
+            provider = _provider_for_route(fabric, str(target["route_ref"]))
+            request = candidate_requests.get(key)
+            if request is None:
+                request = _request_for_candidate(target, provider)
+                candidate_requests[key] = request
+            adapter = adapters.get(provider)
+            if adapter is None:
+                execution_unresolved.append(f"MISSING_ADAPTER:{provider}:{request.route_ref}")
+                continue
+            envelope = adapter.read(request)
+            if envelope is None:
+                execution_unresolved.append(f"ABSENT_ITEM:{provider}:{request.route_ref}:{request.source_ref}")
+                continue
+            _validate_domain_read(request, envelope)
+            observations.append(envelope)
+
+        new_records = _derive_governing_resolutions(index, contract, observations)
+        new_states = {record.prerequisite_domain: record.status for record in new_records}
+        if new_states != governing_states:
+            changed = True
+        governing_records = new_records
+        governing_states = new_states
+
+        if not changed:
+            break
+    else:
+        execution_unresolved.append("GOVERNING_RESOLUTION_FIXED_POINT_EXHAUSTED")
 
     plan = build_retrieval_plan(
         domain_id,
@@ -186,29 +454,9 @@ def execute_domain_cycle(
         contract,
         observed_route_states=route_states,
         privacy_allowlist=privacy_allowlist,
-        governing_dependency_states=governing_dependency_states,
+        governing_dependency_states=governing_states,
     )
-    unresolved.extend(plan.unresolved)
-
-    observations: list[ProviderEvidenceEnvelope] = []
-    for target in plan.targets:
-        provider = _provider_for_route(fabric, str(target["route_ref"]))
-        key = (target.get("source_ref"), target.get("route_ref"), target.get("selector_ref"))
-        request = candidate_requests.get(key)
-        if request is None:
-            request = _request_for_candidate(target, provider)
-        adapter = adapters.get(provider)
-        if adapter is None:
-            unresolved.append(f"MISSING_ADAPTER:{provider}:{request.route_ref}")
-            continue
-        envelope = adapter.read(request)
-        if envelope is None:
-            unresolved.append(f"ABSENT_ITEM:{provider}:{request.route_ref}:{request.source_ref}")
-            continue
-        _validate_read(request, envelope)
-        observations.append(envelope)
-
-    unresolved = list(dict.fromkeys(unresolved))
+    unresolved = list(dict.fromkeys([*execution_unresolved, *plan.unresolved]))
     checkpoint = _checkpoint_with_unresolved(build_operational_checkpoint(plan, []), unresolved)
 
     material_unresolved = [
@@ -233,6 +481,7 @@ def execute_domain_cycle(
         observations=tuple(observations),
         unresolved=tuple(material_unresolved),
         checkpoint=checkpoint,
+        governing_resolutions=governing_records,
     )
 
 
