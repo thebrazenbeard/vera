@@ -36,6 +36,7 @@ class VeraAffectiveRuntimeProviderContractTests(unittest.TestCase):
         self.assertTrue(req["resolution_and_recovery_receipts_required"])
         self.assertTrue(req["atomic_state_plus_event_commit_required"])
         self.assertTrue(req["compare_and_swap_expected_prior_version_required"])
+        self.assertTrue(req["event_row_interoception_bound_to_receipt_state_after_required"])
         provider = contract["provider"]
         self.assertEqual(provider["service_role_direct_state_insert_update"], "REVOKED")
         self.assertEqual(provider["service_role_direct_event_insert"], "REVOKED")
