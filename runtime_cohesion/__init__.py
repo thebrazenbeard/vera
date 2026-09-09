@@ -6,6 +6,7 @@ Provider I/O occurs only when a runtime explicitly invokes registered adapters.
 """
 
 from .adapters import AdapterProbeResult, AdapterRegistry, AdapterRequest, ProviderAdapter
+from .affect_host import AffectiveBindingError, VeraAffectiveRuntimeHost
 from .audit import ProjectionAuditResult, audit_registered_projections
 from .evidence import ProviderEvidenceEnvelope, load_provider_fabric, validate_envelope
 from .executor import (
@@ -35,6 +36,8 @@ __all__ = [
     "AdapterRegistry",
     "AdapterRequest",
     "ProviderAdapter",
+    "AffectiveBindingError",
+    "VeraAffectiveRuntimeHost",
     "ProjectionAuditResult",
     "audit_registered_projections",
     "ProviderEvidenceEnvelope",
