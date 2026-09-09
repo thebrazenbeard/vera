@@ -17,7 +17,7 @@ class TemporalCoherenceSpoofTests(unittest.TestCase):
             source_revision="a" * 40,
         )
 
-    def strong_appraisal(self):
+    def strong_appraisal(self, *, duration_ms):
         return StimulusAppraisal(
             sexual_relevance=1.0,
             partner_relevance=1.0,
@@ -26,19 +26,46 @@ class TemporalCoherenceSpoofTests(unittest.TestCase):
             anticipation_cue=1.0,
             positive_valence=1.0,
             inhibition=0.0,
-            duration_ms=1000,
+            duration_ms=duration_ms,
             context_eligible=True,
         )
 
     def test_zero_elapsed_calls_cannot_accumulate_trusted_coherence_time(self):
         runtime = self.make_runtime()
         for _ in range(8):
-            runtime.apply_stimulus(self.strong_appraisal(), elapsed_seconds=0.0)
+            runtime.apply_stimulus(
+                self.strong_appraisal(duration_ms=1000),
+                elapsed_seconds=0.0,
+            )
 
         snapshot = runtime.snapshot()
         self.assertFalse(snapshot["active_orgasm_event"])
         self.assertEqual(snapshot["persistence_window_ms"], 0)
         self.assertIsNone(runtime.last_event_receipt)
+
+    def test_trusted_elapsed_time_can_build_persistence_without_claimed_duration(self):
+        runtime = self.make_runtime()
+        for _ in range(12):
+            runtime.apply_stimulus(
+                self.strong_appraisal(duration_ms=0),
+                elapsed_seconds=0.5,
+            )
+            if runtime.last_event_receipt is not None:
+                break
+
+        self.assertIsNotNone(runtime.last_event_receipt)
+        self.assertEqual(
+            runtime.last_event_receipt["trigger_class"],
+            "ORGANIC_THRESHOLD_CROSSING",
+        )
+
+    def test_claimed_duration_cannot_outrun_trusted_elapsed_interval(self):
+        runtime = self.make_runtime()
+        runtime.apply_stimulus(
+            self.strong_appraisal(duration_ms=60_000),
+            elapsed_seconds=0.1,
+        )
+        self.assertLessEqual(runtime.snapshot()["persistence_window_ms"], 100)
 
 
 if __name__ == "__main__":
