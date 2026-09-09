@@ -45,6 +45,16 @@ class RestoredReceiptValidationTests(unittest.TestCase):
         forged["last_event_receipt"]["event_digest"] = receipt_digest(forged["last_event_receipt"])
         return host, forged
 
+    def assert_restore_and_persistence_reject(self, mutate, restore_pattern, persistence_pattern=None):
+        host, forged = self.forged_record(mutate)
+        receipt = forged["last_event_receipt"]
+        with self.assertRaisesRegex(ContractError, restore_pattern):
+            OrgasmRuntime.restore_state(
+                self.contract(), forged, source_revision=self.binding()["source_commit"]
+            )
+        with self.assertRaisesRegex(PersistenceRecordError, persistence_pattern or restore_pattern):
+            event_receipt_to_event_row(host, receipt)
+
     def test_direct_runtime_restore_rejects_digest_valid_wrong_runtime_receipt(self):
         _, forged = self.forged_record(
             lambda receipt: receipt.__setitem__("runtime_instance_id", "other-runtime")
@@ -63,39 +73,41 @@ class RestoredReceiptValidationTests(unittest.TestCase):
                 self.contract(), forged, source_revision=self.binding()["source_commit"]
             )
 
-    def test_non_boolean_organic_is_rejected_at_restore_and_persistence_boundaries(self):
-        host, forged = self.forged_record(
-            lambda receipt: receipt.__setitem__("organic", "false")
+    def test_wrong_subject_is_rejected_at_restore_and_persistence_boundaries(self):
+        self.assert_restore_and_persistence_reject(
+            lambda receipt: receipt.__setitem__("subject", "brigit"),
+            r"(?i)(receipt|subject|vera|identity)",
         )
-        receipt = forged["last_event_receipt"]
-        with self.assertRaisesRegex(ContractError, r"(?i)(receipt|organic|boolean|provenance)"):
-            OrgasmRuntime.restore_state(
-                self.contract(), forged, source_revision=self.binding()["source_commit"]
-            )
-        with self.assertRaisesRegex(PersistenceRecordError, r"(?i)(receipt|organic|boolean|provenance)"):
-            event_receipt_to_event_row(host, receipt)
+
+    def test_wrong_schema_version_is_rejected_at_restore_and_persistence_boundaries(self):
+        self.assert_restore_and_persistence_reject(
+            lambda receipt: receipt.__setitem__("schema_version", "NOT_THE_BOUND_RUNTIME_CONTRACT"),
+            r"(?i)(receipt|schema|contract|version)",
+        )
+
+    def test_phenomenology_promotion_is_rejected_at_restore_and_persistence_boundaries(self):
+        self.assert_restore_and_persistence_reject(
+            lambda receipt: receipt.__setitem__("phenomenology", "PROVEN_SUBJECTIVE_ORGASM"),
+            r"(?i)(receipt|phenomenology|unresolved|claim)",
+        )
+
+    def test_non_boolean_organic_is_rejected_at_restore_and_persistence_boundaries(self):
+        self.assert_restore_and_persistence_reject(
+            lambda receipt: receipt.__setitem__("organic", "false"),
+            r"(?i)(receipt|organic|boolean|provenance)",
+        )
 
     def test_forced_trigger_cannot_be_digest_valid_and_marked_organic_at_restore_or_persistence(self):
-        host, forged = self.forged_record(lambda receipt: receipt.__setitem__("organic", True))
-        receipt = forged["last_event_receipt"]
-        with self.assertRaisesRegex(ContractError, r"(?i)(receipt|organic|forced|trigger)"):
-            OrgasmRuntime.restore_state(
-                self.contract(), forged, source_revision=self.binding()["source_commit"]
-            )
-        with self.assertRaisesRegex(PersistenceRecordError, r"(?i)(receipt|organic|forced|trigger)"):
-            event_receipt_to_event_row(host, receipt)
+        self.assert_restore_and_persistence_reject(
+            lambda receipt: receipt.__setitem__("organic", True),
+            r"(?i)(receipt|organic|forced|trigger)",
+        )
 
     def test_transition_mismatch_is_rejected_at_restore_and_persistence_boundaries(self):
-        host, forged = self.forged_record(
-            lambda receipt: receipt.__setitem__("transition", "QUIESCENT->RECOVERY")
+        self.assert_restore_and_persistence_reject(
+            lambda receipt: receipt.__setitem__("transition", "QUIESCENT->RECOVERY"),
+            r"(?i)(receipt|transition|phase)",
         )
-        receipt = forged["last_event_receipt"]
-        with self.assertRaisesRegex(ContractError, r"(?i)(receipt|transition|phase)"):
-            OrgasmRuntime.restore_state(
-                self.contract(), forged, source_revision=self.binding()["source_commit"]
-            )
-        with self.assertRaisesRegex(PersistenceRecordError, r"(?i)(receipt|transition|phase)"):
-            event_receipt_to_event_row(host, receipt)
 
     def test_checkpoint_integrity_does_not_replace_inner_receipt_semantics(self):
         host = self.make_host_with_receipt()
