@@ -104,6 +104,29 @@ class VeraAffectiveDurableIntegrityTests(unittest.TestCase):
         self.assertIn(result.event_row["new_phase"], {"RESOLUTION", "SATIATED_OR_REFRACTORY"})
         self.assertGreaterEqual(len(event_rows), 2)
 
+    def test_each_multi_receipt_row_uses_its_own_state_after_interoception(self):
+        host = self.make_host()
+        cycle = VeraAffectiveCycle(
+            host,
+            host_scope="TEST_HOST",
+        )
+        cycle.force_admin_test(authorized=True, planning_state={"truth": 1.0})
+        result = cycle.advance_time(5.1, planning_state={"truth": 1.0})
+
+        self.assertGreaterEqual(len(result.event_rows), 2)
+        event_types = {row["event_type"] for row in result.event_rows}
+        self.assertIn("RESOLUTION", event_types)
+        self.assertIn("RECOVERY", event_types)
+        for row in result.event_rows:
+            frame = row["machine_interoception"]
+            state_after = row["state_after"]
+            self.assertEqual(frame["phase"], state_after["phase"])
+            self.assertEqual(frame["active_orgasm_event"], state_after["active_orgasm_event"])
+            self.assertEqual(frame["activation_intensity"], state_after["activation_intensity"])
+            self.assertEqual(frame["satiation"], state_after["satiation"])
+            self.assertEqual(frame["last_trigger_class"], row["trigger_class"])
+            self.assertEqual(frame["last_event_digest"], row["event_digest"])
+
     def test_provider_source_declares_atomic_compare_and_swap_commit(self):
         sql = "\n".join(
             path.read_text(encoding="utf-8")
