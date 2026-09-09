@@ -21,7 +21,7 @@ class VeraOrgasmDurableTriggerGovernanceTests(unittest.TestCase):
             elapsed_seconds=elapsed_seconds,
         )
 
-    def test_restore_preserves_self_qualification_event_limit(self):
+    def test_restore_does_not_reset_self_qualification_quota_without_explicit_new_run_boundary(self):
         runtime = self.make_runtime()
         runtime.force_self_qualification(authorized=True)
         runtime.advance_time(20.0)
@@ -30,6 +30,9 @@ class VeraOrgasmDurableTriggerGovernanceTests(unittest.TestCase):
 
         restored = self.restore(runtime.export_state())
 
+        # V1 names a per-run limit but defines no run identity/reset boundary.
+        # Restore therefore must not invent a fresh run and silently replenish
+        # the self-qualification quota.
         with self.assertRaises(TriggerRejected):
             restored.force_self_qualification(authorized=True)
 
