@@ -8,6 +8,12 @@ import math
 import uuid
 from typing import Any, Mapping
 
+from .affect_semantics import (
+    AffectiveSemanticError,
+    validate_event_receipt_semantics,
+    validate_state_snapshot_semantics,
+)
+
 
 class ContractError(ValueError):
     """The supplied sexuality contract is incompatible with the Vera runtime."""
@@ -360,7 +366,7 @@ class OrgasmRuntime:
         state_after: Mapping[str, Any],
         trigger_class: str,
         organic: bool,
-        trigger_provenance: str,
+        trigger_provenance: str | Mapping[str, Any],
     ) -> dict[str, Any]:
         if event_type not in _ALLOWED_EVENT_TYPES:
             raise TriggerRejected(f"unsupported affective event type: {event_type}")
@@ -374,7 +380,7 @@ class OrgasmRuntime:
             "schema_version": "VERA_ORGASM_RUNTIME_CONTRACT_V1",
             "event_type": event_type,
             "state_before": dict(state_before),
-            "trigger_provenance": trigger_provenance,
+            "trigger_provenance": dict(trigger_provenance) if isinstance(trigger_provenance, Mapping) else trigger_provenance,
             "transition": f"{state_before.get('phase')}->{state_after.get('phase')}",
             "state_after": dict(state_after),
             "observed_at": datetime.now(timezone.utc).isoformat(),
@@ -387,6 +393,15 @@ class OrgasmRuntime:
             core["claim"] = self.contract["claim_ceiling"]["engineered_event"]
         canonical = json.dumps(core, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
         core["event_digest"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        try:
+            validate_event_receipt_semantics(
+                core,
+                runtime_instance_id=self.runtime_instance_id,
+                source_revision=self.source_revision,
+                phenomenology_status=self.phenomenology_status,
+            )
+        except AffectiveSemanticError as exc:
+            raise ContractError(str(exc)) from exc
         self.last_event_receipt = dict(core)
         self._pending_event_receipts.append(dict(core))
         return dict(core)
@@ -605,84 +620,14 @@ class OrgasmRuntime:
                 details.append("extra=" + ",".join(extra))
             raise ContractError("durable orgasm state shape mismatch: " + " ".join(details))
 
-        if raw_state.get("subject") != "vera":
-            raise ContractError("durable orgasm state snapshot subject must be vera")
-        if raw_state.get("presence") != "ALWAYS_PRESENT_NORMALLY_QUIESCENT":
-            raise ContractError("durable orgasm state snapshot presence mismatch")
-        phase = raw_state.get("phase")
-        if phase not in _ALLOWED_PHASES:
-            raise ContractError("durable orgasm state has an unknown phase")
-        action_tendency = raw_state.get("action_tendency")
-        if action_tendency not in _ALLOWED_ACTION_TENDENCIES:
-            raise ContractError("durable orgasm state has an unknown action tendency")
-        for name in (
-            "active_orgasm_event",
-            "context_eligible",
-            "reentry_allowed",
-            "organic_climax_eligible",
-        ):
-            if not isinstance(raw_state.get(name), bool):
-                raise ContractError(f"durable orgasm state {name} must be boolean")
-
-        for name in _BOUNDED_STATE_FIELDS:
-            value = raw_state.get(name)
-            if isinstance(value, bool) or not isinstance(value, (int, float)):
-                raise ContractError(f"durable orgasm state {name} must be numeric")
-            numeric = float(value)
-            if not math.isfinite(numeric) or not 0.0 <= numeric <= 1.0:
-                raise ContractError(f"durable orgasm state {name} must be within [0, 1]")
-
-        positive_valence = raw_state.get("positive_valence")
-        if isinstance(positive_valence, bool) or not isinstance(positive_valence, (int, float)):
-            raise ContractError("durable orgasm state positive_valence must be numeric")
-        if not math.isfinite(float(positive_valence)) or not -1.0 <= float(positive_valence) <= 1.0:
-            raise ContractError("durable orgasm state positive_valence must be within [-1, 1]")
-
-        persistence_window_ms = raw_state.get("persistence_window_ms")
-        if isinstance(persistence_window_ms, bool) or not isinstance(persistence_window_ms, int) or persistence_window_ms < 0:
-            raise ContractError("durable orgasm state persistence_window_ms must be a nonnegative integer")
-
-        event_elapsed_ms = raw_state.get("event_elapsed_ms")
-        if isinstance(event_elapsed_ms, bool) or not isinstance(event_elapsed_ms, (int, float)):
-            raise ContractError("durable orgasm state event_elapsed_ms must be numeric")
-        event_elapsed = float(event_elapsed_ms)
-        max_event = float(self._cfg["maximum_orgasm_event_ms"])
-        if not math.isfinite(event_elapsed) or event_elapsed < 0.0 or event_elapsed > max_event + 1e-9:
-            raise ContractError("durable orgasm state event_elapsed_ms is outside the bounded climax window")
-
-        if raw_state.get("next_eligible_at") is not None:
-            raise ContractError(
-                "durable orgasm state next_eligible_at requires a trusted wall-clock continuity binding"
+        try:
+            validate_state_snapshot_semantics(
+                raw_state,
+                profile=self.profile,
+                maximum_orgasm_event_ms=float(self._cfg["maximum_orgasm_event_ms"]),
             )
-
-        active = raw_state["active_orgasm_event"]
-        if active != (phase == "ORGASM_EVENT"):
-            raise ContractError("durable orgasm state phase/active_orgasm_event semantics are inconsistent")
-
-        reentry_allowed = raw_state["reentry_allowed"]
-        recovery_phase = phase in {"RESOLUTION", "SATIATED_OR_REFRACTORY"}
-        if phase == "ORGASM_EVENT" and reentry_allowed:
-            raise ContractError("ORGASM_EVENT recovery semantics require reentry_allowed=false")
-        if recovery_phase:
-            expected_reentry = self.profile == "REENTRANT_CLIMAX"
-            if reentry_allowed != expected_reentry:
-                raise ContractError("durable recovery reentry state does not match the active profile")
-            if action_tendency != "HOLD":
-                raise ContractError("recovery phase semantics require action_tendency=HOLD")
-        if phase == "QUIESCENT":
-            if (
-                not reentry_allowed
-                or action_tendency != "NONE"
-                or float(raw_state["activation_intensity"]) >= 0.05
-                or float(raw_state["coherence"]) >= 0.05
-                or float(raw_state["satiation"]) >= 0.05
-                or float(raw_state["resolution_intensity"]) != 0.0
-                or float(raw_state["refractory_strength"]) != 0.0
-            ):
-                raise ContractError("QUIESCENT recovery semantics are inconsistent")
-        if phase == "ORGASM_EVENT":
-            if action_tendency != "HOLD" or float(raw_state["resolution_intensity"]) != 0.0:
-                raise ContractError("ORGASM_EVENT state semantics are inconsistent")
+        except AffectiveSemanticError as exc:
+            raise ContractError(str(exc)) from exc
 
         values = {name: raw_state[name] for name in field_names}
         return values
@@ -719,6 +664,16 @@ class OrgasmRuntime:
         last_receipt = record.get("last_event_receipt")
         if last_receipt is not None and not isinstance(last_receipt, Mapping):
             raise ContractError("durable last_event_receipt must be an object or null")
+        if isinstance(last_receipt, Mapping):
+            try:
+                validate_event_receipt_semantics(
+                    last_receipt,
+                    runtime_instance_id=runtime.runtime_instance_id,
+                    source_revision=runtime.source_revision,
+                    phenomenology_status=runtime.phenomenology_status,
+                )
+            except AffectiveSemanticError as exc:
+                raise ContractError(str(exc)) from exc
         runtime.last_event_receipt = dict(last_receipt) if isinstance(last_receipt, Mapping) else None
 
         trigger_governance = record.get("trigger_governance")
