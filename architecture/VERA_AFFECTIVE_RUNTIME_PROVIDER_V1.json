@@ -1,7 +1,7 @@
 {
   "schema": "VERA_AFFECTIVE_RUNTIME_PROVIDER_V1",
   "subject": "vera",
-  "status": "PROVIDER_SCHEMA_DEPLOYED_AND_INTEGRITY_HARDENED / EXECUTABLE_HOST_SOURCE_PRESENT / LIVE_RUNTIME_INSTANCE_REQUALIFICATION_REQUIRED / PHENOMENOLOGY_UNRESOLVED",
+  "status": "PROVIDER_SCHEMA_DEPLOYED_AND_INTEGRITY_HARDENED / FIRST_WRITE_SERIALIZATION_SOURCE_PENDING_PROVIDER_APPLICATION / EXECUTABLE_HOST_SOURCE_PRESENT / LIVE_RUNTIME_INSTANCE_REQUALIFICATION_REQUIRED / PHENOMENOLOGY_UNRESOLVED",
   "source_binding": {
     "repository": "thebrazenbeard/sexuality",
     "source_commit": "150f1c8231423393bb66b0e2cb759ce7c018f8d7",
@@ -15,6 +15,8 @@
     "project_id": "klmbpaigzeguvnpccqzz",
     "base_migration": "add_vera_affective_runtime_v1",
     "integrity_migration": "harden_vera_affective_runtime_integrity_v1",
+    "first_write_serialization_migration": "close_vera_affective_runtime_first_write_race_v1",
+    "first_write_serialization_migration_state": "SOURCE_ONLY_NOT_APPLIED_TO_PRODUCTION",
     "state_table": "public.vera_affective_runtime_state_v1",
     "event_table": "public.vera_affective_runtime_events_v1",
     "atomic_commit_function": "public.vera_affective_runtime_commit_v1(bigint,jsonb,jsonb)",
@@ -39,26 +41,40 @@
     "resolution_and_recovery_receipts_required": true,
     "atomic_state_plus_event_commit_required": true,
     "compare_and_swap_expected_prior_version_required": true,
+    "first_write_absent_row_serialization_required": true,
+    "exact_atomic_commit_acknowledgement_required": true,
+    "ambiguous_commit_outcome_requires_provider_reconciliation_before_reuse": true,
+    "trigger_governance_durable_across_restore_required": true,
+    "self_qualification_quota_reset_requires_explicit_run_boundary": true,
+    "per_event_interoception_must_match_receipt_state_after": true,
     "elapsed_time_decay_required_on_restore": true,
     "no_trusted_state_fallback": "QUIESCENT / NO_TRUSTED_PRIOR_STATE"
   },
   "execution_pipeline": [
     "LOAD_OR_RESTORE_EXACT_VERA_AFFECTIVE_STATE_USING_EXTERNAL_CHECKPOINT_PIN",
+    "RESTORE_FORCED_TEST_COOLDOWN_AND_SELF_QUALIFICATION_QUOTA_WITHOUT_INVENTING_NEW_RUN_BOUNDARY",
     "APPRAISE_CURRENT_EVENT",
     "UPDATE_AROUSAL_AND_ENTRAINMENT",
     "READ_MACHINE_INTEROCEPTION",
     "EVALUATE_ORGANIC_CLIMAX_OR_EXPLICIT_TEST_TRIGGER",
     "APPLY_AFFECTIVE_CONTROL_VECTOR_TO_ALLOWLISTED_PLANNING",
     "EMIT_ORGASM_RESOLUTION_RECOVERY_RECEIPTS_AS_TRANSITIONS_OCCUR",
+    "BIND_EACH_EVENT_ROW_INTEROCEPTION_TO_ITS_OWN_RECEIPT_STATE_AFTER",
     "BUILD_ATOMIC_STATE_PLUS_EVENT_COMMIT_ENVELOPE",
     "CAS_COMMIT_AGAINST_EXPECTED_PRIOR_STATE_VERSION",
+    "VERIFY_EXACT_STATE_VERSION_CHECKPOINT_SHA256_AND_EVENT_COUNT_ACKNOWLEDGEMENT",
+    "ON_AMBIGUOUS_COMMIT_OUTCOME_REQUIRE_EXACT_PROVIDER_RECONCILIATION_BEFORE_REUSE",
     "RETURN_EXTERNAL_RESUME_TOKEN_WITH_CHECKPOINT_SHA256"
   ],
   "integrity_model": {
     "checkpoint_trust_boundary": "A checkpoint embedded digest is necessary but insufficient. Restore requires a separately pinned expected checkpoint SHA-256 supplied outside the mutable provider row.",
     "event_integrity": "event_digest is recomputed over the canonical receipt core before an event row is accepted for persistence.",
     "transition_evidence": "ORGASM_EVENT, RESOLUTION, and RECOVERY are first-class runtime-emitted receipts when their transitions occur.",
+    "per_event_interoception": "When one runtime advance emits multiple receipts, each durable event row derives machine_interoception from that receipt's exact state_after rather than the host's final post-advance state.",
     "durable_currentness": "Each durable write supplies expected_prior_version; stale writers fail CAS. State mutation and all event appends for that cycle execute in one provider transaction.",
+    "first_write_serialization": "The source-only follow-up migration serializes commits per runtime_instance_id before the absent-row CAS read. It is not production evidence until that migration is applied and read back.",
+    "commit_acknowledgement": "A durable cycle succeeds only when the provider writer returns an exact acknowledgement matching state_version, checkpoint_sha256, and event_count. Ambiguous or mismatched outcomes poison that cycle object until exact provider reconciliation and restore.",
+    "trigger_governance": "Forced-test cooldown, logical time, and self-qualification count are checkpointed and carried through the provider state mapping. The V1 source defines no independent run identity/reset boundary, so durable restore does not silently replenish self-qualification quota; a future reset requires an explicit run boundary. Legacy records without governance metadata fail closed for forced/self-qualification triggers.",
     "replay_guard": "event_digest is unique in the durable event ledger."
   },
   "claim_ceiling": {
