@@ -25,15 +25,24 @@ class RuntimeCohesionNativeHookTests(unittest.TestCase):
         hook = json.loads(HOOK.read_text(encoding="utf-8"))
         self.assertEqual(
             set(hook["operations"]),
-            {"ORIENT", "DOMAIN_RETRIEVE", "PROJECTION_RECONCILE", "PROJECTION_AUDIT", "RECONCILE", "ADMIT_PROPOSITION", "CHECKPOINT"},
+            {"ORIENT", "DOMAIN_RETRIEVE", "FAILURE_EVALUATE", "PROJECTION_RECONCILE", "PROJECTION_AUDIT", "RECONCILE", "ADMIT_PROPOSITION", "CHECKPOINT"},
         )
         self.assertEqual(hook["operations"]["DOMAIN_RETRIEVE"]["call"], "runtime_cohesion.executor.execute_domain_cycle")
         self.assertEqual(hook["operations"]["DOMAIN_RETRIEVE"]["transport_boundary"], "runtime_cohesion.adapters.ProviderAdapter")
+        self.assertEqual(hook["operations"]["FAILURE_EVALUATE"]["call"], "runtime_cohesion.failure.evaluate_failure_signature")
         self.assertEqual(hook["operations"]["PROJECTION_RECONCILE"]["call"], "runtime_cohesion.executor.execute_projection_cycle")
         self.assertEqual(hook["operations"]["PROJECTION_AUDIT"]["call"], "runtime_cohesion.audit.audit_registered_projections")
         self.assertEqual(hook["operations"]["RECONCILE"]["call"], "runtime_cohesion.reconcile.reconcile_exact")
         self.assertEqual(hook["operations"]["ADMIT_PROPOSITION"]["call"], "runtime_cohesion.runtime.evaluate_proposition_admission")
         self.assertEqual(hook["operations"]["CHECKPOINT"]["call"], "runtime_cohesion.runtime.build_operational_checkpoint")
+
+    def test_failure_evaluator_routes_candidates_without_claiming_predicate_truth(self):
+        hook = json.loads(HOOK.read_text(encoding="utf-8"))
+        rule = hook["operations"]["FAILURE_EVALUATE"]["rule"].lower()
+        self.assertIn("candidate", rule)
+        self.assertIn("does not prove", rule)
+        self.assertIn("resolver", rule)
+        self.assertIn("guard", rule)
 
     def test_adapter_boundary_has_no_policy_authority(self):
         hook = json.loads(HOOK.read_text(encoding="utf-8"))
