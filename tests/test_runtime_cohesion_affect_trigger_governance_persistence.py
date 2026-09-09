@@ -3,7 +3,11 @@ from pathlib import Path
 import unittest
 
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
-from runtime_cohesion.affect_persistence import checkpoint_to_state_row, restore_host_from_state_row
+from runtime_cohesion.affect_persistence import (
+    build_affective_resume_token,
+    checkpoint_to_state_row,
+    restore_host_from_state_row,
+)
 from runtime_cohesion.orgasm import TriggerRejected
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,6 +39,8 @@ class VeraAffectiveTriggerGovernancePersistenceTests(unittest.TestCase):
             CONTRACT_PATH.read_text(encoding="utf-8"),
             json.loads(BINDING_PATH.read_text(encoding="utf-8")),
             row,
+            expected_host_scope="TEST_HOST",
+            expected_resume_token=build_affective_resume_token(row),
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
         )
         with self.assertRaises(TriggerRejected):
