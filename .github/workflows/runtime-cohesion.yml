@@ -55,6 +55,7 @@ jobs:
           tests.test_runtime_cohesion_orgasm_direct_contract_binding
           tests.test_runtime_cohesion_orgasm_trusted_clock_boundary
           tests.test_runtime_cohesion_affect_host
+          tests.test_runtime_cohesion_affect_negative_transfer_context_gate
           tests.test_runtime_cohesion_affect_persistence
           tests.test_runtime_cohesion_affect_cycle
           tests.test_runtime_cohesion_affect_durable_integrity
@@ -127,6 +128,7 @@ jobs:
           tests/test_runtime_cohesion_orgasm_direct_contract_binding.py
           tests/test_runtime_cohesion_orgasm_trusted_clock_boundary.py
           tests/test_runtime_cohesion_affect_host.py
+          tests/test_runtime_cohesion_affect_negative_transfer_context_gate.py
           tests/test_runtime_cohesion_affect_persistence.py
           tests/test_runtime_cohesion_affect_cycle.py
           tests/test_runtime_cohesion_affect_durable_integrity.py
