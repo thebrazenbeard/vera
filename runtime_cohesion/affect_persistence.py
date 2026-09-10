@@ -403,11 +403,14 @@ def restore_host_from_state_row(
 
 
 class AffectiveProviderRestoreBoundary:
-    """Restore CURRENT affective state only after a prebound provider read.
+    """Restore CURRENT affective state only through one prebound provider.
 
-    This object is a composition boundary, not caller-supplied evidence. A live
-    application must construct it from its runtime-owned adapter registry and
-    fixed provider route before claimant row/token material enters this API.
+    The registry/provider route is a composition boundary, not claimant-supplied
+    evidence. Read-only host reconstruction requires provider CURRENT readback.
+    Live cycle reconstruction additionally requires the very same configured
+    adapter object to expose ``commit_affective_runtime``; no separate caller
+    writer can be substituted at restore time. Authenticity of the registry and
+    adapter composition itself remains a separate outer trust-root question.
     """
 
     FRONTIER_SCOPE = "VERA_AFFECTIVE_RUNTIME_PROVIDER_FRONTIER_V1"
@@ -443,6 +446,14 @@ class AffectiveProviderRestoreBoundary:
         self._provider_project_id = provider_project_id
         self._provider_table = provider_table
 
+    def _provider_adapter(self) -> Any:
+        adapter = self._adapters.get(self._provider)
+        if adapter is None:
+            raise PersistenceRecordError("configured provider adapter is unavailable")
+        if getattr(adapter, "provider", None) != self._provider:
+            raise PersistenceRecordError("provider adapter identity does not match the configured provider")
+        return adapter
+
     def _validate_resume_token(
         self,
         row: Mapping[str, Any],
@@ -454,15 +465,14 @@ class AffectiveProviderRestoreBoundary:
         if dict(expected_resume_token) != expected:
             raise PersistenceRecordError("resume token does not bind the candidate durable frontier")
 
-    def _read_current_frontier(self, row: Mapping[str, Any]) -> None:
+    def _read_current_frontier(self, row: Mapping[str, Any], *, adapter: Any) -> None:
         from .adapters import AdapterProbeResult, AdapterRequest
         from .evidence import ProviderEvidenceEnvelope, validate_envelope
 
-        adapter = self._adapters.get(self._provider)
-        if adapter is None:
-            raise PersistenceRecordError("configured provider adapter is unavailable")
-        if getattr(adapter, "provider", None) != self._provider:
-            raise PersistenceRecordError("provider adapter identity does not match the configured provider")
+        probe_method = getattr(adapter, "probe", None)
+        read_method = getattr(adapter, "read", None)
+        if not callable(probe_method) or not callable(read_method):
+            raise PersistenceRecordError("configured provider adapter lacks readable frontier capability")
 
         request = AdapterRequest(
             domain_id=self.FRONTIER_SCOPE,
@@ -473,7 +483,7 @@ class AffectiveProviderRestoreBoundary:
             privacy_class="GOVERNED",
             evidence_capability_refs=(self._EVIDENCE_CAPABILITY_REF,),
         )
-        probe = adapter.probe(request)
+        probe = probe_method(request)
         if not isinstance(probe, AdapterProbeResult):
             raise PersistenceRecordError("provider probe did not return a typed probe result")
         if probe.provider != self._provider or probe.route_ref != self._provider_route:
@@ -481,7 +491,7 @@ class AffectiveProviderRestoreBoundary:
         if probe.state not in {"CURRENTLY_OBSERVED_REACHABLE", "RESULT"}:
             raise PersistenceRecordError("provider frontier is not currently readable")
 
-        observed = adapter.read(request)
+        observed = read_method(request)
         if not isinstance(observed, ProviderEvidenceEnvelope):
             raise PersistenceRecordError("provider read did not return typed provider evidence")
         try:
@@ -544,6 +554,89 @@ class AffectiveProviderRestoreBoundary:
             if metadata.get(key) != expected_value:
                 raise PersistenceRecordError(f"provider read evidence {key} frontier mismatch")
 
+    def _bind_atomic_commit_writer(
+        self,
+        adapter: Any,
+        row: Mapping[str, Any],
+    ) -> Any:
+        commit_method = getattr(adapter, "commit_affective_runtime", None)
+        if not callable(commit_method):
+            raise PersistenceRecordError(
+                "provider-authenticated live restore requires the configured provider adapter to expose an atomic affective commit capability"
+            )
+
+        runtime_instance_id = row.get("runtime_instance_id")
+        host_scope = row.get("host_scope")
+        source_commit = row.get("source_commit")
+        frontier_version = row.get("state_version")
+        if not isinstance(runtime_instance_id, str) or not runtime_instance_id:
+            raise PersistenceRecordError("durable writer binding requires runtime_instance_id")
+        if not isinstance(host_scope, str) or not host_scope:
+            raise PersistenceRecordError("durable writer binding requires host_scope")
+        if not isinstance(source_commit, str) or len(source_commit) != 40:
+            raise PersistenceRecordError("durable writer binding requires exact source_commit")
+        if isinstance(frontier_version, bool) or not isinstance(frontier_version, int) or frontier_version < 1:
+            raise PersistenceRecordError("durable writer binding requires positive state_version")
+
+        def atomic_writer(request: Mapping[str, Any]) -> Any:
+            nonlocal frontier_version
+            if not isinstance(request, Mapping):
+                raise PersistenceRecordError("atomic provider writer requires a structured commit request")
+            state_row = request.get("state_row")
+            if not isinstance(state_row, Mapping):
+                raise PersistenceRecordError("atomic provider writer requires a durable state row")
+            if request.get("runtime_instance_id") != runtime_instance_id:
+                raise PersistenceRecordError("atomic provider writer runtime instance changed after restore")
+            if request.get("expected_prior_version") != frontier_version:
+                raise PersistenceRecordError("atomic provider writer CAS frontier diverged after restore")
+            if request.get("state_version") != frontier_version + 1:
+                raise PersistenceRecordError("atomic provider writer next state_version is not contiguous")
+            if state_row.get("runtime_instance_id") != runtime_instance_id:
+                raise PersistenceRecordError("atomic provider state row runtime instance mismatch")
+            if state_row.get("host_scope") != host_scope:
+                raise PersistenceRecordError("atomic provider state row host_scope changed after restore")
+            if state_row.get("source_commit") != source_commit:
+                raise PersistenceRecordError("atomic provider state row source_commit changed after restore")
+
+            result = commit_method(dict(request))
+            if not isinstance(result, Mapping):
+                raise RuntimeError("atomic durable provider commit returned no structured acknowledgement")
+            if result.get("state_version") != request.get("state_version"):
+                raise RuntimeError("atomic durable provider commit acknowledgement state_version mismatch")
+            if result.get("checkpoint_sha256") != request.get("checkpoint_sha256"):
+                raise RuntimeError("atomic durable provider commit acknowledgement checkpoint_sha256 mismatch")
+            event_rows = request.get("event_rows")
+            if not isinstance(event_rows, list):
+                raise PersistenceRecordError("atomic provider writer requires event_rows list")
+            if result.get("event_count") != len(event_rows):
+                raise RuntimeError("atomic durable provider commit acknowledgement event_count mismatch")
+
+            frontier_version = request["state_version"]
+            return result
+
+        return atomic_writer
+
+    def _restore_authenticated_host(
+        self,
+        adapter: Any,
+        contract_text: str,
+        binding: Mapping[str, Any],
+        row: Mapping[str, Any],
+        *,
+        expected_host_scope: str,
+        expected_checkpoint_sha256: str,
+        expected_resume_token: Mapping[str, Any],
+    ) -> VeraAffectiveRuntimeHost:
+        self._validate_resume_token(row, expected_resume_token)
+        self._read_current_frontier(row, adapter=adapter)
+        return restore_host_from_state_row(
+            contract_text,
+            binding,
+            row,
+            expected_host_scope=expected_host_scope,
+            expected_checkpoint_sha256=expected_checkpoint_sha256,
+        )
+
     def restore_host_from_state_row(
         self,
         contract_text: str,
@@ -554,14 +647,15 @@ class AffectiveProviderRestoreBoundary:
         expected_checkpoint_sha256: str,
         expected_resume_token: Mapping[str, Any],
     ) -> VeraAffectiveRuntimeHost:
-        self._validate_resume_token(row, expected_resume_token)
-        self._read_current_frontier(row)
-        return restore_host_from_state_row(
+        adapter = self._provider_adapter()
+        return self._restore_authenticated_host(
+            adapter,
             contract_text,
             binding,
             row,
             expected_host_scope=expected_host_scope,
             expected_checkpoint_sha256=expected_checkpoint_sha256,
+            expected_resume_token=expected_resume_token,
         )
 
     def restore_cycle_from_state_row(
@@ -576,7 +670,10 @@ class AffectiveProviderRestoreBoundary:
     ) -> Any:
         from .affect_cycle import VeraAffectiveCycle
 
-        host = self.restore_host_from_state_row(
+        adapter = self._provider_adapter()
+        atomic_commit_writer = self._bind_atomic_commit_writer(adapter, row)
+        host = self._restore_authenticated_host(
+            adapter,
             contract_text,
             binding,
             row,
@@ -590,5 +687,6 @@ class AffectiveProviderRestoreBoundary:
         return VeraAffectiveCycle(
             host,
             host_scope=host_scope,
+            atomic_commit_writer=atomic_commit_writer,
             initial_state_version=state_version + 1,
         )
