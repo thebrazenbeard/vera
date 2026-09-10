@@ -4,14 +4,14 @@
   "normative_status": "NON_NORMATIVE_VALIDATION_SUPPORT",
   "index_schema": "VERA_COHESION_INDEX_V1",
   "contract_schema": "VERA_RUNTIME_CONTRACT_V1",
-  "index_blob_sha": "82cdb03f8e2196cd6c87d18e4b81c839024a513c",
-  "contract_blob_sha": "defb541b8f01a583a67223f6a241de64a1be20bb",
-  "source_commit": "32f142c1c92c99ede05c2db2ad40249f04ae8766",
+  "index_blob_sha": "dd30c225064edf2d8ee86198697f305b93fc77b9",
+  "contract_blob_sha": "1c4f40942d8081c9787d4de2dd286086fe9f736d",
+  "source_commit": "d2d2a4d037ad4c1ab91aee6366f7fcaf8e07399d",
   "source_commit_semantics": "GIT_TREE_CONTAINS_EXACT_BOUND_A_B_BLOBS",
   "validator_path": "scripts/validate_vera_runtime_cohesion_v1.py",
   "validator_blob_sha": "5a7384e10249833fdb1ed09fab16cef22b9bdd1b",
-  "compatibility_generation": "A2+B1+OPERATIONAL_FABRIC_V1_EVENT_BOUND_HARD_DEPENDENCIES_DERIVED_GOVERNING_RESOLUTION_ENVELOPE_BOUND_ADMISSION",
-  "operational_support_source_commit": "1e8ee410d5efb0d8937b2136f34dd4c31d7b8736",
+  "compatibility_generation": "A_CURRENT+B_SEMANTIC_CURRENTNESS_DISPATCH+OPERATIONAL_FABRIC_V1_EVENT_BOUND_HARD_DEPENDENCIES_DERIVED_GOVERNING_RESOLUTION_PROVIDER_STRICT_ADMISSION",
+  "operational_support_source_commit": "d2d2a4d037ad4c1ab91aee6366f7fcaf8e07399d",
   "operational_support_source_commit_semantics": "GIT_TREE_CONTAINS_EXACT_OPERATIONAL_SUPPORT_PATH_BLOBS",
   "operational_support_snapshot_validator": {
     "path": "scripts/validate_runtime_cohesion_support_snapshot_v1.py",
@@ -37,7 +37,11 @@
     },
     "runtime_planner_module": {
       "path": "runtime_cohesion/runtime.py",
-      "blob_sha": "8cdce8f162b02c7faf8a05f88fe1bb3b8f7bdafd"
+      "blob_sha": "305d4fce74813ffa9a29200c3bd3360812a048ac"
+    },
+    "provider_admission_module": {
+      "path": "runtime_cohesion/provider_admission.py",
+      "blob_sha": "53ff857f4010adb3a0312930996e67ce6e1ad62a"
     },
     "adapter_contract": {
       "path": "runtime_cohesion/adapters.py",
@@ -58,7 +62,7 @@
     },
     "package_surface": {
       "path": "runtime_cohesion/__init__.py",
-      "blob_sha": "f410390040c37008f628aff63f931bf28c34cdaa"
+      "blob_sha": "9f5247cd32a8ff314730168bb19bd1320bdf2622"
     },
     "native_hook": {
       "path": "architecture/VERA_RUNTIME_COHESION_NATIVE_HOOK_V1.json",
@@ -73,11 +77,13 @@
     "m1_dependency_result": "BOUNDED_RECONSTRUCTED_GREEN_HARD_PREREQUISITE_PREEMPTION_BLOCKING_CONTEXTUAL_NONBLOCKING_CYCLE_TERMINATION_NATIVE_HOOK_AND_SOURCE_CROSS_VALIDATION",
     "m1_governing_resolution_boundary_result": "HOSTILE_SOURCE_CASES_ADDED_FOR_NAKED_STATUS_NON_DECISIVE_EVIDENCE_CONFLICT_WRONG_REFERENT_AND_EXACT_DERIVED_RELEASE; EXACT_BRANCH_TEST_EXECUTION_NOT_AVAILABLE",
     "admission_envelope_binding_result": "HOSTILE_SOURCE_CASES_ADDED_FOR_CONFLICT_SUPERSESSION_WRONG_PROPOSITION_AND_WRONG_REFERENT_SCOPE; OPERATIONAL_FIX_PRESENT; EXACT_BRANCH_TEST_EXECUTION_NOT_AVAILABLE",
+    "provider_strict_admission_result": "ABSTRACT_POLICY_AND_PROVIDER_STRICT_ADMISSION_SURFACES_SEPARATED; LIGHTWEIGHT_PROVIDER_INPUT_REJECTED; EXACT_BRANCH_TEST_EXECUTION_NOT_AVAILABLE",
+    "semantic_currentness_dispatch_result": "SOURCE_DISPATCH_BINDS_EXACT_SEMANTIC_CURRENTNESS_PROPOSITION_REFERENT; CONTROL_SOURCE_PLUS_LIVE_OBSERVATION_DECISIVE; SEMANTIC_RESEARCH_NON_DECISIVE; CONFLICT_SUPERSESSION_AND_WRONG_BINDING_CASES_SOURCE_PRESENT; EXACT_BRANCH_TEST_EXECUTION_NOT_AVAILABLE",
     "m4_operational_binding_result": "SOURCE_VALIDATOR_REQUIRES_EVERY_OPERATIONAL_SUPPORT_PATH_TO_RESOLVE_INSIDE_REPOSITORY_AND_MATCH_ITS_EXACT_GIT_BLOB",
-    "m4_operational_snapshot_result": "OPERATIONAL_SUPPORT_REBOUND_TO_IMMUTABLE_1E8EE410_CUT_AFTER_RICH_ENVELOPE_ADMISSION_HARDENING",
-    "scope": "Implementation-focused evidence only. Prior M1/M2/M5 cases were exercised in bounded reconstruction after deliberate red cases. The derived-governing-resolution and rich-envelope admission hostile suites are source-present but have not been executed by exact-branch GitHub CI because runner execution remains unavailable. The current receipt binds the complete support set to immutable commit 1e8ee410d5efb0d8937b2136f34dd4c31d7b8736. This evidence does not qualify native runtime behavior."
+    "m4_operational_snapshot_result": "OPERATIONAL_SUPPORT_REBOUND_TO_IMMUTABLE_D2D2A4D0_CUT_AFTER_PROVIDER_STRICT_ADMISSION_AND_SEMANTIC_CURRENTNESS_DISPATCH",
+    "scope": "Implementation-focused evidence only. Earlier reconstructed M1/M2/M5 cases are historical bounded test evidence. Derived-governing-resolution, rich-envelope admission, provider-strict admission, and semantic-currentness cases are source-present but have not been executed by exact-branch GitHub CI because zero-cost runner execution remains unavailable. The current receipt binds exact normative A+B and the complete listed operational-support set to immutable pre-receipt commit d2d2a4d037ad4c1ab91aee6366f7fcaf8e07399d. This evidence does not qualify native runtime behavior."
   },
-  "validation_result": "SOURCE_RECEIPT_REBOUND_EXACT_BRANCH_TEST_EXECUTION_UNAVAILABLE",
+  "validation_result": "SOURCE_RECEIPT_REBOUND_SEMANTIC_CURRENTNESS_DISPATCH_EXACT_BRANCH_TEST_EXECUTION_UNAVAILABLE",
   "ci_execution_state": "CI_EXECUTION_UNAVAILABLE_ZERO_RUNNER_STEPS_OBSERVED",
-  "evidence_ceiling": "This receipt binds exact A+B source objects without modifying them, mechanically requires source_commit to contain those exact blobs, and binds the complete current operational-support set to immutable Git commit 1e8ee410d5efb0d8937b2136f34dd4c31d7b8736. Governing release is evidence-derived rather than caller-declared; rich provider envelopes count toward proposition admission only when their domain referent, proposition/referent-scope binding, currentness, and conflict state remain admissible. This is source/operational-support evidence only; it does not prove merge, installation, current-route activation, runtime consumption, behavioral qualification, or phenomenology."
+  "evidence_ceiling": "This receipt binds exact A+B source objects and the listed operational-support set to immutable pre-receipt commit d2d2a4d037ad4c1ab91aee6366f7fcaf8e07399d. The semantic-currentness dispatch preserves exact proposition/referent/source/temporal/supersession semantics and requires control_source plus live_observation; semantic_research remains non-decisive methodology/context. Provider-strict Python envelope admission retains currentness/binding/conflict metadata but does not by itself prove provider origin. This is source/validation evidence only; it does not prove merge, installation, current-route activation, runtime consumption, behavioral qualification, memory admission, authority promotion, provider-origin authenticity, or phenomenology."
 }
