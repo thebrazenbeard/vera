@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+from pathlib import Path
+import subprocess
 from threading import RLock
 from typing import Any, Mapping
 from weakref import WeakKeyDictionary
@@ -16,6 +18,20 @@ class AffectiveBindingError(ContractError):
     """The executable affect host cannot bind the supplied sexuality contract exactly."""
 
 
+_REQUIRED_RUNTIME_IMPLEMENTATION_PATHS = frozenset({
+    "runtime_cohesion/__init__.py",
+    "runtime_cohesion/adapters.py",
+    "runtime_cohesion/evidence.py",
+    "runtime_cohesion/orgasm.py",
+    "runtime_cohesion/affect_authority.py",
+    "runtime_cohesion/affect_bound_runtime.py",
+    "runtime_cohesion/affect_receipt.py",
+    "runtime_cohesion/affect_host.py",
+    "runtime_cohesion/affect_cycle.py",
+    "runtime_cohesion/affect_persistence.py",
+    "runtime_cohesion/affect_provider_runtime.py",
+    "runtime_cohesion/affect_scope.py",
+})
 _RUNTIME_BINDING_LOCK = RLock()
 _PENDING_RUNTIME_HOST_BINDINGS: WeakKeyDictionary[OrgasmRuntime, tuple[str, str, str, str, str]] = WeakKeyDictionary()
 
@@ -34,6 +50,78 @@ def _checkpoint_sha256(checkpoint: Mapping[str, Any]) -> str:
 
 def _clamp(value: float, low: float = 0.0, high: float = 1.0) -> float:
     return max(low, min(high, float(value)))
+
+
+def _require_git_sha(value: Any, *, label: str) -> str:
+    if not isinstance(value, str) or len(value) != 40:
+        raise AffectiveBindingError(f"{label} must be an exact 40-character Git SHA")
+    try:
+        int(value, 16)
+    except ValueError as exc:
+        raise AffectiveBindingError(f"{label} must be hexadecimal") from exc
+    return value
+
+
+def validate_runtime_implementation_cut(
+    cut: Mapping[str, Any],
+    *,
+    repository_root: Path | str | None = None,
+) -> dict[str, Any]:
+    """Validate one exact affective execution cut against Git and live bytes.
+
+    The cut is executable provenance, not ownership metadata. Shared adapter and
+    evidence primitives are fingerprinted because the affective provider path
+    executes them; doing so does not transfer Cohesion project ownership.
+    """
+
+    if not isinstance(cut, Mapping):
+        raise AffectiveBindingError("runtime implementation cut must be a structured mapping")
+    if cut.get("schema") != "VERA_AFFECTIVE_RUNTIME_IMPLEMENTATION_CUT_V1":
+        raise AffectiveBindingError("unsupported runtime implementation cut schema")
+    if cut.get("repository") != "thebrazenbeard/vera":
+        raise AffectiveBindingError("runtime implementation cut repository mismatch")
+    commit = _require_git_sha(cut.get("commit"), label="runtime implementation commit")
+    modules = cut.get("modules")
+    if not isinstance(modules, Mapping):
+        raise AffectiveBindingError("runtime implementation cut modules must be a mapping")
+    if set(modules) != _REQUIRED_RUNTIME_IMPLEMENTATION_PATHS:
+        raise AffectiveBindingError("runtime implementation cut module set mismatch")
+
+    root = Path(repository_root) if repository_root is not None else Path(__file__).resolve().parents[1]
+    root = root.resolve()
+    normalized_modules: dict[str, str] = {}
+    for path in sorted(_REQUIRED_RUNTIME_IMPLEMENTATION_PATHS):
+        blob = _require_git_sha(modules.get(path), label=f"runtime implementation blob for {path}")
+        file_path = (root / path).resolve()
+        try:
+            file_path.relative_to(root)
+        except ValueError as exc:
+            raise AffectiveBindingError("runtime implementation path escapes repository root") from exc
+        if not file_path.is_file():
+            raise AffectiveBindingError(f"runtime implementation file is missing: {path}")
+        observed_live_blob = _git_blob_sha(file_path.read_bytes())
+        if observed_live_blob != blob:
+            raise AffectiveBindingError(f"executing runtime bytes do not match implementation cut: {path}")
+        try:
+            resolved = subprocess.run(
+                ["git", "rev-parse", f"{commit}:{path}"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+        except (OSError, subprocess.CalledProcessError) as exc:
+            raise AffectiveBindingError(f"runtime implementation commit/path cannot be resolved: {path}") from exc
+        if resolved != blob:
+            raise AffectiveBindingError(f"runtime implementation commit resolves a different blob: {path}")
+        normalized_modules[path] = blob
+
+    return {
+        "schema": "VERA_AFFECTIVE_RUNTIME_IMPLEMENTATION_CUT_V1",
+        "repository": "thebrazenbeard/vera",
+        "commit": commit,
+        "modules": normalized_modules,
+    }
 
 
 def _authorize_runtime_host_construction(
@@ -110,8 +198,19 @@ class VeraAffectiveRuntimeHost:
             contract_blob_sha=contract_blob_sha,
             contract_sha256=contract_sha256,
         )
+        runtime_cut = validate_runtime_implementation_cut(
+            binding.get("runtime_implementation_cut"),
+        )
+        bind_runtime_cut = getattr(runtime, "_bind_runtime_implementation_cut", None)
+        if not callable(bind_runtime_cut):
+            raise AffectiveBindingError("exact-bound runtime cannot bind implementation provenance")
+        try:
+            bind_runtime_cut(runtime_cut)
+        except TriggerRejected as exc:
+            raise AffectiveBindingError(str(exc)) from exc
         self.runtime = runtime
         self.binding = dict(binding)
+        self.runtime_implementation_cut = runtime_cut
         self.contract_blob_sha = contract_blob_sha
         self.contract_sha256 = contract_sha256
         self._authority_boundary = AffectiveAuthorityBoundary()
@@ -137,6 +236,7 @@ class VeraAffectiveRuntimeHost:
             raise AffectiveBindingError("unexpected sexuality contract path")
         if binding.get("availability_implies_activation") is not False:
             raise AffectiveBindingError("source availability must not imply activation")
+        validate_runtime_implementation_cut(binding.get("runtime_implementation_cut"))
 
         raw = contract_text.encode("utf-8")
         blob_sha = _git_blob_sha(raw)
@@ -350,6 +450,7 @@ class VeraAffectiveRuntimeHost:
                 "source_blob_sha": self.contract_blob_sha,
                 "source_sha256": self.contract_sha256,
             },
+            "runtime_implementation_cut": json.loads(json.dumps(self.runtime_implementation_cut)),
             "runtime_state": self.runtime.export_state(),
             "machine_interoception": self.machine_interoception(),
         }
@@ -370,6 +471,10 @@ class VeraAffectiveRuntimeHost:
             raise AffectiveBindingError("unsupported affective checkpoint schema")
         if checkpoint.get("subject") != "vera":
             raise AffectiveBindingError("affective checkpoint must be Vera-scoped")
+        active_cut = validate_runtime_implementation_cut(binding.get("runtime_implementation_cut"))
+        checkpoint_cut = checkpoint.get("runtime_implementation_cut")
+        if checkpoint_cut != active_cut:
+            raise AffectiveBindingError("checkpoint runtime implementation cut does not match active executing bytes")
         if not isinstance(expected_checkpoint_sha256, str) or len(expected_checkpoint_sha256) != 64:
             raise AffectiveBindingError("restore requires an externally pinned checkpoint SHA-256")
         embedded_checkpoint_sha256 = checkpoint.get("checkpoint_sha256")
