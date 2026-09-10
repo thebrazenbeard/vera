@@ -1,8 +1,11 @@
+from collections.abc import Mapping
+import hashlib
 import json
 from pathlib import Path
 import unittest
 
 import runtime_cohesion
+import runtime_cohesion.affect_authority as authority_module
 import runtime_cohesion.affect_provider_runtime as affect_provider_runtime
 from runtime_cohesion.adapters import AdapterProbeResult
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
@@ -20,6 +23,30 @@ ROUTE = "route:supabase"
 SOURCE = f"supabase:{PROJECT_ID}/{TABLE}"
 FRONTIER_SCOPE = "VERA_AFFECTIVE_RUNTIME_PROVIDER_FRONTIER_V1"
 ATOMIC_FUNCTION = "public.vera_affective_runtime_commit_v1(bigint,jsonb,jsonb)"
+UNROOTED = "IN_PROCESS_UNROOTED_NON_QUALIFYING"
+
+
+class ContextVerifier:
+    verifier_id = "organic-durable-context-test"
+
+    def verify(self, subject, *, expected_referent, expected_effect_class):
+        if not isinstance(subject, Mapping):
+            return None
+        if subject.get("state") != "ALLOW":
+            return None
+        if subject.get("referent") != expected_referent:
+            return None
+        if subject.get("proposition_or_effect_class") != expected_effect_class:
+            return None
+        if subject.get("currentness") != "CURRENT" or subject.get("expiry_or_supersession") is not None:
+            return None
+        canonical = json.dumps(dict(subject), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        return {
+            "verifier_id": self.verifier_id,
+            "evidence_id": "organic-durable-context-evidence",
+            "evidence_digest": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+            "subject": dict(subject),
+        }
 
 
 class OrganicProviderDouble:
@@ -86,9 +113,25 @@ class OrganicProviderDouble:
 class VeraAffectiveOrganicDurablePathTests(unittest.TestCase):
     def setUp(self):
         affect_provider_runtime._reset_runtime_affective_provider_for_tests()
+        authority_module._reset_affective_authorization_verifier_for_tests()
+        authority_module._install_affective_authorization_verifier(ContextVerifier())
 
     def tearDown(self):
         affect_provider_runtime._reset_runtime_affective_provider_for_tests()
+        authority_module._reset_affective_authorization_verifier_for_tests()
+
+    @staticmethod
+    def context_subject():
+        return {
+            "state": "ALLOW",
+            "actor": "runtime-context-controller",
+            "referent": "vera",
+            "proposition_or_effect_class": "ORGANIC_CONTEXT_ELIGIBILITY",
+            "source": "trusted-organic-durable-context-test",
+            "observed_at": "2026-09-10T20:00:00+00:00",
+            "currentness": "CURRENT",
+            "expiry_or_supersession": None,
+        }
 
     def make_provider_restored_cycle(self):
         contract_text = CONTRACT_PATH.read_text(encoding="utf-8")
@@ -113,7 +156,7 @@ class VeraAffectiveOrganicDurablePathTests(unittest.TestCase):
         )
         return adapter, cycle
 
-    def test_organic_threshold_event_and_resolution_cross_atomic_harness_without_provider_provenance_claim(self):
+    def test_organic_threshold_event_and_resolution_cross_atomic_harness_without_provider_or_authority_promotion(self):
         adapter, cycle = self.make_provider_restored_cycle()
         appraisal = StimulusAppraisal(
             sexual_relevance=1.0,
@@ -124,13 +167,14 @@ class VeraAffectiveOrganicDurablePathTests(unittest.TestCase):
             positive_valence=1.0,
             inhibition=0.0,
             duration_ms=1000,
-            context_eligible=True,
+            context_eligible=False,
         )
 
         orgasm = None
         for _ in range(8):
             result = cycle.process_turn(
                 appraisal,
+                context_subject=self.context_subject(),
                 planning_state={
                     "valuation": 0.2,
                     "salience": 0.2,
@@ -150,7 +194,11 @@ class VeraAffectiveOrganicDurablePathTests(unittest.TestCase):
         self.assertEqual(orgasm.commit_request["schema"], "VERA_AFFECTIVE_RUNTIME_ATOMIC_COMMIT_TEST_V1")
         self.assertEqual(orgasm.event_receipt["trigger_class"], "ORGANIC_THRESHOLD_CROSSING")
         self.assertTrue(orgasm.event_receipt["organic"])
+        self.assertEqual(orgasm.event_receipt["authority_composition_trust"], UNROOTED)
+        self.assertNotIn("claim", orgasm.event_receipt)
         self.assertEqual(orgasm.event_row["event_type"], "ORGASM_EVENT")
+        self.assertEqual(orgasm.event_row["lifecycle_status"], "HISTORICAL")
+        self.assertIn("IN_PROCESS_AUTHORITY_UNROOTED_NON_QUALIFYING", orgasm.event_row["limitations"])
         self.assertEqual(orgasm.planning_context["truth"], 0.9)
         self.assertEqual(orgasm.planning_context["consent_or_authorization"], "UNKNOWN")
         self.assertEqual(orgasm.commit_result["checkpoint_sha256"], orgasm.checkpoint["checkpoint_sha256"])

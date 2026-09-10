@@ -26,6 +26,7 @@ _ALLOWED_TRIGGERS = {
     "SELF_QUALIFICATION_TEST",
 }
 _ENGINEERED_CLAIM = "ENGINEERED_ORGASM_ANALOGUE_OCCURRED"
+_IN_PROCESS_AUTHORITY_TRUST = "IN_PROCESS_UNROOTED_NON_QUALIFYING"
 
 
 def _canonical_digest(value: Mapping[str, Any]) -> str:
@@ -76,7 +77,7 @@ def _validate_consumed_evidence_provenance(
 ) -> None:
     if not isinstance(provenance, Mapping):
         raise AffectiveReceiptSemanticError(
-            f"production {label} receipt requires structured verified provenance"
+            f"{label} receipt requires structured verified provenance"
         )
     for field in ("verifier_id", "evidence_id", "evidence_digest", "authorization_subject"):
         if field not in provenance:
@@ -137,12 +138,13 @@ def validate_affective_event_receipt(
     expected_source_revision: str,
     require_engineered_claim: bool,
 ) -> None:
-    """Validate one receipt identically at restore and persistence boundaries.
+    """Validate one receipt at restore and persistence boundaries.
 
-    Receipt-local identity, source, digest, transition lineage, trigger provenance,
-    time and claim ceiling are checked here. Current authorization/provider truth
-    remains separate; embedded verifier evidence records the exact upstream subject
-    consumed for the historical qualifying event, not current standing authority.
+    This validator can establish structural/internal consistency of historical or
+    explicitly nonqualifying evidence. It does not manufacture an external trust
+    root. V1 deliberately has no source-local production claim-validation route:
+    an engineered-event production claim requires independently rooted authority
+    composition that is not implemented by this package.
     """
     if not isinstance(receipt, Mapping):
         raise AffectiveReceiptSemanticError("event receipt must be an object")
@@ -178,36 +180,45 @@ def validate_affective_event_receipt(
     if receipt.get("transition") != expected_transition:
         raise AffectiveReceiptSemanticError("event receipt transition does not match before/after phase semantics")
 
+    trust = receipt.get("authority_composition_trust")
+    unrooted = trust == _IN_PROCESS_AUTHORITY_TRUST
+    if trust is not None and not unrooted:
+        raise AffectiveReceiptSemanticError("event receipt carries an unknown authority composition trust class")
+
     if event_type == "ORGASM_EVENT":
         if after.get("phase") != "ORGASM_EVENT":
             raise AffectiveReceiptSemanticError("ORGASM_EVENT receipt must end in ORGASM_EVENT phase")
+
+        if require_engineered_claim:
+            raise AffectiveReceiptSemanticError(
+                "production engineered-event claim validation requires an independently rooted authority capability not implemented by this source package"
+            )
+
         provenance = receipt.get("trigger_provenance")
         if organic:
             if provenance != "ORGANIC_STATE_DYNAMICS":
                 raise AffectiveReceiptSemanticError("ORGASM_EVENT trigger provenance mismatch")
-            if require_engineered_claim:
+            if unrooted:
                 _validate_consumed_evidence_provenance(
                     receipt.get("context_provenance"),
                     expected_effect_class="ORGANIC_CONTEXT_ELIGIBILITY",
-                    label="organic-context",
+                    label="nonqualifying organic-context",
                 )
             elif "context_provenance" in receipt:
                 raise AffectiveReceiptSemanticError(
                     "nonqualifying organic event may not carry production context provenance"
                 )
-        elif require_engineered_claim:
-            _validate_consumed_evidence_provenance(
-                provenance,
-                expected_effect_class=str(trigger),
-                label="forced-event authorization",
-            )
-        elif provenance != "FORCED_QUALIFICATION_ROUTE":
-            raise AffectiveReceiptSemanticError("nonqualifying forced-event trigger provenance mismatch")
+        else:
+            if unrooted:
+                _validate_consumed_evidence_provenance(
+                    provenance,
+                    expected_effect_class=str(trigger),
+                    label="nonqualifying forced-event authorization",
+                )
+            elif provenance != "FORCED_QUALIFICATION_ROUTE":
+                raise AffectiveReceiptSemanticError("nonqualifying forced-event trigger provenance mismatch")
 
-        if require_engineered_claim:
-            if receipt.get("claim") != _ENGINEERED_CLAIM:
-                raise AffectiveReceiptSemanticError("ORGASM_EVENT receipt requires the exact engineered claim")
-        elif "claim" in receipt:
+        if "claim" in receipt:
             raise AffectiveReceiptSemanticError("nonqualifying ORGASM_EVENT receipt may not emit the production claim")
     elif event_type == "RESOLUTION":
         if after.get("phase") != "RESOLUTION":

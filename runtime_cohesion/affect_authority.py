@@ -25,6 +25,7 @@ class AffectiveAuthorizationVerifier(Protocol):
 
 _COMPOSITION_LOCK = RLock()
 _RUNTIME_AUTHORIZATION_VERIFIER: AffectiveAuthorizationVerifier | None = None
+_IN_PROCESS_AUTHORITY_TRUST = "IN_PROCESS_UNROOTED_NON_QUALIFYING"
 _REQUIRED_SUBJECT_FIELDS = {
     "state",
     "actor",
@@ -38,13 +39,19 @@ _REQUIRED_SUBJECT_FIELDS = {
 
 
 def _install_affective_authorization_verifier(verifier: AffectiveAuthorizationVerifier) -> None:
-    """Install the one runtime-owned authorization verifier.
+    """Install one in-process authorization verifier for bounded execution/tests.
 
-    This is deliberately separate from trigger-call arguments. A claimant cannot
-    select a verifier while requesting an affective trigger. The boundary is a
-    supported-API/process trust boundary only; hostile arbitrary code already
-    executing in this Python process is not claimed to be cryptographically
-    isolated from private module state.
+    The verifier is deliberately separate from trigger-call arguments, so callers
+    cannot substitute it on one invocation. That is a useful composition property,
+    but it is not an independent trust root: arbitrary code already executing in
+    this Python process can import this module and win first installation.
+
+    Therefore every proof produced through this hook is explicitly
+    IN_PROCESS_UNROOTED_NON_QUALIFYING. It may gate bounded causal execution and
+    preserve audit provenance, but it MUST NOT by itself mint the production
+    ENGINEERED_ORGASM_ANALOGUE_OCCURRED claim, production CURRENT event/state
+    evidence, or ATOMIC_DURABLE qualification. A future production path requires
+    an independently rooted external authority capability/configuration boundary.
     """
 
     verifier_id = getattr(verifier, "verifier_id", None)
@@ -111,15 +118,6 @@ def _replace_runtime_receipt(host: Any, original: Mapping[str, Any], updated: Ma
     pending[matches[0]] = dict(bound)
 
 
-def _production_claim(host: Any) -> str | None:
-    if getattr(host.runtime, "qualification_status", None) != "EXACT_BOUND_SOURCE":
-        return None
-    claim = host.runtime.contract.get("claim_ceiling", {}).get("engineered_event")
-    if claim != "ENGINEERED_ORGASM_ANALOGUE_OCCURRED":
-        raise TriggerRejected("exact-bound affective runtime has an unexpected engineered-event claim ceiling")
-    return claim
-
-
 def _verified_runtime_method(host: Any, name: str):
     method = getattr(host.runtime, name, None)
     if not callable(method):
@@ -128,12 +126,17 @@ def _verified_runtime_method(host: Any, name: str):
 
 
 class AffectiveAuthorityBoundary:
-    """Precomposed authority/context gate for Vera's privileged affective paths.
+    """Precomposed in-process authority/context gate for Vera affective paths.
 
-    Trigger callers provide only the candidate upstream authority/context object.
-    The verifier and privileged monotonic clock are runtime-owned composition.
-    Exact sexuality source binding, authorization, organic context, provider
-    currentness, and phenomenology remain separate evidence domains.
+    Trigger callers provide only a candidate upstream authority/context object.
+    The verifier and privileged monotonic clock are composition-owned rather than
+    invocation-selected. Because this Python composition is not independently
+    rooted, all successful proofs remain explicitly nonqualifying for production
+    engineered-event/currentness/durability claims.
+
+    Exact sexuality source binding, causal affective execution, authorization,
+    organic context, provider currentness, qualification, and phenomenology stay
+    separate evidence domains.
     """
 
     def __init__(self) -> None:
@@ -205,6 +208,7 @@ class AffectiveAuthorityBoundary:
             "observed_at": subject["observed_at"],
             "currentness": subject["currentness"],
             "expiry_or_supersession": subject["expiry_or_supersession"],
+            "composition_trust": _IN_PROCESS_AUTHORITY_TRUST,
         }
 
     @staticmethod
@@ -252,9 +256,8 @@ class AffectiveAuthorityBoundary:
     def _bind_forced_authority_receipt(host: Any, receipt: Mapping[str, Any], provenance: Mapping[str, Any]) -> dict[str, Any]:
         bound = dict(receipt)
         bound["trigger_provenance"] = dict(provenance)
-        claim = _production_claim(host)
-        if claim is not None:
-            bound["claim"] = claim
+        bound["authority_composition_trust"] = _IN_PROCESS_AUTHORITY_TRUST
+        bound.pop("claim", None)
         bound["event_digest"] = _receipt_digest(bound)
         _replace_runtime_receipt(host, receipt, bound)
         return dict(bound)
@@ -267,15 +270,14 @@ class AffectiveAuthorityBoundary:
     ) -> dict[str, Any]:
         result = dict(observed)
         receipts = [dict(item) for item in (observed.get("event_receipts") or ())]
-        claim = _production_claim(host)
         changed = False
         for index, receipt in enumerate(receipts):
             if receipt.get("event_type") != "ORGASM_EVENT" or receipt.get("organic") is not True:
                 continue
             bound = dict(receipt)
             bound["context_provenance"] = dict(provenance)
-            if claim is not None:
-                bound["claim"] = claim
+            bound["authority_composition_trust"] = _IN_PROCESS_AUTHORITY_TRUST
+            bound.pop("claim", None)
             bound["event_digest"] = _receipt_digest(bound)
             receipts[index] = bound
             last = getattr(host.runtime, "last_event_receipt", None)

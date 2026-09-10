@@ -235,7 +235,14 @@ class VeraAffectiveCycle:
             )
 
             receipt_copies = [dict(receipt) for receipt in (event_receipts or ())]
-            event_rows = [event_receipt_to_event_row(self.host, receipt) for receipt in receipt_copies]
+            event_rows = [
+                event_receipt_to_event_row(
+                    self.host,
+                    receipt,
+                    lifecycle_status=lifecycle_status,
+                )
+                for receipt in receipt_copies
+            ]
             commit_request: dict[str, Any] | None = None
             resume_token: dict[str, Any] | None = None
             commit_result: Any = None
