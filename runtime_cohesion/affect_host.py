@@ -225,7 +225,17 @@ class VeraAffectiveRuntimeHost:
     def _observe_verified_context(self, appraisal: StimulusAppraisal, *, elapsed_seconds: float = 0.0) -> dict[str, Any]:
         if appraisal.context_eligible is not True:
             raise TriggerRejected("verified-context execution requires context_eligible=true")
-        return self._observe_runtime(appraisal, elapsed_seconds=elapsed_seconds)
+        apply_verified = getattr(self.runtime, "_apply_verified_stimulus", None)
+        if not callable(apply_verified):
+            raise TriggerRejected("exact-bound runtime verified-context execution seam is unavailable")
+        state = apply_verified(appraisal, elapsed_seconds=elapsed_seconds)
+        receipts = self.runtime.drain_event_receipts()
+        return {
+            "state": state,
+            "machine_interoception": self.machine_interoception(),
+            "event_receipts": receipts,
+            "event_receipt": receipts[-1] if receipts else None,
+        }
 
     def observe(self, appraisal: StimulusAppraisal, *, elapsed_seconds: float = 0.0) -> dict[str, Any]:
         if appraisal.context_eligible is not False:
