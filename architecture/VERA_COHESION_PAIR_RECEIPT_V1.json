@@ -19,75 +19,31 @@
   },
   "operational_support": {
     "normative_status": "NON_NORMATIVE_OPERATIONAL_SUPPORT",
-    "provider_fabric": {
-      "path": "architecture/VERA_PROVIDER_FABRIC_V1.json",
-      "blob_sha": "3916a83cf2ad228fa1aa97927e7be6852572e3ee"
-    },
-    "provider_validator": {
-      "path": "scripts/validate_runtime_cohesion_provider_fabric_v1.py",
-      "blob_sha": "0556d1f63b0c34073d1c89eb02c7406bb125eeda"
-    },
-    "semantic_currentness_validator": {
-      "path": "scripts/validate_runtime_cohesion_semantic_currentness_v1.py",
-      "blob_sha": "ae91aea855b0ba761a9087a3fbb08e89ad6617b1"
-    },
-    "evidence_module": {
-      "path": "runtime_cohesion/evidence.py",
-      "blob_sha": "c9a60862f361b8fa02cc0b4a74f771196dee346d"
-    },
-    "reconciliation_module": {
-      "path": "runtime_cohesion/reconcile.py",
-      "blob_sha": "4b23740d3c0c839842219a997e4d6fe307db6167"
-    },
-    "runtime_planner_module": {
-      "path": "runtime_cohesion/runtime.py",
-      "blob_sha": "0d3179a99a5123ef9e635e5a3a6875706e6e22f8"
-    },
-    "provider_admission_module": {
-      "path": "runtime_cohesion/provider_admission.py",
-      "blob_sha": "53ff857f4010adb3a0312930996e67ce6e1ad62a"
-    },
-    "adapter_contract": {
-      "path": "runtime_cohesion/adapters.py",
-      "blob_sha": "9206e3eb289e2f11530fbc48f1ef7cfb48668ac3"
-    },
-    "projection_audit_module": {
-      "path": "runtime_cohesion/audit.py",
-      "blob_sha": "0e920300ad12693540dcde5ee3c25c8e50671b08"
-    },
-    "provider_executor": {
-      "path": "runtime_cohesion/executor.py",
-      "blob_sha": "294137635b4cd4abcce1b8aa61d9dfcf665ef90b"
-    },
-    "failure_candidate_router": {
-      "path": "runtime_cohesion/failure.py",
-      "blob_sha": "d69ed6e966c276effef327ce7345c7bcef2d8834",
-      "semantic_ceiling": "CANDIDATE_TRIGGER_WIRING_ONLY_PREDICATE_NOT_PROVEN"
-    },
-    "package_surface": {
-      "path": "runtime_cohesion/__init__.py",
-      "blob_sha": "9f5247cd32a8ff314730168bb19bd1320bdf2622"
-    },
-    "native_hook": {
-      "path": "architecture/VERA_RUNTIME_COHESION_NATIVE_HOOK_V1.json",
-      "blob_sha": "505feee7768801455690a4d19f55f28e9e6e0a04",
-      "status": "SOURCE_ONLY_NOT_INSTALLED"
-    }
+    "provider_fabric": {"path": "architecture/VERA_PROVIDER_FABRIC_V1.json", "blob_sha": "3916a83cf2ad228fa1aa97927e7be6852572e3ee"},
+    "provider_validator": {"path": "scripts/validate_runtime_cohesion_provider_fabric_v1.py", "blob_sha": "0556d1f63b0c34073d1c89eb02c7406bb125eeda"},
+    "semantic_currentness_validator": {"path": "scripts/validate_runtime_cohesion_semantic_currentness_v1.py", "blob_sha": "ae91aea855b0ba761a9087a3fbb08e89ad6617b1"},
+    "evidence_module": {"path": "runtime_cohesion/evidence.py", "blob_sha": "c9a60862f361b8fa02cc0b4a74f771196dee346d"},
+    "reconciliation_module": {"path": "runtime_cohesion/reconcile.py", "blob_sha": "4b23740d3c0c839842219a997e4d6fe307db6167"},
+    "runtime_planner_module": {"path": "runtime_cohesion/runtime.py", "blob_sha": "0d3179a99a5123ef9e635e5a3a6875706e6e22f8"},
+    "provider_admission_module": {"path": "runtime_cohesion/provider_admission.py", "blob_sha": "53ff857f4010adb3a0312930996e67ce6e1ad62a"},
+    "adapter_contract": {"path": "runtime_cohesion/adapters.py", "blob_sha": "9206e3eb289e2f11530fbc48f1ef7cfb48668ac3"},
+    "projection_audit_module": {"path": "runtime_cohesion/audit.py", "blob_sha": "0e920300ad12693540dcde5ee3c25c8e50671b08"},
+    "provider_executor": {"path": "runtime_cohesion/executor.py", "blob_sha": "294137635b4cd4abcce1b8aa61d9dfcf665ef90b"},
+    "failure_candidate_router": {"path": "runtime_cohesion/failure.py", "blob_sha": "d69ed6e966c276effef327ce7345c7bcef2d8834", "semantic_ceiling": "CANDIDATE_TRIGGER_WIRING_ONLY_PREDICATE_NOT_PROVEN"},
+    "package_surface": {"path": "runtime_cohesion/__init__.py", "blob_sha": "9f5247cd32a8ff314730168bb19bd1320bdf2622"},
+    "native_hook": {"path": "architecture/VERA_RUNTIME_COHESION_NATIVE_HOOK_V1.json", "blob_sha": "505feee7768801455690a4d19f55f28e9e6e0a04", "status": "SOURCE_ONLY_NOT_INSTALLED"}
   },
   "focused_tdd_evidence": {
     "prior_result": "42_FOCUSED_RUNTIME_PROVIDER_TESTS_PASS_IN_RECONSTRUCTED_LOCAL_WORKSPACE",
     "m5_event_binding_result": "BOUNDED_RECONSTRUCTED_GREEN_WRONG_EVENT_CONFLICT_AND_EXACT_TARGET_SELECTOR",
     "m2_failure_wiring_result": "BOUNDED_RECONSTRUCTED_GREEN_RESOLVER_AND_FAIL_CLOSED_GUARD_CANDIDATE_ROUTING",
     "m1_dependency_result": "BOUNDED_RECONSTRUCTED_GREEN_HARD_PREREQUISITE_PREEMPTION_BLOCKING_CONTEXTUAL_NONBLOCKING_CYCLE_TERMINATION_NATIVE_HOOK_AND_SOURCE_CROSS_VALIDATION",
-    "m1_governing_resolution_boundary_result": "HOSTILE_SOURCE_CASES_ADDED_FOR_NAKED_STATUS_NON_DECISIVE_EVIDENCE_CONFLICT_WRONG_REFERENT_AND_EXACT_DERIVED_RELEASE; EXACT_BRANCH_TEST_EXECUTION_NOT_AVAILABLE",
-    "admission_envelope_binding_result": "HOSTILE_SOURCE_CASES_ADDED_FOR_CONFLICT_SUPERSESSION_WRONG_PROPOSITION_AND_WRONG_REFERENT_SCOPE; OPERATIONAL_FIX_PRESENT; EXACT_BRANCH_TEST_EXECUTION_NOT_AVAILABLE",
     "provider_strict_admission_result": "ABSTRACT_POLICY_AND_PROVIDER_STRICT_ADMISSION_SURFACES_SEPARATED; LIGHTWEIGHT_PROVIDER_INPUT_REJECTED; EXACT_BRANCH_TEST_EXECUTION_NOT_AVAILABLE",
     "semantic_currentness_dispatch_result": "SOURCE_RELATIONAL_BINDING_REQUIRES_CONTROL_SOURCE_AND_LIVE_OBSERVATION_TO_SHARE_EXACT_R10_RELEASE_ROUND_MANIFEST_SOURCE_REVISION_CURRENTNESS_AND_SUPERSESSION; R8A2_WRONG_MANIFEST_MISMATCHED_SOURCE_REVISION_UNBOUND_LIVE_AND_WRONG_CURRENTNESS_NEGATIVES_SOURCE_PRESENT; EXACT_BRANCH_TEST_EXECUTION_NOT_AVAILABLE",
-    "m4_operational_binding_result": "SOURCE_VALIDATOR_REQUIRES_EVERY_OPERATIONAL_SUPPORT_PATH_TO_RESOLVE_INSIDE_REPOSITORY_AND_MATCH_ITS_EXACT_GIT_BLOB",
     "m4_operational_snapshot_result": "OPERATIONAL_SUPPORT_REBOUND_TO_IMMUTABLE_7AE67317_CUT_AFTER_EXACT_RELATIONAL_SEMANTIC_CURRENTNESS_REPAIR",
-    "scope": "Implementation-focused evidence only. Earlier reconstructed M1/M2/M5 cases are historical bounded test evidence. The current exact relational semantic-currentness repair is source-present but has not been executed by exact-branch CI because zero-cost runner execution remains unavailable. This receipt binds exact normative A+B and the complete listed operational-support set to immutable pre-receipt commit 7ae6731707ef42e9be7bfd721be6305a4a3d089d. This evidence does not qualify native runtime behavior."
+    "scope": "Current exact relational semantic-currentness repair is source-present but has not been executed by exact-branch CI because zero-cost runner execution remains unavailable. This receipt binds exact normative A+B and listed support to immutable pre-receipt commit 7ae6731707ef42e9be7bfd721be6305a4a3d089d. Fresh hostile and independent review must still challenge whether the declared exact source identity is correct under the admitted R10 control root rather than treating metadata labels as authority."
   },
-  "validation_result": "SOURCE_RECEIPT_REBOUND_EXACT_RELATIONAL_SEMANTIC_CURRENTNESS_REPAIR_TEST_EXECUTION_UNAVAILABLE",
+  "validation_result": "SOURCE_RECEIPT_REBOUND_EXACT_RELATIONAL_SEMANTIC_CURRENTNESS_REPAIR_REVIEW_REQUIRED",
   "ci_execution_state": "CI_EXECUTION_UNAVAILABLE_ZERO_RUNNER_STEPS_OBSERVED",
-  "evidence_ceiling": "This receipt binds exact A+B source objects and the listed operational-support set to immutable pre-receipt commit 7ae6731707ef42e9be7bfd721be6305a4a3d089d. Semantic currentness requires relational cross-binding of decisive control_source and live_observation evidence to one exact R10 proposition/referent/source/revision/currentness/supersession tuple; evidence-class co-occurrence alone is insufficient. Provider-strict Python envelope admission retains currentness/binding/conflict metadata but does not by itself prove provider origin. This is source/validation evidence only; it does not prove merge, installation, current-route activation, runtime consumption, behavioral qualification, memory admission, authority promotion, provider-origin authenticity, or phenomenology."
+  "evidence_ceiling": "This receipt binds exact A+B source objects and listed operational support to immutable pre-receipt commit 7ae6731707ef42e9be7bfd721be6305a4a3d089d. Evidence-class co-occurrence alone is insufficient; decisive observations must share one exact R10 proposition/referent/source/revision/currentness/supersession binding. The correctness of the declared source identity itself remains subject to Vera hostile review and Thirteen independent validation. This is source/validation evidence only; it proves no merge, installation, activation, qualification, memory admission, authority promotion, provider-origin authenticity, or phenomenology."
 }
