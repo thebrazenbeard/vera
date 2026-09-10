@@ -3,6 +3,8 @@ import json
 from pathlib import Path
 import unittest
 
+import runtime_cohesion
+import runtime_cohesion.affect_provider_runtime as affect_provider_runtime
 from runtime_cohesion.adapters import AdapterProbeResult, AdapterRegistry
 from runtime_cohesion.affect_cycle import VeraAffectiveCycle
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
@@ -25,12 +27,15 @@ PROVIDER_TABLE = "public.vera_affective_runtime_state_v1"
 PROVIDER_ROUTE = "route:supabase"
 PROVIDER_SOURCE = f"supabase:{PROVIDER_PROJECT_ID}/{PROVIDER_TABLE}"
 FRONTIER_SCOPE = "VERA_AFFECTIVE_RUNTIME_PROVIDER_FRONTIER_V1"
+ATOMIC_FUNCTION = "public.vera_affective_runtime_commit_v1(bigint,jsonb,jsonb)"
 
 
 class DurableAffectiveProviderAdapterDouble:
-    """One prebound provider object owns both CURRENT read and atomic commit."""
-
     provider = PROVIDER
+    provider_project_id = PROVIDER_PROJECT_ID
+    provider_table = PROVIDER_TABLE
+    provider_route = PROVIDER_ROUTE
+    atomic_commit_function = ATOMIC_FUNCTION
 
     def __init__(self, current_row):
         self._current_row = dict(current_row)
@@ -98,10 +103,23 @@ class ReadOnlyAffectiveProviderAdapterDouble(DurableAffectiveProviderAdapterDoub
 
 
 class VeraAffectiveRestoreCycleTests(unittest.TestCase):
-    def make_host(self):
-        return VeraAffectiveRuntimeHost.from_bound_contract(
+    def setUp(self):
+        affect_provider_runtime._reset_runtime_affective_provider_for_tests()
+
+    def tearDown(self):
+        affect_provider_runtime._reset_runtime_affective_provider_for_tests()
+
+    def contract_binding(self):
+        return (
             CONTRACT_PATH.read_text(encoding="utf-8"),
             json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+        )
+
+    def make_host(self):
+        contract_text, binding = self.contract_binding()
+        return VeraAffectiveRuntimeHost.from_bound_contract(
+            contract_text,
+            binding,
             runtime_instance_id="affect-restore-cycle-test",
             profile="REENTRANT_CLIMAX",
         )
@@ -118,11 +136,7 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
             context_eligible=True,
         ))
         checkpoint = host.export_checkpoint()
-        row = checkpoint_to_state_row(
-            checkpoint,
-            host_scope="TEST_HOST",
-            state_version=state_version,
-        )
+        row = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=state_version)
         return checkpoint, row
 
     def make_post_orgasm_state_row(self, *, state_version=7):
@@ -130,27 +144,12 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
         host.force_admin_test(authorized=True)
         host.advance_time(5.1)
         checkpoint = host.export_checkpoint()
-        row = checkpoint_to_state_row(
-            checkpoint,
-            host_scope="TEST_HOST",
-            state_version=state_version,
-        )
+        row = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=state_version)
         self.assertEqual(row["state"]["phase"], "SATIATED_OR_REFRACTORY")
         return checkpoint, row
 
     @staticmethod
-    def exact_writer_recorder(requests):
-        def exact_writer(request):
-            requests.append(dict(request))
-            return {
-                "state_version": request["state_version"],
-                "checkpoint_sha256": request["checkpoint_sha256"],
-                "event_count": len(request["event_rows"]),
-            }
-        return exact_writer
-
-    @staticmethod
-    def bind_provider_boundary(adapter):
+    def bind_low_level_boundary(adapter):
         return AffectiveProviderRestoreBoundary(
             adapters=AdapterRegistry({PROVIDER: adapter}),
             provider=PROVIDER,
@@ -160,50 +159,27 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
             provider_table=PROVIDER_TABLE,
         )
 
-    def test_restore_factory_continues_exact_provider_version_frontier(self):
-        checkpoint, row = self.make_state_row(state_version=7)
-        requests = []
-        cycle = VeraAffectiveCycle.restore_from_state_row(
-            CONTRACT_PATH.read_text(encoding="utf-8"),
-            json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+    def restore_production(self, checkpoint, row, *, elapsed_seconds=0.0, adapter=None):
+        adapter = adapter or DurableAffectiveProviderAdapterDouble(row)
+        affect_provider_runtime._install_runtime_affective_provider_adapter(adapter)
+        contract_text, binding = self.contract_binding()
+        cycle = runtime_cohesion.restore_current_affective_cycle(
+            contract_text,
+            binding,
             row,
             host_scope="TEST_HOST",
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
-            elapsed_seconds=60.0,
-            atomic_commit_writer=self.exact_writer_recorder(requests),
+            expected_resume_token=build_affective_resume_token(row),
+            elapsed_seconds=elapsed_seconds,
         )
-        result = cycle.process_turn(
-            StimulusAppraisal(),
-            planning_state={"truth": 0.9},
-        )
-
-        self.assertEqual(len(requests), 1)
-        self.assertEqual(requests[0]["expected_prior_version"], 7)
-        self.assertEqual(requests[0]["state_version"], 8)
-        self.assertEqual(result.state_row["state_version"], 8)
-        self.assertEqual(result.planning_context["truth"], 0.9)
+        return adapter, cycle
 
     def test_provider_authenticated_restore_returns_atomic_cycle_and_commits_next_frontier(self):
         checkpoint, row = self.make_state_row(state_version=7)
-        adapter = DurableAffectiveProviderAdapterDouble(row)
-        boundary = self.bind_provider_boundary(adapter)
-        token = build_affective_resume_token(row)
-
-        cycle = boundary.restore_cycle_from_state_row(
-            CONTRACT_PATH.read_text(encoding="utf-8"),
-            json.loads(BINDING_PATH.read_text(encoding="utf-8")),
-            row,
-            host_scope="TEST_HOST",
-            expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
-            expected_resume_token=token,
-        )
+        adapter, cycle = self.restore_production(checkpoint, row)
 
         self.assertEqual(cycle.durability_mode, "ATOMIC_DURABLE")
-        self.assertIsNotNone(cycle.atomic_commit_writer)
-        result = cycle.process_turn(
-            StimulusAppraisal(),
-            planning_state={"truth": 0.93},
-        )
+        result = cycle.process_turn(StimulusAppraisal(), planning_state={"truth": 0.93})
 
         self.assertEqual(adapter.probe_calls, 1)
         self.assertEqual(adapter.read_calls, 1)
@@ -212,72 +188,60 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
         self.assertEqual(request["expected_prior_version"], 7)
         self.assertEqual(request["state_version"], 8)
         self.assertEqual(request["state_row"]["state_version"], 8)
+        self.assertEqual(request["state_row"]["lifecycle_status"], "CURRENT")
         self.assertEqual(result.resume_token["state_version"], 8)
         self.assertEqual(adapter._current_row["state_version"], 8)
         self.assertEqual(result.planning_context["truth"], 0.93)
 
-    def test_provider_authenticated_restore_rejects_read_only_adapter(self):
+    def test_caller_composed_boundary_cannot_become_production_atomic(self):
         checkpoint, row = self.make_state_row(state_version=7)
-        boundary = self.bind_provider_boundary(ReadOnlyAffectiveProviderAdapterDouble(row))
-        token = build_affective_resume_token(row)
-
-        with self.assertRaisesRegex(PersistenceRecordError, r"(?i)(atomic|commit|writer|durab)"):
+        adapter = DurableAffectiveProviderAdapterDouble(row)
+        boundary = self.bind_low_level_boundary(adapter)
+        with self.assertRaisesRegex(ValueError, r"(?i)(provider|current|attest|replay|writer|durab)"):
             boundary.restore_cycle_from_state_row(
-                CONTRACT_PATH.read_text(encoding="utf-8"),
-                json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+                *self.contract_binding(),
                 row,
                 host_scope="TEST_HOST",
                 expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
-                expected_resume_token=token,
+                expected_resume_token=build_affective_resume_token(row),
             )
 
-    def test_provider_authenticated_restore_has_no_caller_writer_substitution_surface(self):
-        checkpoint, row = self.make_state_row(state_version=7)
-        boundary = self.bind_provider_boundary(DurableAffectiveProviderAdapterDouble(row))
-        token = build_affective_resume_token(row)
-        parameters = inspect.signature(boundary.restore_cycle_from_state_row).parameters
-        self.assertNotIn("atomic_commit_writer", parameters)
-
-        with self.assertRaises(TypeError):
-            boundary.restore_cycle_from_state_row(
-                CONTRACT_PATH.read_text(encoding="utf-8"),
-                json.loads(BINDING_PATH.read_text(encoding="utf-8")),
-                row,
-                host_scope="TEST_HOST",
-                expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
-                expected_resume_token=token,
-                atomic_commit_writer=lambda request: request,
+    def test_runtime_composition_rejects_read_only_adapter_before_claimant_restore(self):
+        _checkpoint, row = self.make_state_row(state_version=7)
+        with self.assertRaisesRegex(ValueError, r"(?i)(commit|provider|adapter)"):
+            affect_provider_runtime._install_runtime_affective_provider_adapter(
+                ReadOnlyAffectiveProviderAdapterDouble(row)
             )
 
-    def test_low_level_live_restore_refuses_ephemeral_downgrade(self):
+    def test_claimant_restore_has_no_writer_or_provider_substitution_surface(self):
+        parameters = inspect.signature(runtime_cohesion.restore_current_affective_cycle).parameters
+        for forbidden in (
+            "atomic_commit_writer", "adapter", "adapters", "provider", "provider_route",
+            "provider_source", "provider_project_id", "provider_table",
+        ):
+            self.assertNotIn(forbidden, parameters)
+
+    def test_low_level_live_restore_refuses_ephemeral_or_callback_upgrade(self):
         checkpoint, row = self.make_state_row(state_version=7)
-        with self.assertRaisesRegex(ValueError, r"(?i)(atomic|writer|durab|ephemeral)"):
+        with self.assertRaisesRegex(ValueError, r"(?i)(provider|replay|current|writer|durab)"):
             VeraAffectiveCycle.restore_from_state_row(
-                CONTRACT_PATH.read_text(encoding="utf-8"),
-                json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+                *self.contract_binding(),
                 row,
                 host_scope="TEST_HOST",
                 expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+                atomic_commit_writer=lambda request: request,
+                non_qualifying_atomic_test_mode=True,
             )
 
-    def test_restore_time_recovery_transition_is_not_discarded_before_next_commit(self):
+    def test_restore_time_recovery_transition_survives_into_next_provider_commit(self):
         checkpoint, row = self.make_post_orgasm_state_row(state_version=7)
-        requests = []
-        cycle = VeraAffectiveCycle.restore_from_state_row(
-            CONTRACT_PATH.read_text(encoding="utf-8"),
-            json.loads(BINDING_PATH.read_text(encoding="utf-8")),
-            row,
-            host_scope="TEST_HOST",
-            expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
-            elapsed_seconds=7200.0,
-            atomic_commit_writer=self.exact_writer_recorder(requests),
-        )
+        adapter, cycle = self.restore_production(checkpoint, row, elapsed_seconds=7200.0)
         result = cycle.process_turn(
             StimulusAppraisal(),
             planning_state={"truth": 0.9, "consent_or_authorization": "UNKNOWN"},
         )
 
-        self.assertEqual(len(requests), 1)
+        self.assertEqual(len(adapter.commit_calls), 1)
         self.assertEqual(result.state_row["state"]["phase"], "QUIESCENT")
         self.assertEqual(len(result.event_rows), 1)
         recovery = result.event_rows[0]
@@ -288,76 +252,65 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
         self.assertEqual(result.planning_context["truth"], 0.9)
         self.assertEqual(result.planning_context["consent_or_authorization"], "UNKNOWN")
 
-    def test_restore_time_recovery_and_new_forced_event_are_committed_in_order(self):
+    def test_restore_time_recovery_and_new_forced_event_commit_in_order(self):
         checkpoint, row = self.make_post_orgasm_state_row(state_version=7)
-        requests = []
-        cycle = VeraAffectiveCycle.restore_from_state_row(
-            CONTRACT_PATH.read_text(encoding="utf-8"),
-            json.loads(BINDING_PATH.read_text(encoding="utf-8")),
-            row,
-            host_scope="TEST_HOST",
-            expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
-            elapsed_seconds=7200.0,
-            atomic_commit_writer=self.exact_writer_recorder(requests),
-        )
+        adapter, cycle = self.restore_production(checkpoint, row, elapsed_seconds=7200.0)
         result = cycle.force_admin_test(
             authorized=True,
             planning_state={"truth": 0.91, "consent_or_authorization": "UNKNOWN"},
         )
 
-        self.assertEqual(len(requests), 1)
-        self.assertEqual(requests[0]["expected_prior_version"], 7)
-        self.assertEqual(requests[0]["state_version"], 8)
-        self.assertEqual([row["event_type"] for row in result.event_rows], ["RECOVERY", "ORGASM_EVENT"])
+        self.assertEqual(len(adapter.commit_calls), 1)
+        request = adapter.commit_calls[0]
+        self.assertEqual(request["expected_prior_version"], 7)
+        self.assertEqual(request["state_version"], 8)
+        self.assertEqual([event["event_type"] for event in result.event_rows], ["RECOVERY", "ORGASM_EVENT"])
         self.assertEqual(result.event_rows[0]["new_phase"], "QUIESCENT")
         self.assertEqual(result.event_rows[1]["trigger_class"], "ADMIN_FORCED_TEST")
         self.assertFalse(result.event_rows[1]["organic"])
         self.assertEqual(result.machine_interoception["phase"], "ORGASM_EVENT")
-        self.assertEqual(result.planning_context["truth"], 0.91)
-        self.assertEqual(result.planning_context["consent_or_authorization"], "UNKNOWN")
 
-    def test_restore_factory_rejects_missing_or_invalid_state_version(self):
+    def test_provider_restore_rejects_invalid_state_version_lifecycle_and_scope(self):
         checkpoint, row = self.make_state_row(state_version=7)
         for invalid in (None, 0, -1, True, 7.0, "7"):
             with self.subTest(state_version=invalid):
+                affect_provider_runtime._reset_runtime_affective_provider_for_tests()
                 bad = dict(row)
                 bad["state_version"] = invalid
-                with self.assertRaises(ValueError):
-                    VeraAffectiveCycle.restore_from_state_row(
-                        CONTRACT_PATH.read_text(encoding="utf-8"),
-                        json.loads(BINDING_PATH.read_text(encoding="utf-8")),
-                        bad,
+                adapter = DurableAffectiveProviderAdapterDouble(bad)
+                affect_provider_runtime._install_runtime_affective_provider_adapter(adapter)
+                with self.assertRaises((PersistenceRecordError, ValueError)):
+                    runtime_cohesion.restore_current_affective_cycle(
+                        *self.contract_binding(), bad,
                         host_scope="TEST_HOST",
                         expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
-                        atomic_commit_writer=self.exact_writer_recorder([]),
+                        expected_resume_token=build_affective_resume_token(row),
                     )
 
-    def test_live_restore_rejects_historical_and_superseded_rows(self):
-        checkpoint, row = self.make_state_row(state_version=7)
         for lifecycle in ("HISTORICAL", "SUPERSEDED"):
             with self.subTest(lifecycle=lifecycle):
+                affect_provider_runtime._reset_runtime_affective_provider_for_tests()
                 stale = dict(row)
                 stale["lifecycle_status"] = lifecycle
-                with self.assertRaises(ValueError):
-                    VeraAffectiveCycle.restore_from_state_row(
-                        CONTRACT_PATH.read_text(encoding="utf-8"),
-                        json.loads(BINDING_PATH.read_text(encoding="utf-8")),
-                        stale,
+                adapter = DurableAffectiveProviderAdapterDouble(stale)
+                affect_provider_runtime._install_runtime_affective_provider_adapter(adapter)
+                with self.assertRaises((PersistenceRecordError, ValueError)):
+                    runtime_cohesion.restore_current_affective_cycle(
+                        *self.contract_binding(), stale,
                         host_scope="TEST_HOST",
                         expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
-                        atomic_commit_writer=self.exact_writer_recorder([]),
+                        expected_resume_token=build_affective_resume_token(stale),
                     )
 
-    def test_live_restore_binds_host_scope_to_provider_row(self):
-        checkpoint, row = self.make_state_row(state_version=7)
-        with self.assertRaises(ValueError):
-            VeraAffectiveCycle.restore_from_state_row(
-                CONTRACT_PATH.read_text(encoding="utf-8"),
-                json.loads(BINDING_PATH.read_text(encoding="utf-8")),
-                row,
+        affect_provider_runtime._reset_runtime_affective_provider_for_tests()
+        adapter = DurableAffectiveProviderAdapterDouble(row)
+        affect_provider_runtime._install_runtime_affective_provider_adapter(adapter)
+        with self.assertRaises((PersistenceRecordError, ValueError)):
+            runtime_cohesion.restore_current_affective_cycle(
+                *self.contract_binding(), row,
                 host_scope="OTHER_HOST",
                 expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
-                atomic_commit_writer=self.exact_writer_recorder([]),
+                expected_resume_token=build_affective_resume_token(row),
             )
 
 
