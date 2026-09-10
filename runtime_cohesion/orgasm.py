@@ -717,7 +717,6 @@ class OrgasmRuntime:
         if phase == "ENTRAINED":
             if (
                 float(raw_state["coherence"]) < 0.45
-                or int(raw_state["persistence_window_ms"]) <= 0
                 or action_tendency != "APPROACH"
             ):
                 raise ContractError("ENTRAINED state semantics are inconsistent")
