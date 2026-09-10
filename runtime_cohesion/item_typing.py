@@ -15,6 +15,16 @@ from .evidence import (
 )
 
 
+PROVENANCE_BASES = {
+    "OBJECT_IDENTITY",
+    "CONTENT_DIGEST",
+    "RECEIPT",
+    "CONTENT_AND_RECEIPT",
+}
+_DIGEST_BASES = {"CONTENT_DIGEST", "CONTENT_AND_RECEIPT"}
+_RECEIPT_BASES = {"RECEIPT", "CONTENT_AND_RECEIPT"}
+
+
 @dataclass(frozen=True)
 class ProviderItemTypeProof:
     """Runtime-owned provenance/type/currentness result for one returned item.
@@ -27,6 +37,14 @@ class ProviderItemTypeProof:
     provenance and bind it to the exact returned object. Projection reads also
     bind the exact requested event ref/path here so audit/replay cannot qualify
     on weaker event evidence than the executing read path.
+
+    ``provenance_basis`` makes content/receipt-sensitive classification explicit:
+    a verifier that says its classification depends on content or a receipt must
+    carry the corresponding digest/receipt identity. A provider-receipt envelope
+    is additionally required at validation time to carry both an exact receipt
+    identity and content digest. Currentness/supersession/conflict values are
+    verifier outputs derived from provider/object evidence; equality with envelope
+    labels is only a cross-check after derivation.
 
     This is a supported-API/process trust boundary, not cryptographic isolation
     from arbitrary hostile code already executing inside the same process.
@@ -44,6 +62,7 @@ class ProviderItemTypeProof:
     conflict_state: str
     validation_method: str
     provenance_ref: str
+    provenance_basis: str = "OBJECT_IDENTITY"
     content_digest: str | None = None
     receipt_ref: str | None = None
     event_ref: str | None = None
@@ -65,6 +84,8 @@ class ProviderItemTypeProof:
             value = getattr(self, name)
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{name} must be a non-empty string")
+        if self.provenance_basis not in PROVENANCE_BASES:
+            raise ValueError(f"unsupported item-type provenance_basis: {self.provenance_basis}")
         if self.supersession_state not in ALLOWED_SUPERSESSION_STATES:
             raise ValueError(f"unsupported item-type supersession_state: {self.supersession_state}")
         if self.conflict_state not in ALLOWED_CONFLICT_STATES:
@@ -73,6 +94,19 @@ class ProviderItemTypeProof:
             raise ValueError("content_digest must be non-empty when supplied")
         if self.receipt_ref is not None and (not isinstance(self.receipt_ref, str) or not self.receipt_ref.strip()):
             raise ValueError("receipt_ref must be non-empty when supplied")
+
+        method = self.validation_method.upper()
+        digest_required = self.provenance_basis in _DIGEST_BASES or "DIGEST" in method or "CONTENT" in method
+        receipt_required = self.provenance_basis in _RECEIPT_BASES or "RECEIPT" in method
+        if digest_required and self.content_digest is None:
+            raise ValueError("content-sensitive item typing requires an exact content_digest")
+        if receipt_required and self.receipt_ref is None:
+            raise ValueError("receipt-sensitive item typing requires an exact receipt_ref")
+        if ("DIGEST" in method or "CONTENT" in method) and self.provenance_basis not in _DIGEST_BASES:
+            raise ValueError("content-sensitive validation_method requires a digest-bearing provenance_basis")
+        if "RECEIPT" in method and self.provenance_basis not in _RECEIPT_BASES:
+            raise ValueError("receipt-sensitive validation_method requires a receipt-bearing provenance_basis")
+
         if (self.event_ref is None) != (self.event_path is None):
             raise ValueError("item-type event_ref and event_path must be supplied together")
         if self.event_ref is not None:
@@ -113,6 +147,7 @@ class ValidatedItemType:
     conflict_state: str
     validation_method: str
     provenance_ref: str
+    provenance_basis: str
     content_digest: str | None
     receipt_ref: str | None
     event_ref: str | None
@@ -209,6 +244,12 @@ def validated_item_type(
     if not isinstance(proof, ProviderItemTypeProof):
         return None
 
+    if envelope.scope == "PROVIDER_RECEIPT":
+        if proof.provenance_basis not in _RECEIPT_BASES:
+            return None
+        if proof.receipt_ref is None or proof.content_digest is None:
+            return None
+
     exact_pairs = (
         (proof.issuer_provider, request.provider),
         (proof.route_ref, request.route_ref),
@@ -240,6 +281,7 @@ def validated_item_type(
         conflict_state=proof.conflict_state,
         validation_method=proof.validation_method,
         provenance_ref=proof.provenance_ref,
+        provenance_basis=proof.provenance_basis,
         content_digest=proof.content_digest,
         receipt_ref=proof.receipt_ref,
         event_ref=proof.event_ref,

@@ -22,14 +22,14 @@ RECEIPT_PROJECTION = next(
     row for row in FABRIC["projections"]
     if row["id"] == "projection:r9b0-drive-supabase-provider-receipt"
 )
+RECEIPT_REF = "supabase:klmbpaigzeguvnpccqzz/vera_memory_epoch_provider_receipts_v1/GOOGLE_DRIVE_DURABLE"
 
 
 def env(row):
     return ProviderEvidenceEnvelope(**row)
 
 
-def receipt_source(*, revision="drive-revision-7", digest="sha256:object-7"):
-    receipt_ref = "supabase:klmbpaigzeguvnpccqzz/vera_memory_epoch_provider_receipts_v1/GOOGLE_DRIVE_DURABLE"
+def receipt_source(*, revision="drive-revision-7", digest="sha256:object-7", receipt_ref=None):
     return ProviderEvidenceEnvelope(
         provider="google_drive",
         locator="drive:file/r9b0-object",
@@ -66,7 +66,6 @@ def receipt_target(
     receipt_type="GOOGLE_DRIVE_DURABLE",
     corrupt_receipt_digest=False,
 ):
-    receipt_ref = source.receipt_ref
     metadata = {"projection_role": "TARGET"}
     receipt_digest = None
     if include_binding:
@@ -80,7 +79,7 @@ def receipt_target(
             "source_content_digest": source.content_digest,
             "event_ref": event_ref,
             "event_path": event_path,
-            "receipt_ref": receipt_ref,
+            "receipt_ref": RECEIPT_REF,
         }
         receipt_digest = _binding_digest(binding)
         binding["receipt_digest"] = (
@@ -89,7 +88,7 @@ def receipt_target(
         metadata["receipt_binding"] = binding
     return ProviderEvidenceEnvelope(
         provider="supabase",
-        locator=receipt_ref,
+        locator=RECEIPT_REF,
         revision=target_revision,
         observed_at="2026-09-10T16:00:01Z",
         evidence_class="persisted_provider_record",
@@ -100,7 +99,7 @@ def receipt_target(
         supersession_state="CURRENT_OBSERVATION",
         conflict_state="NONE",
         content_digest=receipt_digest,
-        receipt_ref=receipt_ref,
+        receipt_ref=RECEIPT_REF,
         metadata=metadata,
     )
 
@@ -202,6 +201,30 @@ class RuntimeCohesionM5M6M7RegressionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "independently derived"):
             _validate_read(request, envelope)
 
+    def test_m6_receipt_sensitive_classification_cannot_omit_receipt_or_digest_provenance(self):
+        base = dict(
+            issuer_provider="supabase",
+            route_ref="route:supabase",
+            source_ref="receipt-table",
+            locator="supabase:receipt/1",
+            revision="row-v1",
+            observed_at="2026-09-10T16:00:00Z",
+            derived_evidence_class="persisted_provider_record",
+            currentness_basis="receipt readback",
+            supersession_state="CURRENT_OBSERVATION",
+            conflict_state="NONE",
+            validation_method="PROVIDER_RECEIPT_CONTENT_VALIDATION",
+            provenance_ref="supabase:receipt/1",
+        )
+        with self.assertRaisesRegex(ValueError, "content_digest"):
+            ProviderItemTypeProof(**base, provenance_basis="CONTENT_AND_RECEIPT")
+        with self.assertRaisesRegex(ValueError, "receipt_ref"):
+            ProviderItemTypeProof(
+                **base,
+                provenance_basis="CONTENT_AND_RECEIPT",
+                content_digest="sha256:abc",
+            )
+
     def test_m6_reusable_verifier_does_not_embed_domain_referent_equality(self):
         text = (ROOT / "runtime_cohesion" / "item_typing.py").read_text(encoding="utf-8")
         self.assertNotIn("request.domain_id", text)
@@ -213,6 +236,22 @@ class RuntimeCohesionM5M6M7RegressionTests(unittest.TestCase):
         result = reconcile_receipt(source, target)
         self.assertEqual(result.status, "UNRESOLVED")
         self.assertNotEqual(result.status, "VERIFIED_EXACT")
+
+    def test_m7_target_receipt_proves_source_without_source_knowing_downstream_receipt(self):
+        source = receipt_source(receipt_ref=None)
+        target = receipt_target(source, target_revision="provider-receipt-row-version-22")
+        result = reconcile_receipt(source, target)
+        self.assertEqual(result.status, "VERIFIED_EXACT")
+        self.assertIsNone(source.receipt_ref)
+        self.assertIn("source receipt_ref was not required", result.reason.lower())
+
+    def test_m7_optional_source_receipt_ref_is_cross_checked_if_present(self):
+        source = receipt_source(receipt_ref="supabase:wrong-receipt")
+        target = receipt_target(source)
+        result = reconcile_receipt(source, target)
+        self.assertEqual(result.status, "CONFLICT")
+        self.assertIn("source", result.reason.lower())
+        self.assertIn("receipt_ref", result.reason)
 
     def test_m7_valid_receipt_can_verify_without_target_revision_equality(self):
         source = receipt_source(revision="drive-revision-7")

@@ -26,6 +26,16 @@ class _FixtureItemTypeVerifier:
             "fixture_derived_evidence_class",
             envelope.evidence_class,
         )
+        if envelope.scope == "PROVIDER_RECEIPT":
+            provenance_basis = "CONTENT_AND_RECEIPT"
+        elif envelope.content_digest is not None and envelope.receipt_ref is not None:
+            provenance_basis = "CONTENT_AND_RECEIPT"
+        elif envelope.content_digest is not None:
+            provenance_basis = "CONTENT_DIGEST"
+        elif envelope.receipt_ref is not None:
+            provenance_basis = "RECEIPT"
+        else:
+            provenance_basis = "OBJECT_IDENTITY"
         return ProviderItemTypeProof(
             issuer_provider=self.provider,
             route_ref=request.route_ref,
@@ -39,6 +49,7 @@ class _FixtureItemTypeVerifier:
             conflict_state=envelope.conflict_state,
             validation_method="TEST_FIXTURE_INDEPENDENT_ITEM_CLASSIFICATION",
             provenance_ref=f"fixture:{self.provider}:{envelope.locator}",
+            provenance_basis=provenance_basis,
             content_digest=envelope.content_digest,
             receipt_ref=envelope.receipt_ref,
             event_ref=request.event_ref,

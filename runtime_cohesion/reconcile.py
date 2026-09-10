@@ -194,15 +194,19 @@ def reconcile_exact_receipt(
     event_path: str,
     receipt_policy: Mapping[str, Any],
 ) -> ReconciliationResult:
-    """Validate a receipt as exact schema/type/subject/event/object proof.
+    """Validate a target receipt as exact schema/type/subject/event/object proof.
 
     EXACT_RECEIPT is deliberately stronger and different from EXACT_REVISION.
-    The target receipt must independently bind the configured receipt schema/type,
-    source/target subjects, source object locator/revision/digest, exact projection
-    event, and exact receipt object. Its canonical receipt-binding digest must
-    match the target receipt object's content digest. Merely giving source and
-    target the same revision is never sufficient, and target revision equality
-    is not used as receipt proof.
+    The downstream target receipt proves the source durable object; the source
+    object is not required to know the identity of that later receipt effect.
+    If the source independently carries a receipt_ref it is cross-checked as
+    additional evidence, but absence does not invalidate the source object.
+
+    The target receipt must bind the configured receipt schema/type, source/target
+    subjects, source object locator/revision/digest, exact projection event, and
+    exact target receipt object. Its canonical receipt-binding digest must match
+    the target receipt object's content digest. Target revision equality is not
+    receipt proof and is never used to qualify the receipt.
     """
 
     if not isinstance(subject_key, str) or not subject_key.strip():
@@ -242,12 +246,13 @@ def reconcile_exact_receipt(
         return _result("CONFLICT", subject_key, items, f"Receipt target scope {target.scope!r} does not match required receipt scope {target_scope!r}.")
     if target.referent != source.referent:
         return _result("CONFLICT", subject_key, items, "Receipt target referent does not match the exact source object referent.")
-    if source.receipt_ref is None or target.receipt_ref is None:
-        return _result("UNRESOLVED", subject_key, items, "Exact receipt reconciliation requires source and target receipt_ref bindings.")
-    if source.receipt_ref != target.receipt_ref:
-        return _result("CONFLICT", subject_key, items, "Source receipt_ref and target receipt_ref identify different receipt objects.")
+
+    if target.receipt_ref is None:
+        return _result("UNRESOLVED", subject_key, items, "Exact receipt reconciliation requires the target receipt object's receipt_ref.")
     if target.receipt_ref != target.locator:
         return _result("CONFLICT", subject_key, items, "Target receipt_ref does not identify the exact target receipt object locator.")
+    if source.receipt_ref is not None and source.receipt_ref != target.receipt_ref:
+        return _result("CONFLICT", subject_key, items, "Source carries an independently supplied receipt_ref that conflicts with the target receipt object.")
 
     binding = target.metadata.get(metadata_field)
     if not isinstance(binding, Mapping):
@@ -314,5 +319,5 @@ def reconcile_exact_receipt(
         "VERIFIED_EXACT",
         subject_key,
         items,
-        "Receipt independently binds the exact configured receipt schema/type, source/target subjects, source object revision/digest, projection event, and receipt object/digest; target revision equality was not used as receipt proof.",
+        "Target receipt independently binds the exact configured receipt schema/type, source/target subjects, source object revision/digest, projection event, and target receipt object/digest; source receipt_ref was not required and target revision equality was not used as receipt proof.",
     )

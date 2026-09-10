@@ -53,6 +53,14 @@ def main() -> int:
         errors.append("lowest-level item origin/type verifier must remain below domain-specific referent policy")
     if "proof.event_ref, request.event_ref" not in typing_text or "proof.event_path, request.event_path" not in typing_text:
         errors.append("item provenance proof must cross-bind exact projection event ref/path when present")
+    if "content-sensitive item typing requires an exact content_digest" not in typing_text:
+        errors.append("content-sensitive item typing must conditionally require an exact content digest")
+    if "receipt-sensitive item typing requires an exact receipt_ref" not in typing_text:
+        errors.append("receipt-sensitive item typing must conditionally require an exact receipt identity")
+    if 'envelope.scope == "PROVIDER_RECEIPT"' not in typing_text:
+        errors.append("provider receipt items must enforce receipt-sensitive provenance requirements")
+    if "verifier outputs derived from provider/object evidence" not in lower_typing:
+        errors.append("item typing source must state currentness labels are cross-checks, not derivation")
 
     modes = fabric.get("comparison_modes", {})
     receipt_mode = str(modes.get("EXACT_RECEIPT", "")).lower()
@@ -99,6 +107,12 @@ def main() -> int:
         errors.append("EXACT_RECEIPT requires a separate reconcile_exact_receipt implementation")
     if "_canonical_receipt_binding_digest" not in reconcile_text:
         errors.append("receipt reconciler must recompute canonical receipt-binding digest")
+    if "source receipt_ref was not required" not in reconcile_text:
+        errors.append("target receipt must prove the source without requiring the source object to know downstream receipt identity")
+    if "source.receipt_ref is not None and source.receipt_ref != target.receipt_ref" not in reconcile_text:
+        errors.append("optional source receipt_ref must be cross-checked only when independently present")
+    if "source.receipt_ref is None or target.receipt_ref is None" in reconcile_text:
+        errors.append("source receipt_ref must not be a prerequisite for downstream receipt proof")
     if "target revision equality was not used" not in reconcile_text:
         errors.append("receipt reconciler must explicitly avoid target revision equality as proof")
     if "target.content_digest != receipt_digest" not in reconcile_text:
