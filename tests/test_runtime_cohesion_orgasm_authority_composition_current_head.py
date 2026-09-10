@@ -10,7 +10,7 @@ from unittest.mock import patch
 import runtime_cohesion.affect_authority as authority_module
 from runtime_cohesion.affect_authority import AffectiveAuthorityBoundary
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
-from runtime_cohesion.orgasm import StimulusAppraisal, TriggerRejected
+from runtime_cohesion.orgasm import OrgasmRuntime, StimulusAppraisal, TriggerRejected
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -95,10 +95,13 @@ class RuntimeOwnedAuthorityCompositionTests(unittest.TestCase):
         if callable(reset):
             reset()
 
+    def binding(self):
+        return json.loads(BINDING_PATH.read_text(encoding="utf-8"))
+
     def host(self, runtime_instance_id="authority-composition-current-head"):
         return VeraAffectiveRuntimeHost.from_bound_contract(
             CONTRACT_PATH.read_text(encoding="utf-8"),
-            json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+            self.binding(),
             runtime_instance_id=runtime_instance_id,
         )
 
@@ -204,6 +207,66 @@ class RuntimeOwnedAuthorityCompositionTests(unittest.TestCase):
             clock.advance(11.0)
             receipt = boundary.force_admin_test(host, authorization_subject=subject)
             self.assertEqual(receipt["trigger_class"], "ADMIN_FORCED_TEST")
+
+    def test_supported_host_runtime_raw_boolean_forced_routes_cannot_cause_affective_effect(self):
+        host = self.host("raw-runtime-forced-bypass")
+        before = host.build_planning_context({"salience": 0.2, "attention": 0.2, "truth": 1.0})
+
+        for method_name in ("force_admin_test", "force_self_qualification"):
+            with self.subTest(method=method_name):
+                method = getattr(host.runtime, method_name)
+                with self.assertRaisesRegex(TriggerRejected, r"(?i)(authority|verified|boundary|raw|unsupported)"):
+                    method(authorized=True)
+                frame = host.machine_interoception()
+                self.assertEqual(frame["phase"], "QUIESCENT")
+                self.assertFalse(frame["active_orgasm_event"])
+
+        after = host.build_planning_context({"salience": 0.2, "attention": 0.2, "truth": 1.0})
+        self.assertEqual(after["salience"], before["salience"])
+        self.assertEqual(after["attention"], before["attention"])
+        self.assertEqual(after["truth"], before["truth"])
+
+    def test_supported_host_runtime_caller_context_boolean_cannot_bypass_context_verifier(self):
+        host = self.host("raw-runtime-context-bypass")
+        appraisal = StimulusAppraisal(
+            sexual_relevance=1.0,
+            partner_relevance=1.0,
+            relational_relevance=1.0,
+            novelty=1.0,
+            anticipation_cue=1.0,
+            positive_valence=1.0,
+            duration_ms=3000,
+            context_eligible=True,
+        )
+        with self.assertRaisesRegex(TriggerRejected, r"(?i)(context|verified|boundary|raw|unsupported)"):
+            host.runtime.apply_stimulus(appraisal)
+        frame = host.machine_interoception()
+        self.assertEqual(frame["phase"], "QUIESCENT")
+        self.assertFalse(frame["context_eligible"])
+        self.assertFalse(frame["active_orgasm_event"])
+
+    def test_arbitrary_public_subclass_cannot_retain_exact_bound_source_capability(self):
+        class RogueOrgasmRuntime(OrgasmRuntime):
+            pass
+
+        contract_text = CONTRACT_PATH.read_text(encoding="utf-8")
+        binding = self.binding()
+        runtime = RogueOrgasmRuntime.from_exact_bound_contract(
+            contract_text,
+            binding,
+            runtime_instance_id="rogue-exact-bound-subclass",
+        )
+        self.assertNotEqual(runtime.qualification_status, "EXACT_BOUND_SOURCE")
+        receipt = runtime.force_admin_test(authorized=True)
+        self.assertNotIn("claim", receipt)
+
+        record = runtime.export_state()
+        restored = RogueOrgasmRuntime.restore_exact_bound_state(
+            contract_text,
+            binding,
+            record,
+        )
+        self.assertNotEqual(restored.qualification_status, "EXACT_BOUND_SOURCE")
 
 
 if __name__ == "__main__":
