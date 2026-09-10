@@ -38,6 +38,12 @@ class ProviderItemTypeProof:
     bind the exact requested event ref/path here so audit/replay cannot qualify
     on weaker event evidence than the executing read path.
 
+    ``referent`` and ``scope`` are observed object attributes carried by the
+    independently composed verifier and cross-bound to the exact envelope. They
+    do not encode domain policy here: callers above this primitive decide what
+    relationship those observed values must have to a domain, projection, or
+    receipt subject.
+
     ``provenance_basis`` makes content/receipt-sensitive classification explicit:
     a verifier that says its classification depends on content or a receipt must
     carry the corresponding digest/receipt identity. A provider-receipt envelope
@@ -56,6 +62,8 @@ class ProviderItemTypeProof:
     locator: str
     revision: str
     observed_at: str
+    referent: str
+    scope: str
     derived_evidence_class: str
     currentness_basis: str
     supersession_state: str
@@ -76,6 +84,8 @@ class ProviderItemTypeProof:
             "locator",
             "revision",
             "observed_at",
+            "referent",
+            "scope",
             "derived_evidence_class",
             "currentness_basis",
             "validation_method",
@@ -141,6 +151,8 @@ class ValidatedItemType:
     locator: str
     revision: str
     observed_at: str
+    referent: str
+    scope: str
     derived_evidence_class: str
     currentness_basis: str
     supersession_state: str
@@ -231,7 +243,8 @@ def validated_item_type(
     The retrieval target capability set is intentionally ignored here. The
     caller compares the independently derived class against both the envelope
     claim and the capability ceiling only *after* this boundary succeeds.
-    Domain-specific referent policy is intentionally absent from this primitive.
+    Domain-specific referent policy is intentionally absent from this primitive;
+    the primitive only attests and cross-binds the observed referent and scope.
     """
 
     verifier = _runtime_item_type_verifier(request.provider)
@@ -257,6 +270,8 @@ def validated_item_type(
         (proof.locator, envelope.locator),
         (proof.revision, envelope.revision),
         (proof.observed_at, envelope.observed_at),
+        (proof.referent, envelope.referent),
+        (proof.scope, envelope.scope),
         (proof.currentness_basis, envelope.currentness_basis),
         (proof.supersession_state, envelope.supersession_state),
         (proof.conflict_state, envelope.conflict_state),
@@ -275,6 +290,8 @@ def validated_item_type(
         locator=proof.locator,
         revision=proof.revision,
         observed_at=proof.observed_at,
+        referent=proof.referent,
+        scope=proof.scope,
         derived_evidence_class=proof.derived_evidence_class,
         currentness_basis=proof.currentness_basis,
         supersession_state=proof.supersession_state,
@@ -320,6 +337,8 @@ def validated_item_event_binding(
         envelope.locator,
         envelope.revision,
         envelope.observed_at,
+        envelope.referent,
+        envelope.scope,
         envelope.currentness_basis,
         envelope.supersession_state,
         envelope.conflict_state,
@@ -335,6 +354,8 @@ def validated_item_event_binding(
         validated.locator,
         validated.revision,
         validated.observed_at,
+        validated.referent,
+        validated.scope,
         validated.currentness_basis,
         validated.supersession_state,
         validated.conflict_state,
