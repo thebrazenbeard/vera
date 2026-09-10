@@ -674,6 +674,12 @@ class OrgasmRuntime:
             s.phase = "SATIATED_OR_REFRACTORY"
             s.reentry_allowed = self.profile == "REENTRANT_CLIMAX"
             s.next_eligible_at = None
+        if s.phase == "ENTRAINED" and s.coherence < 0.45 and s.activation_intensity > 0.05:
+            # A durable generator must not emit a phase that its own restore
+            # semantics reject. Once entrainment coherence is lost but activation
+            # remains live, fall back to the already-defined ACTIVATING phase.
+            s.phase = "ACTIVATING"
+            s.action_tendency = "APPROACH"
         if (
             not s.active_orgasm_event
             and s.activation_intensity < 0.05
