@@ -96,6 +96,9 @@ def build_affective_modulation_signal(host: VeraAffectiveRuntimeHost) -> dict[st
     frame = host.machine_interoception()
     vector = {key: float(value) for key, value in host.experience_control_vector().items()}
     runtime_state = host.runtime.export_state()
+    state = runtime_state.get("state")
+    if not isinstance(state, Mapping):
+        raise ValueError("affective runtime state snapshot is unavailable")
     governance = runtime_state.get("trigger_governance") or {}
     receipt = runtime_state.get("last_event_receipt")
     if receipt is not None and not isinstance(receipt, Mapping):
@@ -133,7 +136,7 @@ def build_affective_modulation_signal(host: VeraAffectiveRuntimeHost) -> dict[st
         "presence": frame["presence"],
         "phase": frame["phase"],
         "context_eligible": bool(frame["context_eligible"]),
-        "participating_systems": list(frame["participating_systems"]),
+        "participating_systems": list(state["participating_systems"]),
         "action_tendency": frame["action_tendency"],
         "control_vector": vector,
         "target_modulation_strength": _target_strengths(host, frame),
