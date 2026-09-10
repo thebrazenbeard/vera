@@ -43,15 +43,17 @@ def _validate_runtime_provider_adapter(adapter: Any) -> None:
 
 
 def _install_runtime_affective_provider_adapter(adapter: Any) -> None:
-    """Host-composition hook; install exactly one fixed affective provider adapter.
+    """Install one fixed in-process affective provider composition.
 
-    This is intentionally private and is not re-exported from ``runtime_cohesion``.
-    Application composition calls it before claimant row/token/checkpoint material
-    is accepted. The supported claimant-facing restore API has no adapter,
-    registry, route, project, table, or writer substitution parameters.
+    This hook remains useful for source-level provider/CAS integration tests, but
+    hostile review established that a first-writer Python hook cannot authenticate
+    provider origin. Exact strings, callable methods, one-shot installation, and
+    omission from ``runtime_cohesion.__all__`` are composition constraints only.
 
-    This is a supported-API/composition seal, not cryptographic protection from
-    hostile code already executing inside this Python process.
+    Therefore installing an adapter here MUST NOT, by itself, enable production
+    ``ATOMIC_DURABLE`` status, CURRENT provider-state evidence, production commit
+    schemas, or durable resume tokens. Those claims remain unavailable until an
+    independently rooted external provider integration is installed and verified.
     """
     _validate_runtime_provider_adapter(adapter)
     global _RUNTIME_PROVIDER_ADAPTER
@@ -72,6 +74,7 @@ def _reset_runtime_affective_provider_for_tests() -> None:
 
 
 def _runtime_provider_adapter() -> Any:
+    """Return the configured in-process adapter without promoting its origin."""
     with _COMPOSITION_LOCK:
         adapter = _RUNTIME_PROVIDER_ADAPTER
     if adapter is None:
@@ -92,13 +95,19 @@ def restore_current_affective_cycle(
     expected_resume_token: Mapping[str, Any],
     elapsed_seconds: float = 0.0,
 ) -> Any:
-    """Restore one live provider-CURRENT affective cycle through fixed composition.
+    """Restore through the configured provider-composition harness.
 
-    Provider identity/configuration and adapter selection come from composition
-    installed before claimant input. The provider frontier is read and validated
-    first; the already-validated durable bytes are then replayed (including any
-    elapsed-time transition processing), and only that host receives the private
-    provider-CURRENT attestation plus matching writer capability.
+    The function retains the historical API name because it checks the candidate
+    against what the configured adapter reports as its current frontier. That
+    check is necessary for CAS/frontier mechanics, but the adapter's own origin is
+    not independently authenticated by this source-only package.
+
+    Consequently the returned cycle is explicitly NON_QUALIFYING_ATOMIC_TEST,
+    never ATOMIC_DURABLE. It emits HISTORICAL rows, a TEST commit schema, and no
+    durable resume token. This prevents either a caller winning first adapter
+    installation or caller-reachable in-process attestation helpers from minting
+    provider-authenticated provenance. A future production restore path requires
+    an independently rooted external provider capability/configuration boundary.
     """
     from .affect_cycle import VeraAffectiveCycle
 
@@ -128,6 +137,10 @@ def restore_current_affective_cycle(
     if isinstance(state_version, bool) or not isinstance(state_version, int) or state_version < 1:
         raise PersistenceRecordError("durable state row requires a positive integer state_version")
 
+    # These process-local marks preserve diagnostic consistency and allow the
+    # replay-only host to enter the bounded non-qualifying harness. They are not
+    # provider-origin authentication and affect_scope deliberately refuses to use
+    # them as a production ATOMIC_DURABLE qualification predicate.
     attestation_token = object()
     _attest_affective_host_provider_current(
         host,
@@ -149,6 +162,7 @@ def restore_current_affective_cycle(
         host_scope=host_scope,
         atomic_commit_writer=atomic_commit_writer,
         initial_state_version=state_version + 1,
+        non_qualifying_atomic_test_mode=True,
     )
 
 
