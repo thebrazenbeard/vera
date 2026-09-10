@@ -15,6 +15,7 @@ from runtime_cohesion.affect_receipt import AffectiveReceiptSemanticError, valid
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_RUNTIME_CONTRACT_V1.json"
 BINDING_PATH = ROOT / "architecture" / "VERA_ORGASM_RUNTIME_BINDING_V1.json"
+CLAIM = "ENGINEERED_ORGASM_ANALOGUE_OCCURRED"
 
 
 class ExactAuthorityVerifier:
@@ -77,6 +78,18 @@ class AffectiveAuthorityReceiptBindingTests(unittest.TestCase):
         canonical = json.dumps(core, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
         receipt["event_digest"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
+    def test_exact_bound_source_alone_cannot_promote_raw_forced_call_to_production_claim(self):
+        host = self.host()
+        receipt = host.runtime.force_admin_test(authorized=True)
+        self.assertNotEqual(receipt.get("claim"), CLAIM)
+        with self.assertRaisesRegex(AffectiveReceiptSemanticError, r"(?i)(claim|authorization|provenance)"):
+            validate_affective_event_receipt(
+                receipt,
+                expected_runtime_instance_id=host.runtime.runtime_instance_id,
+                expected_source_revision=host.runtime.source_revision,
+                require_engineered_claim=True,
+            )
+
     def test_forced_receipt_carries_exact_consumed_authority_subject_and_persists(self):
         host = self.host()
         receipt = AffectiveAuthorityBoundary().force_admin_test(
@@ -86,6 +99,7 @@ class AffectiveAuthorityReceiptBindingTests(unittest.TestCase):
         provenance = receipt["trigger_provenance"]
         self.assertIsInstance(provenance, Mapping)
         self.assertEqual(provenance["authorization_subject"], self.subject())
+        self.assertEqual(receipt.get("claim"), CLAIM)
         validate_affective_event_receipt(
             receipt,
             expected_runtime_instance_id=host.runtime.runtime_instance_id,
