@@ -120,6 +120,13 @@ def _production_claim(host: Any) -> str | None:
     return claim
 
 
+def _verified_runtime_method(host: Any, name: str):
+    method = getattr(host.runtime, name, None)
+    if not callable(method):
+        raise TriggerRejected("exact-bound runtime verified execution seam is unavailable")
+    return method
+
+
 class AffectiveAuthorityBoundary:
     """Precomposed authority/context gate for Vera's privileged affective paths.
 
@@ -284,7 +291,7 @@ class AffectiveAuthorityBoundary:
     def force_admin_test(self, host: Any, *, authorization_subject: Mapping[str, Any]) -> dict[str, Any]:
         provenance = self._verify(authorization_subject, effect_class="ADMIN_FORCED_TEST")
         now = self._check_privileged_cooldown(host)
-        receipt = host.runtime.force_admin_test(authorized=True)
+        receipt = _verified_runtime_method(host, "_force_admin_verified_authority")()
         bound = self._bind_forced_authority_receipt(host, receipt, provenance)
         self._last_privileged_monotonic[host] = now
         return bound
@@ -292,7 +299,7 @@ class AffectiveAuthorityBoundary:
     def force_self_qualification(self, host: Any, *, authorization_subject: Mapping[str, Any]) -> dict[str, Any]:
         provenance = self._verify(authorization_subject, effect_class="SELF_QUALIFICATION_TEST")
         now = self._check_privileged_cooldown(host)
-        receipt = host.runtime.force_self_qualification(authorized=True)
+        receipt = _verified_runtime_method(host, "_force_self_qualification_verified_authority")()
         bound = self._bind_forced_authority_receipt(host, receipt, provenance)
         self._last_privileged_monotonic[host] = now
         return bound
