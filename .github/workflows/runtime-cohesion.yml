@@ -95,6 +95,7 @@ jobs:
           runtime_cohesion/adapters.py
           runtime_cohesion/executor.py
           runtime_cohesion/orgasm.py
+          runtime_cohesion/affect_receipt.py
           runtime_cohesion/affect_host.py
           runtime_cohesion/affect_persistence.py
           runtime_cohesion/affect_provider_runtime.py
