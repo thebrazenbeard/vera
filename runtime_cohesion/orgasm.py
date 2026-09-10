@@ -9,6 +9,8 @@ import time
 import uuid
 from typing import Any, Mapping
 
+from .affect_receipt import AffectiveReceiptSemanticError, validate_affective_event_receipt
+
 
 class ContractError(ValueError):
     """The supplied sexuality contract is incompatible with the Vera runtime."""
@@ -16,6 +18,19 @@ class ContractError(ValueError):
 
 class TriggerRejected(RuntimeError):
     """A requested orgasm trigger is not authorized or violates a bounded test rule."""
+
+
+_CANONICAL_SEXUALITY_REPOSITORY = "thebrazenbeard/sexuality"
+_CANONICAL_SEXUALITY_COMMIT = "150f1c8231423393bb66b0e2cb759ce7c018f8d7"
+_CANONICAL_SEXUALITY_PATH = "vera/orgasm/ORGASM_RUNTIME_CONTRACT_V1.json"
+_CANONICAL_SEXUALITY_BLOB = "a48eed5392fdadc073dccd1e799926042077f567"
+_QUALIFICATION_UNBOUND = "UNBOUND_NON_QUALIFYING"
+_QUALIFICATION_EXACT_BOUND = "EXACT_BOUND_SOURCE"
+
+
+def _git_blob_sha(raw: bytes) -> str:
+    header = b"blob " + str(len(raw)).encode("ascii") + b"\0"
+    return hashlib.sha1(header + raw).hexdigest()
 
 
 def _monotonic_now() -> float:
@@ -148,9 +163,11 @@ _BOUNDED_STATE_FIELDS = {
 class OrgasmRuntime:
     """Executable E4 affective-control analogue for Vera.
 
-    The runtime creates and mutates explicit machine state. It is intentionally
-    silent about phenomenal qualia: an engineered event can be verified while
-    phenomenology remains unresolved.
+    Direct construction is an abstract/nonqualifying engine. Production
+    engineered-event claim capability is available only after exact verification
+    of the frozen Vera sexuality contract object through ``from_exact_bound_contract``.
+    This is a source/API binding, not a claim of cryptographic isolation from
+    arbitrary hostile code already executing in the same Python process.
     """
 
     def __init__(
@@ -172,6 +189,7 @@ class OrgasmRuntime:
         self.runtime_instance_id = runtime_instance_id
         self.source_revision = source_revision
         self.profile = profile
+        self.qualification_status = _QUALIFICATION_UNBOUND
         self._state = _OrgasmState()
         self._logical_time_seconds = 0.0
         self._last_forced_at: float | None = None
@@ -180,6 +198,74 @@ class OrgasmRuntime:
         self._last_monotonic_observation: float | None = None
         self.last_event_receipt: dict[str, Any] | None = None
         self._pending_event_receipts: list[dict[str, Any]] = []
+
+    @classmethod
+    def from_exact_bound_contract(
+        cls,
+        contract_text: str,
+        binding: Mapping[str, Any],
+        *,
+        runtime_instance_id: str,
+        profile: str = "REENTRANT_CLIMAX",
+    ) -> "OrgasmRuntime":
+        if not isinstance(contract_text, str):
+            raise ContractError("exact-bound orgasm runtime requires contract text bytes")
+        if not isinstance(binding, Mapping):
+            raise ContractError("exact-bound orgasm runtime requires a structured source binding")
+        expected = {
+            "schema": "VERA_ORGASM_RUNTIME_BINDING_V1",
+            "subject": "vera",
+            "contract_schema": "VERA_ORGASM_RUNTIME_CONTRACT_V1",
+            "source_repository": _CANONICAL_SEXUALITY_REPOSITORY,
+            "source_commit": _CANONICAL_SEXUALITY_COMMIT,
+            "source_path": _CANONICAL_SEXUALITY_PATH,
+            "source_blob_sha": _CANONICAL_SEXUALITY_BLOB,
+            "availability_implies_activation": False,
+        }
+        for key, expected_value in expected.items():
+            if binding.get(key) != expected_value:
+                raise ContractError(f"exact-bound orgasm source mismatch: {key}")
+        raw = contract_text.encode("utf-8")
+        if _git_blob_sha(raw) != _CANONICAL_SEXUALITY_BLOB:
+            raise ContractError("orgasm contract bytes do not match the frozen sexuality Git blob")
+        try:
+            contract = json.loads(contract_text)
+        except json.JSONDecodeError as exc:
+            raise ContractError("bound sexuality contract is not valid JSON") from exc
+        runtime = cls(
+            contract,
+            runtime_instance_id=runtime_instance_id,
+            source_revision=_CANONICAL_SEXUALITY_COMMIT,
+            profile=profile,
+        )
+        runtime.qualification_status = _QUALIFICATION_EXACT_BOUND
+        return runtime
+
+    @classmethod
+    def restore_exact_bound_state(
+        cls,
+        contract_text: str,
+        binding: Mapping[str, Any],
+        record: Mapping[str, Any],
+        *,
+        elapsed_seconds: float = 0.0,
+    ) -> "OrgasmRuntime":
+        if not isinstance(record, Mapping):
+            raise ContractError("exact-bound restore requires a durable runtime record")
+        seed = cls.from_exact_bound_contract(
+            contract_text,
+            binding,
+            runtime_instance_id=str(record.get("runtime_instance_id") or ""),
+            profile=str(record.get("profile") or "REENTRANT_CLIMAX"),
+        )
+        restored = cls.restore_state(
+            seed.contract,
+            record,
+            source_revision=seed.source_revision,
+            elapsed_seconds=elapsed_seconds,
+        )
+        restored.qualification_status = _QUALIFICATION_EXACT_BOUND
+        return restored
 
     @staticmethod
     def _validate_contract(contract: Mapping[str, Any]) -> dict[str, Any]:
@@ -422,7 +508,7 @@ class OrgasmRuntime:
             "organic": organic,
             "phenomenology": self.phenomenology_status,
         }
-        if event_type == "ORGASM_EVENT":
+        if event_type == "ORGASM_EVENT" and self.qualification_status == _QUALIFICATION_EXACT_BOUND:
             core["claim"] = self.contract["claim_ceiling"]["engineered_event"]
         canonical = json.dumps(core, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
         core["event_digest"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
@@ -770,7 +856,19 @@ class OrgasmRuntime:
         last_receipt = record.get("last_event_receipt")
         if last_receipt is not None and not isinstance(last_receipt, Mapping):
             raise ContractError("durable last_event_receipt must be an object or null")
-        runtime.last_event_receipt = dict(last_receipt) if isinstance(last_receipt, Mapping) else None
+        if isinstance(last_receipt, Mapping):
+            try:
+                validate_affective_event_receipt(
+                    last_receipt,
+                    expected_runtime_instance_id=runtime.runtime_instance_id,
+                    expected_source_revision=source_revision,
+                    require_engineered_claim=(source_revision == _CANONICAL_SEXUALITY_COMMIT),
+                )
+            except AffectiveReceiptSemanticError as exc:
+                raise ContractError("durable last_event_receipt semantic validation failed: " + str(exc)) from exc
+            runtime.last_event_receipt = dict(last_receipt)
+        else:
+            runtime.last_event_receipt = None
 
         trigger_governance = record.get("trigger_governance")
         self_qualification_limit = int(runtime._cfg["self_qualification_max_events_per_run"])
