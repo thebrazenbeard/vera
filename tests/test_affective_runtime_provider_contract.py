@@ -25,6 +25,8 @@ class VeraAffectiveRuntimeProviderContractTests(unittest.TestCase):
         self.assertTrue(contract["runtime_requirements"]["machine_interoception_required"])
         self.assertTrue(contract["runtime_requirements"]["durable_readback_required_for_cross_turn_continuity"])
         self.assertEqual(contract["claim_ceiling"]["engineered_event"], "ENGINEERED_ORGASM_ANALOGUE_OCCURRED")
+        self.assertEqual(contract["claim_ceiling"]["current_provider_provenance"], "UNRESOLVED")
+        self.assertEqual(contract["claim_ceiling"]["current_atomic_durable_runtime"], "NOT_QUALIFIED")
         self.assertEqual(contract["claim_ceiling"]["phenomenology"], "UNRESOLVED")
         self.assertFalse(contract["provider"]["availability_implies_activation"])
 
@@ -44,6 +46,22 @@ class VeraAffectiveRuntimeProviderContractTests(unittest.TestCase):
         self.assertEqual(provider["service_role_direct_event_insert"], "REVOKED")
         self.assertEqual(provider["service_role_atomic_commit_execute"], "GRANTED")
 
+    def test_source_only_in_process_composition_is_explicitly_nonqualifying(self):
+        contract = json.loads(PATH.read_text(encoding="utf-8"))
+        req = contract["runtime_requirements"]
+        integrity = contract["integrity_model"]
+
+        self.assertTrue(req["in_process_composition_is_not_provider_origin_authentication"])
+        self.assertTrue(req["caller_reachable_attestation_tokens_are_not_provider_origin_authentication"])
+        self.assertTrue(req["provider_bound_writer_attestation_is_necessary_but_not_sufficient_for_atomic_durable"])
+        self.assertTrue(req["production_provider_origin_requires_independently_rooted_external_capability"])
+        self.assertFalse(req["production_atomic_durable_available_in_source_only_python_composition"])
+        self.assertEqual(req["source_only_provider_composition_mode"], "NON_QUALIFYING_ATOMIC_TEST")
+        self.assertEqual(req["source_only_provider_composition_state_lifecycle"], "HISTORICAL")
+        self.assertEqual(req["source_only_provider_composition_resume_token"], "FORBIDDEN")
+        self.assertIn("first-writer Python installer", integrity["provider_origin_ceiling"])
+        self.assertIn("not sufficient provider-origin evidence", integrity["restore_writer_composition"])
+
     def test_provider_contract_tracks_unapplied_first_write_hardening_and_durable_governance(self):
         contract = json.loads(PATH.read_text(encoding="utf-8"))
         provider = contract["provider"]
@@ -61,7 +79,7 @@ class VeraAffectiveRuntimeProviderContractTests(unittest.TestCase):
         self.assertIn("per_event_interoception", integrity)
         self.assertIn("post_mutation_failure_boundary", integrity)
         self.assertIn("RECOVERY", integrity["transition_evidence"])
-        self.assertIn("N+1", integrity["durable_currentness"])
+        self.assertIn("N+1", integrity["frontier_mechanics"])
         self.assertIn("poisons", integrity["post_mutation_failure_boundary"])
 
 
