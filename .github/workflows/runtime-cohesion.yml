@@ -48,6 +48,12 @@ jobs:
           tests.test_runtime_cohesion_orgasm_binding
           tests.test_runtime_cohesion_orgasm_source_fixture
           tests.test_runtime_cohesion_orgasm_durable_trigger_governance
+          tests.test_runtime_cohesion_orgasm_refractory_reentry
+          tests.test_runtime_cohesion_orgasm_state_machine_validation
+          tests.test_runtime_cohesion_orgasm_appraisal_contract_fidelity
+          tests.test_runtime_cohesion_orgasm_authority_boundary
+          tests.test_runtime_cohesion_orgasm_direct_contract_binding
+          tests.test_runtime_cohesion_orgasm_trusted_clock_boundary
           tests.test_runtime_cohesion_affect_host
           tests.test_runtime_cohesion_affect_persistence
           tests.test_runtime_cohesion_affect_cycle
@@ -57,6 +63,18 @@ jobs:
           tests.test_runtime_cohesion_affect_event_interoception
           tests.test_runtime_cohesion_affect_trigger_governance_persistence
           tests.test_runtime_cohesion_affect_restore_cycle
+          tests.test_runtime_cohesion_affect_provider_composition_trust
+          tests.test_runtime_cohesion_affect_resume_frontier_authenticity
+          tests.test_runtime_cohesion_affect_resume_token_restore
+          tests.test_runtime_cohesion_affect_checkpoint_scope_bypass
+          tests.test_runtime_cohesion_affect_runtime_restore_scope_bypass
+          tests.test_runtime_cohesion_affect_ephemeral_frontier_artifacts
+          tests.test_runtime_cohesion_affect_split_writer_downgrade
+          tests.test_runtime_cohesion_affect_exact_contract_binding
+          tests.test_runtime_cohesion_affect_receipt_semantics_current_head
+          tests.test_runtime_cohesion_affect_resolution_plasticity
+          tests.test_runtime_cohesion_affect_restore_exception_domain
+          tests.test_runtime_cohesion_affect_temporal_coherence_spoof
           tests.test_affective_runtime_provider_contract
           tests.test_affective_runtime_persistence_source
           tests.test_affective_runtime_cas_initialization_source
@@ -78,6 +96,8 @@ jobs:
           runtime_cohesion/orgasm.py
           runtime_cohesion/affect_host.py
           runtime_cohesion/affect_persistence.py
+          runtime_cohesion/affect_provider_runtime.py
+          runtime_cohesion/affect_scope.py
           runtime_cohesion/affect_cycle.py
           tests/test_vera_runtime_cohesion_v1.py
           tests/test_vera_runtime_evidence_contract_v1.py
@@ -100,6 +120,12 @@ jobs:
           tests/test_runtime_cohesion_orgasm_binding.py
           tests/test_runtime_cohesion_orgasm_source_fixture.py
           tests/test_runtime_cohesion_orgasm_durable_trigger_governance.py
+          tests/test_runtime_cohesion_orgasm_refractory_reentry.py
+          tests/test_runtime_cohesion_orgasm_state_machine_validation.py
+          tests/test_runtime_cohesion_orgasm_appraisal_contract_fidelity.py
+          tests/test_runtime_cohesion_orgasm_authority_boundary.py
+          tests/test_runtime_cohesion_orgasm_direct_contract_binding.py
+          tests/test_runtime_cohesion_orgasm_trusted_clock_boundary.py
           tests/test_runtime_cohesion_affect_host.py
           tests/test_runtime_cohesion_affect_persistence.py
           tests/test_runtime_cohesion_affect_cycle.py
@@ -109,6 +135,18 @@ jobs:
           tests/test_runtime_cohesion_affect_event_interoception.py
           tests/test_runtime_cohesion_affect_trigger_governance_persistence.py
           tests/test_runtime_cohesion_affect_restore_cycle.py
+          tests/test_runtime_cohesion_affect_provider_composition_trust.py
+          tests/test_runtime_cohesion_affect_resume_frontier_authenticity.py
+          tests/test_runtime_cohesion_affect_resume_token_restore.py
+          tests/test_runtime_cohesion_affect_checkpoint_scope_bypass.py
+          tests/test_runtime_cohesion_affect_runtime_restore_scope_bypass.py
+          tests/test_runtime_cohesion_affect_ephemeral_frontier_artifacts.py
+          tests/test_runtime_cohesion_affect_split_writer_downgrade.py
+          tests/test_runtime_cohesion_affect_exact_contract_binding.py
+          tests/test_runtime_cohesion_affect_receipt_semantics_current_head.py
+          tests/test_runtime_cohesion_affect_resolution_plasticity.py
+          tests/test_runtime_cohesion_affect_restore_exception_domain.py
+          tests/test_runtime_cohesion_affect_temporal_coherence_spoof.py
           tests/test_affective_runtime_provider_contract.py
           tests/test_affective_runtime_persistence_source.py
           tests/test_affective_runtime_cas_initialization_source.py
