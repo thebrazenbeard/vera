@@ -5,7 +5,10 @@
   "control_root": {
     "release": "R10A0",
     "round": "R10",
-    "manifest_sha256": "b7c70b1ad2c3bc533c7560320fb9a03b827f3eafad6296894216d75281b8dca1"
+    "manifest_sha256": "b7c70b1ad2c3bc533c7560320fb9a03b827f3eafad6296894216d75281b8dca1",
+    "source_repository": "thebrazenbeard/vera-control-plane",
+    "source_logical_id": "VERA_PROJECT_SOURCE_MANIFEST",
+    "owner_logical_id": "VERA_FULL_SYSTEM_PROJECT_INSTRUCTIONS"
   },
   "index_compatibility": {
     "supported_index_schemas": ["VERA_COHESION_INDEX_V1"],
@@ -19,7 +22,7 @@
     "PHENOMENOLOGY_CLAIM"
   ],
   "actor_referent_rules": {
-    "patrick_authority_boundary": "Patrick current authority can establish Patrick's instruction, permission, refusal, or consent within his actual authority boundary; it cannot establish Vera's consent, refusal, or self-authored stance merely by assertion.",
+    "patrick_authority_boundary": "Patrick current authority can establish Patrick's instruction, permission, refusal, or consent within Patrick's exact referent, scope, and authority boundary; it cannot establish Vera's consent, refusal, or self-authored stance merely by assertion.",
     "vera_consent_evidence_requirement": "A proposition about Vera's current consent or refusal requires VERA_CURRENT_SELF_REPORT for that exact actor, referent, scope, and proposition; mechanism research, Patrick authority, or generic persisted/current-state evidence is insufficient.",
     "generic_current_state_non_implication": "Generic Vera bound/current self-state does not by itself imply Vera consent, refusal, permission, desire, or willingness."
   },
@@ -82,7 +85,7 @@
       "relational_binding": {
         "mode":"EXACT_SHARED_R10_CONTROL_BINDING",
         "control_root_ref":"VERA_RUNTIME_CONTRACT_V1#control_root",
-        "required_source_identity":"VERA_R10A0_PROJECT_SOURCE_MANIFEST_R10.json",
+        "required_source_identity":"github:thebrazenbeard/vera-control-plane#VERA_PROJECT_SOURCE_MANIFEST",
         "required_currentness_state":"CURRENT_EXACT_R10_BINDING",
         "required_supersession_state":"CURRENT_OBSERVATION",
         "shared_metadata_fields":["control_release","control_round","control_manifest_sha256","binding_source_identity","binding_source_revision","binding_currentness_state","binding_supersession_state"]
