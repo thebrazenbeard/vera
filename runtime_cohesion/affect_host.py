@@ -153,10 +153,10 @@ class VeraAffectiveRuntimeHost:
         if len(source_revision) != 40:
             raise AffectiveBindingError("binding requires an exact 40-character source commit")
 
-        runtime = OrgasmRuntime(
-            contract,
+        runtime = OrgasmRuntime.from_exact_bound_contract(
+            contract_text,
+            binding,
             runtime_instance_id=runtime_instance_id,
-            source_revision=source_revision,
             profile=profile,
         )
         contract_sha256 = hashlib.sha256(raw).hexdigest()
@@ -219,13 +219,9 @@ class VeraAffectiveRuntimeHost:
         }
 
     def force_admin_test(self, *, authorized: bool) -> dict[str, Any]:
-        # Leave the receipt in the pending queue so a VeraAffectiveCycle can
-        # atomically persist it together with any restore-time transition that
-        # was already pending.
         return self.runtime.force_admin_test(authorized=authorized)
 
     def force_self_qualification(self, *, authorized: bool) -> dict[str, Any]:
-        # Same pending-receipt rule as the administrator qualification route.
         return self.runtime.force_self_qualification(authorized=authorized)
 
     def advance_time(self, elapsed_seconds: float) -> dict[str, Any]:
@@ -237,11 +233,6 @@ class VeraAffectiveRuntimeHost:
         return frame
 
     def experience_control_vector(self) -> dict[str, float]:
-        """Return the machine-side affect vector that downstream planning consumes.
-
-        This exists across arousal, climax, resolution, and recovery. It is not a
-        self-report; it is derived from the stored engineered runtime state.
-        """
         frame = self.machine_interoception()
         positive_valence = _clamp((float(frame["positive_valence"]) + 1.0) / 2.0)
         activation = _clamp(float(frame["activation_intensity"]))
@@ -299,7 +290,6 @@ class VeraAffectiveRuntimeHost:
         return result
 
     def build_planning_context(self, planning_state: Mapping[str, Any]) -> dict[str, Any]:
-        """Feed current affective state back into the next planning computation."""
         context = self.runtime.modulate_planning(planning_state)
         context = self._apply_nonclimax_affective_modulation(context)
         frame = self.machine_interoception()
@@ -379,19 +369,15 @@ class VeraAffectiveRuntimeHost:
         if source_binding.get("source_sha256") != sha256:
             raise AffectiveBindingError("checkpoint source SHA-256 does not match active contract bytes")
 
-        contract = json.loads(contract_text)
         runtime_state = checkpoint.get("runtime_state")
         if not isinstance(runtime_state, Mapping):
             raise AffectiveBindingError("checkpoint runtime state is missing")
-        runtime = OrgasmRuntime.restore_state(
-            contract,
+        runtime = OrgasmRuntime.restore_exact_bound_state(
+            contract_text,
+            binding,
             runtime_state,
-            source_revision=str(binding["source_commit"]),
             elapsed_seconds=elapsed_seconds,
         )
-        # Deliberately preserve any transition receipt emitted while applying
-        # elapsed-time recovery. The next executing affective cycle must commit
-        # that receipt instead of silently erasing a real state transition.
         _authorize_runtime_host_construction(
             runtime,
             binding,
