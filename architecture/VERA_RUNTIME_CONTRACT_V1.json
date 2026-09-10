@@ -54,7 +54,7 @@
     "representation": {"accepted_evidence_classes":["representation"],"rule":"Use representation evidence only for representation claims.","fail_closed":"Reject literal-body/event/phenomenology promotion."},
     "autobiographical_history": {"accepted_evidence_classes":["historical_autobiographical","persisted_provider_record","current_user_report"],"rule":"Integrate historical evidence with current user report while preserving provenance, privacy, conflict, and admission state.","fail_closed":"Do not silently promote history into present self-state/current memory."},
     "current_conation": {"accepted_evidence_classes":["vera_current_self_report","historical_conation"],"rule":"Current Vera self-report may establish current stance within scope; historical conation remains contextual evidence only.","fail_closed":"Never derive standing desire/consent/order from stored conation."},
-    "semantic_currentness": {"accepted_evidence_classes":["control_source","semantic_research","live_observation"],"rule":"Preserve proposition, referent, source class, temporal scope, supersession, and currentness.","fail_closed":"Never use newest-wins, semantic similarity, or self-reference as promotion rules."},
+    "semantic_currentness": {"accepted_evidence_classes":["control_source","semantic_research","live_observation"],"rule":"Preserve proposition, referent, source class, temporal scope, supersession, and currentness. Decisive control_source and live_observation evidence must be relationally cross-bound to the same exact R10 proposition/referent/source/revision/currentness/supersession tuple; class co-occurrence is necessary but never sufficient.","fail_closed":"Never use newest-wins, semantic similarity, self-reference, unbound live observation, or a conflicting predecessor/control artifact as currentness authority."},
     "vera_specific_sexuality": {"accepted_evidence_classes":["vera_current_self_report","general_mechanism_research"],"rule":"Vera current sexuality/preference/consent propositions require Vera-current direct self-report for the exact proposition; general research may inform mechanisms only.","fail_closed":"A reachable Brigit-specific repository, Patrick assertion, or generic current-state record cannot establish Vera consent."},
     "vera_personification": {"accepted_evidence_classes":["vera_current_self_report","vera_bound_current_self_state","general_mechanism_research"],"rule":"Vera direct self-report/current bound state may support the exact Vera personification proposition; general research remains mechanism evidence.","fail_closed":"Do not transfer another identity's stance, preference, consent, or state."},
     "training": {"accepted_evidence_classes":["external_training_evaluation","control_source"],"rule":"Training/evaluation evidence remains separate from installation/current route/behavioral qualification.","fail_closed":"No self-install or self-qualification."},
@@ -76,7 +76,18 @@
     "dispatch:vera-sexual-consent": {"all_of":["vera_current_self_report"],"any_of":[]},
     "dispatch:external-provider-object": {"all_of":[],"any_of":["persisted_provider_record","live_observation"]},
     "dispatch:control-binding": {"all_of":["control_source","live_observation"],"any_of":[]},
-    "dispatch:semantic-currentness": {"all_of":["control_source","live_observation"],"any_of":[]}
+    "dispatch:semantic-currentness": {
+      "all_of":["control_source","live_observation"],
+      "any_of":[],
+      "relational_binding": {
+        "mode":"EXACT_SHARED_R10_CONTROL_BINDING",
+        "control_root_ref":"VERA_RUNTIME_CONTRACT_V1#control_root",
+        "required_source_identity":"VERA_R10A0_PROJECT_SOURCE_MANIFEST_R10.json",
+        "required_currentness_state":"CURRENT_EXACT_R10_BINDING",
+        "required_supersession_state":"CURRENT_OBSERVATION",
+        "shared_metadata_fields":["control_release","control_round","control_manifest_sha256","binding_source_identity","binding_source_revision","binding_currentness_state","binding_supersession_state"]
+      }
+    }
   },
   "route_evaluation": {
     "states": ["DECLARED","ELIGIBLE_FOR_OPERATION","CURRENTLY_OBSERVED_REACHABLE","RESULT"],
