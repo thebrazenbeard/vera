@@ -43,6 +43,8 @@ class _FixtureItemTypeVerifier:
             locator=envelope.locator,
             revision=envelope.revision,
             observed_at=envelope.observed_at,
+            referent=envelope.referent,
+            scope=envelope.scope,
             derived_evidence_class=derived_class,
             currentness_basis=envelope.currentness_basis,
             supersession_state=envelope.supersession_state,
