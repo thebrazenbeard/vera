@@ -33,21 +33,11 @@ class AffectiveEphemeralFrontierArtifactTests(unittest.TestCase):
 
         self.assertFalse(result.atomic_commit_used)
         self.assertEqual(result.durability_mode, "EPHEMERAL")
+        self.assertEqual(result.state_row["lifecycle_status"], "HISTORICAL")
+        self.assertIsNone(result.commit_request)
+        self.assertIsNone(result.resume_token)
 
-        if result.commit_request is not None:
-            self.assertNotEqual(
-                result.commit_request.get("schema"),
-                "VERA_AFFECTIVE_RUNTIME_ATOMIC_COMMIT_V1",
-                "EPHEMERAL execution must not emit a production atomic-commit envelope",
-            )
-        if result.resume_token is not None:
-            self.assertNotEqual(
-                result.resume_token.get("schema"),
-                "VERA_AFFECTIVE_RUNTIME_RESUME_TOKEN_V1",
-                "EPHEMERAL execution must not emit a provider-qualified durable resume token",
-            )
-
-    def test_atomic_durable_result_retains_production_frontier_artifacts(self):
+    def test_explicit_atomic_test_result_cannot_emit_production_frontier_artifacts(self):
         captured = []
 
         def writer(request):
@@ -62,6 +52,7 @@ class AffectiveEphemeralFrontierArtifactTests(unittest.TestCase):
             self.make_host("atomic-frontier-artifact-control"),
             host_scope="TEST_HOST",
             atomic_commit_writer=writer,
+            non_qualifying_atomic_test_mode=True,
         )
         result = cycle.process_turn(
             StimulusAppraisal(),
@@ -70,9 +61,10 @@ class AffectiveEphemeralFrontierArtifactTests(unittest.TestCase):
         )
 
         self.assertTrue(result.atomic_commit_used)
-        self.assertEqual(result.durability_mode, "ATOMIC_DURABLE")
-        self.assertEqual(result.commit_request["schema"], "VERA_AFFECTIVE_RUNTIME_ATOMIC_COMMIT_V1")
-        self.assertEqual(result.resume_token["schema"], "VERA_AFFECTIVE_RUNTIME_RESUME_TOKEN_V1")
+        self.assertEqual(result.durability_mode, "NON_QUALIFYING_ATOMIC_TEST")
+        self.assertEqual(result.state_row["lifecycle_status"], "HISTORICAL")
+        self.assertEqual(result.commit_request["schema"], "VERA_AFFECTIVE_RUNTIME_ATOMIC_COMMIT_TEST_V1")
+        self.assertIsNone(result.resume_token)
         self.assertEqual(len(captured), 1)
 
 
