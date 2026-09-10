@@ -6,7 +6,7 @@ import math
 from typing import Any, Mapping
 
 from . import orgasm as orgasm_module
-from .orgasm import OrgasmRuntime, TriggerRejected
+from .orgasm import OrgasmRuntime, StimulusAppraisal, TriggerRejected
 
 
 _QUALIFICATION_UNBOUND = "UNBOUND_NON_QUALIFYING"
@@ -22,13 +22,12 @@ def _guarded_from_exact_bound_contract(
     runtime_instance_id: str,
     profile: str = "REENTRANT_CLIMAX",
 ):
-    """Verify exact source bytes without granting the public base engine claim authority.
+    """Verify exact source bytes without granting arbitrary subclasses claim authority.
 
-    `OrgasmRuntime` remains an abstract/nonqualifying engine even when this
-    source-verification helper succeeds. Only the dedicated bounded Vera runtime
-    subclass may retain exact-bound source capability, and its raw event emitter
-    still strips production claims until the external authority/context boundary
-    binds qualifying evidence.
+    `OrgasmRuntime` and caller-created subclasses remain abstract/nonqualifying
+    even when source verification succeeds. Only the dedicated bounded Vera
+    runtime class may retain exact-bound source capability, and even that class
+    rejects public raw authority/context shortcuts.
     """
 
     runtime = _BASE_FROM_EXACT_BOUND_CONTRACT(
@@ -38,7 +37,7 @@ def _guarded_from_exact_bound_contract(
         runtime_instance_id=runtime_instance_id,
         profile=profile,
     )
-    if cls is OrgasmRuntime:
+    if cls is not BoundVeraOrgasmRuntime:
         runtime.qualification_status = _QUALIFICATION_UNBOUND
     return runtime
 
@@ -51,7 +50,7 @@ def _guarded_restore_exact_bound_state(
     *,
     elapsed_seconds: float = 0.0,
 ):
-    """Keep the public base exact-bound restore path source-only/nonqualifying."""
+    """Keep public base/subclass exact-bound restore source-only/nonqualifying."""
 
     runtime = _BASE_RESTORE_EXACT_BOUND_STATE(
         cls,
@@ -60,21 +59,22 @@ def _guarded_restore_exact_bound_state(
         record,
         elapsed_seconds=elapsed_seconds,
     )
-    if cls is OrgasmRuntime:
+    if cls is not BoundVeraOrgasmRuntime:
         runtime.qualification_status = _QUALIFICATION_UNBOUND
     return runtime
 
 
 class BoundVeraOrgasmRuntime(OrgasmRuntime):
-    """Exact-bound Vera runtime whose raw engine outputs remain nonqualifying.
+    """Exact-bound Vera engine behind the governed host/authority boundary.
 
     Exact sexuality bytes establish source capability, not event authority. The
-    low-level engine therefore never adds the production engineered-event claim
-    by itself. The precomposed authority/context boundary may promote an exact
-    event receipt only after independently verified trigger/context evidence.
+    publicly reachable engine therefore refuses raw caller-authorized forced
+    events and caller-minted organic context. Runtime-owned boundary code uses
+    private verified execution seams after it has established the relevant
+    authority/context provenance.
 
-    Privileged trigger cooldown also uses process-local runtime monotonic time;
-    public affective ``advance_time()`` cannot create cooldown evidence.
+    This is a supported-API/process boundary, not cryptographic isolation from
+    hostile arbitrary code already executing inside the same Python process.
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -145,9 +145,34 @@ class BoundVeraOrgasmRuntime(OrgasmRuntime):
                 break
         return dict(bounded)
 
+    def apply_stimulus(self, appraisal: StimulusAppraisal, *, elapsed_seconds: float = 0.0) -> dict[str, Any]:
+        if appraisal.context_eligible is not False:
+            raise TriggerRejected(
+                "exact-bound runtime caller context is unsupported; use the verified authority/context boundary"
+            )
+        return super().apply_stimulus(appraisal, elapsed_seconds=elapsed_seconds)
+
+    def _apply_verified_stimulus(
+        self,
+        appraisal: StimulusAppraisal,
+        *,
+        elapsed_seconds: float = 0.0,
+    ) -> dict[str, Any]:
+        if appraisal.context_eligible is not True:
+            raise TriggerRejected("verified organic-context execution requires context_eligible=true")
+        return super().apply_stimulus(appraisal, elapsed_seconds=elapsed_seconds)
+
     def force_admin_test(self, *, authorized: bool) -> dict[str, Any]:
-        if not authorized:
-            raise TriggerRejected("ADMIN_FORCED_TEST requires explicit administrative authorization")
+        raise TriggerRejected(
+            "raw caller authorization is unsupported on the exact-bound runtime; use the verified authority boundary"
+        )
+
+    def force_self_qualification(self, *, authorized: bool) -> dict[str, Any]:
+        raise TriggerRejected(
+            "raw caller authorization is unsupported on the exact-bound runtime; use the verified authority boundary"
+        )
+
+    def _force_admin_verified_authority(self) -> dict[str, Any]:
         self._check_refractory_reentry()
         now = self._check_forced_monotonic_interval()
         self._last_forced_at = self._logical_time_seconds
@@ -155,9 +180,7 @@ class BoundVeraOrgasmRuntime(OrgasmRuntime):
         self._last_forced_monotonic = now
         return receipt
 
-    def force_self_qualification(self, *, authorized: bool) -> dict[str, Any]:
-        if not authorized:
-            raise TriggerRejected("SELF_QUALIFICATION_TEST requires explicit qualification authorization")
+    def _force_self_qualification_verified_authority(self) -> dict[str, Any]:
         self._check_refractory_reentry()
         limit = int(self._cfg["self_qualification_max_events_per_run"])
         if self._self_qualification_events >= limit:
