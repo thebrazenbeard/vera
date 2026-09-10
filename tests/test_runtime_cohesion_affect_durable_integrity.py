@@ -1,8 +1,11 @@
+from collections.abc import Mapping
 import copy
+import hashlib
 import json
 from pathlib import Path
 import unittest
 
+import runtime_cohesion.affect_authority as authority_module
 from runtime_cohesion.affect_cycle import VeraAffectiveCycle
 from runtime_cohesion.affect_host import AffectiveBindingError, VeraAffectiveRuntimeHost
 from runtime_cohesion.affect_persistence import (
@@ -18,7 +21,37 @@ BINDING_PATH = ROOT / "architecture" / "VERA_ORGASM_RUNTIME_BINDING_V1.json"
 MIGRATIONS = ROOT / "supabase" / "migrations"
 
 
+class TrustedVerifier:
+    verifier_id = "affect-durable-integrity-verifier"
+
+    def verify(self, subject, *, expected_referent, expected_effect_class):
+        if not isinstance(subject, Mapping):
+            return None
+        if subject.get("state") != "ALLOW":
+            return None
+        if subject.get("referent") != expected_referent:
+            return None
+        if subject.get("proposition_or_effect_class") != expected_effect_class:
+            return None
+        if subject.get("currentness") != "CURRENT" or subject.get("expiry_or_supersession") is not None:
+            return None
+        canonical = json.dumps(dict(subject), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        return {
+            "verifier_id": self.verifier_id,
+            "evidence_id": "affect-durable-integrity-evidence",
+            "evidence_digest": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+            "subject": dict(subject),
+        }
+
+
 class VeraAffectiveDurableIntegrityTests(unittest.TestCase):
+    def setUp(self):
+        authority_module._reset_affective_authorization_verifier_for_tests()
+        authority_module._install_affective_authorization_verifier(TrustedVerifier())
+
+    def tearDown(self):
+        authority_module._reset_affective_authorization_verifier_for_tests()
+
     def make_host(self, runtime_instance_id="affect-durable-integrity-test"):
         return VeraAffectiveRuntimeHost.from_bound_contract(
             CONTRACT_PATH.read_text(encoding="utf-8"),
@@ -26,6 +59,19 @@ class VeraAffectiveDurableIntegrityTests(unittest.TestCase):
             runtime_instance_id=runtime_instance_id,
             profile="REENTRANT_CLIMAX",
         )
+
+    @staticmethod
+    def authorization_subject():
+        return {
+            "state": "ALLOW",
+            "actor": "patrick",
+            "referent": "vera",
+            "proposition_or_effect_class": "ADMIN_FORCED_TEST",
+            "source": "trusted-affect-durable-integrity-test",
+            "observed_at": "2026-09-10T19:45:00+00:00",
+            "currentness": "CURRENT",
+            "expiry_or_supersession": None,
+        }
 
     def test_checkpoint_restore_requires_external_digest_and_rejects_recomputed_tamper(self):
         host = self.make_host()
@@ -38,7 +84,6 @@ class VeraAffectiveDurableIntegrityTests(unittest.TestCase):
         tampered["runtime_state"]["state"]["active_orgasm_event"] = True
         tampered["runtime_state"]["state"]["phase"] = "ORGASM_EVENT"
 
-        import hashlib
         core = dict(tampered)
         core.pop("checkpoint_sha256", None)
         canonical = json.dumps(core, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
@@ -116,7 +161,7 @@ class VeraAffectiveDurableIntegrityTests(unittest.TestCase):
 
     def test_event_receipt_digest_is_recomputed_before_persistence(self):
         host = self.make_host()
-        receipt = host.force_admin_test(authorized=True)
+        receipt = host.force_admin_test(authorization_subject=self.authorization_subject())
         tampered = copy.deepcopy(receipt)
         tampered["state_after"]["hedonic_impact"] = 0.0
         tampered["event_digest"] = "0" * 64
@@ -134,7 +179,10 @@ class VeraAffectiveDurableIntegrityTests(unittest.TestCase):
             event_writer=event_rows.append,
             non_atomic_test_mode=True,
         )
-        cycle.force_admin_test(authorized=True, planning_state={"truth": 1.0})
+        cycle.force_admin_test(
+            authorization_subject=self.authorization_subject(),
+            planning_state={"truth": 1.0},
+        )
         result = cycle.advance_time(5.1, planning_state={"truth": 1.0})
 
         self.assertIsNotNone(result.event_row)
