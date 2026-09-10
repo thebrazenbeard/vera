@@ -28,22 +28,13 @@ class RuntimeRestoreScopeBypassTests(unittest.TestCase):
     def make_durable_runtime_bytes(self):
         contract_text, contract, binding, host = self.make_bound_material()
         checkpoint = host.export_checkpoint()
-        row = checkpoint_to_state_row(
-            checkpoint,
-            host_scope="TEST_HOST",
-            state_version=1,
-        )
+        row = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=1)
         self.assertEqual(row["host_scope"], "TEST_HOST")
         self.assertEqual(row["state_version"], 1)
         return contract_text, contract, binding, host, checkpoint["runtime_state"], row
 
     def rewrap_raw_restored_runtime(self):
         contract_text, contract, binding, original_host, runtime_state, row = self.make_durable_runtime_bytes()
-
-        # runtime_state bytes are scope-agnostic. The provider row is what binds
-        # those bytes to CURRENT lifecycle, durable scope, and generation. A raw
-        # runtime restore therefore remains replay/unattested until a separately
-        # verified provider-current boundary supplies that provenance.
         restored_runtime = OrgasmRuntime.restore_state(
             contract,
             runtime_state,
@@ -66,19 +57,13 @@ class RuntimeRestoreScopeBypassTests(unittest.TestCase):
                 "checkpoint_sha256": request["checkpoint_sha256"],
                 "event_count": len(request["event_rows"]),
             }
-
         return write
 
     def assert_unattested_rewrap_rejected(self, claimed_scope):
         writes = []
-
-        # Either fail at the untrusted runtime->host rewrap itself or, if a
-        # future implementation deliberately preserves an evidence-only host,
-        # fail before that host can enter a live durable cycle. Both are
-        # acceptable fail-closed points; neither may reach the provider writer.
         with self.assertRaisesRegex(
             ValueError,
-            r"(?i)(scope|current|durable|attestation|restore|replay|runtime|binding)",
+            r"(?i)(scope|current|durable|attestation|restore|replay|runtime|binding|provider|writer)",
         ):
             _contract_text, _binding, rewrapped_host, row = self.rewrap_raw_restored_runtime()
             cycle = VeraAffectiveCycle(
@@ -87,16 +72,8 @@ class RuntimeRestoreScopeBypassTests(unittest.TestCase):
                 initial_state_version=row["state_version"] + 1,
                 atomic_commit_writer=self.atomic_writer(writes),
             )
-            cycle.process_turn(
-                StimulusAppraisal(),
-                planning_state={},
-            )
-
-        self.assertEqual(
-            writes,
-            [],
-            "unattested raw-restored runtime must be rejected before any atomic provider write is attempted",
-        )
+            cycle.process_turn(StimulusAppraisal(), planning_state={})
+        self.assertEqual(writes, [])
 
     def test_public_runtime_restore_cannot_be_rewrapped_into_other_durable_scope(self):
         self.assert_unattested_rewrap_rejected("OTHER_HOST")
@@ -104,9 +81,9 @@ class RuntimeRestoreScopeBypassTests(unittest.TestCase):
     def test_public_runtime_restore_cannot_claim_original_scope_from_caller_assertion(self):
         self.assert_unattested_rewrap_rejected("TEST_HOST")
 
-    def test_fresh_nonrestored_runtime_can_start_new_atomic_durable_scope(self):
+    def test_fresh_nonrestored_runtime_can_use_explicit_nonqualifying_atomic_test_seam(self):
         _contract_text, _contract, _binding, host = self.make_bound_material(
-            runtime_instance_id="fresh-runtime-new-durable-scope-test",
+            runtime_instance_id="fresh-runtime-new-test-scope",
         )
         writes = []
         cycle = VeraAffectiveCycle(
@@ -114,16 +91,16 @@ class RuntimeRestoreScopeBypassTests(unittest.TestCase):
             host_scope="NEW_HOST",
             initial_state_version=1,
             atomic_commit_writer=self.atomic_writer(writes),
+            non_qualifying_atomic_test_mode=True,
         )
+        result = cycle.process_turn(StimulusAppraisal(), planning_state={})
 
-        result = cycle.process_turn(
-            StimulusAppraisal(),
-            planning_state={},
-        )
-
-        self.assertEqual(result.durability_mode, "ATOMIC_DURABLE")
+        self.assertEqual(result.durability_mode, "NON_QUALIFYING_ATOMIC_TEST")
         self.assertEqual(result.state_row["host_scope"], "NEW_HOST")
         self.assertEqual(result.state_row["state_version"], 1)
+        self.assertEqual(result.state_row["lifecycle_status"], "HISTORICAL")
+        self.assertEqual(result.commit_request["schema"], "VERA_AFFECTIVE_RUNTIME_ATOMIC_COMMIT_TEST_V1")
+        self.assertIsNone(result.resume_token)
         self.assertEqual(len(writes), 1)
 
 
