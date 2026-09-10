@@ -15,18 +15,18 @@
     "repository": "thebrazenbeard/vera",
     "commit": "9c731ebaacdad44c00aafa91e1f8b9dc5f5acff1",
     "modules": {
-      "runtime_cohesion/__init__.py": "a3a2c1820860aaba34510b4fa722d993c557e3e6",
-      "runtime_cohesion/adapters.py": "5893473c06811ede0bbc35ca5c4ef672e69ab6df",
+      "runtime_cohesion/__init__.py": "b79690911eef772e5b10af97edd7051bb48a53bb",
+      "runtime_cohesion/adapters.py": "8c6a5188c314b58b2c05cf24bb47056cfb0a005f",
       "runtime_cohesion/evidence.py": "c9a60862f361b8fa02cc0b4a74f771196dee346d",
       "runtime_cohesion/orgasm.py": "ee8f23df17aa14961b494e398e83279962d508a7",
       "runtime_cohesion/affect_authority.py": "e1420dd2fd48938e1735123bbf4067ddef1adcee",
-      "runtime_cohesion/affect_bound_runtime.py": "5db7ccb8ae518db628970c244931456725308878",
-      "runtime_cohesion/affect_receipt.py": "cb4d6487e2f7bfd9edac6e1ac244fed61db70f8a",
-      "runtime_cohesion/affect_host.py": "c77aab0f645f0a33cf4a3e3117ed8335fcc253c8",
-      "runtime_cohesion/affect_cycle.py": "96f566e07ba0995f288d24d5baba779a15ee553e",
-      "runtime_cohesion/affect_persistence.py": "065a63adff63f42092fd31aaa05896972260c715",
-      "runtime_cohesion/affect_provider_runtime.py": "a16f1f1992caf0b0da2cf85315fab5a42ff87225",
-      "runtime_cohesion/affect_scope.py": "356624c99c3cf35b1380c9a4f6ecf95138aa276f"
+      "runtime_cohesion/affect_bound_runtime.py": "abb3f5f81533158f9122f79dc2571b8e557b8758",
+      "runtime_cohesion/affect_receipt.py": "136db2de2f4161147d6f5761eb55225ad6f784b3",
+      "runtime_cohesion/affect_host.py": "eff3795d1318059b81b124d1843843d13b230083",
+      "runtime_cohesion/affect_cycle.py": "a5057b78f01536a411e4b41923bfdccacab9e3d6",
+      "runtime_cohesion/affect_persistence.py": "9fadaf517ed125ab9ce76c7f488c2c6c6d63bb52",
+      "runtime_cohesion/affect_provider_runtime.py": "520d6209d71ffa37ae4abecfb7b5ece70bc060fa",
+      "runtime_cohesion/affect_scope.py": "28b409fdd0830f78b389088c63dcf0358792c150"
     },
     "semantics": "Exact Git object and executing-byte provenance for the affective execution dependency closure. Shared provider primitives are fingerprinted as execution dependencies and this does not transfer project ownership. Any dependency-byte drift requires a new implementation cut before qualification."
   },
