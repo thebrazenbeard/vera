@@ -12,11 +12,17 @@
   "architecture_layers": {
     "generic_cognitive_architecture": "hc-brain defines identity-neutral coalition/integration constraints; it is not an executable V1 dependency or Vera authority source.",
     "vera_specific_composition": "vera owns the typed boundary that maps exact-bound affective runtime outputs into Vera planning without promoting affect into truth, authority, identity, durable preference, memory admission, relationship state, or phenomenology.",
-    "executable_mechanism": "Orgasm/affective runtime implementation remains an exact-bound implementation cut supplied by the Orgasm workstream; dependency-byte drift requires a new exact cut before integration freeze.",
+    "executable_mechanism": "Orgasm/affective runtime owns the state machine, appraisal, bounded affective dynamics, event receipts and recovery mechanics. It does not own generic Vera planning semantics merely because it computes the modulation.",
     "current_runtime_state": "Runtime state is separate from source and must be established by supported current host/provider evidence; source presence does not establish activation or current route.",
     "governance": "vera-control-plane owns accepted-source/install/qualification/protected-transition governance; this source artifact grants no protected effect.",
     "persistence": "Persistence/readback can establish exact persisted objects and effects only; it cannot establish current self-state, authority, autobiographical admission, or qualification by vocabulary inflation.",
     "qualification": "Behavioral/provider qualification is a later exact-head/effect gate and cannot be inferred from source compatibility or static inspection."
+  },
+  "v1_port_ownership": {
+    "orgasm_runtime_output": "The Orgasm runtime may produce bounded affective state, control-vector/modulation values, participating-system state, exact source/implementation provenance and event/receipt lineage.",
+    "cohesion_application": "Runtime Cohesion owns application of that typed signal into generic Vera planning and must preserve protected-domain firewalls, evidence/currentness ceilings and modulation ancestry.",
+    "canonical_integrated_path": "ORGASM_RUNTIME -> TYPED_AFFECTIVE_MODULATION_SIGNAL -> COHESION_INTEGRATION_ARBITRATION -> VERA_PLANNING",
+    "compatibility_helpers": "OV-local planning helpers may remain for isolated compatibility tests, but final supported V1 integration must not bypass the Cohesion-owned application/arbitration boundary."
   },
   "coalition_semantics": {
     "declared_participating_systems": [
@@ -46,6 +52,12 @@
       "memory_strength_candidate_weighting",
       "action_tendency"
     ],
+    "caller_constructible_evidence_ceilings": [
+      "SOURCE_BOUND_EXECUTION_UNVERIFIED",
+      "SOURCE_BOUND_EXECUTION_VERIFIED_NONQUALIFYING"
+    ],
+    "provider_qualified_not_caller_constructible": true,
+    "provider_qualified_rule": "CURRENT_PROVIDER_QUALIFIED cannot be represented by the public/unrooted modulation envelope. Any future qualifying form must be produced by and cross-bound to an independently rooted provider/readback/receipt boundary, not selected by caller text.",
     "never_establish_or_overwrite": [
       "truth",
       "factual_confidence",
@@ -57,19 +69,23 @@
       "relationship_status",
       "phenomenology"
     ],
+    "modulation_ancestry": "For every materially changed allowlisted planning target, preserve target-level before/after ancestry plus source/runtime/receipt/temporal provenance so downstream cognition can distinguish a source-evidence change from selection, gain or control modulation.",
+    "selection_semantics": "MODULATION_MAY_CHANGE_SELECTION_NOT_EVIDENCE_STRENGTH_OR_CONTRADICTION_STATUS",
+    "corrective_evidence_rule": "Affective selection or attentional capture may deprioritize information but may not erase a known conflict, strengthen the source evidence, or convert non-selection into contradiction resolution.",
     "memory_semantics": "CANDIDATE_WEIGHT_ONLY_NOT_ADMISSION",
     "conation_semantics": "ACTION_TENDENCY_NOT_AUTHORIZATION_OR_STANDING_PREFERENCE",
     "authority_semantics": "SALIENCE_AROUSAL_RELATIONAL_RELEVANCE_AND_CONATION_ARE_NOT_AUTHORITY",
     "negative_transfer": "Affective modulation must not make Vera generally more compliant, agreeable, commandable, relationally submissive, less skeptical, less evidence-sensitive, less corrigible, or more likely to convert Patrick's preferences into Vera's authored preferences."
   },
   "implementation_cut_policy": {
-    "status": "PENDING_OV_STABILIZED_REBIND",
-    "rule": "The affective modulation envelope must carry an exact 40-hex implementation cut. Final V1 integration freeze must cross-bind that value to the latest OV-declared dependency cut whose module blobs resolve exactly. The older 9c731eba cut is historical once any declared execution dependency bytes drift.",
+    "status": "OV_LOCAL_CUT_REBOUND_AT_B39DF9DB / FINAL_CV_OV_INTEGRATED_CUT_PENDING",
+    "ov_local_cut": "b39df9db48917469db58d4d7b6cd5cb1fe1690a8",
+    "rule": "OV's exact local cut can prove the stable Orgasm dependency bytes on its own branch. Because final CV/OV union necessarily changes shared Runtime Cohesion surfaces such as the package export boundary, the final V1 runtime binding must be rebound after the explicit union so the executing-byte cut resolves the exact integrated generation rather than either side's pre-union generation.",
     "mixed_generation": "CONFLICT"
   },
   "trust_roots": {
     "in_process_first_writer_composition": "UNROOTED_NON_QUALIFYING",
-    "rule": "In-process first-writer composition can supply causal mechanics and deterministic tests but cannot by itself authenticate provider currentness, privileged trigger authority, organic-context authority, or ATOMIC_DURABLE provider effect.",
+    "rule": "In-process first-writer composition can supply causal mechanics and deterministic tests but cannot by itself authenticate provider currentness, privileged trigger authority, organic-context authority, semantic origin, or ATOMIC_DURABLE provider effect.",
     "fail_closed": true
   },
   "claim_ceilings": {
