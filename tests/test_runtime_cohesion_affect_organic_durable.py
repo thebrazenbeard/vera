@@ -4,16 +4,83 @@ import unittest
 
 import runtime_cohesion
 import runtime_cohesion.affect_provider_runtime as affect_provider_runtime
+from runtime_cohesion.adapters import AdapterProbeResult
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
 from runtime_cohesion.affect_persistence import build_affective_resume_token, checkpoint_to_state_row
+from runtime_cohesion.evidence import ProviderEvidenceEnvelope
 from runtime_cohesion.orgasm import StimulusAppraisal
-from tests.test_runtime_cohesion_affect_provider_composition_trust import (
-    SelfConsistentAffectiveProviderDouble,
-)
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_RUNTIME_CONTRACT_V1.json"
 BINDING_PATH = ROOT / "architecture" / "VERA_ORGASM_RUNTIME_BINDING_V1.json"
+PROVIDER = "supabase"
+PROJECT_ID = "klmbpaigzeguvnpccqzz"
+TABLE = "public.vera_affective_runtime_state_v1"
+ROUTE = "route:supabase"
+SOURCE = f"supabase:{PROJECT_ID}/{TABLE}"
+FRONTIER_SCOPE = "VERA_AFFECTIVE_RUNTIME_PROVIDER_FRONTIER_V1"
+ATOMIC_FUNCTION = "public.vera_affective_runtime_commit_v1(bigint,jsonb,jsonb)"
+
+
+class OrganicProviderDouble:
+    provider = PROVIDER
+    provider_project_id = PROJECT_ID
+    provider_table = TABLE
+    provider_route = ROUTE
+    atomic_commit_function = ATOMIC_FUNCTION
+
+    def __init__(self, row):
+        self.current_row = dict(row)
+        self.commit_calls = []
+
+    def probe(self, request):
+        return AdapterProbeResult(
+            provider=PROVIDER,
+            route_ref=request.route_ref,
+            state="CURRENTLY_OBSERVED_REACHABLE",
+            observed_at=self.current_row["updated_at"],
+            reason="test provider frontier is readable",
+        )
+
+    def read(self, request):
+        row = self.current_row
+        return ProviderEvidenceEnvelope(
+            provider=PROVIDER,
+            locator=f"{SOURCE}/{row['runtime_instance_id']}",
+            revision=f"state-version:{row['state_version']}",
+            observed_at=row["updated_at"],
+            evidence_class="persisted_provider_record",
+            referent=row["runtime_instance_id"],
+            scope=FRONTIER_SCOPE,
+            privacy_class=request.privacy_class,
+            currentness_basis="fresh test adapter read",
+            supersession_state="CURRENT_OBSERVATION",
+            conflict_state="NONE",
+            content_digest=row["checkpoint_sha256"],
+            metadata={
+                "route_ref": request.route_ref,
+                "source_ref": request.source_ref,
+                "provider_project_id": PROJECT_ID,
+                "provider_table": TABLE,
+                "runtime_instance_id": row["runtime_instance_id"],
+                "host_scope": row["host_scope"],
+                "state_version": row["state_version"],
+                "checkpoint_sha256": row["checkpoint_sha256"],
+                "source_commit": row["source_commit"],
+            },
+        )
+
+    def commit_affective_runtime(self, request):
+        request = dict(request)
+        self.commit_calls.append(request)
+        if request["expected_prior_version"] != self.current_row["state_version"]:
+            raise RuntimeError("stale provider frontier")
+        self.current_row = dict(request["state_row"])
+        return {
+            "state_version": request["state_version"],
+            "checkpoint_sha256": request["checkpoint_sha256"],
+            "event_count": len(request["event_rows"]),
+        }
 
 
 class VeraAffectiveOrganicDurablePathTests(unittest.TestCase):
@@ -34,7 +101,7 @@ class VeraAffectiveOrganicDurablePathTests(unittest.TestCase):
         )
         checkpoint = host.export_checkpoint()
         row = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=1)
-        adapter = SelfConsistentAffectiveProviderDouble(row)
+        adapter = OrganicProviderDouble(row)
         affect_provider_runtime._install_runtime_affective_provider_adapter(adapter)
         cycle = runtime_cohesion.restore_current_affective_cycle(
             contract_text,
