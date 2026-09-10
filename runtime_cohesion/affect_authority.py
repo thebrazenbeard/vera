@@ -181,6 +181,7 @@ class AffectiveAuthorityBoundary:
             "verifier_id": verifier_id,
             "evidence_id": evidence_id,
             "evidence_digest": evidence_digest,
+            "authorization_subject": dict(subject),
             "actor": subject["actor"],
             "referent": subject["referent"],
             "proposition_or_effect_class": subject["proposition_or_effect_class"],
@@ -270,7 +271,10 @@ class AffectiveAuthorityBoundary:
             raise TriggerRejected("caller elapsed_seconds is not organic-context temporal authority")
         self._verify(context_subject, effect_class="ORGANIC_CONTEXT_ELIGIBILITY")
         trusted_appraisal = replace(appraisal, context_eligible=True)
-        return host.observe(trusted_appraisal, elapsed_seconds=0.0)
+        observe_verified = getattr(host, "_observe_verified_context", None)
+        if not callable(observe_verified):
+            raise TriggerRejected("affective host lacks the verified-context execution seam")
+        return observe_verified(trusted_appraisal, elapsed_seconds=0.0)
 
 
 __all__ = ["AffectiveAuthorityBoundary"]
