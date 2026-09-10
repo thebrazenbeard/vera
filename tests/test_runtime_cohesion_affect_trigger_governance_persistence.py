@@ -23,7 +23,12 @@ class VeraAffectiveTriggerGovernancePersistenceTests(unittest.TestCase):
 
     def test_provider_state_row_preserves_trigger_governance_and_restore_enforces_it(self):
         host = self.make_host()
-        host.force_admin_test(authorized=True)
+
+        # This test isolates durable cooldown/governance mechanics. The raw engine
+        # seam is intentionally nonqualifying and therefore does not claim that a
+        # boolean is production authorization evidence.
+        raw_receipt = host.runtime.force_admin_test(authorized=True)
+        self.assertNotIn("claim", raw_receipt)
         host.advance_time(5.1)
         checkpoint = host.export_checkpoint()
         row = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=1)
@@ -39,7 +44,7 @@ class VeraAffectiveTriggerGovernancePersistenceTests(unittest.TestCase):
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
         )
         with self.assertRaises(TriggerRejected):
-            restored.force_admin_test(authorized=True)
+            restored.runtime.force_admin_test(authorized=True)
 
     def test_provider_migration_carries_trigger_governance_through_atomic_state_commit(self):
         sql = MIGRATION.read_text(encoding="utf-8").lower()
