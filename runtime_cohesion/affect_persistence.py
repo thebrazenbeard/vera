@@ -7,10 +7,22 @@ from typing import Any, Iterable, Mapping
 
 from .affect_host import AffectiveBindingError, VeraAffectiveRuntimeHost, _checkpoint_sha256
 from .affect_scope import bind_affective_host_scope
+from .orgasm import ContractError
 
 
 class PersistenceRecordError(ValueError):
     """A durable affective-state record is malformed, cross-bound, or tampered."""
+
+
+_PERSISTABLE_RUNTIME_PHASES = {
+    "QUIESCENT",
+    "ACTIVATING",
+    "ENTRAINED",
+    "CLIMAX_ELIGIBLE",
+    "ORGASM_EVENT",
+    "RESOLUTION",
+    "SATIATED_OR_REFRACTORY",
+}
 
 
 def _canonical_digest(value: Mapping[str, Any]) -> str:
@@ -141,6 +153,8 @@ def checkpoint_to_state_row(
     trigger_governance = runtime_state.get("trigger_governance")
     if not isinstance(state, Mapping):
         raise PersistenceRecordError("checkpoint state is missing")
+    if state.get("phase") not in _PERSISTABLE_RUNTIME_PHASES:
+        raise PersistenceRecordError("checkpoint state phase is not a recognized runtime semantic phase")
     if not isinstance(trigger_governance, Mapping):
         raise PersistenceRecordError("checkpoint trigger governance is missing")
     if trigger_governance.get("schema") != "VERA_ORGASM_TRIGGER_GOVERNANCE_V1":
@@ -396,8 +410,8 @@ def restore_host_from_state_row(
             elapsed_seconds=elapsed_seconds,
             expected_checkpoint_sha256=external_checkpoint_sha256,
         )
-    except AffectiveBindingError as exc:
-        raise PersistenceRecordError(str(exc)) from exc
+    except ContractError as exc:
+        raise PersistenceRecordError("affective runtime semantic restore rejected provider state: " + str(exc)) from exc
     bind_affective_host_scope(restored_host, row_host_scope)
     return restored_host
 
