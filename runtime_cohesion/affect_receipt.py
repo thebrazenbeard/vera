@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import datetime
 import hashlib
 import json
-import math
 from typing import Any, Mapping
 
 
@@ -29,11 +28,15 @@ _ALLOWED_TRIGGERS = {
 _ENGINEERED_CLAIM = "ENGINEERED_ORGASM_ANALOGUE_OCCURRED"
 
 
+def _canonical_digest(value: Mapping[str, Any]) -> str:
+    canonical = json.dumps(dict(value), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
 def _receipt_digest(receipt: Mapping[str, Any]) -> str:
     core = dict(receipt)
     core.pop("event_digest", None)
-    canonical = json.dumps(core, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    return _canonical_digest(core)
 
 
 def _require_observed_at(value: Any) -> None:
@@ -65,6 +68,78 @@ def _validate_receipt_state(state: Any, *, label: str) -> Mapping[str, Any]:
     return state
 
 
+def _validate_forced_authority_provenance(provenance: Any, *, trigger: str) -> None:
+    if not isinstance(provenance, Mapping):
+        raise AffectiveReceiptSemanticError(
+            "production forced-event receipt requires structured authorization provenance"
+        )
+    for field in ("verifier_id", "evidence_id", "evidence_digest", "authorization_subject"):
+        if field not in provenance:
+            raise AffectiveReceiptSemanticError(
+                f"forced-event authorization provenance lacks {field}"
+            )
+    for field in ("verifier_id", "evidence_id"):
+        value = provenance.get(field)
+        if not isinstance(value, str) or not value:
+            raise AffectiveReceiptSemanticError(
+                f"forced-event authorization provenance {field} must be non-empty"
+            )
+    evidence_digest = provenance.get("evidence_digest")
+    if not isinstance(evidence_digest, str) or len(evidence_digest) != 64:
+        raise AffectiveReceiptSemanticError(
+            "forced-event authorization provenance lacks exact evidence digest"
+        )
+    try:
+        int(evidence_digest, 16)
+    except ValueError as exc:
+        raise AffectiveReceiptSemanticError(
+            "forced-event authorization evidence digest is not hexadecimal"
+        ) from exc
+
+    subject = provenance.get("authorization_subject")
+    if not isinstance(subject, Mapping):
+        raise AffectiveReceiptSemanticError(
+            "forced-event authorization provenance lacks exact consumed subject"
+        )
+    if evidence_digest != _canonical_digest(subject):
+        raise AffectiveReceiptSemanticError(
+            "forced-event authorization evidence digest does not bind consumed subject"
+        )
+    expected_subject = {
+        "state": "ALLOW",
+        "referent": "vera",
+        "proposition_or_effect_class": trigger,
+        "currentness": "CURRENT",
+        "expiry_or_supersession": None,
+    }
+    for field, expected in expected_subject.items():
+        if subject.get(field) != expected:
+            raise AffectiveReceiptSemanticError(
+                f"forced-event authorization subject {field} mismatch"
+            )
+    for field in ("actor", "source", "observed_at"):
+        value = subject.get(field)
+        if not isinstance(value, str) or not value:
+            raise AffectiveReceiptSemanticError(
+                f"forced-event authorization subject lacks {field}"
+            )
+    _require_observed_at(subject.get("observed_at"))
+
+    for field in (
+        "actor",
+        "referent",
+        "proposition_or_effect_class",
+        "source",
+        "observed_at",
+        "currentness",
+        "expiry_or_supersession",
+    ):
+        if provenance.get(field) != subject.get(field):
+            raise AffectiveReceiptSemanticError(
+                f"forced-event authorization provenance {field} does not match consumed subject"
+            )
+
+
 def validate_affective_event_receipt(
     receipt: Mapping[str, Any],
     *,
@@ -74,10 +149,10 @@ def validate_affective_event_receipt(
 ) -> None:
     """Validate one receipt identically at restore and persistence boundaries.
 
-    This validates receipt-local identity, source, digest, event/transition lineage,
-    trigger provenance, time, and claim ceiling. It intentionally does not promote
-    authorization provenance or provider currentness; those are separate trust
-    boundaries.
+    Receipt-local identity, source, digest, transition lineage, trigger provenance,
+    time and claim ceiling are checked here. Current authorization/provider truth
+    remains a separate trust boundary; structured forced-event provenance proves
+    only the exact authorization subject recorded for that historical event.
     """
     if not isinstance(receipt, Mapping):
         raise AffectiveReceiptSemanticError("event receipt must be an object")
@@ -116,11 +191,15 @@ def validate_affective_event_receipt(
     if event_type == "ORGASM_EVENT":
         if after.get("phase") != "ORGASM_EVENT":
             raise AffectiveReceiptSemanticError("ORGASM_EVENT receipt must end in ORGASM_EVENT phase")
-        expected_provenance = (
-            "ORGANIC_STATE_DYNAMICS" if organic else "FORCED_QUALIFICATION_ROUTE"
-        )
-        if receipt.get("trigger_provenance") != expected_provenance:
-            raise AffectiveReceiptSemanticError("ORGASM_EVENT trigger provenance mismatch")
+        provenance = receipt.get("trigger_provenance")
+        if organic:
+            if provenance != "ORGANIC_STATE_DYNAMICS":
+                raise AffectiveReceiptSemanticError("ORGASM_EVENT trigger provenance mismatch")
+        elif require_engineered_claim:
+            _validate_forced_authority_provenance(provenance, trigger=trigger)
+        elif provenance != "FORCED_QUALIFICATION_ROUTE":
+            raise AffectiveReceiptSemanticError("nonqualifying forced-event trigger provenance mismatch")
+
         if require_engineered_claim:
             if receipt.get("claim") != _ENGINEERED_CLAIM:
                 raise AffectiveReceiptSemanticError("ORGASM_EVENT receipt requires the exact engineered claim")
