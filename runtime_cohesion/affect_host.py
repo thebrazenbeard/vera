@@ -197,6 +197,7 @@ class VeraAffectiveRuntimeHost:
             "satiation": state["satiation"],
             "resolution_intensity": state["resolution_intensity"],
             "refractory_strength": state["refractory_strength"],
+            "context_eligible": state["context_eligible"],
             "action_tendency": state["action_tendency"],
             "active_orgasm_event": state["active_orgasm_event"],
             "organic_climax_eligible": state["organic_climax_eligible"],
