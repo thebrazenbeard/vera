@@ -12,6 +12,7 @@ CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_
 BINDING_PATH = ROOT / "architecture" / "VERA_ORGASM_RUNTIME_BINDING_V1.json"
 CANONICAL_CLAIM = "ENGINEERED_ORGASM_ANALOGUE_OCCURRED"
 UNBOUND_STATUS = "UNBOUND_NON_QUALIFYING"
+EXACT_BOUND_STATUS = "EXACT_BOUND_SOURCE"
 
 
 class DirectOrgasmContractBindingTests(unittest.TestCase):
@@ -88,19 +89,21 @@ class DirectOrgasmContractBindingTests(unittest.TestCase):
             "0" * 40,
         )
 
-    def test_exact_bound_host_path_remains_production_claim_capable_with_one_source_identity(self):
+    def test_exact_bound_host_establishes_source_capability_without_authorizing_an_event(self):
         binding = self.binding()
         host = VeraAffectiveRuntimeHost.from_bound_contract(
             CONTRACT_PATH.read_text(encoding="utf-8"),
             binding,
             runtime_instance_id="exact-bound-contract-positive",
         )
-        receipt = host.runtime._enter_orgasm_event("ADMIN_FORCED_TEST", organic=False)
         checkpoint = host.export_checkpoint()
 
-        self.assertEqual(receipt["claim"], CANONICAL_CLAIM)
+        # Exact source binding is necessary for the production claim capability,
+        # but it is not itself authority to fire ADMIN_FORCED_TEST or any other
+        # event. Authorization/context provenance is a separate runtime boundary.
+        self.assertEqual(host.runtime.qualification_status, EXACT_BOUND_STATUS)
+        self.assertIsNone(host.runtime.last_event_receipt)
         self.assertEqual(host.runtime.source_revision, binding["source_commit"])
-        self.assertEqual(receipt["source_revision"], binding["source_commit"])
         self.assertEqual(checkpoint["source_binding"]["source_commit"], binding["source_commit"])
         self.assertEqual(checkpoint["source_binding"]["source_blob_sha"], binding["source_blob_sha"])
         self.assertEqual(host.binding["source_repository"], "thebrazenbeard/sexuality")
