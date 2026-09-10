@@ -116,6 +116,7 @@ class _OrgasmState:
     coherence: float = 0.0
     persistence_window_ms: int = 0
     coalition_stability: float = 0.0
+    participating_systems: tuple[str, ...] = ()
     hedonic_impact: float = 0.0
     consummatory_gain: float = 0.0
     satiation: float = 0.0
@@ -310,9 +311,21 @@ class OrgasmRuntime:
         firewalls = contract.get("hard_firewalls", {})
         if not isinstance(firewalls.get("may_influence"), list):
             raise ContractError("affective influence allowlist is required")
-        recovery = contract.get("state_families", {}).get("recovery", {})
+        state_families = contract.get("state_families", {})
+        recovery = state_families.get("recovery", {})
         if recovery.get("reentry_allowed") != "boolean" or recovery.get("next_eligible_at") != "timestamp|null":
             raise ContractError("recovery contract must declare reentry_allowed and next_eligible_at")
+        entrainment = state_families.get("entrainment", {})
+        if entrainment.get("participating_systems") != "set<string>":
+            raise ContractError("entrainment contract must declare participating_systems as set<string>")
+        participating_systems = contract.get("participating_systems")
+        if (
+            not isinstance(participating_systems, list)
+            or not participating_systems
+            or any(not isinstance(name, str) or not name for name in participating_systems)
+            or len(set(participating_systems)) != len(participating_systems)
+        ):
+            raise ContractError("participating_systems vocabulary must be a unique nonempty string list")
         return dict(contract)
 
     @property
@@ -756,6 +769,22 @@ class OrgasmRuntime:
             if not isinstance(raw_state.get(name), bool):
                 raise ContractError(f"durable orgasm state {name} must be boolean")
 
+        participating_systems = raw_state.get("participating_systems")
+        if not isinstance(participating_systems, (list, tuple, set, frozenset)):
+            raise ContractError("durable orgasm state participating_systems must be a string set")
+        if any(not isinstance(name, str) or not name for name in participating_systems):
+            raise ContractError("durable orgasm state participating_systems must contain only nonempty strings")
+        if len(set(participating_systems)) != len(participating_systems):
+            raise ContractError("durable orgasm state participating_systems must have set semantics")
+        declared_participating_systems = tuple(self.contract["participating_systems"])
+        observed_participating_systems = set(participating_systems)
+        unknown_participating_systems = observed_participating_systems - set(declared_participating_systems)
+        if unknown_participating_systems:
+            raise ContractError("durable orgasm state participating_systems contains undeclared vocabulary")
+        canonical_participating_systems = tuple(
+            name for name in declared_participating_systems if name in observed_participating_systems
+        )
+
         for name in _BOUNDED_STATE_FIELDS:
             value = raw_state.get(name)
             if isinstance(value, bool) or not isinstance(value, (int, float)):
@@ -828,6 +857,7 @@ class OrgasmRuntime:
                 raise ContractError("ORGASM_EVENT state semantics are inconsistent")
 
         values = {name: raw_state[name] for name in field_names}
+        values["participating_systems"] = canonical_participating_systems
         return values
 
     @classmethod
