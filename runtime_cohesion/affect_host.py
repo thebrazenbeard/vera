@@ -7,6 +7,7 @@ from typing import Any, Mapping
 from weakref import WeakKeyDictionary
 
 from .affect_authority import AffectiveAuthorityBoundary
+from .affect_bound_runtime import BoundVeraOrgasmRuntime
 from .affect_scope import mark_affective_host_checkpoint_replay
 from .orgasm import ContractError, OrgasmRuntime, StimulusAppraisal, TriggerRejected
 
@@ -155,7 +156,7 @@ class VeraAffectiveRuntimeHost:
         if len(source_revision) != 40:
             raise AffectiveBindingError("binding requires an exact 40-character source commit")
 
-        runtime = OrgasmRuntime.from_exact_bound_contract(
+        runtime = BoundVeraOrgasmRuntime.from_exact_bound_contract(
             contract_text,
             binding,
             runtime_instance_id=runtime_instance_id,
@@ -392,7 +393,7 @@ class VeraAffectiveRuntimeHost:
         runtime_state = checkpoint.get("runtime_state")
         if not isinstance(runtime_state, Mapping):
             raise AffectiveBindingError("checkpoint runtime state is missing")
-        runtime = OrgasmRuntime.restore_exact_bound_state(
+        runtime = BoundVeraOrgasmRuntime.restore_exact_bound_state(
             contract_text,
             binding,
             runtime_state,
