@@ -13,7 +13,7 @@ PROPOSITION = "SEMANTIC_PROVENANCE_CURRENTNESS_STATUS"
 REFERENT = "EXACT_PROPOSITION_REFERENT_SOURCE_BINDING"
 DISPATCH_ID = "dispatch:semantic-currentness"
 MANIFEST_SHA256 = "b7c70b1ad2c3bc533c7560320fb9a03b827f3eafad6296894216d75281b8dca1"
-SOURCE_IDENTITY = "VERA_R10A0_PROJECT_SOURCE_MANIFEST_R10.json"
+SOURCE_IDENTITY = "github:thebrazenbeard/vera-control-plane#VERA_PROJECT_SOURCE_MANIFEST"
 CURRENTNESS_STATE = "CURRENT_EXACT_R10_BINDING"
 
 
@@ -73,6 +73,9 @@ class SemanticCurrentnessDispatchTests(unittest.TestCase):
         )
 
     def test_contract_declares_exact_semantic_currentness_dispatch(self):
+        self.assertEqual(CONTRACT["control_root"]["source_repository"], "thebrazenbeard/vera-control-plane")
+        self.assertEqual(CONTRACT["control_root"]["source_logical_id"], "VERA_PROJECT_SOURCE_MANIFEST")
+        self.assertEqual(CONTRACT["control_root"]["owner_logical_id"], "VERA_FULL_SYSTEM_PROJECT_INSTRUCTIONS")
         dispatch = [row for row in CONTRACT["resolver_dispatch"] if row["id"] == DISPATCH_ID]
         self.assertEqual(len(dispatch), 1)
         self.assertEqual(
