@@ -16,6 +16,7 @@ from .affect_persistence import (
     event_receipt_to_event_row,
     restore_host_from_state_row,
 )
+from .affect_provider_runtime import restore_current_affective_cycle
 from .audit import ProjectionAuditResult, audit_registered_projections
 from .evidence import ProviderEvidenceEnvelope, load_provider_fabric, validate_envelope
 from .executor import (
@@ -55,6 +56,7 @@ __all__ = [
     "checkpoint_to_state_row",
     "event_receipt_to_event_row",
     "restore_host_from_state_row",
+    "restore_current_affective_cycle",
     "ProjectionAuditResult",
     "audit_registered_projections",
     "ProviderEvidenceEnvelope",
