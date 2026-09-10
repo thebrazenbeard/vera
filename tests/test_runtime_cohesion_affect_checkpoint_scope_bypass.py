@@ -22,29 +22,19 @@ class CheckpointScopeBypassTests(unittest.TestCase):
             runtime_instance_id="checkpoint-scope-bypass-test",
         )
         checkpoint = host.export_checkpoint()
-        row = checkpoint_to_state_row(
-            checkpoint,
-            host_scope="TEST_HOST",
-            state_version=1,
-        )
+        row = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=1)
         self.assertEqual(row["host_scope"], "TEST_HOST")
         return contract_text, binding, checkpoint, row
 
     def test_direct_checkpoint_restore_cannot_launder_durable_scope(self):
         contract_text, binding, checkpoint, row = self.make_bound_checkpoint_and_row()
-
-        # The exact checkpoint bytes are the same durable state bytes referenced
-        # by a provider row bound to TEST_HOST. Bypassing the row restore helper
-        # must not erase that scope/currentness boundary and let the public cycle
-        # constructor re-home the state as CURRENT under another scope.
         restored = VeraAffectiveRuntimeHost.restore_checkpoint(
             contract_text,
             binding,
             checkpoint,
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
         )
-
-        with self.assertRaisesRegex(ValueError, r"(?i)(scope|durable|checkpoint|live)"):
+        with self.assertRaisesRegex(ValueError, r"(?i)(scope|durable|checkpoint|live|provider|replay)"):
             VeraAffectiveCycle(
                 restored,
                 host_scope="OTHER_HOST",
@@ -59,19 +49,14 @@ class CheckpointScopeBypassTests(unittest.TestCase):
             checkpoint,
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
         )
-
-        # A raw checkpoint pin proves exact bytes, not provider lifecycle/currentness
-        # or durable host scope. If this path remains public, it must be explicitly
-        # replay/non-durable or require a separately bound live scope/currentness
-        # attestation before it can enter the durable cycle path.
-        with self.assertRaisesRegex(ValueError, r"(?i)(current|scope|durable|attestation|replay)"):
+        with self.assertRaisesRegex(ValueError, r"(?i)(current|scope|durable|attestation|replay|provider)"):
             VeraAffectiveCycle(
                 restored,
                 host_scope=row["host_scope"],
                 initial_state_version=row["state_version"] + 1,
             )
 
-    def test_provider_row_restore_remains_live_eligible_under_validated_scope(self):
+    def test_low_level_provider_row_restore_remains_replay_only_even_with_validated_scope_bytes(self):
         contract_text, binding, checkpoint, row = self.make_bound_checkpoint_and_row()
         restored = restore_host_from_state_row(
             contract_text,
@@ -80,12 +65,12 @@ class CheckpointScopeBypassTests(unittest.TestCase):
             expected_host_scope="TEST_HOST",
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
         )
-        cycle = VeraAffectiveCycle(
-            restored,
-            host_scope="TEST_HOST",
-            initial_state_version=row["state_version"] + 1,
-        )
-        self.assertEqual(cycle.host_scope, "TEST_HOST")
+        with self.assertRaisesRegex(ValueError, r"(?i)(current|provider|attestation|replay|durable)"):
+            VeraAffectiveCycle(
+                restored,
+                host_scope="TEST_HOST",
+                initial_state_version=row["state_version"] + 1,
+            )
 
 
 if __name__ == "__main__":
