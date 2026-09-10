@@ -36,7 +36,7 @@ class RuntimeCohesionAuditTests(unittest.TestCase):
         self.fabric = load_provider_fabric(FABRIC_PATH)
         self.fixture = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
 
-    def test_semanticatlas_registered_exact_projection_is_verified(self):
+    def test_semanticatlas_supplied_observation_audit_cannot_mint_verified_exact(self):
         rows = self.fixture["observations"]
         audit = audit_registered_projections(
             self.fabric,
@@ -50,7 +50,9 @@ class RuntimeCohesionAuditTests(unittest.TestCase):
             },
         )
         result = audit[0]
-        self.assertEqual(result.status, "VERIFIED_EXACT")
+        self.assertEqual(result.status, "UNRESOLVED")
+        self.assertIn("cannot mint verified_exact", result.reason.lower())
+        self.assertIn("runtime-owned", result.reason.lower())
 
     def test_out_of_scope_project_bus_lane_is_not_stale(self):
         audit = audit_registered_projections(

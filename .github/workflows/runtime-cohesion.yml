@@ -24,6 +24,8 @@ jobs:
         run: python scripts/validate_runtime_cohesion_provider_fabric_v1.py
       - name: Validate semantic currentness exact-object provider origin
         run: python scripts/validate_runtime_cohesion_semantic_currentness_v1.py
+      - name: Validate M5 M6 M7 source closure
+        run: python scripts/validate_runtime_cohesion_m5_m6_m7_v1.py
       - name: Validate operational support immutable snapshot
         run: python scripts/validate_runtime_cohesion_support_snapshot_v1.py
       - name: Run cohesion regression tests
@@ -47,6 +49,8 @@ jobs:
           tests.test_runtime_cohesion_admission_envelope_binding
           tests.test_runtime_cohesion_semantic_currentness_dispatch
           tests.test_runtime_cohesion_semantic_origin_boundary
+          tests.test_runtime_cohesion_untyped_evidence_laundering
+          tests.test_runtime_cohesion_m5_m6_m7
           tests.test_runtime_cohesion_failure_wiring
           tests.test_runtime_cohesion_native_hook
           -v
@@ -57,6 +61,7 @@ jobs:
           scripts/validate_runtime_cohesion_provider_fabric_v1.py
           scripts/validate_runtime_cohesion_support_snapshot_v1.py
           scripts/validate_runtime_cohesion_semantic_currentness_v1.py
+          scripts/validate_runtime_cohesion_m5_m6_m7_v1.py
           runtime_cohesion/__init__.py
           runtime_cohesion/evidence.py
           runtime_cohesion/reconcile.py
@@ -65,7 +70,9 @@ jobs:
           runtime_cohesion/audit.py
           runtime_cohesion/adapters.py
           runtime_cohesion/origin.py
+          runtime_cohesion/item_typing.py
           runtime_cohesion/executor.py
+          tests/__init__.py
           tests/test_vera_runtime_cohesion_v1.py
           tests/test_vera_runtime_evidence_contract_v1.py
           tests/test_vera_cohesion_index_v1.py
@@ -84,5 +91,7 @@ jobs:
           tests/test_runtime_cohesion_admission_envelope_binding.py
           tests/test_runtime_cohesion_semantic_currentness_dispatch.py
           tests/test_runtime_cohesion_semantic_origin_boundary.py
+          tests/test_runtime_cohesion_untyped_evidence_laundering.py
+          tests/test_runtime_cohesion_m5_m6_m7.py
           tests/test_runtime_cohesion_failure_wiring.py
           tests/test_runtime_cohesion_native_hook.py

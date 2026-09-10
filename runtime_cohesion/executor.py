@@ -5,8 +5,9 @@ from fnmatch import fnmatchcase
 from typing import Any, Mapping
 
 from .adapters import AdapterProbeResult, AdapterRegistry, AdapterRequest
-from .audit import AUDIT_STATUSES, ProjectionAuditResult, audit_registered_projections
+from .audit import AUDIT_STATUSES, ProjectionAuditResult, _audit_registered_projections_qualifying
 from .evidence import ProviderEvidenceEnvelope, validate_envelope
+from .item_typing import validated_item_type
 from .runtime import build_operational_checkpoint, build_retrieval_plan, evaluate_proposition_admission
 
 
@@ -142,9 +143,20 @@ def _validate_read(request: AdapterRequest, envelope: ProviderEvidenceEnvelope) 
         raise ValueError(
             f"adapter read provider mismatch for {request.route_ref}: expected {request.provider!r}, got {envelope.provider!r}"
         )
-    if envelope.evidence_class not in _allowed_evidence_classes(request):
+
+    derived = validated_item_type(request, envelope)
+    if derived is None:
         raise ValueError(
-            f"returned item evidence class {envelope.evidence_class!r} is not in target capability set for {request.route_ref}"
+            f"returned item lacks independently validated type/currentness provenance for {request.route_ref}"
+        )
+    if derived.derived_evidence_class != envelope.evidence_class:
+        raise ValueError(
+            "returned item evidence class does not match independently derived item type: "
+            f"claimed={envelope.evidence_class!r} derived={derived.derived_evidence_class!r}"
+        )
+    if derived.derived_evidence_class not in _allowed_evidence_classes(request):
+        raise ValueError(
+            f"independently derived item evidence class {derived.derived_evidence_class!r} is not in target capability set for {request.route_ref}"
         )
     if envelope.privacy_class != request.privacy_class:
         raise ValueError(
@@ -860,7 +872,7 @@ def execute_projection_cycle(
                 unresolved=(reason,),
             )
 
-    audit = audit_registered_projections(
+    audit = _audit_registered_projections_qualifying(
         fabric,
         {
             projection_id: {

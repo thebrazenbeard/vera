@@ -5,7 +5,8 @@ from fnmatch import fnmatchcase
 from typing import Any, Mapping
 
 from .evidence import ProviderEvidenceEnvelope, validate_envelope
-from .reconcile import reconcile_exact
+from .item_typing import validated_item_event_binding
+from .reconcile import reconcile_exact, reconcile_exact_receipt
 
 
 AUDIT_STATUSES = {
@@ -61,15 +62,64 @@ def _audit_result(
     )
 
 
+def _qualification_gate(
+    projection: Mapping[str, Any],
+    result: ProjectionAuditResult,
+    source: ProviderEvidenceEnvelope,
+    target: ProviderEvidenceEnvelope,
+    *,
+    event_ref: str,
+    event_path: str,
+) -> ProjectionAuditResult:
+    if result.status != "VERIFIED_EXACT":
+        return result
+
+    source_binding = validated_item_event_binding(
+        source,
+        provider=str(projection["source_provider"]),
+        route_ref=str(projection["source_route_ref"]),
+        source_ref=str(projection["source_subject"]),
+        event_ref=event_ref,
+        event_path=event_path,
+    )
+    target_binding = validated_item_event_binding(
+        target,
+        provider=str(projection["target_provider"]),
+        route_ref=str(projection["target_route_ref"]),
+        source_ref=str(projection["target_subject"]),
+        event_ref=event_ref,
+        event_path=event_path,
+    )
+    if source_binding is not None and target_binding is not None:
+        return result
+
+    return ProjectionAuditResult(
+        projection_id=result.projection_id,
+        status="UNRESOLVED",
+        source_revision=result.source_revision,
+        target_revision=result.target_revision,
+        observed_at=result.observed_at,
+        reason=(
+            "Projection reconciliation reached an exact candidate, but the exact source and target envelope objects "
+            "do not both carry runtime-owned provider/object/event provenance for this projection event. "
+            "Supplied-observation audit cannot mint VERIFIED_EXACT from caller-shaped event metadata."
+        ),
+        escalation_frontier="EXECUTE_OR_VALIDATE_EXACT_PROVIDER_EVENT_READS",
+        claim_ceiling=result.claim_ceiling,
+    )
+
+
 def audit_registered_projections(
     fabric: Mapping[str, Any],
     observations: Mapping[str, Mapping[str, Any]],
 ) -> list[ProjectionAuditResult]:
-    """Audit supplied observations only against registered projection scope.
+    """Audit registered projections without a weaker caller-supplied exact path.
 
-    This function performs no provider I/O and does not schedule itself. A caller
-    must supply fresh observations. Out-of-scope source movement is
-    NOT_APPLICABLE rather than stale.
+    The public surface accepts no event-validation boolean or caller proof token.
+    VERIFIED_EXACT can survive only when the exact live source and target envelope
+    objects already carry independently derived runtime-owned provider/object/event
+    provenance from the read boundary. Fresh caller-shaped envelopes therefore
+    remain advisory even when their metadata looks identical.
     """
 
     registered = {row["id"]: row for row in fabric.get("projections", [])}
@@ -170,7 +220,7 @@ def audit_registered_projections(
             continue
 
         mode = projection.get("comparison_mode")
-        if mode in {"EXACT_REVISION", "EXACT_RECEIPT"}:
+        if mode == "EXACT_REVISION":
             reconciliation = reconcile_exact(
                 projection_id,
                 [source, target],
@@ -185,14 +235,61 @@ def audit_registered_projections(
                 "UNAVAILABLE": "RETRY_OR_USE_INDEPENDENT_SAME_TARGET_ROUTE",
                 "UNRESOLVED": "OBTAIN_MISSING_EXACT_RECONCILIATION_EVIDENCE",
             }.get(reconciliation.status, "RECONCILE_PROJECTION")
+            candidate = _audit_result(
+                projection,
+                reconciliation.status,
+                source,
+                target,
+                reconciliation.reason,
+                frontier,
+            )
             results.append(
-                _audit_result(
+                _qualification_gate(
                     projection,
-                    reconciliation.status,
+                    candidate,
                     source,
                     target,
-                    reconciliation.reason,
-                    frontier,
+                    event_ref=source_ref,
+                    event_path=source_path,
+                )
+            )
+            continue
+
+        if mode == "EXACT_RECEIPT":
+            reconciliation = reconcile_exact_receipt(
+                projection_id,
+                source,
+                target,
+                source_subject=str(projection.get("source_subject", "")),
+                target_subject=str(projection.get("target_subject", "")),
+                event_ref=source_ref,
+                event_path=source_path,
+                receipt_policy=projection.get("receipt_binding", {}),
+            )
+            frontier = {
+                "VERIFIED_EXACT": "NONE",
+                "STALE_PROJECTION": "REFRESH_RECEIPT_FOR_CURRENT_SOURCE_OBJECT",
+                "CONFLICT": "RECONCILE_RECEIPT_EVENT_OBJECT_BINDING",
+                "ABSENT": "CHECK_RECEIPT_OBJECT_OR_PROVIDER_EFFECT",
+                "UNAVAILABLE": "RETRY_OR_USE_INDEPENDENT_SAME_TARGET_ROUTE",
+                "UNRESOLVED": "OBTAIN_EXACT_RECEIPT_OBJECT_BINDING",
+            }.get(reconciliation.status, "RECONCILE_RECEIPT_PROJECTION")
+            candidate = _audit_result(
+                projection,
+                reconciliation.status,
+                source,
+                target,
+                reconciliation.reason,
+                frontier,
+            )
+            results.append(
+                _qualification_gate(
+                    projection,
+                    candidate,
+                    source,
+                    target,
+                    event_ref=source_ref,
+                    event_path=source_path,
                 )
             )
             continue
@@ -211,14 +308,22 @@ def audit_registered_projections(
                     )
                 )
             elif bound_source_revision == source.revision:
+                candidate = _audit_result(
+                    projection,
+                    "VERIFIED_EXACT",
+                    source,
+                    target,
+                    "Semantic companion binds the currently observed exact source revision within the registered projection scope.",
+                    "NONE",
+                )
                 results.append(
-                    _audit_result(
+                    _qualification_gate(
                         projection,
-                        "VERIFIED_EXACT",
+                        candidate,
                         source,
                         target,
-                        "Semantic companion binds the currently observed exact source revision within the registered projection scope.",
-                        "NONE",
+                        event_ref=source_ref,
+                        event_path=source_path,
                     )
                 )
             else:
@@ -246,3 +351,18 @@ def audit_registered_projections(
         )
 
     return results
+
+
+def _audit_registered_projections_qualifying(
+    fabric: Mapping[str, Any],
+    observations: Mapping[str, Mapping[str, Any]],
+) -> list[ProjectionAuditResult]:
+    """Compatibility alias with no privilege beyond the public audit surface.
+
+    The name remains internal for the existing executor import, but qualification
+    is determined only by runtime-owned item/event provenance already bound to the
+    exact envelope objects. Calling this helper directly cannot self-assert that
+    event validation occurred.
+    """
+
+    return audit_registered_projections(fabric, observations)

@@ -3,6 +3,13 @@
 This package is operational support for the normative cohesion index/runtime
 contract pair. Importing it performs no provider I/O and creates no authority.
 Provider I/O occurs only when a runtime explicitly invokes registered adapters.
+
+The public ``audit_registered_projections`` surface cannot mint
+production-equivalent VERIFIED_EXACT from caller-supplied observation metadata.
+An exact candidate survives only when the exact live envelope objects already
+carry runtime-owned provider/object/event provenance established at the read
+boundary. Public proposition admission is provider-strict; lightweight policy
+fixtures use the explicitly named abstract evaluator.
 """
 
 from .adapters import AdapterProbeResult, AdapterRegistry, AdapterRequest, ProviderAdapter

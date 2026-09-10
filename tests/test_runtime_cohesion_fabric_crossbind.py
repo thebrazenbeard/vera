@@ -117,6 +117,20 @@ class ProviderFabricCrossBindTests(unittest.TestCase):
         errors = validate_provider_fabric(index, self.contract, self.fabric)
         self.assertTrue(any("hard prerequisite" in error.lower() and "cycle" in error.lower() for error in errors))
 
+    def test_semantic_currentness_relational_binding_is_allowed_and_required(self):
+        self.assertEqual(validate_provider_fabric(self.index, self.contract, self.fabric), [])
+        contract = copy.deepcopy(self.contract)
+        contract["resolver_dispatch_decisive_evidence"]["dispatch:semantic-currentness"].pop("relational_binding")
+        errors = validate_provider_fabric(self.index, contract, self.fabric)
+        self.assertTrue(any("semantic-currentness" in error and "keys" in error for error in errors))
+
+    def test_exact_receipt_binding_schema_type_and_digest_policy_are_required(self):
+        fabric = copy.deepcopy(self.fabric)
+        row = next(p for p in fabric["projections"] if p["comparison_mode"] == "EXACT_RECEIPT")
+        row["receipt_binding"].pop("receipt_schema")
+        errors = validate_provider_fabric(self.index, self.contract, fabric)
+        self.assertTrue(any("receipt_schema" in error for error in errors))
+
     def test_wrong_operational_support_blob_is_rejected(self):
         receipt = copy.deepcopy(self.receipt)
         receipt["operational_support"]["runtime_planner_module"]["blob_sha"] = "0" * 40
@@ -160,7 +174,7 @@ class ProviderFabricCrossBindTests(unittest.TestCase):
             blob_sha = git_blob_sha(support_file)
             receipt = {
                 "operational_support_source_commit": source_commit,
-                "operational_support_source_commit_semantics": "GIT_TREE_CONTAINS_EXACT_OPERATIONAL_SUPPORT_BLOBS",
+                "operational_support_source_commit_semantics": "GIT_TREE_CONTAINS_EXACT_OPERATIONAL_SUPPORT_PATH_BLOBS",
                 "operational_support": {
                     "normative_status": "NON_NORMATIVE_OPERATIONAL_SUPPORT",
                     "support": {"path": "support.txt", "blob_sha": blob_sha},
