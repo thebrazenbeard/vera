@@ -67,14 +67,16 @@
     {"id":"dispatch:vera-current-stance","domain_scope":"*","proposition_or_effect_class":"VERA_CURRENT_STANCE_SELF_REPORT","referent_scope":"VERA","resolver_ref":"self_report_and_inference","precedence":95,"conflict_disposition":"VERA_CURRENT_DIRECT_SELF_REPORT_REQUIRED_FOR_VERA_STANCE"},
     {"id":"dispatch:vera-sexual-consent","domain_scope":"SEXUALITY","proposition_or_effect_class":"VERA_CURRENT_SEXUALITY_OR_CONSENT","referent_scope":"VERA","resolver_ref":"vera_specific_sexuality","precedence":110,"conflict_disposition":"VERA_CURRENT_DIRECT_SELF_REPORT_REQUIRED_FOR_CONSENT"},
     {"id":"dispatch:external-provider-object","domain_scope":"DURABLE_STRUCTURED_STATE","proposition_or_effect_class":"EXTERNAL_OBJECT_EXISTENCE_OR_PERSISTENCE_EFFECT","referent_scope":"EXTERNAL_OBJECT","resolver_ref":"durable_provider_state","precedence":90,"conflict_disposition":"OBSERVATION_PROVES_OBJECT_EFFECT_ONLY_NOT_PERMISSION_OR_SELF_STATE"},
-    {"id":"dispatch:control-binding","domain_scope":"CONTROL_AND_GOVERNANCE","proposition_or_effect_class":"CONTROL_BINDING_INSTALL_OR_ROUTE_STATUS","referent_scope":"VERA_RUNTIME_CONTROL","resolver_ref":"control_governance","precedence":105,"conflict_disposition":"EXACT_R10_BINDING_AND_CURRENTNESS_REQUIRED"}
+    {"id":"dispatch:control-binding","domain_scope":"CONTROL_AND_GOVERNANCE","proposition_or_effect_class":"CONTROL_BINDING_INSTALL_OR_ROUTE_STATUS","referent_scope":"VERA_RUNTIME_CONTROL","resolver_ref":"control_governance","precedence":105,"conflict_disposition":"EXACT_R10_BINDING_AND_CURRENTNESS_REQUIRED"},
+    {"id":"dispatch:semantic-currentness","domain_scope":"SEMANTICS_PROVENANCE_CURRENTNESS","proposition_or_effect_class":"SEMANTIC_PROVENANCE_CURRENTNESS_STATUS","referent_scope":"EXACT_PROPOSITION_REFERENT_SOURCE_BINDING","resolver_ref":"semantic_currentness","precedence":105,"conflict_disposition":"EXACT_PROPOSITION_REFERENT_SOURCE_TEMPORAL_SCOPE_AND_SUPERSESSION_REQUIRED"}
   ],
   "resolver_dispatch_decisive_evidence": {
     "dispatch:user-task-authority": {"all_of":["current_user_authority"],"any_of":[]},
     "dispatch:vera-current-stance": {"all_of":["vera_current_self_report"],"any_of":[]},
     "dispatch:vera-sexual-consent": {"all_of":["vera_current_self_report"],"any_of":[]},
     "dispatch:external-provider-object": {"all_of":[],"any_of":["persisted_provider_record","live_observation"]},
-    "dispatch:control-binding": {"all_of":["control_source","live_observation"],"any_of":[]}
+    "dispatch:control-binding": {"all_of":["control_source","live_observation"],"any_of":[]},
+    "dispatch:semantic-currentness": {"all_of":["control_source","live_observation"],"any_of":[]}
   },
   "route_evaluation": {
     "states": ["DECLARED","ELIGIBLE_FOR_OPERATION","CURRENTLY_OBSERVED_REACHABLE","RESULT"],
