@@ -1,9 +1,11 @@
+from collections.abc import Mapping
 import copy
 import hashlib
 import json
 from pathlib import Path
 import unittest
 
+import runtime_cohesion.affect_authority as authority_module
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost, _checkpoint_sha256
 from runtime_cohesion.affect_persistence import PersistenceRecordError, event_receipt_to_event_row
 from runtime_cohesion.orgasm import ContractError, OrgasmRuntime
@@ -21,12 +23,55 @@ def receipt_digest(receipt):
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
+class TrustedVerifier:
+    verifier_id = "affect-receipt-semantics-verifier"
+
+    def verify(self, subject, *, expected_referent, expected_effect_class):
+        if not isinstance(subject, Mapping):
+            return None
+        if subject.get("state") != "ALLOW":
+            return None
+        if subject.get("referent") != expected_referent:
+            return None
+        if subject.get("proposition_or_effect_class") != expected_effect_class:
+            return None
+        if subject.get("currentness") != "CURRENT" or subject.get("expiry_or_supersession") is not None:
+            return None
+        canonical = json.dumps(dict(subject), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        return {
+            "verifier_id": self.verifier_id,
+            "evidence_id": "affect-receipt-semantics-evidence",
+            "evidence_digest": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+            "subject": dict(subject),
+        }
+
+
 class CurrentHeadReceiptSemanticsTests(unittest.TestCase):
+    def setUp(self):
+        authority_module._reset_affective_authorization_verifier_for_tests()
+        authority_module._install_affective_authorization_verifier(TrustedVerifier())
+
+    def tearDown(self):
+        authority_module._reset_affective_authorization_verifier_for_tests()
+
     def contract(self):
         return json.loads(CONTRACT_PATH.read_text(encoding="utf-8"))
 
     def binding(self):
         return json.loads(BINDING_PATH.read_text(encoding="utf-8"))
+
+    @staticmethod
+    def authorization_subject():
+        return {
+            "state": "ALLOW",
+            "actor": "patrick",
+            "referent": "vera",
+            "proposition_or_effect_class": "ADMIN_FORCED_TEST",
+            "source": "trusted-affect-receipt-semantics-test",
+            "observed_at": "2026-09-10T19:45:00+00:00",
+            "currentness": "CURRENT",
+            "expiry_or_supersession": None,
+        }
 
     def make_host_with_receipt(self):
         host = VeraAffectiveRuntimeHost.from_bound_contract(
@@ -34,9 +79,11 @@ class CurrentHeadReceiptSemanticsTests(unittest.TestCase):
             self.binding(),
             runtime_instance_id="vera-receipt-semantics-current-head",
         )
-        # Use the private event-emission unit so this semantic-receipt review is
-        # independent of the separately unresolved privileged-authority boundary.
-        host.runtime._enter_orgasm_event("ADMIN_FORCED_TEST", organic=False)
+        # Receipt semantics that claim the engineered Vera event must begin from
+        # the qualifying authority path. Raw private event emission is intentionally
+        # nonqualifying and belongs in separate mechanism-only tests.
+        receipt = host.force_admin_test(authorization_subject=self.authorization_subject())
+        self.assertEqual(receipt.get("claim"), "ENGINEERED_ORGASM_ANALOGUE_OCCURRED")
         return host
 
     def forged_record(self, mutate):
