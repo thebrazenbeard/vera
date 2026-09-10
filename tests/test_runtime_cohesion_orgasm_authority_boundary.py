@@ -5,7 +5,8 @@ import json
 from pathlib import Path
 import unittest
 
-import runtime_cohesion.affect_host as affect_host
+import runtime_cohesion.affect_authority as authority_module
+from runtime_cohesion.affect_authority import AffectiveAuthorityBoundary
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
 from runtime_cohesion.orgasm import StimulusAppraisal, TriggerRejected
 
@@ -86,6 +87,12 @@ class RejectingAuthorizationVerifierDouble:
 class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
     NOW = datetime(2026, 9, 9, 22, 30, tzinfo=timezone.utc)
 
+    def setUp(self):
+        authority_module._reset_affective_authorization_verifier_for_tests()
+
+    def tearDown(self):
+        authority_module._reset_affective_authorization_verifier_for_tests()
+
     def exact_contract_and_binding(self):
         contract_text = CONTRACT_PATH.read_text(encoding="utf-8")
         contract = json.loads(contract_text)
@@ -116,14 +123,8 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
         )
 
     def bind_authority_boundary(self, verifier):
-        self.assertTrue(
-            hasattr(affect_host, "AffectiveAuthorityBoundary"),
-            "affective authority needs a preconfigured composition boundary; "
-            "claimant-controlled verifier injection is not a trust root",
-        )
-        return affect_host.AffectiveAuthorityBoundary(
-            authorization_verifier=verifier,
-        )
+        authority_module._install_affective_authorization_verifier(verifier)
+        return AffectiveAuthorityBoundary()
 
     def authorization_subject(self, **overrides):
         subject = {
@@ -330,22 +331,11 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
             context_eligible=True,
         )
 
-        try:
-            result = None
-            for _ in range(8):
-                observed = host.observe(appraisal, elapsed_seconds=1.0)
-                result = observed["state"]
-                if result["phase"] == "ORGASM_EVENT":
-                    break
-        except (TriggerRejected, TypeError, ValueError):
-            return
-
-        self.assertIsNotNone(result)
-        self.assertNotEqual(
-            result["phase"],
-            "ORGASM_EVENT",
-            "caller-supplied context_eligible=True must not substitute for current upstream context evidence",
-        )
+        with self.assertRaisesRegex(
+            (TriggerRejected, TypeError, ValueError),
+            r"(?i)(context|eligib|provenance|evidence|subject|verif)",
+        ):
+            host.observe(appraisal, elapsed_seconds=0.0)
 
     def test_valid_current_context_subject_uses_same_prebound_boundary(self):
         verifier = TrustedAuthorizationVerifierDouble(now=self.NOW)
@@ -366,7 +356,7 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
         observed = boundary.observe(
             host,
             appraisal,
-            elapsed_seconds=1.0,
+            elapsed_seconds=0.0,
             context_subject=subject,
         )
         self.assertTrue(observed["state"]["context_eligible"])
@@ -394,7 +384,7 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
             boundary.observe(
                 host,
                 appraisal,
-                elapsed_seconds=1.0,
+                elapsed_seconds=0.0,
                 context_subject=stale,
             )
 
@@ -413,7 +403,7 @@ class VeraOrgasmAuthorityBoundaryTests(unittest.TestCase):
             (TriggerRejected, TypeError, ValueError),
             r"(?i)(context|eligib|provenance|evidence|current|referent|subject|verif)",
         ):
-            host.observe(appraisal, elapsed_seconds=1.0)
+            host.observe(appraisal, elapsed_seconds=0.0)
 
 
 if __name__ == "__main__":
