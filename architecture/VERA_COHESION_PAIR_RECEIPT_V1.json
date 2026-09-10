@@ -5,13 +5,13 @@
   "index_schema": "VERA_COHESION_INDEX_V1",
   "contract_schema": "VERA_RUNTIME_CONTRACT_V1",
   "index_blob_sha": "dd30c225064edf2d8ee86198697f305b93fc77b9",
-  "contract_blob_sha": "1db5a561817673a43d64b7ddc6018b81db2726b4",
-  "source_commit": "d589ae01bdafc090ec74ed08cfe38f6fcf3ad4f7",
+  "contract_blob_sha": "ab15507ac3ae88cff6c6b6034429b0cfb7ad1876",
+  "source_commit": "592bb6d0f0660f522332ebf73fcb1c1935b8935c",
   "source_commit_semantics": "GIT_TREE_CONTAINS_EXACT_BOUND_A_B_BLOBS",
   "validator_path": "scripts/validate_vera_runtime_cohesion_v1.py",
   "validator_blob_sha": "5a7384e10249833fdb1ed09fab16cef22b9bdd1b",
-  "compatibility_generation": "A_CURRENT+B_SEMANTIC_CURRENTNESS_EXACT_R10_OBJECT_ORIGIN+OPERATIONAL_FABRIC_V1_DERIVED_GOVERNING_RESOLUTION_PROVIDER_STRICT_ADMISSION",
-  "operational_support_source_commit": "d589ae01bdafc090ec74ed08cfe38f6fcf3ad4f7",
+  "compatibility_generation": "A_CURRENT+B_SEMANTIC_CURRENTNESS_EXACT_R10_OBJECT_ORIGIN+SEPARATE_RUNTIME_OWNED_ORIGIN_VERIFIER+OPERATIONAL_FABRIC_V1_DERIVED_GOVERNING_RESOLUTION_PROVIDER_STRICT_ADMISSION",
+  "operational_support_source_commit": "592bb6d0f0660f522332ebf73fcb1c1935b8935c",
   "operational_support_source_commit_semantics": "GIT_TREE_CONTAINS_EXACT_OPERATIONAL_SUPPORT_PATH_BLOBS",
   "operational_support_snapshot_validator": {
     "path": "scripts/validate_runtime_cohesion_support_snapshot_v1.py",
@@ -21,7 +21,7 @@
     "normative_status": "NON_NORMATIVE_OPERATIONAL_SUPPORT",
     "provider_fabric": {"path": "architecture/VERA_PROVIDER_FABRIC_V1.json", "blob_sha": "3916a83cf2ad228fa1aa97927e7be6852572e3ee"},
     "provider_validator": {"path": "scripts/validate_runtime_cohesion_provider_fabric_v1.py", "blob_sha": "0556d1f63b0c34073d1c89eb02c7406bb125eeda"},
-    "semantic_currentness_validator": {"path": "scripts/validate_runtime_cohesion_semantic_currentness_v1.py", "blob_sha": "c895fe8a44740717b0b5f2bafc8b75a0ddd7022c"},
+    "semantic_currentness_validator": {"path": "scripts/validate_runtime_cohesion_semantic_currentness_v1.py", "blob_sha": "fb19ae103eea7b4a233b46d73288201f042b1509"},
     "evidence_module": {"path": "runtime_cohesion/evidence.py", "blob_sha": "c9a60862f361b8fa02cc0b4a74f771196dee346d"},
     "reconciliation_module": {"path": "runtime_cohesion/reconcile.py", "blob_sha": "4b23740d3c0c839842219a997e4d6fe307db6167"},
     "runtime_planner_module": {"path": "runtime_cohesion/runtime.py", "blob_sha": "b66602f7731bb9526a563805ead09517146fc4ee"},
@@ -37,15 +37,16 @@
   "focused_tdd_evidence": {
     "historical_prior_result": "42_FOCUSED_RUNTIME_PROVIDER_TESTS_PASS_IN_RECONSTRUCTED_LOCAL_WORKSPACE_ON_EARLIER_SOURCE",
     "provider_strict_admission_result": "ABSTRACT_POLICY_AND_PROVIDER_STRICT_ADMISSION_SURFACES_REMAIN_SEPARATED; CURRENT_SUCCESSOR_EXECUTION_NOT_AVAILABLE",
-    "semantic_currentness_dispatch_result": "SOURCE_REQUIRES_CONTROL_SOURCE_AND_LIVE_OBSERVATION_TO_SHARE_EXACT_R10_RELEASE_ROUND_MANIFEST_SOURCE_COMMIT_CURRENTNESS_AND_SUPERSESSION; PROVIDER_STRICT_PATH ALSO_REQUIRES_RUNTIME_OWNED_INDEPENDENT_ORIGIN_VERIFICATION",
+    "semantic_currentness_dispatch_result": "SOURCE_REQUIRES_CONTROL_SOURCE_AND_LIVE_OBSERVATION_TO_SHARE_EXACT_R10_RELEASE_ROUND_MANIFEST_SOURCE_COMMIT_CURRENTNESS_AND_SUPERSESSION; PROVIDER_STRICT_PATH ALSO REQUIRES SEPARATELY_COMPOSED_RUNTIME_OWNED_ORIGIN_VERIFICATION",
     "semantic_origin_regression_result": "RED_BY_SOURCE_INSPECTION_ON_PREDECESSOR_0EEF695C: PERFECTLY_SHAPED_CALLER_OR_TEST_ADAPTER_EVIDENCE_WOULD_HAVE_ADMITTED; SUCCESSOR_SOURCE_REQUIRES_SEPARATELY_COMPOSED_ORIGIN_VERIFIER; SUCCESSOR_TEST_EXECUTION_NOT_AVAILABLE",
     "origin_exact_object_binding": "R10_SOURCE_REPOSITORY_COMMIT_PATH_GIT_BLOB_MANIFEST_SHA256_SOURCE_LOGICAL_ID_AND_OWNER_LOGICAL_ID_PATH_GIT_BLOB_BOUND; LIVE_PROOF_ALSO_BINDS_CURRENTNESS_SUPERSESSION_AND_OBSERVED_AT",
+    "contract_wording_reconciliation": "NORMATIVE B NOW STATES THE FINAL SEPARATE_RUNTIME_OWNED_VERIFIER_BOUNDARY; ORDINARY ADAPTERREGISTRY ASSERTIONS CANNOT SUBSTITUTE",
     "orgasm_cohesion_reconciliation": "PR64_HEAD_9E623D6A_REVIEWED; NO_BLOCKING_COHESION_CONFLICT; SEMANTIC_ORIGIN_GATE_SCOPED_ONLY_TO_SEMANTIC_CURRENTNESS_DECISIVE_CLASSES; NO_ORGASM_PROVIDER_OR_ADAPTER_CHANGES_INCLUDED",
-    "workflow_execution_policy": "MANUAL_ONLY_ZERO_COST; NO_WORKFLOW_EXECUTION_PERFORMED",
-    "m4_operational_snapshot_result": "OPERATIONAL_SUPPORT_REBOUND_TO_IMMUTABLE_D589AE01_SOURCE_CUT",
-    "scope": "Current exact-object semantic-currentness repair is source-present but has not been executed by exact-branch CI because zero-cost runner execution remains unavailable. The predecessor regression is RED by source inspection, not by an executed test. This receipt binds exact normative A+B and listed support to immutable pre-receipt commit d589ae01bdafc090ec74ed08cfe38f6fcf3ad4f7. Fresh hostile and independent review must challenge the separate runtime-owned origin-verifier trust boundary, exact R10 object/owner/currentness binding, and negative caller/self-attestation cases."
+    "workflow_execution_policy": "MANUAL_ONLY_ZERO_COST; NO_WORKFLOW_EXECUTION PERFORMED",
+    "m4_operational_snapshot_result": "OPERATIONAL_SUPPORT_REBOUND_TO_IMMUTABLE_592BB6D0_SOURCE_CUT",
+    "scope": "Current exact-object semantic-currentness repair is source-present but has not been executed by exact-branch CI because zero-cost runner execution remains unavailable. The predecessor regression is RED by source inspection, not by an executed test. This receipt binds exact normative A+B and listed support to immutable pre-receipt commit 592bb6d0f0660f522332ebf73fcb1c1935b8935c. Fresh hostile and independent review must challenge the separate runtime-owned origin-verifier trust boundary, exact R10 object/owner/currentness binding, and negative caller/self-attestation cases."
   },
   "validation_result": "SOURCE_VALIDATION_NOT_YET_EXECUTED",
   "ci_execution_state": "CI_EXECUTION_UNAVAILABLE_ZERO_RUNNER_STEPS_OBSERVED",
-  "evidence_ceiling": "This receipt binds exact A+B source objects and listed operational support to immutable pre-receipt commit d589ae01bdafc090ec74ed08cfe38f6fcf3ad4f7. Decisive semantic-currentness envelopes require exact shared R10 proposition/referent/source-commit/currentness/supersession binding plus separately composed runtime-owned origin verification of the exact repository+commit+path+Git-blob+manifest-SHA object and bound owner object. Claimant-authored metadata or an ordinary retrieval adapter's self-attestation is not sufficient. The verifier composition is a source-level/process API trust boundary, not cryptographic isolation from hostile in-process code. Exact-successor tests have not executed; no GREEN is claimed. This is source/validation evidence only and proves no merge, installation, activation/current-route, runtime consumption, behavioral qualification, memory admission, authority promotion, provider deployment/mutation, or phenomenology."
+  "evidence_ceiling": "This receipt binds exact A+B source objects and listed operational support to immutable pre-receipt commit 592bb6d0f0660f522332ebf73fcb1c1935b8935c. Decisive semantic-currentness envelopes require exact shared R10 proposition/referent/source-commit/currentness/supersession binding plus separately composed runtime-owned origin verification of the exact repository+commit+path+Git-blob+manifest-SHA object and bound owner object. Claimant-authored metadata or an ordinary retrieval adapter's self-attestation is not sufficient. The verifier composition is a source-level/process API trust boundary, not cryptographic isolation from hostile in-process code. Exact-successor tests have not executed; no GREEN is claimed. This is source/validation evidence only and proves no merge, installation, activation/current-route, runtime consumption, behavioral qualification, memory admission, authority promotion, provider deployment/mutation, or phenomenology."
 }
