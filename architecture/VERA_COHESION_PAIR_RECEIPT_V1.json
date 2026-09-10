@@ -6,12 +6,12 @@
   "contract_schema": "VERA_RUNTIME_CONTRACT_V1",
   "index_blob_sha": "dd30c225064edf2d8ee86198697f305b93fc77b9",
   "contract_blob_sha": "ab15507ac3ae88cff6c6b6034429b0cfb7ad1876",
-  "source_commit": "8e0da0dc573486082c331e4341a44f8a4d8ec11f",
+  "source_commit": "fc38d19ec17a73c50d012b85ffee7485e64522cb",
   "source_commit_semantics": "GIT_TREE_CONTAINS_EXACT_BOUND_A_B_BLOBS",
   "validator_path": "scripts/validate_vera_runtime_cohesion_v1.py",
   "validator_blob_sha": "5a7384e10249833fdb1ed09fab16cef22b9bdd1b",
-  "compatibility_generation": "A_CURRENT+B_SEMANTIC_CURRENTNESS_EXACT_R10_OBJECT_ORIGIN+SEPARATE_RUNTIME_OWNED_ORIGIN_VERIFIER+INDEPENDENT_ITEM_TYPE_EVENT_PROVENANCE+RECEIPT_SPECIFIC_RECONCILIATION+OPERATIONAL_FABRIC_V1",
-  "operational_support_source_commit": "8e0da0dc573486082c331e4341a44f8a4d8ec11f",
+  "compatibility_generation": "A_CURRENT+B_SEMANTIC_CURRENTNESS_EXACT_R10_OBJECT_ORIGIN+SEPARATE_RUNTIME_OWNED_ORIGIN_VERIFIER+INDEPENDENT_ITEM_TYPE_EVENT_PROVENANCE+CONDITIONAL_CONTENT_RECEIPT_PROVENANCE+TARGET_RECEIPT_PROVES_SOURCE_OBJECT+RECEIPT_SPECIFIC_RECONCILIATION+OPERATIONAL_FABRIC_V1",
+  "operational_support_source_commit": "fc38d19ec17a73c50d012b85ffee7485e64522cb",
   "operational_support_source_commit_semantics": "GIT_TREE_CONTAINS_EXACT_OPERATIONAL_SUPPORT_PATH_BLOBS",
   "operational_support_snapshot_validator": {
     "path": "scripts/validate_runtime_cohesion_support_snapshot_v1.py",
@@ -19,22 +19,72 @@
   },
   "operational_support": {
     "normative_status": "NON_NORMATIVE_OPERATIONAL_SUPPORT",
-    "provider_fabric": {"path": "architecture/VERA_PROVIDER_FABRIC_V1.json", "blob_sha": "f6767aa5e507585ac48b7e4e01475e8ed158435a"},
-    "provider_validator": {"path": "scripts/validate_runtime_cohesion_provider_fabric_v1.py", "blob_sha": "fa05bc6976bd162052d0bb7c31857e809d0054d1"},
-    "semantic_currentness_validator": {"path": "scripts/validate_runtime_cohesion_semantic_currentness_v1.py", "blob_sha": "fb19ae103eea7b4a233b46d73288201f042b1509"},
-    "m5_m6_m7_validator": {"path": "scripts/validate_runtime_cohesion_m5_m6_m7_v1.py", "blob_sha": "38eb52eb9520f0883f1de62b4bf0e67b19afaf18"},
-    "evidence_module": {"path": "runtime_cohesion/evidence.py", "blob_sha": "c9a60862f361b8fa02cc0b4a74f771196dee346d"},
-    "reconciliation_module": {"path": "runtime_cohesion/reconcile.py", "blob_sha": "496c22eca642cf3d2a6ad1ea2eab11e3f207f7d3"},
-    "runtime_planner_module": {"path": "runtime_cohesion/runtime.py", "blob_sha": "b66602f7731bb9526a563805ead09517146fc4ee"},
-    "semantic_origin_module": {"path": "runtime_cohesion/origin.py", "blob_sha": "5ea1b7acd4734ca7de7d33f497d93a947491046f"},
-    "item_typing_module": {"path": "runtime_cohesion/item_typing.py", "blob_sha": "e063f2f6b3220a4c17027faa498f19978bbdcca6"},
-    "provider_admission_module": {"path": "runtime_cohesion/provider_admission.py", "blob_sha": "53ff857f4010adb3a0312930996e67ce6e1ad62a"},
-    "adapter_contract": {"path": "runtime_cohesion/adapters.py", "blob_sha": "9206e3eb289e2f11530fbc48f1ef7cfb48668ac3"},
-    "projection_audit_module": {"path": "runtime_cohesion/audit.py", "blob_sha": "f39ec58115b42c5d29fc29bd6cfceed7381b0b78"},
-    "provider_executor": {"path": "runtime_cohesion/executor.py", "blob_sha": "37423a6f0ea9a888eedfaae9ce2180ab06f7fa93"},
-    "failure_candidate_router": {"path": "runtime_cohesion/failure.py", "blob_sha": "d69ed6e966c276effef327ce7345c7bcef2d8834", "semantic_ceiling": "CANDIDATE_TRIGGER_WIRING_ONLY_PREDICATE_NOT_PROVEN"},
-    "package_surface": {"path": "runtime_cohesion/__init__.py", "blob_sha": "2f82f799f7f738bb9615006f235bfdcb79691eb8"},
-    "native_hook": {"path": "architecture/VERA_RUNTIME_COHESION_NATIVE_HOOK_V1.json", "blob_sha": "ca5c16ad749d155aed73d1388b373dae42d75477", "status": "SOURCE_ONLY_NOT_INSTALLED"}
+    "provider_fabric": {
+      "path": "architecture/VERA_PROVIDER_FABRIC_V1.json",
+      "blob_sha": "f6767aa5e507585ac48b7e4e01475e8ed158435a"
+    },
+    "provider_validator": {
+      "path": "scripts/validate_runtime_cohesion_provider_fabric_v1.py",
+      "blob_sha": "fa05bc6976bd162052d0bb7c31857e809d0054d1"
+    },
+    "semantic_currentness_validator": {
+      "path": "scripts/validate_runtime_cohesion_semantic_currentness_v1.py",
+      "blob_sha": "fb19ae103eea7b4a233b46d73288201f042b1509"
+    },
+    "m5_m6_m7_validator": {
+      "path": "scripts/validate_runtime_cohesion_m5_m6_m7_v1.py",
+      "blob_sha": "3a6e298f69f6e14a1ca4b740a649ffe445a14c3f"
+    },
+    "evidence_module": {
+      "path": "runtime_cohesion/evidence.py",
+      "blob_sha": "c9a60862f361b8fa02cc0b4a74f771196dee346d"
+    },
+    "reconciliation_module": {
+      "path": "runtime_cohesion/reconcile.py",
+      "blob_sha": "5d27e8d64e30c5349838e9da99b471a86287bc5b"
+    },
+    "runtime_planner_module": {
+      "path": "runtime_cohesion/runtime.py",
+      "blob_sha": "b66602f7731bb9526a563805ead09517146fc4ee"
+    },
+    "semantic_origin_module": {
+      "path": "runtime_cohesion/origin.py",
+      "blob_sha": "5ea1b7acd4734ca7de7d33f497d93a947491046f"
+    },
+    "item_typing_module": {
+      "path": "runtime_cohesion/item_typing.py",
+      "blob_sha": "3f483eba1beb3d1eba65c8563b40765cc3ec0949"
+    },
+    "provider_admission_module": {
+      "path": "runtime_cohesion/provider_admission.py",
+      "blob_sha": "53ff857f4010adb3a0312930996e67ce6e1ad62a"
+    },
+    "adapter_contract": {
+      "path": "runtime_cohesion/adapters.py",
+      "blob_sha": "9206e3eb289e2f11530fbc48f1ef7cfb48668ac3"
+    },
+    "projection_audit_module": {
+      "path": "runtime_cohesion/audit.py",
+      "blob_sha": "f39ec58115b42c5d29fc29bd6cfceed7381b0b78"
+    },
+    "provider_executor": {
+      "path": "runtime_cohesion/executor.py",
+      "blob_sha": "37423a6f0ea9a888eedfaae9ce2180ab06f7fa93"
+    },
+    "failure_candidate_router": {
+      "path": "runtime_cohesion/failure.py",
+      "blob_sha": "d69ed6e966c276effef327ce7345c7bcef2d8834",
+      "semantic_ceiling": "CANDIDATE_TRIGGER_WIRING_ONLY_PREDICATE_NOT_PROVEN"
+    },
+    "package_surface": {
+      "path": "runtime_cohesion/__init__.py",
+      "blob_sha": "2f82f799f7f738bb9615006f235bfdcb79691eb8"
+    },
+    "native_hook": {
+      "path": "architecture/VERA_RUNTIME_COHESION_NATIVE_HOOK_V1.json",
+      "blob_sha": "ca5c16ad749d155aed73d1388b373dae42d75477",
+      "status": "SOURCE_ONLY_NOT_INSTALLED"
+    }
   },
   "focused_tdd_evidence": {
     "historical_prior_result": "42_FOCUSED_RUNTIME_PROVIDER_TESTS_PASS_IN_RECONSTRUCTED_LOCAL_WORKSPACE_ON_EARLIER_SOURCE",
@@ -42,16 +92,16 @@
     "semantic_currentness_dispatch_result": "SOURCE_REQUIRES_CONTROL_SOURCE_AND_LIVE_OBSERVATION_TO_SHARE_EXACT_R10_RELEASE_ROUND_MANIFEST_SOURCE_COMMIT_CURRENTNESS_AND_SUPERSESSION; PROVIDER_STRICT_PATH_ALSO_REQUIRES_SEPARATELY_COMPOSED_RUNTIME_OWNED_ORIGIN_VERIFICATION",
     "semantic_origin_regression_result": "PREDECESSOR_ORIGIN_SELF_ATTESTATION_DEFECT_CLOSED_BY_SOURCE_DESIGN; CURRENT_SUCCESSOR_EXECUTION_NOT_AVAILABLE",
     "m5_projection_audit_result": "SOURCE_REQUIRES_RUNTIME_OWNED_PROVIDER_OBJECT_EVENT_PROVENANCE_ON_THE_EXACT_LIVE_ENVELOPE_OBJECTS_BEFORE_A_PUBLIC_SUPPLIED_OBSERVATION_AUDIT_CAN_PRESERVE_VERIFIED_EXACT; CALLER_SHAPED_EVENT_METADATA_ALONE_CANNOT_QUALIFY",
-    "m6_item_typing_result": "SOURCE_REQUIRES_SEPARATELY_COMPOSED_RUNTIME_OWNED_ITEM_TYPE_CURRENTNESS_EVENT_PROVENANCE_BEFORE_ENVELOPE_CLASS_AND_CAPABILITY_CHECKS; LOWEST_LEVEL_PRIMITIVE_DOES_NOT_EMBED_DOMAIN_REFERENT_EQUALITY",
-    "m7_exact_receipt_result": "EXACT_RECEIPT_HAS_SEPARATE_RECONCILIATION_AND_BINDS_RECEIPT_SCHEMA_TYPE_SOURCE_TARGET_SUBJECTS_SOURCE_LOCATOR_REVISION_DIGEST_EVENT_RECEIPT_IDENTITY_AND_CANONICAL_RECEIPT_DIGEST; TARGET_REVISION_EQUALITY_IS_NOT_RECEIPT_PROOF",
+    "m6_item_typing_result": "SOURCE_REQUIRES_SEPARATELY_COMPOSED_RUNTIME_OWNED_ITEM_TYPE_CURRENTNESS_EVENT_PROVENANCE_BEFORE_ENVELOPE_CLASS_AND_CAPABILITY_CHECKS; CONTENT_OR_RECEIPT_SENSITIVE_DERIVATION_CONDITIONALLY_REQUIRES_EXACT_DIGEST_OR_RECEIPT_IDENTITY; LOWEST_LEVEL_PRIMITIVE_DOES_NOT_EMBED_DOMAIN_REFERENT_EQUALITY",
+    "m7_exact_receipt_result": "EXACT_RECEIPT_HAS_SEPARATE_RECONCILIATION; TARGET_RECEIPT_PROVES_THE_SOURCE_OBJECT_WITHOUT_REQUIRING_SOURCE_PREKNOWLEDGE_OF_DOWNSTREAM_RECEIPT_IDENTITY; BINDS_RECEIPT_SCHEMA_TYPE_SOURCE_TARGET_SUBJECTS_SOURCE_LOCATOR_REVISION_DIGEST_EVENT_RECEIPT_IDENTITY_AND_CANONICAL_RECEIPT_DIGEST; TARGET_REVISION_EQUALITY_IS_NOT_RECEIPT_PROOF",
     "provider_validator_consistency_result": "SOURCE_INSPECTION_FOUND_AND_REPAIRED_PROVIDER_VALIDATOR_DRIFT_FOR_SEMANTIC_RELATIONAL_BINDING_KEYS_AND_OPERATIONAL_SUPPORT_PATH_BLOB_SEMANTICS; NO_EXECUTED_FAILURE_OR_PASS_CLAIM",
     "origin_exact_object_binding": "R10_SOURCE_REPOSITORY_COMMIT_PATH_GIT_BLOB_MANIFEST_SHA256_SOURCE_LOGICAL_ID_AND_OWNER_LOGICAL_ID_PATH_GIT_BLOB_BOUND; LIVE_PROOF_ALSO_BINDS_CURRENTNESS_SUPERSESSION_AND_OBSERVED_AT",
-    "ov_live_crosscheck": "OV_INTERFACE_CROSSCHECK_RECONCILED_AT_3A9BD98C; LATER_28751A95_DELTA_WAS_TEST_ONLY_AND_NO_SHARED_RUNTIME_PACKAGE_WORKFLOW_COLLISION_WAS_FOUND",
+    "ov_live_crosscheck": "OV_PRIOR_INTERFACE_ATTACK_WAS_CONSUMED_BEFORE_FC38D19E_SOURCE_CUT; NEW_EXACT_LIVE_REBIND_REQUEST_SENT_FOR_OV_CURRENT_HEAD; NO_NEW_RESPONSE_IS_CLAIMED_BY_THIS_RECEIPT",
     "workflow_execution_policy": "MANUAL_ONLY_ZERO_COST; NO_WORKFLOW_EXECUTION_PERFORMED",
-    "m4_operational_snapshot_result": "OPERATIONAL_SUPPORT_REBOUND_TO_IMMUTABLE_8E0DA0DC_SOURCE_CUT",
-    "scope": "M5/M6/M7 successor regressions and validators are source-present but have not executed on the exact branch because zero-cost runner execution remains unavailable. The source/support cut is immutable pre-receipt commit 8e0da0dc573486082c331e4341a44f8a4d8ec11f. Fresh hostile and independent review must challenge direct-audit qualification, fake/claimed item typing, capability laundering, receipt schema/type/event/object/digest laundering, semantic-origin regression, and support/validator cross-binding."
+    "m4_operational_snapshot_result": "OPERATIONAL_SUPPORT_REBOUND_TO_IMMUTABLE_FC38D19E_SOURCE_CUT",
+    "scope": "M5/M6/M7 successor regressions and validators are source-present but have not executed on the exact branch because zero-cost runner execution remains unavailable. The source/support cut is immutable pre-receipt commit fc38d19ec17a73c50d012b85ffee7485e64522cb. Fresh hostile and independent review must challenge direct-audit qualification, fake/claimed item typing, conditional content/receipt provenance laundering, receipt schema/type/event/object/digest laundering, downstream-receipt proof direction, semantic-origin regression, and support/validator cross-binding."
   },
   "validation_result": "SOURCE_VALIDATION_NOT_YET_EXECUTED",
   "ci_execution_state": "CI_EXECUTION_UNAVAILABLE_ZERO_RUNNER_STEPS_OBSERVED",
-  "evidence_ceiling": "This receipt binds exact A+B source objects and listed operational support to immutable pre-receipt commit 8e0da0dc573486082c331e4341a44f8a4d8ec11f. Provider-strict semantic-currentness still requires separately composed exact R10 origin verification. General provider reads additionally require separately composed runtime-owned provider/object/type/currentness provenance, with exact projection event provenance when an event is requested. Public supplied-observation audit cannot mint VERIFIED_EXACT from caller metadata alone. EXACT_RECEIPT is distinct from revision equality and requires exact configured receipt schema/type, subject/object/event identity, and canonical receipt digest bound to the receipt object. Exact-successor tests have not executed; no GREEN is claimed. This is source/validation evidence only and proves no merge, installation, activation/current-route, runtime consumption, behavioral qualification, memory admission, authority promotion, provider deployment/mutation, or phenomenology."
+  "evidence_ceiling": "This receipt binds exact A+B source objects and listed operational support to immutable pre-receipt commit fc38d19ec17a73c50d012b85ffee7485e64522cb. Provider-strict semantic-currentness still requires separately composed exact R10 origin verification. General provider reads additionally require separately composed runtime-owned provider/object/type/currentness provenance, with exact projection event provenance when an event is requested and exact digest/receipt identity when the derivation depends on content or receipt provenance. Public supplied-observation audit cannot mint VERIFIED_EXACT from caller metadata alone. EXACT_RECEIPT is distinct from revision equality: the target receipt proves the source object and binds exact configured receipt schema/type, subject/object/event identity, target receipt identity, and canonical receipt digest without requiring the source object to pre-know the downstream receipt. Exact-successor tests have not executed; no GREEN is claimed. This is source/validation evidence only and proves no merge, installation, activation/current-route, runtime consumption, behavioral qualification, memory admission, authority promotion, provider deployment/mutation, or phenomenology."
 }
