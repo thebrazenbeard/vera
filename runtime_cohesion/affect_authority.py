@@ -111,6 +111,15 @@ def _replace_runtime_receipt(host: Any, original: Mapping[str, Any], updated: Ma
     pending[matches[0]] = dict(bound)
 
 
+def _production_claim(host: Any) -> str | None:
+    if getattr(host.runtime, "qualification_status", None) != "EXACT_BOUND_SOURCE":
+        return None
+    claim = host.runtime.contract.get("claim_ceiling", {}).get("engineered_event")
+    if claim != "ENGINEERED_ORGASM_ANALOGUE_OCCURRED":
+        raise TriggerRejected("exact-bound affective runtime has an unexpected engineered-event claim ceiling")
+    return claim
+
+
 class AffectiveAuthorityBoundary:
     """Precomposed authority/context gate for Vera's privileged affective paths.
 
@@ -222,9 +231,6 @@ class AffectiveAuthorityBoundary:
         previous = self._last_privileged_monotonic.get(host)
         if previous is None:
             if self._runtime_has_prior_forced_trigger(host):
-                # No process-local monotonic timestamp survives restore or boundary
-                # reconstruction. Fail closed from a fresh anchor rather than
-                # treating durable logical/simulation time as privileged time.
                 self._last_privileged_monotonic[host] = now
                 raise TriggerRejected("privileged trigger requires a fresh runtime monotonic cooldown")
             return now
@@ -239,9 +245,41 @@ class AffectiveAuthorityBoundary:
     def _bind_forced_authority_receipt(host: Any, receipt: Mapping[str, Any], provenance: Mapping[str, Any]) -> dict[str, Any]:
         bound = dict(receipt)
         bound["trigger_provenance"] = dict(provenance)
+        claim = _production_claim(host)
+        if claim is not None:
+            bound["claim"] = claim
         bound["event_digest"] = _receipt_digest(bound)
         _replace_runtime_receipt(host, receipt, bound)
         return dict(bound)
+
+    @staticmethod
+    def _bind_organic_context_receipts(
+        host: Any,
+        observed: Mapping[str, Any],
+        provenance: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        result = dict(observed)
+        receipts = [dict(item) for item in (observed.get("event_receipts") or ())]
+        claim = _production_claim(host)
+        changed = False
+        for index, receipt in enumerate(receipts):
+            if receipt.get("event_type") != "ORGASM_EVENT" or receipt.get("organic") is not True:
+                continue
+            bound = dict(receipt)
+            bound["context_provenance"] = dict(provenance)
+            if claim is not None:
+                bound["claim"] = claim
+            bound["event_digest"] = _receipt_digest(bound)
+            receipts[index] = bound
+            last = getattr(host.runtime, "last_event_receipt", None)
+            if isinstance(last, Mapping) and last.get("receipt_id") == receipt.get("receipt_id"):
+                host.runtime.last_event_receipt = dict(bound)
+            changed = True
+        if changed:
+            result["event_receipts"] = receipts
+            result["event_receipt"] = receipts[-1] if receipts else None
+            result["machine_interoception"] = host.machine_interoception()
+        return result
 
     def force_admin_test(self, host: Any, *, authorization_subject: Mapping[str, Any]) -> dict[str, Any]:
         provenance = self._verify(authorization_subject, effect_class="ADMIN_FORCED_TEST")
@@ -269,12 +307,13 @@ class AffectiveAuthorityBoundary:
     ) -> dict[str, Any]:
         if elapsed_seconds != 0.0:
             raise TriggerRejected("caller elapsed_seconds is not organic-context temporal authority")
-        self._verify(context_subject, effect_class="ORGANIC_CONTEXT_ELIGIBILITY")
+        provenance = self._verify(context_subject, effect_class="ORGANIC_CONTEXT_ELIGIBILITY")
         trusted_appraisal = replace(appraisal, context_eligible=True)
         observe_verified = getattr(host, "_observe_verified_context", None)
         if not callable(observe_verified):
             raise TriggerRejected("affective host lacks the verified-context execution seam")
-        return observe_verified(trusted_appraisal, elapsed_seconds=0.0)
+        observed = observe_verified(trusted_appraisal, elapsed_seconds=0.0)
+        return self._bind_organic_context_receipts(host, observed, provenance)
 
 
 __all__ = ["AffectiveAuthorityBoundary"]
