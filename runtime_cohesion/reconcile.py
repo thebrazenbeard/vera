@@ -204,9 +204,11 @@ def reconcile_exact_receipt(
 
     The target receipt must bind the configured receipt schema/type, source/target
     subjects, source object locator/revision/digest, exact projection event, and
-    exact target receipt object. Its canonical receipt-binding digest must match
-    the target receipt object's content digest. Target revision equality is not
-    receipt proof and is never used to qualify the receipt.
+    exact target receipt object. The source object itself must expose a non-empty
+    exact content digest before any receipt can prove that object. The canonical
+    receipt-binding digest must match the target receipt object's content digest.
+    Target revision equality is not receipt proof and is never used to qualify
+    the receipt.
     """
 
     if not isinstance(subject_key, str) or not subject_key.strip():
@@ -246,6 +248,9 @@ def reconcile_exact_receipt(
         return _result("CONFLICT", subject_key, items, f"Receipt target scope {target.scope!r} does not match required receipt scope {target_scope!r}.")
     if target.referent != source.referent:
         return _result("CONFLICT", subject_key, items, "Receipt target referent does not match the exact source object referent.")
+
+    if not isinstance(source.content_digest, str) or not source.content_digest.strip():
+        return _result("UNRESOLVED", subject_key, items, "Exact receipt reconciliation requires a non-empty source content digest.")
 
     if target.receipt_ref is None:
         return _result("UNRESOLVED", subject_key, items, "Exact receipt reconciliation requires the target receipt object's receipt_ref.")
