@@ -64,6 +64,13 @@ def _guarded_restore_exact_bound_state(
     return runtime
 
 
+def _copy_cut(cut: Mapping[str, Any]) -> dict[str, Any]:
+    try:
+        return json.loads(json.dumps(dict(cut), sort_keys=True, separators=(",", ":"), ensure_ascii=False))
+    except (TypeError, ValueError) as exc:
+        raise TriggerRejected("runtime implementation cut is not canonically serializable") from exc
+
+
 class BoundVeraOrgasmRuntime(OrgasmRuntime):
     """Exact-bound Vera engine behind the governed host/authority boundary.
 
@@ -80,6 +87,21 @@ class BoundVeraOrgasmRuntime(OrgasmRuntime):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self._last_forced_monotonic: float | None = None
+        self._runtime_implementation_cut: dict[str, Any] | None = None
+
+    def _bind_runtime_implementation_cut(self, cut: Mapping[str, Any]) -> None:
+        if not isinstance(cut, Mapping):
+            raise TriggerRejected("exact-bound runtime requires a structured implementation cut")
+        normalized = _copy_cut(cut)
+        existing = self._runtime_implementation_cut
+        if existing is not None and existing != normalized:
+            raise TriggerRejected("exact-bound runtime implementation cut cannot be replaced")
+        last = self.last_event_receipt
+        if isinstance(last, Mapping):
+            receipt_cut = last.get("runtime_implementation_cut")
+            if receipt_cut != normalized:
+                raise TriggerRejected("restored event receipt implementation cut does not match the active runtime cut")
+        self._runtime_implementation_cut = normalized
 
     @staticmethod
     def _runtime_monotonic_now() -> float:
@@ -125,14 +147,15 @@ class BoundVeraOrgasmRuntime(OrgasmRuntime):
             organic=organic,
             trigger_provenance=trigger_provenance,
         )
-        if "claim" not in receipt:
+
+        bounded = dict(receipt)
+        if self._runtime_implementation_cut is not None:
+            bounded["runtime_implementation_cut"] = _copy_cut(self._runtime_implementation_cut)
+        bounded.pop("claim", None)
+
+        if bounded == receipt:
             return receipt
 
-        # Source capability is not event authorization. Strip any base-engine
-        # claim before a caller can observe/persist it, then recompute the exact
-        # event digest and update the runtime's pending/current copies.
-        bounded = dict(receipt)
-        bounded.pop("claim", None)
         core = dict(bounded)
         core.pop("event_digest", None)
         canonical = json.dumps(core, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
