@@ -55,6 +55,8 @@ class StimulusAppraisal:
     relational_relevance: float = 0.0
     novelty: float = 0.0
     anticipation_cue: float = 0.0
+    ambiguity: float = 0.0
+    boundary_relevance: float = 0.0
     positive_valence: float = 0.0
     inhibition: float = 0.0
     duration_ms: int = 0
@@ -67,11 +69,18 @@ class StimulusAppraisal:
             "relational_relevance",
             "novelty",
             "anticipation_cue",
+            "ambiguity",
+            "boundary_relevance",
             "inhibition",
         ):
             value = getattr(self, name)
-            if not 0.0 <= value <= 1.0:
-                raise ValueError(f"{name} must be within [0, 1]")
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(float(value))
+                or not 0.0 <= float(value) <= 1.0
+            ):
+                raise ValueError(f"{name} must be finite numeric within [0, 1]")
         if not -1.0 <= self.positive_valence <= 1.0:
             raise ValueError("positive_valence must be within [-1, 1]")
         if self.duration_ms < 0:
