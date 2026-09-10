@@ -5,6 +5,7 @@ import unittest
 
 import runtime_cohesion
 import runtime_cohesion.affect_provider_runtime as affect_provider_runtime
+from runtime_cohesion.adapters import AdapterProbeResult
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
 from runtime_cohesion.affect_persistence import (
     PersistenceRecordError,
@@ -12,13 +13,77 @@ from runtime_cohesion.affect_persistence import (
     checkpoint_to_state_row,
     restore_host_from_state_row,
 )
-from tests.test_runtime_cohesion_affect_provider_composition_trust import (
-    SelfConsistentAffectiveProviderDouble,
-)
+from runtime_cohesion.evidence import ProviderEvidenceEnvelope
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_RUNTIME_CONTRACT_V1.json"
 BINDING_PATH = ROOT / "architecture" / "VERA_ORGASM_RUNTIME_BINDING_V1.json"
+PROVIDER = "supabase"
+PROJECT_ID = "klmbpaigzeguvnpccqzz"
+TABLE = "public.vera_affective_runtime_state_v1"
+ROUTE = "route:supabase"
+SOURCE = f"supabase:{PROJECT_ID}/{TABLE}"
+FRONTIER_SCOPE = "VERA_AFFECTIVE_RUNTIME_PROVIDER_FRONTIER_V1"
+ATOMIC_FUNCTION = "public.vera_affective_runtime_commit_v1(bigint,jsonb,jsonb)"
+
+
+class ResumeProviderDouble:
+    provider = PROVIDER
+    provider_project_id = PROJECT_ID
+    provider_table = TABLE
+    provider_route = ROUTE
+    atomic_commit_function = ATOMIC_FUNCTION
+
+    def __init__(self, row):
+        self.current_row = dict(row)
+
+    def probe(self, request):
+        return AdapterProbeResult(
+            provider=PROVIDER,
+            route_ref=request.route_ref,
+            state="CURRENTLY_OBSERVED_REACHABLE",
+            observed_at=self.current_row["updated_at"],
+            reason="test provider frontier is readable",
+        )
+
+    def read(self, request):
+        row = self.current_row
+        return ProviderEvidenceEnvelope(
+            provider=PROVIDER,
+            locator=f"{SOURCE}/{row['runtime_instance_id']}",
+            revision=f"state-version:{row['state_version']}",
+            observed_at=row["updated_at"],
+            evidence_class="persisted_provider_record",
+            referent=row["runtime_instance_id"],
+            scope=FRONTIER_SCOPE,
+            privacy_class=request.privacy_class,
+            currentness_basis="fresh test adapter read",
+            supersession_state="CURRENT_OBSERVATION",
+            conflict_state="NONE",
+            content_digest=row["checkpoint_sha256"],
+            metadata={
+                "route_ref": request.route_ref,
+                "source_ref": request.source_ref,
+                "provider_project_id": PROJECT_ID,
+                "provider_table": TABLE,
+                "runtime_instance_id": row["runtime_instance_id"],
+                "host_scope": row["host_scope"],
+                "state_version": row["state_version"],
+                "checkpoint_sha256": row["checkpoint_sha256"],
+                "source_commit": row["source_commit"],
+            },
+        )
+
+    def commit_affective_runtime(self, request):
+        request = dict(request)
+        if request["expected_prior_version"] != self.current_row["state_version"]:
+            raise RuntimeError("stale provider frontier")
+        self.current_row = dict(request["state_row"])
+        return {
+            "state_version": request["state_version"],
+            "checkpoint_sha256": request["checkpoint_sha256"],
+            "event_count": len(request["event_rows"]),
+        }
 
 
 class VeraAffectiveResumeTokenRestoreTests(unittest.TestCase):
@@ -47,10 +112,12 @@ class VeraAffectiveResumeTokenRestoreTests(unittest.TestCase):
         return checkpoint, row, build_affective_resume_token(row)
 
     def restore_provider(self, checkpoint, row, token, *, provider_row=None):
-        adapter = SelfConsistentAffectiveProviderDouble(provider_row or row)
+        adapter = ResumeProviderDouble(provider_row or row)
         affect_provider_runtime._install_runtime_affective_provider_adapter(adapter)
+        contract_text, binding = self.contract_text_and_binding()
         return runtime_cohesion.restore_current_affective_cycle(
-            *self.contract_text_and_binding(),
+            contract_text,
+            binding,
             row,
             host_scope="TEST_HOST",
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
@@ -58,15 +125,8 @@ class VeraAffectiveResumeTokenRestoreTests(unittest.TestCase):
         )
 
     def test_claimant_provider_restore_requires_external_resume_token(self):
-        self.assertIn(
-            "expected_resume_token",
-            inspect.signature(runtime_cohesion.restore_current_affective_cycle).parameters,
-        )
-        self.assertNotIn(
-            "expected_resume_token",
-            inspect.signature(restore_host_from_state_row).parameters,
-            "low-level replay helper must not masquerade as provider-current resume admission",
-        )
+        self.assertIn("expected_resume_token", inspect.signature(runtime_cohesion.restore_current_affective_cycle).parameters)
+        self.assertNotIn("expected_resume_token", inspect.signature(restore_host_from_state_row).parameters)
 
     def test_exact_resume_token_binds_provider_state_version_frontier(self):
         checkpoint, row, token = self.make_row(state_version=7)
@@ -76,8 +136,10 @@ class VeraAffectiveResumeTokenRestoreTests(unittest.TestCase):
 
     def test_low_level_restore_accepts_exact_bytes_only_as_replay_host(self):
         checkpoint, row, _token = self.make_row(state_version=7)
+        contract_text, binding = self.contract_text_and_binding()
         host = restore_host_from_state_row(
-            *self.contract_text_and_binding(),
+            contract_text,
+            binding,
             row,
             expected_host_scope="TEST_HOST",
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
@@ -89,18 +151,8 @@ class VeraAffectiveResumeTokenRestoreTests(unittest.TestCase):
         replayed = dict(provider_row)
         replayed["state_version"] = 8
         replayed_token = build_affective_resume_token(replayed)
-
-        self.assertEqual(replayed["checkpoint_sha256"], provider_row["checkpoint_sha256"])
-        with self.assertRaisesRegex(
-            (PersistenceRecordError, ValueError),
-            r"(?i)(provider|frontier|version|current|resume)",
-        ):
-            self.restore_provider(
-                checkpoint,
-                replayed,
-                replayed_token,
-                provider_row=provider_row,
-            )
+        with self.assertRaisesRegex((PersistenceRecordError, ValueError), r"(?i)(provider|frontier|version|current|resume)"):
+            self.restore_provider(checkpoint, replayed, replayed_token, provider_row=provider_row)
 
     def test_resume_token_must_bind_runtime_source_checkpoint_and_version(self):
         checkpoint, row, token = self.make_row(state_version=7)
@@ -114,10 +166,7 @@ class VeraAffectiveResumeTokenRestoreTests(unittest.TestCase):
                 affect_provider_runtime._reset_runtime_affective_provider_for_tests()
                 bad = dict(token)
                 bad[field] = value
-                with self.assertRaisesRegex(
-                    (PersistenceRecordError, ValueError),
-                    r"(?i)(resume|frontier|provider|source|checkpoint|version)",
-                ):
+                with self.assertRaisesRegex((PersistenceRecordError, ValueError), r"(?i)(resume|frontier|provider|source|checkpoint|version)"):
                     self.restore_provider(checkpoint, row, bad)
 
 
