@@ -92,6 +92,11 @@ def validate_semantic_currentness_binding(contract: Mapping[str, Any]) -> list[s
         }
         if methods != expected_methods:
             errors.append("semantic currentness provider-origin method registry drift")
+        binding_rule = origin_policy.get("binding_rule", "")
+        if "separately composed runtime-owned origin verifier" not in binding_rule:
+            errors.append("semantic currentness origin policy must bind independent runtime-owned verifier composition")
+        if "ordinary AdapterRegistry retrieval-adapter assertions cannot supply or substitute" not in binding_rule:
+            errors.append("semantic currentness origin policy must reject ordinary retrieval-adapter self-attestation")
 
     registry = contract.get("resolver_dispatch_decisive_evidence")
     decisive = registry.get(DISPATCH_ID) if isinstance(registry, Mapping) else None
@@ -119,10 +124,12 @@ def validate_semantic_currentness_binding(contract: Mapping[str, Any]) -> list[s
     resolver = contract.get("authority_resolvers", {}).get("semantic_currentness", {})
     rule = resolver.get("rule", "") if isinstance(resolver, Mapping) else ""
     fail_closed = resolver.get("fail_closed", "") if isinstance(resolver, Mapping) else ""
-    if "independently validated exact-object origin" not in rule:
-        errors.append("semantic currentness resolver must require independent exact-object provider origin")
+    if "separately composed runtime-owned origin verifier" not in rule:
+        errors.append("semantic currentness resolver must require independent runtime-owned origin verification")
     if "claimant-authored provenance metadata" not in fail_closed:
         errors.append("semantic currentness resolver must fail closed on claimant-authored provenance metadata")
+    if "ordinary retrieval-adapter self-attestation" not in fail_closed:
+        errors.append("semantic currentness resolver must fail closed on ordinary retrieval-adapter self-attestation")
     return errors
 
 
@@ -132,7 +139,7 @@ def main() -> int:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
-    print("VERA semantic currentness exact-object provider origin: OK")
+    print("VERA semantic currentness exact-object independent origin verifier: OK")
     return 0
 
 
