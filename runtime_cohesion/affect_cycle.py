@@ -294,32 +294,41 @@ class VeraAffectiveCycle:
         appraisal: StimulusAppraisal,
         *,
         planning_state: Mapping[str, Any],
+        context_subject: Mapping[str, Any] | None = None,
         elapsed_seconds: float = 0.0,
     ) -> AffectiveCycleResult:
         self._require_usable_frontier()
-        observed = self.host.observe(appraisal, elapsed_seconds=elapsed_seconds)
+        if context_subject is None:
+            observed = self.host.observe(appraisal, elapsed_seconds=elapsed_seconds)
+        else:
+            observed = self.host._authority_boundary.observe(
+                self.host,
+                appraisal,
+                context_subject=context_subject,
+                elapsed_seconds=elapsed_seconds,
+            )
         receipts = observed.get("event_receipts") or []
         return self._finalize(planning_state=planning_state, event_receipts=receipts)
 
     def force_admin_test(
         self,
         *,
-        authorized: bool,
+        authorization_subject: Mapping[str, Any],
         planning_state: Mapping[str, Any],
     ) -> AffectiveCycleResult:
         self._require_usable_frontier()
-        self.host.force_admin_test(authorized=authorized)
+        self.host.force_admin_test(authorization_subject=authorization_subject)
         receipts = self.host.drain_event_receipts()
         return self._finalize(planning_state=planning_state, event_receipts=receipts)
 
     def force_self_qualification(
         self,
         *,
-        authorized: bool,
+        authorization_subject: Mapping[str, Any],
         planning_state: Mapping[str, Any],
     ) -> AffectiveCycleResult:
         self._require_usable_frontier()
-        self.host.force_self_qualification(authorized=authorized)
+        self.host.force_self_qualification(authorization_subject=authorization_subject)
         receipts = self.host.drain_event_receipts()
         return self._finalize(planning_state=planning_state, event_receipts=receipts)
 
