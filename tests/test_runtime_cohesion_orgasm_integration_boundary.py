@@ -99,10 +99,10 @@ class OrgasmCohesionIntegrationBoundaryTests(unittest.TestCase):
         signal = envelope(modulation={"attention": 0.5})
         result = apply_now({"attention": 0.2}, signal)
         self.assertAlmostEqual(result.planning["attention"], 0.6)
-        self.assertEqual(
-            result.provenance["modulation_ancestry"]["attention"],
-            {"before": 0.2, "pressure": 0.5, "after": 0.6},
-        )
+        ancestry = result.provenance["modulation_ancestry"]["attention"]
+        self.assertEqual(ancestry["before"], 0.2)
+        self.assertEqual(ancestry["pressure"], 0.5)
+        self.assertAlmostEqual(ancestry["after"], 0.6)
 
     def test_maximal_affect_changes_only_allowlisted_planning_targets(self):
         baseline = {
@@ -203,7 +203,9 @@ class OrgasmCohesionIntegrationBoundaryTests(unittest.TestCase):
             envelope(modulation={"attention": 0.8, "salience": 0.9}),
         )
         ancestry = result.provenance["modulation_ancestry"]
-        self.assertEqual(ancestry["attention"], {"before": 0.2, "pressure": 0.8, "after": 0.84})
+        self.assertEqual(ancestry["attention"]["before"], 0.2)
+        self.assertEqual(ancestry["attention"]["pressure"], 0.8)
+        self.assertAlmostEqual(ancestry["attention"]["after"], 0.84)
         self.assertAlmostEqual(ancestry["salience"]["after"], 0.91)
         self.assertEqual(ancestry["salience"]["before"], 0.1)
         self.assertEqual(ancestry["salience"]["pressure"], 0.9)
