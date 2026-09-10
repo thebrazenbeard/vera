@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import math
+import time
 import uuid
 from typing import Any, Mapping
 
@@ -15,6 +16,15 @@ class ContractError(ValueError):
 
 class TriggerRejected(RuntimeError):
     """A requested orgasm trigger is not authorized or violates a bounded test rule."""
+
+
+def _monotonic_now() -> float:
+    """Runtime-owned monotonic observation clock.
+
+    Tests may patch this private seam deterministically. Production callers do
+    not supply elapsed time as temporal authority for stimulus persistence.
+    """
+    return time.monotonic()
 
 
 def _clamp(value: float, low: float = 0.0, high: float = 1.0) -> float:
@@ -158,6 +168,7 @@ class OrgasmRuntime:
         self._last_forced_at: float | None = None
         self._self_qualification_events = 0
         self._last_observation_qualifying = False
+        self._last_monotonic_observation: float | None = None
         self.last_event_receipt: dict[str, Any] | None = None
         self._pending_event_receipts: list[dict[str, Any]] = []
 
@@ -254,8 +265,27 @@ class OrgasmRuntime:
             and s.context_eligible
         )
 
+    def _trusted_observation_elapsed(self, caller_elapsed_seconds: float) -> float:
+        caller_elapsed = _validated_elapsed_seconds(caller_elapsed_seconds)
+        if caller_elapsed != 0.0:
+            raise ValueError(
+                "elapsed_seconds is not temporal authority for stimulus observations; runtime monotonic time is authoritative"
+            )
+        now = _monotonic_now()
+        if isinstance(now, bool) or not isinstance(now, (int, float)) or not math.isfinite(float(now)):
+            raise ValueError("runtime monotonic clock returned an invalid timestamp")
+        current = float(now)
+        previous = self._last_monotonic_observation
+        self._last_monotonic_observation = current
+        if previous is None:
+            return 0.0
+        elapsed = current - previous
+        if elapsed < 0.0:
+            raise ValueError("runtime monotonic clock moved backwards")
+        return elapsed
+
     def apply_stimulus(self, appraisal: StimulusAppraisal, *, elapsed_seconds: float = 0.0) -> dict[str, Any]:
-        trusted_elapsed = _validated_elapsed_seconds(elapsed_seconds)
+        trusted_elapsed = self._trusted_observation_elapsed(elapsed_seconds)
         prior_observation_qualifying = self._last_observation_qualifying
         if trusted_elapsed:
             self._advance_time_core(trusted_elapsed)
@@ -483,11 +513,12 @@ class OrgasmRuntime:
         if trusted_elapsed == 0:
             return self.snapshot()
 
-        # A standalone time advance contains no qualifying observation evidence.
-        # It therefore breaks sustained-coherence continuity immediately rather
-        # than allowing a later appraisal to back-credit the unobserved gap.
+        # Explicit advance is a bounded simulation/recovery operation, not a
+        # qualifying stimulus-observation timestamp. It breaks continuity so a
+        # later appraisal cannot back-credit this interval as observed coherence.
         self._last_observation_qualifying = False
         self._state.persistence_window_ms = 0
+        self._last_monotonic_observation = None
         return self._advance_time_core(trusted_elapsed)
 
     def _trigger_context(self) -> tuple[str, bool]:
@@ -680,6 +711,18 @@ class OrgasmRuntime:
                 or float(raw_state["refractory_strength"]) != 0.0
             ):
                 raise ContractError("QUIESCENT recovery semantics are inconsistent")
+        if phase == "ACTIVATING":
+            if float(raw_state["activation_intensity"]) <= 0.05 or action_tendency != "APPROACH":
+                raise ContractError("ACTIVATING state semantics are inconsistent")
+        if phase == "ENTRAINED":
+            if (
+                float(raw_state["coherence"]) < 0.45
+                or int(raw_state["persistence_window_ms"]) <= 0
+                or action_tendency != "APPROACH"
+            ):
+                raise ContractError("ENTRAINED state semantics are inconsistent")
+        if phase == "CLIMAX_ELIGIBLE":
+            raise ContractError("CLIMAX_ELIGIBLE is transient and cannot be a durable restore frontier")
         if phase == "ORGASM_EVENT":
             if action_tendency != "HOLD" or float(raw_state["resolution_intensity"]) != 0.0:
                 raise ContractError("ORGASM_EVENT state semantics are inconsistent")
@@ -757,13 +800,26 @@ class OrgasmRuntime:
                 raise ContractError("durable trigger governance self-qualification count is invalid")
             if not isinstance(last_observation_qualifying, bool):
                 raise ContractError("durable trigger governance observation continuity must be boolean")
+            if last_observation_qualifying and (
+                not runtime._state.context_eligible
+                or runtime._state.phase not in {"ACTIVATING", "ENTRAINED"}
+                or runtime._state.active_orgasm_event
+            ):
+                raise ContractError("durable trigger governance observation continuity is inconsistent with restored state")
 
             runtime._logical_time_seconds = float(logical_time)
             runtime._last_forced_at = None if last_forced_at is None else float(last_forced_at)
             runtime._self_qualification_events = self_qualification_events
             runtime._last_observation_qualifying = last_observation_qualifying
 
-        trusted_restore_elapsed = _validated_elapsed_seconds(elapsed_seconds)
+        # Monotonic timestamps are process-local. A restored runtime must acquire
+        # a new observation-clock anchor before any future interval can count.
+        runtime._last_monotonic_observation = None
+
+        try:
+            trusted_restore_elapsed = _validated_elapsed_seconds(elapsed_seconds)
+        except ValueError as exc:
+            raise ContractError(str(exc)) from exc
         if trusted_restore_elapsed:
             runtime.advance_time(trusted_restore_elapsed)
         return runtime
