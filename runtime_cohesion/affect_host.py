@@ -6,8 +6,9 @@ from threading import RLock
 from typing import Any, Mapping
 from weakref import WeakKeyDictionary
 
+from .affect_authority import AffectiveAuthorityBoundary
 from .affect_scope import mark_affective_host_checkpoint_replay
-from .orgasm import ContractError, OrgasmRuntime, StimulusAppraisal
+from .orgasm import ContractError, OrgasmRuntime, StimulusAppraisal, TriggerRejected
 
 
 class AffectiveBindingError(ContractError):
@@ -112,6 +113,7 @@ class VeraAffectiveRuntimeHost:
         self.binding = dict(binding)
         self.contract_blob_sha = contract_blob_sha
         self.contract_sha256 = contract_sha256
+        self._authority_boundary = AffectiveAuthorityBoundary()
 
     @classmethod
     def from_bound_contract(
@@ -208,7 +210,7 @@ class VeraAffectiveRuntimeHost:
         """Return all runtime receipts not yet handed to an executing cycle."""
         return self.runtime.drain_event_receipts()
 
-    def observe(self, appraisal: StimulusAppraisal, *, elapsed_seconds: float = 0.0) -> dict[str, Any]:
+    def _observe_runtime(self, appraisal: StimulusAppraisal, *, elapsed_seconds: float = 0.0) -> dict[str, Any]:
         state = self.runtime.apply_stimulus(appraisal, elapsed_seconds=elapsed_seconds)
         receipts = self.runtime.drain_event_receipts()
         return {
@@ -218,11 +220,29 @@ class VeraAffectiveRuntimeHost:
             "event_receipt": receipts[-1] if receipts else None,
         }
 
-    def force_admin_test(self, *, authorized: bool) -> dict[str, Any]:
-        return self.runtime.force_admin_test(authorized=authorized)
+    def _observe_verified_context(self, appraisal: StimulusAppraisal, *, elapsed_seconds: float = 0.0) -> dict[str, Any]:
+        if appraisal.context_eligible is not True:
+            raise TriggerRejected("verified-context execution requires context_eligible=true")
+        return self._observe_runtime(appraisal, elapsed_seconds=elapsed_seconds)
 
-    def force_self_qualification(self, *, authorized: bool) -> dict[str, Any]:
-        return self.runtime.force_self_qualification(authorized=authorized)
+    def observe(self, appraisal: StimulusAppraisal, *, elapsed_seconds: float = 0.0) -> dict[str, Any]:
+        if appraisal.context_eligible is not False:
+            raise TriggerRejected(
+                "caller context_eligible is not organic-context evidence; use the precomposed authority/context boundary"
+            )
+        return self._observe_runtime(appraisal, elapsed_seconds=elapsed_seconds)
+
+    def force_admin_test(self, *, authorization_subject: Mapping[str, Any]) -> dict[str, Any]:
+        return self._authority_boundary.force_admin_test(
+            self,
+            authorization_subject=authorization_subject,
+        )
+
+    def force_self_qualification(self, *, authorization_subject: Mapping[str, Any]) -> dict[str, Any]:
+        return self._authority_boundary.force_self_qualification(
+            self,
+            authorization_subject=authorization_subject,
+        )
 
     def advance_time(self, elapsed_seconds: float) -> dict[str, Any]:
         self.runtime.advance_time(elapsed_seconds)
