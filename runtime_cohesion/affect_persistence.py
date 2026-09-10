@@ -26,6 +26,7 @@ _KNOWN_RUNTIME_PHASES = {
 }
 _CANONICAL_SEXUALITY_COMMIT = "150f1c8231423393bb66b0e2cb759ce7c018f8d7"
 _IN_PROCESS_AUTHORITY_TRUST = "IN_PROCESS_UNROOTED_NON_QUALIFYING"
+_UNROOTED_AUTHORITY_LIMITATION = "IN_PROCESS_AUTHORITY_UNROOTED_NON_QUALIFYING"
 
 
 def _canonical_digest(value: Mapping[str, Any]) -> str:
@@ -74,6 +75,23 @@ def _validate_receipt_for_persistence(
         )
     except AffectiveReceiptSemanticError as exc:
         raise PersistenceRecordError("event receipt semantic validation failed: " + str(exc)) from exc
+
+
+def _receipt_has_unrooted_authority_lineage(receipt: Any) -> bool:
+    return (
+        isinstance(receipt, Mapping)
+        and receipt.get("authority_composition_trust") == _IN_PROCESS_AUTHORITY_TRUST
+    )
+
+
+def _row_has_unrooted_authority_lineage(row: Mapping[str, Any]) -> bool:
+    if _receipt_has_unrooted_authority_lineage(row.get("last_event_receipt")):
+        return True
+    limitations = row.get("limitations")
+    return (
+        isinstance(limitations, (list, tuple, set, frozenset))
+        and _UNROOTED_AUTHORITY_LIMITATION in limitations
+    )
 
 
 def _event_interoception_from_receipt(
@@ -209,6 +227,10 @@ def checkpoint_to_state_row(
             raise PersistenceRecordError("checkpoint last_event_receipt must be an object or null")
         if last_event_receipt.get("runtime_implementation_cut") != implementation_cut:
             raise PersistenceRecordError("checkpoint last event receipt implementation cut mismatch")
+        if lifecycle_status == "CURRENT" and _receipt_has_unrooted_authority_lineage(last_event_receipt):
+            raise PersistenceRecordError(
+                "CURRENT affective state cannot inherit in-process unrooted/nonqualifying authority lineage"
+            )
         _validate_receipt_for_persistence(
             last_event_receipt,
             runtime_instance_id=runtime_instance_id,
@@ -227,8 +249,8 @@ def checkpoint_to_state_row(
         "PHENOMENOLOGY_UNRESOLVED",
         "NOT_AUTHORITY_OR_CONSENT",
     ]
-    if isinstance(last_event_receipt, Mapping) and last_event_receipt.get("authority_composition_trust") == _IN_PROCESS_AUTHORITY_TRUST:
-        limitations.append("IN_PROCESS_AUTHORITY_UNROOTED_NON_QUALIFYING")
+    if _receipt_has_unrooted_authority_lineage(last_event_receipt):
+        limitations.append(_UNROOTED_AUTHORITY_LIMITATION)
 
     return {
         "runtime_instance_id": runtime_instance_id,
@@ -265,6 +287,10 @@ def event_receipt_to_event_row(
 ) -> dict[str, Any]:
     if lifecycle_status not in {"CURRENT", "SUPERSEDED", "HISTORICAL"}:
         raise PersistenceRecordError("unsupported event lifecycle_status")
+    if lifecycle_status == "CURRENT" and _receipt_has_unrooted_authority_lineage(receipt):
+        raise PersistenceRecordError(
+            "CURRENT affective event cannot inherit in-process unrooted/nonqualifying authority lineage"
+        )
     host_cut = _copy_implementation_cut(host.runtime_implementation_cut)
     receipt_cut = _copy_implementation_cut(receipt.get("runtime_implementation_cut"))
     if receipt_cut != host_cut:
@@ -291,8 +317,8 @@ def event_receipt_to_event_row(
         "PHENOMENOLOGY_UNRESOLVED",
         "NOT_AUTHORITY_OR_CONSENT",
     ]
-    if receipt.get("authority_composition_trust") == _IN_PROCESS_AUTHORITY_TRUST:
-        limitations.append("IN_PROCESS_AUTHORITY_UNROOTED_NON_QUALIFYING")
+    if _receipt_has_unrooted_authority_lineage(receipt):
+        limitations.append(_UNROOTED_AUTHORITY_LIMITATION)
 
     return {
         "runtime_instance_id": host.runtime.runtime_instance_id,
@@ -319,6 +345,10 @@ def event_receipt_to_event_row(
 def build_affective_resume_token(state_row: Mapping[str, Any]) -> dict[str, Any]:
     if state_row.get("lifecycle_status") != "CURRENT":
         raise PersistenceRecordError("resume token requires lifecycle_status CURRENT")
+    if _row_has_unrooted_authority_lineage(state_row):
+        raise PersistenceRecordError(
+            "resume token cannot promote in-process unrooted/nonqualifying authority lineage"
+        )
     checkpoint_sha256 = _require_hex_digest(
         state_row.get("checkpoint_sha256"),
         label="state-row checkpoint_sha256",
@@ -349,6 +379,10 @@ def build_atomic_commit_request(
 ) -> dict[str, Any]:
     if not isinstance(expected_prior_version, int) or expected_prior_version < 0:
         raise PersistenceRecordError("expected_prior_version must be a nonnegative integer")
+    if state_row.get("lifecycle_status") == "CURRENT" and _row_has_unrooted_authority_lineage(state_row):
+        raise PersistenceRecordError(
+            "production atomic commit cannot promote in-process unrooted/nonqualifying authority lineage"
+        )
     state_version = state_row.get("state_version")
     if not isinstance(state_version, int) or state_version != expected_prior_version + 1:
         raise PersistenceRecordError("new state_version must equal expected_prior_version + 1")
@@ -404,6 +438,10 @@ def restore_host_from_state_row(
         raise PersistenceRecordError("durable state row illegally promotes phenomenology")
     if row.get("lifecycle_status") != "CURRENT":
         raise PersistenceRecordError("live affective restore requires lifecycle_status CURRENT")
+    if _row_has_unrooted_authority_lineage(row):
+        raise PersistenceRecordError(
+            "live affective restore cannot promote in-process unrooted/nonqualifying authority lineage"
+        )
     if not isinstance(expected_host_scope, str) or not expected_host_scope:
         raise PersistenceRecordError("expected_host_scope is required for live affective restore")
     row_host_scope = row.get("host_scope")
