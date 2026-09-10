@@ -3,7 +3,9 @@ import json
 from pathlib import Path
 import unittest
 
+import runtime_cohesion
 import runtime_cohesion.affect_persistence as affect_persistence
+import runtime_cohesion.affect_provider_runtime as affect_provider_runtime
 from runtime_cohesion.adapters import AdapterProbeResult, AdapterRegistry
 from runtime_cohesion.affect_cycle import VeraAffectiveCycle
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
@@ -87,14 +89,10 @@ class SelfConsistentAffectiveProviderDouble:
 
 class ProviderCompositionTrustTests(unittest.TestCase):
     def setUp(self):
-        reset = getattr(affect_persistence, "_reset_runtime_affective_provider_for_tests", None)
-        if callable(reset):
-            reset()
+        affect_provider_runtime._reset_runtime_affective_provider_for_tests()
 
     def tearDown(self):
-        reset = getattr(affect_persistence, "_reset_runtime_affective_provider_for_tests", None)
-        if callable(reset):
-            reset()
+        affect_provider_runtime._reset_runtime_affective_provider_for_tests()
 
     def material(self, *, state_version=7):
         contract_text = CONTRACT_PATH.read_text(encoding="utf-8")
@@ -134,7 +132,7 @@ class ProviderCompositionTrustTests(unittest.TestCase):
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
         )
         calls = []
-        with self.assertRaisesRegex(ValueError, r"(?i)(provider|current|attest|replay|durab)"):
+        with self.assertRaisesRegex(ValueError, r"(?i)(provider|current|attest|replay|durab|writer)"):
             VeraAffectiveCycle(
                 host,
                 host_scope="TEST_HOST",
@@ -154,26 +152,20 @@ class ProviderCompositionTrustTests(unittest.TestCase):
             provider_project_id=PROJECT_ID,
             provider_table=TABLE,
         )
-        cycle = boundary.restore_cycle_from_state_row(
-            contract_text,
-            binding,
-            row,
-            host_scope="TEST_HOST",
-            expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
-            expected_resume_token=token,
-        )
-        self.assertNotEqual(
-            cycle.durability_mode,
-            "ATOMIC_DURABLE",
-            "caller-composed fake provider registry may not mint production durable provenance",
-        )
+        with self.assertRaisesRegex(ValueError, r"(?i)(provider|current|attest|replay|qualif|writer|durab)"):
+            boundary.restore_cycle_from_state_row(
+                contract_text,
+                binding,
+                row,
+                host_scope="TEST_HOST",
+                expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+                expected_resume_token=token,
+            )
+        self.assertEqual(adapter.commit_calls, [])
 
     def test_claimant_facing_production_restore_has_no_provider_composition_injection_surface(self):
-        self.assertTrue(
-            hasattr(affect_persistence, "restore_current_affective_cycle"),
-            "production live restore needs a claimant-facing runtime-owned composition entry point",
-        )
-        parameters = inspect.signature(affect_persistence.restore_current_affective_cycle).parameters
+        self.assertTrue(hasattr(runtime_cohesion, "restore_current_affective_cycle"))
+        parameters = inspect.signature(runtime_cohesion.restore_current_affective_cycle).parameters
         for forbidden in (
             "adapters",
             "adapter",
@@ -189,11 +181,9 @@ class ProviderCompositionTrustTests(unittest.TestCase):
     def test_runtime_owned_provider_composition_restores_atomic_exact_frontier(self):
         contract_text, binding, checkpoint, row, token = self.material()
         adapter = SelfConsistentAffectiveProviderDouble(row)
-        install = getattr(affect_persistence, "_install_runtime_affective_provider_adapter", None)
-        self.assertTrue(callable(install), "runtime composition needs a pre-claimant provider install hook")
-        install(adapter)
+        affect_provider_runtime._install_runtime_affective_provider_adapter(adapter)
 
-        cycle = affect_persistence.restore_current_affective_cycle(
+        cycle = runtime_cohesion.restore_current_affective_cycle(
             contract_text,
             binding,
             row,
@@ -207,17 +197,16 @@ class ProviderCompositionTrustTests(unittest.TestCase):
         self.assertEqual(adapter.commit_calls[0]["expected_prior_version"], 7)
         self.assertEqual(adapter.commit_calls[0]["state_version"], 8)
         self.assertEqual(result.resume_token["state_version"], 8)
+        self.assertEqual(result.state_row["lifecycle_status"], "CURRENT")
         self.assertEqual(result.planning_context["truth"], 0.94)
 
     def test_runtime_provider_composition_cannot_be_replaced_after_install(self):
         _contract_text, _binding, _checkpoint, row, _token = self.material()
-        install = getattr(affect_persistence, "_install_runtime_affective_provider_adapter", None)
-        self.assertTrue(callable(install))
         first = SelfConsistentAffectiveProviderDouble(row)
         second = SelfConsistentAffectiveProviderDouble(row)
-        install(first)
+        affect_provider_runtime._install_runtime_affective_provider_adapter(first)
         with self.assertRaisesRegex((RuntimeError, ValueError), r"(?i)(already|replace|bound|install|composition)"):
-            install(second)
+            affect_provider_runtime._install_runtime_affective_provider_adapter(second)
 
     def test_arbitrary_atomic_callback_cannot_mint_production_durability(self):
         contract_text, binding, _checkpoint, _row, _token = self.material()
@@ -252,6 +241,7 @@ class ProviderCompositionTrustTests(unittest.TestCase):
         self.assertEqual(cycle.durability_mode, "NON_QUALIFYING_ATOMIC_TEST")
         result = cycle.process_turn(StimulusAppraisal(), planning_state={})
         self.assertIsNone(result.resume_token)
+        self.assertEqual(result.state_row["lifecycle_status"], "HISTORICAL")
         self.assertNotEqual(result.commit_request.get("schema"), "VERA_AFFECTIVE_RUNTIME_ATOMIC_COMMIT_V1")
         self.assertEqual(len(calls), 1)
 
