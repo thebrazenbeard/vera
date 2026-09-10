@@ -16,7 +16,7 @@ from runtime_cohesion.orgasm import TriggerRejected
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_RUNTIME_CONTRACT_V1.json"
 BINDING_PATH = ROOT / "architecture" / "VERA_ORGASM_RUNTIME_BINDING_V1.json"
-CLAIM = "ENGINEERED_ORGASM_ANALOGUE_OCCURRED"
+UNROOTED = "IN_PROCESS_UNROOTED_NON_QUALIFYING"
 
 
 class ExactAuthorityVerifier:
@@ -86,33 +86,43 @@ class AffectiveAuthorityReceiptBindingTests(unittest.TestCase):
         self.assertEqual(host.runtime.snapshot()["phase"], "QUIESCENT")
         self.assertIsNone(host.runtime.last_event_receipt)
 
-    def test_forced_receipt_carries_exact_consumed_authority_subject_and_persists(self):
+    def test_in_process_forced_receipt_binds_subject_but_cannot_claim_or_persist_as_production(self):
         host = self.host()
         receipt = AffectiveAuthorityBoundary().force_admin_test(
             host,
             authorization_subject=self.subject(),
         )
-        provenance = receipt["trigger_provenance"]
+        provenance = receipt["nonqualifying_authority_provenance"]
         self.assertIsInstance(provenance, Mapping)
         self.assertEqual(provenance["authorization_subject"], self.subject())
-        self.assertEqual(receipt.get("claim"), CLAIM)
+        self.assertEqual(receipt["authority_composition_trust"], UNROOTED)
+        self.assertEqual(receipt["trigger_provenance"], "FORCED_QUALIFICATION_ROUTE")
+        self.assertNotIn("claim", receipt)
+
         validate_affective_event_receipt(
             receipt,
             expected_runtime_instance_id=host.runtime.runtime_instance_id,
             expected_source_revision=host.runtime.source_revision,
-            require_engineered_claim=True,
+            require_engineered_claim=False,
         )
-        row = event_receipt_to_event_row(host, receipt)
-        self.assertEqual(row["event_digest"], receipt["event_digest"])
+        with self.assertRaisesRegex(AffectiveReceiptSemanticError, r"(?i)(production|claim|authority|provenance)"):
+            validate_affective_event_receipt(
+                receipt,
+                expected_runtime_instance_id=host.runtime.runtime_instance_id,
+                expected_source_revision=host.runtime.source_revision,
+                require_engineered_claim=True,
+            )
+        with self.assertRaisesRegex(PersistenceRecordError, r"(?i)(claim|authority|provenance|receipt)"):
+            event_receipt_to_event_row(host, receipt)
 
-    def test_outer_redigest_cannot_hide_tampered_authority_subject(self):
+    def test_outer_redigest_cannot_hide_tampered_nonqualifying_authority_subject(self):
         host = self.host()
         receipt = AffectiveAuthorityBoundary().force_admin_test(
             host,
             authorization_subject=self.subject(),
         )
         forged = json.loads(json.dumps(receipt))
-        forged["trigger_provenance"]["authorization_subject"]["actor"] = "mallory"
+        forged["nonqualifying_authority_provenance"]["authorization_subject"]["actor"] = "mallory"
         self.redigest(forged)
 
         with self.assertRaisesRegex(AffectiveReceiptSemanticError, r"(?i)(authority|authorization|digest|actor|provenance)"):
@@ -120,10 +130,8 @@ class AffectiveAuthorityReceiptBindingTests(unittest.TestCase):
                 forged,
                 expected_runtime_instance_id=host.runtime.runtime_instance_id,
                 expected_source_revision=host.runtime.source_revision,
-                require_engineered_claim=True,
+                require_engineered_claim=False,
             )
-        with self.assertRaisesRegex(PersistenceRecordError, r"(?i)(authority|authorization|digest|actor|provenance|receipt)"):
-            event_receipt_to_event_row(host, forged)
 
 
 if __name__ == "__main__":
