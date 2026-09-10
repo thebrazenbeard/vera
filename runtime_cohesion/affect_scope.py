@@ -16,30 +16,33 @@ def mark_affective_host_checkpoint_replay(host: Any) -> None:
     """Mark a raw checkpoint-restored host as replay/evidence-only.
 
     Exact checkpoint bytes and source binding do not establish provider
-    lifecycle/currentness. A replay host stays non-live until a provider-current
-    attestation is minted by the runtime-owned provider composition after a fresh
-    provider read.
+    lifecycle/currentness. A replay host stays non-live until a provider-observed
+    composition marks the candidate for bounded diagnostic continuation.
+
+    That in-process mark is NOT authenticated provider provenance and cannot, by
+    itself or together with a writer mark, qualify production ATOMIC_DURABLE.
     """
     with _SCOPE_LOCK:
         _CHECKPOINT_REPLAY_HOSTS[host] = True
 
 
 def require_affective_host_cycle_eligible(host: Any) -> None:
-    """Reject replay hosts that lack provider-current attestation.
+    """Reject replay hosts lacking even a provider-observed composition mark.
 
     Generic host-scope binding is deliberately insufficient. This prevents a
-    low-level row/checkpoint restore from becoming live merely because caller
-    bytes self-label lifecycle_status=CURRENT and carry a plausible scope.
-    Fresh, non-replay hosts remain eligible for ephemeral/non-qualifying test
-    cycles; production durable status is independently gated on a provider-bound
-    writer capability.
+    low-level row/checkpoint restore from becoming cycle-live merely because
+    caller bytes self-label lifecycle_status=CURRENT and carry a plausible scope.
+
+    Important evidence ceiling: the in-process provider-observed mark used here
+    is only a diagnostic composition gate. It is not independently rooted
+    provider provenance and therefore cannot qualify production durability.
     """
     with _SCOPE_LOCK:
         replay_only = bool(_CHECKPOINT_REPLAY_HOSTS.get(host))
-        provider_current = _PROVIDER_CURRENT_HOSTS.get(host) is not None
-    if replay_only and not provider_current:
+        provider_observed = _PROVIDER_CURRENT_HOSTS.get(host) is not None
+    if replay_only and not provider_observed:
         raise ValueError(
-            "restored affective host is replay-only; live durable cycle requires fresh provider CURRENT attestation"
+            "restored affective host is replay-only; cycle continuation requires a provider-observed composition"
         )
 
 
@@ -47,7 +50,8 @@ def bind_affective_host_scope(host: Any, host_scope: str) -> str:
     """Bind one host object to exactly one durable scope for its lifetime.
 
     This is an identity/scope consistency binding only. It does NOT establish
-    provider CURRENT status and therefore cannot make a replay host cycle-live.
+    authenticated provider CURRENT status and therefore cannot qualify
+    production durability.
     """
     if not isinstance(host_scope, str) or not host_scope:
         raise ValueError("host_scope is required")
@@ -68,17 +72,22 @@ def _attest_affective_host_provider_current(
     state_version: int,
     attestation_token: object,
 ) -> None:
-    """Internal composition hook for one freshly provider-read host frontier."""
+    """Record one in-process provider-observed host frontier.
+
+    Historical name retained for branch compatibility. This function is not an
+    authentication primitive: its token and tuple are process-local bookkeeping
+    and MUST NOT be interpreted as independently sourced provider provenance.
+    """
     if isinstance(state_version, bool) or not isinstance(state_version, int) or state_version < 1:
-        raise ValueError("provider CURRENT attestation requires positive state_version")
+        raise ValueError("provider observation mark requires positive state_version")
     if attestation_token is None:
-        raise ValueError("provider CURRENT attestation token is required")
+        raise ValueError("provider observation token is required")
     bind_affective_host_scope(host, host_scope)
     record = (host_scope, state_version, attestation_token)
     with _SCOPE_LOCK:
         existing = _PROVIDER_CURRENT_HOSTS.get(host)
         if existing is not None and existing != record:
-            raise ValueError("affective host already has a different provider CURRENT attestation")
+            raise ValueError("affective host already has a different provider observation mark")
         _PROVIDER_CURRENT_HOSTS[host] = record
 
 
@@ -90,19 +99,33 @@ def _mark_provider_bound_atomic_writer(
     state_version: int,
     attestation_token: object,
 ) -> None:
-    """Bind a writer capability to the exact freshly attested host frontier."""
+    """Record writer/frontier consistency for a diagnostic composition.
+
+    Historical name retained for branch compatibility. A matching record proves
+    only in-process tuple consistency; it is not an external provider-origin
+    capability and cannot qualify production ATOMIC_DURABLE.
+    """
     if not callable(writer):
-        raise TypeError("provider-bound atomic writer must be callable")
+        raise TypeError("provider-composed atomic writer must be callable")
     with _SCOPE_LOCK:
         current = _PROVIDER_CURRENT_HOSTS.get(host)
         expected = (host_scope, state_version, attestation_token)
         if current != expected:
-            raise ValueError("provider-bound writer does not match provider CURRENT host attestation")
+            raise ValueError("provider-composed writer does not match host observation mark")
         _PROVIDER_BOUND_WRITERS[writer] = (host, host_scope, state_version, attestation_token)
 
 
 def _provider_bound_atomic_writer_matches(writer: Any, host: Any, host_scope: str) -> bool:
-    """Return whether writer and host share the same internal provider attestation."""
+    """Never promote process-local marks into authenticated provider durability.
+
+    The historical implementation returned True when two caller-reachable
+    WeakKeyDictionary records shared an arbitrary object token. Hostile review
+    correctly demonstrated that a same-process caller could mint both records
+    without any provider read. We still retain those records as diagnostic
+    consistency data, but they are categorically insufficient for production
+    provenance. Until an independently rooted external provider capability is
+    integrated, this predicate MUST remain False.
+    """
     with _SCOPE_LOCK:
         writer_record = _PROVIDER_BOUND_WRITERS.get(writer)
         host_record = _PROVIDER_CURRENT_HOSTS.get(host)
@@ -110,9 +133,11 @@ def _provider_bound_atomic_writer_matches(writer: Any, host: Any, host_scope: st
         return False
     writer_host, writer_scope, writer_version, writer_token = writer_record
     host_scope_record, host_version, host_token = host_record
-    return (
+    _internally_consistent = (
         writer_host is host
         and writer_scope == host_scope == host_scope_record
         and writer_version == host_version
         and writer_token is host_token
     )
+    # Internal consistency is useful for diagnostics, but is not provider origin.
+    return False
