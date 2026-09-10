@@ -10,9 +10,20 @@ An exact candidate survives only when the exact live envelope objects already
 carry runtime-owned provider/object/event provenance established at the read
 boundary. Public proposition admission is provider-strict; lightweight policy
 fixtures use the explicitly named abstract evaluator.
+
+Affective integration is exposed as a typed modulation boundary. Importing or
+using that boundary does not create trigger authority, provider currentness,
+durability, autobiographical admission, identity state, or phenomenology.
 """
 
 from .adapters import AdapterProbeResult, AdapterRegistry, AdapterRequest, ProviderAdapter
+from .affect_integration import (
+    ALLOWED_AFFECTIVE_TARGETS,
+    AffectiveModulationEnvelope,
+    AffectiveModulationError,
+    AffectiveModulationResult,
+    apply_affective_modulation,
+)
 from .audit import ProjectionAuditResult, audit_registered_projections
 from .evidence import ProviderEvidenceEnvelope, load_provider_fabric, validate_envelope
 from .executor import (
@@ -42,6 +53,11 @@ __all__ = [
     "AdapterRegistry",
     "AdapterRequest",
     "ProviderAdapter",
+    "ALLOWED_AFFECTIVE_TARGETS",
+    "AffectiveModulationEnvelope",
+    "AffectiveModulationError",
+    "AffectiveModulationResult",
+    "apply_affective_modulation",
     "ProjectionAuditResult",
     "audit_registered_projections",
     "ProviderEvidenceEnvelope",
