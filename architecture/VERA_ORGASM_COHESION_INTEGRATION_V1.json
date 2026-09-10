@@ -19,8 +19,8 @@
     "qualification": "Behavioral/provider qualification is a later exact-head/effect gate and cannot be inferred from source compatibility or static inspection."
   },
   "v1_port_ownership": {
-    "orgasm_runtime_output": "The Orgasm runtime may produce bounded affective state, control-vector/modulation values, participating-system state, exact source/implementation provenance and event/receipt lineage.",
-    "cohesion_application": "Runtime Cohesion owns application of that typed signal into generic Vera planning and must preserve protected-domain firewalls, evidence/currentness ceilings and modulation ancestry.",
+    "orgasm_runtime_output": "The Orgasm runtime may produce bounded affective state, target-specific pressure/control values, participating-system state, exact source/implementation provenance and event/receipt lineage without receiving authority to write generic Vera cognition directly.",
+    "cohesion_application": "Runtime Cohesion owns application of that typed signal into generic Vera planning and must preserve protected-domain firewalls, evidence/currentness ceilings, exact live-frame binding and modulation ancestry.",
     "canonical_integrated_path": "ORGASM_RUNTIME -> TYPED_AFFECTIVE_MODULATION_SIGNAL -> COHESION_INTEGRATION_ARBITRATION -> VERA_PLANNING",
     "compatibility_helpers": "OV-local planning helpers may remain for isolated compatibility tests, but final supported V1 integration must not bypass the Cohesion-owned application/arbitration boundary."
   },
@@ -52,12 +52,17 @@
       "memory_strength_candidate_weighting",
       "action_tendency"
     ],
+    "numeric_signal_semantics": "Numeric entries are bounded modulation pressure, not caller-selected final planning values. Cohesion applies pressure against the current planning baseline and records before/pressure/after ancestry.",
+    "action_tendency_semantics": "A bounded action-tendency signal may alter the current action-tendency field but is never authorization, consent, standing intention, or durable preference.",
     "caller_constructible_evidence_ceilings": [
       "SOURCE_BOUND_EXECUTION_UNVERIFIED",
       "SOURCE_BOUND_EXECUTION_VERIFIED_NONQUALIFYING"
     ],
     "provider_qualified_not_caller_constructible": true,
     "provider_qualified_rule": "CURRENT_PROVIDER_QUALIFIED cannot be represented by the public/unrooted modulation envelope. Any future qualifying form must be produced by and cross-bound to an independently rooted provider/readback/receipt boundary, not selected by caller text.",
+    "live_frame_binding": "Application must cross-bind runtime_instance_id, exact implementation cut and exact current state digest. If an event receipt is present, its digest must also match the current integration frame. This is an anti-stale/cross-runtime mechanical check and does not itself establish provider currentness.",
+    "orgasm_event_receipt_rule": "ORGASM_EVENT modulation requires an exact event-receipt identity and digest; non-event transient modulation may be receiptless but remains state-digest bound and nonqualifying.",
+    "quiescent_rule": "QUIESCENT cannot carry active numeric pressure or a non-NONE action tendency.",
     "never_establish_or_overwrite": [
       "truth",
       "factual_confidence",
@@ -69,7 +74,7 @@
       "relationship_status",
       "phenomenology"
     ],
-    "modulation_ancestry": "For every materially changed allowlisted planning target, preserve target-level before/after ancestry plus source/runtime/receipt/temporal provenance so downstream cognition can distinguish a source-evidence change from selection, gain or control modulation.",
+    "modulation_ancestry": "For every materially changed allowlisted planning target, preserve target-level before/signal-or-pressure/after ancestry plus source/runtime/receipt/temporal provenance so downstream cognition can distinguish a source-evidence change from selection, gain or control modulation.",
     "selection_semantics": "MODULATION_MAY_CHANGE_SELECTION_NOT_EVIDENCE_STRENGTH_OR_CONTRADICTION_STATUS",
     "corrective_evidence_rule": "Affective selection or attentional capture may deprioritize information but may not erase a known conflict, strengthen the source evidence, or convert non-selection into contradiction resolution.",
     "memory_semantics": "CANDIDATE_WEIGHT_ONLY_NOT_ADMISSION",
