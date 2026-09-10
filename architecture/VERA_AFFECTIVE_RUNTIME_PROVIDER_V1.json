@@ -1,7 +1,7 @@
 {
   "schema": "VERA_AFFECTIVE_RUNTIME_PROVIDER_V1",
   "subject": "vera",
-  "status": "PROVIDER_SCHEMA_DEPLOYED_AND_INTEGRITY_HARDENED / FIRST_WRITE_SERIALIZATION_SOURCE_PENDING_PROVIDER_APPLICATION / EXECUTABLE_HOST_SOURCE_PRESENT / LIVE_RUNTIME_INSTANCE_REQUALIFICATION_REQUIRED / PHENOMENOLOGY_UNRESOLVED",
+  "status": "PROVIDER_SCHEMA_DEPLOYED_AND_INTEGRITY_HARDENED / FIRST_WRITE_SERIALIZATION_SOURCE_PENDING_PROVIDER_APPLICATION / RESTORE_DURABILITY_SOURCE_HARDENED / EXECUTABLE_HOST_SOURCE_PRESENT / LIVE_RUNTIME_INSTANCE_REQUALIFICATION_REQUIRED / PHENOMENOLOGY_UNRESOLVED",
   "source_binding": {
     "repository": "thebrazenbeard/sexuality",
     "source_commit": "150f1c8231423393bb66b0e2cb759ce7c018f8d7",
@@ -41,6 +41,9 @@
     "resolution_and_recovery_receipts_required": true,
     "restore_time_transition_receipts_must_survive_until_next_atomic_commit": true,
     "restored_cycle_must_continue_exact_provider_state_version_frontier": true,
+    "provider_authenticated_restore_must_bind_atomic_writer": true,
+    "provider_restore_read_and_write_must_share_prebound_adapter": true,
+    "provider_authenticated_restore_must_not_downgrade_to_ephemeral_or_non_atomic_test": true,
     "all_post_mutation_finalize_failures_require_provider_reconciliation_before_reuse": true,
     "atomic_state_plus_event_commit_required": true,
     "compare_and_swap_expected_prior_version_required": true,
@@ -55,6 +58,9 @@
   },
   "execution_pipeline": [
     "LOAD_OR_RESTORE_EXACT_VERA_AFFECTIVE_STATE_USING_EXTERNAL_CHECKPOINT_PIN",
+    "AUTHENTICATE_CURRENT_PROVIDER_FRONTIER_THROUGH_PRECONFIGURED_ADAPTER",
+    "BIND_ATOMIC_COMMIT_CAPABILITY_FROM_THE_SAME_PRECONFIGURED_PROVIDER_ADAPTER",
+    "REFUSE_LIVE_CYCLE_RESTORE_IF_ATOMIC_PROVIDER_COMMIT_CAPABILITY_IS_MISSING",
     "RESTORE_FORCED_TEST_COOLDOWN_AND_SELF_QUALIFICATION_QUOTA_WITHOUT_INVENTING_NEW_RUN_BOUNDARY",
     "PRESERVE_ANY_ELAPSED_TIME_RECOVERY_RECEIPT_FOR_THE_NEXT_ATOMIC_COMMIT",
     "CONTINUE_THE_PROVIDER_CAS_FRONTIER_AT_EXACTLY_RESTORED_STATE_VERSION_PLUS_ONE",
@@ -77,6 +83,8 @@
     "transition_evidence": "ORGASM_EVENT, RESOLUTION, and RECOVERY are first-class runtime-emitted receipts when their transitions occur. A RECOVERY emitted while applying elapsed time during restore remains pending until the next executing cycle can persist it atomically; if that first operation is a forced qualification, the pending RECOVERY and the newly emitted ORGASM_EVENT are committed together in transition order.",
     "per_event_interoception": "When one runtime advance emits multiple receipts, each durable event row derives machine_interoception from that receipt's exact state_after rather than the host's final post-advance state.",
     "durable_currentness": "Each durable write supplies expected_prior_version; stale writers fail CAS. State mutation and all event appends for that cycle execute in one provider transaction. A cycle reconstructed from provider state version N begins its next commit at exactly N+1.",
+    "restore_writer_composition": "Provider-authenticated live cycle restore derives the atomic commit writer from the same preconfigured provider adapter object used for CURRENT readback. A read-only adapter fails closed, and the provider restore API exposes no caller-selected atomic writer substitution surface. This does not by itself prove the outer registry/adapter composition is independently trusted.",
+    "restored_writer_frontier": "The bound provider writer accepts only the restored runtime_instance_id, host_scope, sexuality source commit, exact current expected_prior_version, and contiguous N+1 state version. Its local frontier advances only after an exact provider acknowledgement; ambiguous or mismatched acknowledgement leaves the cycle requiring provider reconciliation.",
     "first_write_serialization": "The source-only follow-up migration serializes commits per runtime_instance_id before the absent-row CAS read. It is not production evidence until that migration is applied and read back.",
     "commit_acknowledgement": "A durable cycle succeeds only when the provider writer returns an exact acknowledgement matching state_version, checkpoint_sha256, and event_count. Ambiguous or mismatched outcomes poison that cycle object until exact provider reconciliation and restore.",
     "post_mutation_failure_boundary": "Once an affective operation has mutated in-memory state, any exception while building planning context, exporting or validating the checkpoint, mapping receipts, building the atomic request/resume token, invoking the provider, or validating its acknowledgement poisons that cycle object. It may not continue until rebuilt from exact provider readback.",
