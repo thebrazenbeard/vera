@@ -16,6 +16,7 @@ from runtime_cohesion.orgasm import OrgasmRuntime, StimulusAppraisal, TriggerRej
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_RUNTIME_CONTRACT_V1.json"
 BINDING_PATH = ROOT / "architecture" / "VERA_ORGASM_RUNTIME_BINDING_V1.json"
+UNROOTED = "IN_PROCESS_UNROOTED_NON_QUALIFYING"
 
 
 class TrustedVerifier:
@@ -69,6 +70,23 @@ class RejectingVerifier:
 
     def verify(self, subject, *, expected_referent, expected_effect_class):
         return None
+
+
+class SelfMintingVerifier:
+    """Models the exact first-writer attack from Thirteen's final review."""
+
+    verifier_id = "caller-installed-self-minting-verifier"
+
+    def verify(self, subject, *, expected_referent, expected_effect_class):
+        if not isinstance(subject, Mapping):
+            return None
+        canonical = json.dumps(dict(subject), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        return {
+            "verifier_id": self.verifier_id,
+            "evidence_id": "caller-minted-evidence",
+            "evidence_digest": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+            "subject": dict(subject),
+        }
 
 
 class FakeMonotonicClock:
@@ -137,7 +155,7 @@ class RuntimeOwnedAuthorityCompositionTests(unittest.TestCase):
                 authorization_subject=self.subject("ADMIN_FORCED_TEST"),
             )
 
-    def test_runtime_owned_verifier_binds_exact_authority_evidence_to_receipt(self):
+    def test_in_process_verifier_binds_evidence_but_is_explicitly_nonqualifying(self):
         self.install(TrustedVerifier(self.NOW))
         boundary = AffectiveAuthorityBoundary()
         receipt = boundary.force_admin_test(
@@ -145,7 +163,7 @@ class RuntimeOwnedAuthorityCompositionTests(unittest.TestCase):
             authorization_subject=self.subject("ADMIN_FORCED_TEST"),
         )
 
-        provenance = receipt["trigger_provenance"]
+        provenance = receipt["nonqualifying_authority_provenance"]
         self.assertIsInstance(provenance, Mapping)
         self.assertEqual(provenance["verifier_id"], TrustedVerifier.verifier_id)
         self.assertEqual(provenance["actor"], "patrick")
@@ -154,6 +172,19 @@ class RuntimeOwnedAuthorityCompositionTests(unittest.TestCase):
         self.assertEqual(provenance["currentness"], "CURRENT")
         self.assertIsNone(provenance["expiry_or_supersession"])
         self.assertRegex(provenance["evidence_digest"], r"^[0-9a-f]{64}$")
+        self.assertEqual(receipt["authority_composition_trust"], UNROOTED)
+        self.assertEqual(receipt["trigger_provenance"], "FORCED_QUALIFICATION_ROUTE")
+        self.assertNotIn("claim", receipt)
+
+    def test_caller_installed_self_consistent_first_writer_cannot_mint_production_claim(self):
+        self.install(SelfMintingVerifier())
+        receipt = AffectiveAuthorityBoundary().force_admin_test(
+            self.host("self-minting-first-writer"),
+            authorization_subject=self.subject("ADMIN_FORCED_TEST"),
+        )
+        self.assertEqual(receipt["authority_composition_trust"], UNROOTED)
+        self.assertIn("nonqualifying_authority_provenance", receipt)
+        self.assertNotIn("claim", receipt)
 
     def test_first_installed_verifier_cannot_be_replaced(self):
         trusted = TrustedVerifier(self.NOW)
@@ -207,6 +238,7 @@ class RuntimeOwnedAuthorityCompositionTests(unittest.TestCase):
             clock.advance(11.0)
             receipt = boundary.force_admin_test(host, authorization_subject=subject)
             self.assertEqual(receipt["trigger_class"], "ADMIN_FORCED_TEST")
+            self.assertNotIn("claim", receipt)
 
     def test_supported_host_runtime_raw_boolean_forced_routes_cannot_cause_affective_effect(self):
         host = self.host("raw-runtime-forced-bypass")
