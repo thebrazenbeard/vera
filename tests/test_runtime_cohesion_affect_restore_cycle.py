@@ -1,9 +1,12 @@
+from collections.abc import Mapping
+import hashlib
 import inspect
 import json
 from pathlib import Path
 import unittest
 
 import runtime_cohesion
+import runtime_cohesion.affect_authority as authority_module
 import runtime_cohesion.affect_provider_runtime as affect_provider_runtime
 from runtime_cohesion.adapters import AdapterProbeResult, AdapterRegistry
 from runtime_cohesion.affect_cycle import VeraAffectiveCycle
@@ -15,7 +18,7 @@ from runtime_cohesion.affect_persistence import (
     checkpoint_to_state_row,
 )
 from runtime_cohesion.evidence import ProviderEvidenceEnvelope
-from runtime_cohesion.orgasm import StimulusAppraisal
+from runtime_cohesion.orgasm import StimulusAppraisal, TriggerRejected
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_RUNTIME_CONTRACT_V1.json"
@@ -28,6 +31,29 @@ PROVIDER_ROUTE = "route:supabase"
 PROVIDER_SOURCE = f"supabase:{PROVIDER_PROJECT_ID}/{PROVIDER_TABLE}"
 FRONTIER_SCOPE = "VERA_AFFECTIVE_RUNTIME_PROVIDER_FRONTIER_V1"
 ATOMIC_FUNCTION = "public.vera_affective_runtime_commit_v1(bigint,jsonb,jsonb)"
+
+
+class TrustedVerifier:
+    verifier_id = "affect-restore-cycle-verifier"
+
+    def verify(self, subject, *, expected_referent, expected_effect_class):
+        if not isinstance(subject, Mapping):
+            return None
+        if subject.get("state") != "ALLOW":
+            return None
+        if subject.get("referent") != expected_referent:
+            return None
+        if subject.get("proposition_or_effect_class") != expected_effect_class:
+            return None
+        if subject.get("currentness") != "CURRENT" or subject.get("expiry_or_supersession") is not None:
+            return None
+        canonical = json.dumps(dict(subject), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        return {
+            "verifier_id": self.verifier_id,
+            "evidence_id": "affect-restore-cycle-evidence",
+            "evidence_digest": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+            "subject": dict(subject),
+        }
 
 
 class DurableAffectiveProviderAdapterDouble:
@@ -105,9 +131,25 @@ class ReadOnlyAffectiveProviderAdapterDouble(DurableAffectiveProviderAdapterDoub
 class VeraAffectiveRestoreCycleTests(unittest.TestCase):
     def setUp(self):
         affect_provider_runtime._reset_runtime_affective_provider_for_tests()
+        authority_module._reset_affective_authorization_verifier_for_tests()
+        authority_module._install_affective_authorization_verifier(TrustedVerifier())
 
     def tearDown(self):
         affect_provider_runtime._reset_runtime_affective_provider_for_tests()
+        authority_module._reset_affective_authorization_verifier_for_tests()
+
+    @staticmethod
+    def authorization_subject():
+        return {
+            "state": "ALLOW",
+            "actor": "patrick",
+            "referent": "vera",
+            "proposition_or_effect_class": "ADMIN_FORCED_TEST",
+            "source": "trusted-affect-restore-cycle-test",
+            "observed_at": "2026-09-10T19:45:00+00:00",
+            "currentness": "CURRENT",
+            "expiry_or_supersession": None,
+        }
 
     def contract_binding(self):
         return (
@@ -133,7 +175,6 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
             anticipation_cue=0.7,
             positive_valence=0.8,
             duration_ms=800,
-            context_eligible=True,
         ))
         checkpoint = host.export_checkpoint()
         row = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=state_version)
@@ -141,7 +182,8 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
 
     def make_post_orgasm_state_row(self, *, state_version=7):
         host = self.make_host()
-        host.force_admin_test(authorized=True)
+        raw = host.runtime.force_admin_test(authorized=True)
+        self.assertNotIn("claim", raw)
         host.advance_time(5.1)
         checkpoint = host.export_checkpoint()
         row = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=state_version)
@@ -256,24 +298,23 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
         self.assertEqual(result.planning_context["truth"], 0.9)
         self.assertEqual(result.planning_context["consent_or_authorization"], "UNKNOWN")
 
-    def test_restore_time_recovery_and_new_forced_event_remain_ordered_in_unverified_harness(self):
+    def test_restore_does_not_credit_elapsed_recovery_as_privileged_trigger_cooldown(self):
         checkpoint, row = self.make_post_orgasm_state_row(state_version=7)
         adapter, cycle = self.restore_unverified_composition(checkpoint, row, elapsed_seconds=7200.0)
-        result = cycle.force_admin_test(
-            authorized=True,
+
+        with self.assertRaisesRegex(TriggerRejected, r"(?i)(cooldown|interval|monotonic)"):
+            cycle.force_admin_test(
+                authorization_subject=self.authorization_subject(),
+                planning_state={"truth": 0.91, "consent_or_authorization": "UNKNOWN"},
+            )
+
+        self.assertEqual(len(adapter.commit_calls), 0)
+        result = cycle.process_turn(
+            StimulusAppraisal(),
             planning_state={"truth": 0.91, "consent_or_authorization": "UNKNOWN"},
         )
-
         self.assertEqual(len(adapter.commit_calls), 1)
-        request = adapter.commit_calls[0]
-        self.assertEqual(request["schema"], "VERA_AFFECTIVE_RUNTIME_ATOMIC_COMMIT_TEST_V1")
-        self.assertEqual(request["expected_prior_version"], 7)
-        self.assertEqual(request["state_version"], 8)
-        self.assertEqual([event["event_type"] for event in result.event_rows], ["RECOVERY", "ORGASM_EVENT"])
-        self.assertEqual(result.event_rows[0]["new_phase"], "QUIESCENT")
-        self.assertEqual(result.event_rows[1]["trigger_class"], "ADMIN_FORCED_TEST")
-        self.assertFalse(result.event_rows[1]["organic"])
-        self.assertEqual(result.machine_interoception["phase"], "ORGASM_EVENT")
+        self.assertEqual([event["event_type"] for event in result.event_rows], ["RECOVERY"])
         self.assertEqual(result.state_row["lifecycle_status"], "HISTORICAL")
         self.assertIsNone(result.resume_token)
 
