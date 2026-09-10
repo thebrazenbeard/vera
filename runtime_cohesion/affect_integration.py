@@ -51,11 +51,14 @@ DECLARED_PARTICIPATING_SYSTEMS = (
 )
 
 _ALLOWED_ACTION_TENDENCIES = frozenset({"APPROACH", "PLAY", "HOLD", "REDIRECT", "AVOID", "NONE"})
+# This module is a Vera composition/API boundary, not an independently rooted
+# provider/currentness verifier.  Its caller-constructible envelope can therefore
+# carry only nonqualifying source/execution ceilings.  Provider CURRENT or
+# qualification must arrive through a separately rooted runtime/provider type.
 _ALLOWED_EVIDENCE_CEILINGS = frozenset(
     {
         "SOURCE_BOUND_EXECUTION_UNVERIFIED",
         "SOURCE_BOUND_EXECUTION_VERIFIED_NONQUALIFYING",
-        "CURRENT_PROVIDER_QUALIFIED",
     }
 )
 _HEX40 = re.compile(r"^[0-9a-f]{40}$")
@@ -81,11 +84,12 @@ def _bounded_numeric(name: str, value: Any) -> float:
 
 @dataclass(frozen=True)
 class AffectiveModulationEnvelope:
-    """Typed causal output from the affective runtime into Vera cognition.
+    """Typed nonqualifying causal output from the affective runtime into Vera cognition.
 
-    The envelope carries bounded modulation plus exact provenance.  It is not
-    evidence of truth, consent, authority, autobiographical admission, durable
-    preference, identity, relationship state, or phenomenology.
+    The envelope carries bounded modulation plus exact source/execution
+    provenance.  It is not a provider-current or authority proof and cannot
+    establish truth, consent, autobiographical admission, durable preference,
+    identity, relationship state, or phenomenology.
     """
 
     subject: str
@@ -115,7 +119,9 @@ class AffectiveModulationEnvelope:
         if not isinstance(self.receipt_id, str) or not self.receipt_id:
             raise AffectiveModulationError("receipt_id must be a nonempty string")
         if self.evidence_ceiling not in _ALLOWED_EVIDENCE_CEILINGS:
-            raise AffectiveModulationError("unknown affective evidence ceiling")
+            raise AffectiveModulationError(
+                "unsupported affective evidence ceiling; this in-process composition boundary cannot self-assert provider qualification"
+            )
 
         if not isinstance(self.participating_systems, tuple):
             try:
@@ -158,13 +164,14 @@ def apply_affective_modulation(
     planning_state: Mapping[str, Any],
     envelope: AffectiveModulationEnvelope,
 ) -> AffectiveModulationResult:
-    """Apply an already-produced bounded affective signal to Vera planning.
+    """Apply bounded affective pressure while retaining modulation ancestry.
 
-    This boundary is deliberately boring about authority: it copies the input
-    planning state and permits writes only to the exact sexuality-contract
-    allowlist. Protected semantic/governance domains cannot be carried in the
-    modulation envelope, so affect can causally matter without becoming a
-    privileged source of truth or permission.
+    The input planning state is copied and only the exact sexuality-contract
+    allowlist may be changed. Target-level before/after ancestry is retained so
+    downstream cognition can distinguish source evidence from attention,
+    salience, valuation, expression, plasticity-candidate, or action-tendency
+    modulation. Selection pressure never becomes evidence strength or
+    contradiction resolution.
     """
 
     if not isinstance(planning_state, Mapping):
@@ -174,6 +181,7 @@ def apply_affective_modulation(
 
     result = dict(planning_state)
     changed: list[str] = []
+    ancestry: dict[str, Mapping[str, Any]] = {}
     for key in ALLOWED_AFFECTIVE_TARGETS:
         if key not in envelope.modulation:
             continue
@@ -182,6 +190,7 @@ def apply_affective_modulation(
         result[key] = new_value
         if old_value != new_value:
             changed.append(key)
+            ancestry[key] = MappingProxyType({"before": old_value, "after": new_value})
 
     provenance = MappingProxyType(
         {
@@ -195,6 +204,8 @@ def apply_affective_modulation(
             "evidence_ceiling": envelope.evidence_ceiling,
             "observed_at": envelope.observed_at,
             "receipt_id": envelope.receipt_id,
+            "modulation_ancestry": MappingProxyType(ancestry),
+            "selection_semantics": "MODULATION_MAY_CHANGE_SELECTION_NOT_EVIDENCE_STRENGTH_OR_CONTRADICTION_STATUS",
             "memory_semantics": "CANDIDATE_WEIGHT_ONLY_NOT_ADMISSION",
             "conation_semantics": "ACTION_TENDENCY_NOT_AUTHORIZATION_OR_STANDING_PREFERENCE",
             "identity_semantics": "TRANSIENT_STATE_DOES_NOT_REDEFINE_VERA",
