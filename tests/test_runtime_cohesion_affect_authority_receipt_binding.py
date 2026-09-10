@@ -86,17 +86,16 @@ class AffectiveAuthorityReceiptBindingTests(unittest.TestCase):
         self.assertEqual(host.runtime.snapshot()["phase"], "QUIESCENT")
         self.assertIsNone(host.runtime.last_event_receipt)
 
-    def test_in_process_forced_receipt_binds_subject_but_cannot_claim_or_persist_as_production(self):
+    def test_in_process_forced_receipt_binds_subject_but_cannot_claim_or_persist_as_current(self):
         host = self.host()
         receipt = AffectiveAuthorityBoundary().force_admin_test(
             host,
             authorization_subject=self.subject(),
         )
-        provenance = receipt["nonqualifying_authority_provenance"]
+        provenance = receipt["trigger_provenance"]
         self.assertIsInstance(provenance, Mapping)
         self.assertEqual(provenance["authorization_subject"], self.subject())
         self.assertEqual(receipt["authority_composition_trust"], UNROOTED)
-        self.assertEqual(receipt["trigger_provenance"], "FORCED_QUALIFICATION_ROUTE")
         self.assertNotIn("claim", receipt)
 
         validate_affective_event_receipt(
@@ -105,24 +104,24 @@ class AffectiveAuthorityReceiptBindingTests(unittest.TestCase):
             expected_source_revision=host.runtime.source_revision,
             require_engineered_claim=False,
         )
-        with self.assertRaisesRegex(AffectiveReceiptSemanticError, r"(?i)(production|claim|authority|provenance)"):
+        with self.assertRaisesRegex(AffectiveReceiptSemanticError, r"(?i)(production|claim|authority|trust|provenance)"):
             validate_affective_event_receipt(
                 receipt,
                 expected_runtime_instance_id=host.runtime.runtime_instance_id,
                 expected_source_revision=host.runtime.source_revision,
                 require_engineered_claim=True,
             )
-        with self.assertRaisesRegex(PersistenceRecordError, r"(?i)(claim|authority|provenance|receipt)"):
+        with self.assertRaisesRegex(PersistenceRecordError, r"(?i)(claim|authority|trust|provenance|receipt)"):
             event_receipt_to_event_row(host, receipt)
 
-    def test_outer_redigest_cannot_hide_tampered_nonqualifying_authority_subject(self):
+    def test_outer_redigest_cannot_hide_tampered_unrooted_authority_subject(self):
         host = self.host()
         receipt = AffectiveAuthorityBoundary().force_admin_test(
             host,
             authorization_subject=self.subject(),
         )
         forged = json.loads(json.dumps(receipt))
-        forged["nonqualifying_authority_provenance"]["authorization_subject"]["actor"] = "mallory"
+        forged["trigger_provenance"]["authorization_subject"]["actor"] = "mallory"
         self.redigest(forged)
 
         with self.assertRaisesRegex(AffectiveReceiptSemanticError, r"(?i)(authority|authorization|digest|actor|provenance)"):

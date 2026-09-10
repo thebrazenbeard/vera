@@ -6,8 +6,7 @@ import unittest
 
 import runtime_cohesion.affect_authority as authority_module
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
-from runtime_cohesion.affect_persistence import checkpoint_to_state_row, restore_host_from_state_row
-from runtime_cohesion.orgasm import TriggerRejected
+from runtime_cohesion.affect_persistence import PersistenceRecordError, checkpoint_to_state_row, restore_host_from_state_row
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_RUNTIME_CONTRACT_V1.json"
@@ -67,26 +66,32 @@ class VeraAffectiveTriggerGovernancePersistenceTests(unittest.TestCase):
             profile="REENTRANT_CLIMAX",
         )
 
-    def test_provider_state_row_preserves_trigger_governance_and_restore_enforces_it(self):
+    def test_unrooted_trigger_governance_can_be_recorded_historically_but_not_restored_as_current(self):
         host = self.make_host()
         receipt = host.force_admin_test(authorization_subject=self.authorization_subject())
         self.assertEqual(receipt["trigger_class"], "ADMIN_FORCED_TEST")
+        self.assertNotIn("claim", receipt)
         host.advance_time(5.1)
         checkpoint = host.export_checkpoint()
-        row = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=1)
+        row = checkpoint_to_state_row(
+            checkpoint,
+            host_scope="TEST_HOST",
+            state_version=1,
+            lifecycle_status="HISTORICAL",
+        )
 
         self.assertIn("trigger_governance", row)
         self.assertEqual(row["trigger_governance"]["schema"], "VERA_ORGASM_TRIGGER_GOVERNANCE_V1")
+        self.assertEqual(row["lifecycle_status"], "HISTORICAL")
 
-        restored = restore_host_from_state_row(
-            CONTRACT_PATH.read_text(encoding="utf-8"),
-            json.loads(BINDING_PATH.read_text(encoding="utf-8")),
-            row,
-            expected_host_scope="TEST_HOST",
-            expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
-        )
-        with self.assertRaisesRegex(TriggerRejected, r"(?i)(cooldown|interval|monotonic)"):
-            restored.force_admin_test(authorization_subject=self.authorization_subject())
+        with self.assertRaisesRegex(PersistenceRecordError, r"(?i)(current|lifecycle|historical)"):
+            restore_host_from_state_row(
+                CONTRACT_PATH.read_text(encoding="utf-8"),
+                json.loads(BINDING_PATH.read_text(encoding="utf-8")),
+                row,
+                expected_host_scope="TEST_HOST",
+                expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+            )
 
     def test_provider_migration_carries_trigger_governance_through_atomic_state_commit(self):
         sql = MIGRATION.read_text(encoding="utf-8").lower()

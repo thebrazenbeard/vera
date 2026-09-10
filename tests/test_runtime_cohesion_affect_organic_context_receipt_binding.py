@@ -96,7 +96,7 @@ class OrganicContextReceiptBindingTests(unittest.TestCase):
             context_eligible=False,
         )
 
-    def test_in_process_organic_receipt_binds_context_but_cannot_claim_or_persist_as_production(self):
+    def test_in_process_organic_receipt_binds_context_but_cannot_claim_or_persist_as_current(self):
         host = self.host()
         boundary = AffectiveAuthorityBoundary()
         clock = Clock()
@@ -119,8 +119,7 @@ class OrganicContextReceiptBindingTests(unittest.TestCase):
         self.assertTrue(event["organic"])
         self.assertEqual(event["authority_composition_trust"], UNROOTED)
         self.assertNotIn("claim", event)
-        self.assertNotIn("context_provenance", event)
-        provenance = event.get("nonqualifying_context_provenance")
+        provenance = event.get("context_provenance")
         self.assertIsInstance(provenance, Mapping)
         self.assertEqual(provenance["authorization_subject"], self.context_subject())
         validate_affective_event_receipt(
@@ -129,17 +128,17 @@ class OrganicContextReceiptBindingTests(unittest.TestCase):
             expected_source_revision=host.runtime.source_revision,
             require_engineered_claim=False,
         )
-        with self.assertRaisesRegex(AffectiveReceiptSemanticError, r"(?i)(production|claim|context|provenance)"):
+        with self.assertRaisesRegex(AffectiveReceiptSemanticError, r"(?i)(production|claim|context|trust|provenance)"):
             validate_affective_event_receipt(
                 event,
                 expected_runtime_instance_id=host.runtime.runtime_instance_id,
                 expected_source_revision=host.runtime.source_revision,
                 require_engineered_claim=True,
             )
-        with self.assertRaisesRegex(PersistenceRecordError, r"(?i)(claim|context|provenance|receipt)"):
+        with self.assertRaisesRegex(PersistenceRecordError, r"(?i)(claim|context|trust|provenance|receipt)"):
             event_receipt_to_event_row(host, event)
 
-    def test_outer_redigest_cannot_hide_tampered_nonqualifying_context_subject(self):
+    def test_outer_redigest_cannot_hide_tampered_unrooted_context_subject(self):
         host = self.host()
         boundary = AffectiveAuthorityBoundary()
         clock = Clock()
@@ -155,7 +154,7 @@ class OrganicContextReceiptBindingTests(unittest.TestCase):
                     break
         self.assertIsNotNone(event)
         forged = json.loads(json.dumps(event))
-        forged["nonqualifying_context_provenance"]["authorization_subject"]["source"] = "forged-context"
+        forged["context_provenance"]["authorization_subject"]["source"] = "forged-context"
         core = dict(forged)
         core.pop("event_digest", None)
         canonical = json.dumps(core, sort_keys=True, separators=(",", ":"), ensure_ascii=False)

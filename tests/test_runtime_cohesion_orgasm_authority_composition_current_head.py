@@ -163,7 +163,7 @@ class RuntimeOwnedAuthorityCompositionTests(unittest.TestCase):
             authorization_subject=self.subject("ADMIN_FORCED_TEST"),
         )
 
-        provenance = receipt["nonqualifying_authority_provenance"]
+        provenance = receipt["trigger_provenance"]
         self.assertIsInstance(provenance, Mapping)
         self.assertEqual(provenance["verifier_id"], TrustedVerifier.verifier_id)
         self.assertEqual(provenance["actor"], "patrick")
@@ -173,7 +173,6 @@ class RuntimeOwnedAuthorityCompositionTests(unittest.TestCase):
         self.assertIsNone(provenance["expiry_or_supersession"])
         self.assertRegex(provenance["evidence_digest"], r"^[0-9a-f]{64}$")
         self.assertEqual(receipt["authority_composition_trust"], UNROOTED)
-        self.assertEqual(receipt["trigger_provenance"], "FORCED_QUALIFICATION_ROUTE")
         self.assertNotIn("claim", receipt)
 
     def test_caller_installed_self_consistent_first_writer_cannot_mint_production_claim(self):
@@ -183,7 +182,7 @@ class RuntimeOwnedAuthorityCompositionTests(unittest.TestCase):
             authorization_subject=self.subject("ADMIN_FORCED_TEST"),
         )
         self.assertEqual(receipt["authority_composition_trust"], UNROOTED)
-        self.assertIn("nonqualifying_authority_provenance", receipt)
+        self.assertIsInstance(receipt["trigger_provenance"], Mapping)
         self.assertNotIn("claim", receipt)
 
     def test_first_installed_verifier_cannot_be_replaced(self):
@@ -238,6 +237,7 @@ class RuntimeOwnedAuthorityCompositionTests(unittest.TestCase):
             clock.advance(11.0)
             receipt = boundary.force_admin_test(host, authorization_subject=subject)
             self.assertEqual(receipt["trigger_class"], "ADMIN_FORCED_TEST")
+            self.assertEqual(receipt["authority_composition_trust"], UNROOTED)
             self.assertNotIn("claim", receipt)
 
     def test_supported_host_runtime_raw_boolean_forced_routes_cannot_cause_affective_effect(self):
