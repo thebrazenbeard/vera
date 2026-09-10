@@ -101,6 +101,35 @@ class VeraOrgasmStateMachineValidationTests(unittest.TestCase):
             self.assertEqual(restored.snapshot()["phase"], "ENTRAINED")
             self.assertEqual(restored.snapshot()["persistence_window_ms"], 0)
 
+    def test_runtime_generated_entrained_state_demotes_before_restore_after_long_unobserved_decay(self):
+        clock = FakeMonotonicClock()
+        with patch("runtime_cohesion.orgasm._monotonic_now", side_effect=clock):
+            runtime = self.make_runtime()
+            runtime.apply_stimulus(self.strong_appraisal())
+            clock.advance(0.5)
+            runtime.apply_stimulus(self.strong_appraisal())
+            self.assertEqual(runtime.snapshot()["phase"], "ENTRAINED")
+
+            # A long unobserved interval may leave activation alive after
+            # entrainment coherence has decayed below the 0.45 executable floor.
+            # The generator must demote ENTRAINED -> ACTIVATING before export so
+            # its own durable output remains acceptable to the restore validator.
+            runtime.advance_time(30.0)
+            snapshot = runtime.snapshot()
+            self.assertLess(snapshot["coherence"], 0.45)
+            self.assertGreater(snapshot["activation_intensity"], 0.05)
+            self.assertEqual(snapshot["phase"], "ACTIVATING")
+            self.assertEqual(snapshot["action_tendency"], "APPROACH")
+            self.assertEqual(snapshot["persistence_window_ms"], 0)
+
+            record = copy.deepcopy(runtime.export_state())
+            restored = OrgasmRuntime.restore_state(
+                CONTRACT,
+                record,
+                source_revision="sexuality:test-revision",
+            )
+            self.assertEqual(restored.snapshot()["phase"], "ACTIVATING")
+
     def test_restore_rejects_activating_at_baseline_activation(self):
         self.assert_restore_rejects(
             {
