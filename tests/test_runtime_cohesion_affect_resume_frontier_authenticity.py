@@ -33,6 +33,7 @@ class AffectiveProviderReadAdapterDouble:
         self._current_row = dict(current_row)
         self.probe_calls = 0
         self.read_calls = 0
+        self.commit_calls = []
 
     def advance_provider_frontier(self, row):
         self._current_row = dict(row)
@@ -75,6 +76,18 @@ class AffectiveProviderReadAdapterDouble:
                 "source_commit": row["source_commit"],
             },
         )
+
+    def commit_affective_runtime(self, request):
+        request = dict(request)
+        self.commit_calls.append(request)
+        if request["expected_prior_version"] != self._current_row["state_version"]:
+            raise RuntimeError("test provider rejected stale affective CAS frontier")
+        self._current_row = dict(request["state_row"])
+        return {
+            "state_version": request["state_version"],
+            "checkpoint_sha256": request["checkpoint_sha256"],
+            "event_count": len(request["event_rows"]),
+        }
 
 
 class DuckTypedAffectiveProviderReadAdapterDouble(AffectiveProviderReadAdapterDouble):
@@ -153,8 +166,9 @@ class VeraAffectiveResumeFrontierAuthenticityTests(unittest.TestCase):
         self.assertEqual(host.runtime.runtime_instance_id, row["runtime_instance_id"])
         self.assertEqual(adapter.probe_calls, 1)
         self.assertEqual(adapter.read_calls, 1)
+        self.assertEqual(adapter.commit_calls, [])
 
-    def test_cycle_restore_uses_same_prebound_provider_read_boundary(self):
+    def test_cycle_restore_uses_same_prebound_provider_read_and_write_boundary(self):
         checkpoint, row, token = self.make_row(state_version=7)
         adapter = AffectiveProviderReadAdapterDouble(row)
         boundary = self.bind_restore_boundary(adapter)
@@ -162,8 +176,11 @@ class VeraAffectiveResumeFrontierAuthenticityTests(unittest.TestCase):
         cycle = self.restore_cycle(boundary, checkpoint, row, token)
 
         self.assertEqual(cycle._next_state_version, 8)
+        self.assertEqual(cycle.durability_mode, "ATOMIC_DURABLE")
+        self.assertIsNotNone(cycle.atomic_commit_writer)
         self.assertEqual(adapter.probe_calls, 1)
         self.assertEqual(adapter.read_calls, 1)
+        self.assertEqual(adapter.commit_calls, [])
 
     def test_candidate_row_and_candidate_token_cannot_vouch_for_themselves(self):
         checkpoint, trusted_row, _trusted_token = self.make_row(state_version=7)
@@ -193,7 +210,6 @@ class VeraAffectiveResumeFrontierAuthenticityTests(unittest.TestCase):
         adapter = AffectiveProviderReadAdapterDouble(old_row)
         boundary = self.bind_restore_boundary(adapter)
 
-        # This was once the exact provider frontier.
         old_host = self.restore_host(boundary, checkpoint, old_row, old_token)
         self.assertEqual(old_host.runtime.runtime_instance_id, old_row["runtime_instance_id"])
 
@@ -235,8 +251,6 @@ class VeraAffectiveResumeFrontierAuthenticityTests(unittest.TestCase):
         )
         contract_text, binding = self.contract_text_and_binding()
 
-        # The low-level claimant path may not treat a caller-created envelope as
-        # equivalent to a read performed by the prebound provider adapter.
         with self.assertRaisesRegex(
             (affect_persistence.PersistenceRecordError, TypeError, ValueError),
             r"(?i)(provider|read|frontier|evidence|bound|resume)",
