@@ -68,61 +68,51 @@ def _validate_receipt_state(state: Any, *, label: str) -> Mapping[str, Any]:
     return state
 
 
-def _validate_forced_authority_provenance(provenance: Any, *, trigger: str) -> None:
+def _validate_consumed_evidence_provenance(
+    provenance: Any,
+    *,
+    expected_effect_class: str,
+    label: str,
+) -> None:
     if not isinstance(provenance, Mapping):
         raise AffectiveReceiptSemanticError(
-            "production forced-event receipt requires structured authorization provenance"
+            f"production {label} receipt requires structured verified provenance"
         )
     for field in ("verifier_id", "evidence_id", "evidence_digest", "authorization_subject"):
         if field not in provenance:
-            raise AffectiveReceiptSemanticError(
-                f"forced-event authorization provenance lacks {field}"
-            )
+            raise AffectiveReceiptSemanticError(f"{label} provenance lacks {field}")
     for field in ("verifier_id", "evidence_id"):
         value = provenance.get(field)
         if not isinstance(value, str) or not value:
-            raise AffectiveReceiptSemanticError(
-                f"forced-event authorization provenance {field} must be non-empty"
-            )
+            raise AffectiveReceiptSemanticError(f"{label} provenance {field} must be non-empty")
     evidence_digest = provenance.get("evidence_digest")
     if not isinstance(evidence_digest, str) or len(evidence_digest) != 64:
-        raise AffectiveReceiptSemanticError(
-            "forced-event authorization provenance lacks exact evidence digest"
-        )
+        raise AffectiveReceiptSemanticError(f"{label} provenance lacks exact evidence digest")
     try:
         int(evidence_digest, 16)
     except ValueError as exc:
-        raise AffectiveReceiptSemanticError(
-            "forced-event authorization evidence digest is not hexadecimal"
-        ) from exc
+        raise AffectiveReceiptSemanticError(f"{label} evidence digest is not hexadecimal") from exc
 
     subject = provenance.get("authorization_subject")
     if not isinstance(subject, Mapping):
-        raise AffectiveReceiptSemanticError(
-            "forced-event authorization provenance lacks exact consumed subject"
-        )
+        raise AffectiveReceiptSemanticError(f"{label} provenance lacks exact consumed subject")
     if evidence_digest != _canonical_digest(subject):
-        raise AffectiveReceiptSemanticError(
-            "forced-event authorization evidence digest does not bind consumed subject"
-        )
+        raise AffectiveReceiptSemanticError(f"{label} evidence digest does not bind consumed subject")
+
     expected_subject = {
         "state": "ALLOW",
         "referent": "vera",
-        "proposition_or_effect_class": trigger,
+        "proposition_or_effect_class": expected_effect_class,
         "currentness": "CURRENT",
         "expiry_or_supersession": None,
     }
     for field, expected in expected_subject.items():
         if subject.get(field) != expected:
-            raise AffectiveReceiptSemanticError(
-                f"forced-event authorization subject {field} mismatch"
-            )
+            raise AffectiveReceiptSemanticError(f"{label} subject {field} mismatch")
     for field in ("actor", "source", "observed_at"):
         value = subject.get(field)
         if not isinstance(value, str) or not value:
-            raise AffectiveReceiptSemanticError(
-                f"forced-event authorization subject lacks {field}"
-            )
+            raise AffectiveReceiptSemanticError(f"{label} subject lacks {field}")
     _require_observed_at(subject.get("observed_at"))
 
     for field in (
@@ -136,7 +126,7 @@ def _validate_forced_authority_provenance(provenance: Any, *, trigger: str) -> N
     ):
         if provenance.get(field) != subject.get(field):
             raise AffectiveReceiptSemanticError(
-                f"forced-event authorization provenance {field} does not match consumed subject"
+                f"{label} provenance {field} does not match consumed subject"
             )
 
 
@@ -151,8 +141,8 @@ def validate_affective_event_receipt(
 
     Receipt-local identity, source, digest, transition lineage, trigger provenance,
     time and claim ceiling are checked here. Current authorization/provider truth
-    remains a separate trust boundary; structured forced-event provenance proves
-    only the exact authorization subject recorded for that historical event.
+    remains separate; embedded verifier evidence records the exact upstream subject
+    consumed for the historical qualifying event, not current standing authority.
     """
     if not isinstance(receipt, Mapping):
         raise AffectiveReceiptSemanticError("event receipt must be an object")
@@ -195,8 +185,22 @@ def validate_affective_event_receipt(
         if organic:
             if provenance != "ORGANIC_STATE_DYNAMICS":
                 raise AffectiveReceiptSemanticError("ORGASM_EVENT trigger provenance mismatch")
+            if require_engineered_claim:
+                _validate_consumed_evidence_provenance(
+                    receipt.get("context_provenance"),
+                    expected_effect_class="ORGANIC_CONTEXT_ELIGIBILITY",
+                    label="organic-context",
+                )
+            elif "context_provenance" in receipt:
+                raise AffectiveReceiptSemanticError(
+                    "nonqualifying organic event may not carry production context provenance"
+                )
         elif require_engineered_claim:
-            _validate_forced_authority_provenance(provenance, trigger=trigger)
+            _validate_consumed_evidence_provenance(
+                provenance,
+                expected_effect_class=str(trigger),
+                label="forced-event authorization",
+            )
         elif provenance != "FORCED_QUALIFICATION_ROUTE":
             raise AffectiveReceiptSemanticError("nonqualifying forced-event trigger provenance mismatch")
 
