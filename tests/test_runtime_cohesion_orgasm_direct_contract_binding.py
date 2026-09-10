@@ -101,6 +101,23 @@ class DirectOrgasmContractBindingTests(unittest.TestCase):
             CANONICAL_CLAIM,
             "the public base loader may verify source bytes but may not itself promote a forced event to production evidence",
         )
+        self.assertEqual(runtime.qualification_status, UNBOUND_STATUS)
+
+    def test_public_base_exact_bound_restore_cannot_mint_production_claim(self):
+        seed = OrgasmRuntime.from_exact_bound_contract(
+            CONTRACT_PATH.read_text(encoding="utf-8"),
+            self.binding(),
+            runtime_instance_id="direct-exact-bound-restore-negative",
+        )
+        record = seed.export_state()
+        restored = OrgasmRuntime.restore_exact_bound_state(
+            CONTRACT_PATH.read_text(encoding="utf-8"),
+            self.binding(),
+            record,
+        )
+        receipt = restored.force_admin_test(authorized=True)
+        self.assertNotEqual(receipt.get("claim"), CANONICAL_CLAIM)
+        self.assertEqual(restored.qualification_status, UNBOUND_STATUS)
 
     def test_exact_bound_host_establishes_source_capability_without_authorizing_an_event(self):
         binding = self.binding()
