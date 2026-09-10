@@ -14,7 +14,7 @@ class PersistenceRecordError(ValueError):
     """A durable affective-state record is malformed, cross-bound, or tampered."""
 
 
-_PERSISTABLE_RUNTIME_PHASES = {
+_KNOWN_RUNTIME_PHASES = {
     "QUIESCENT",
     "ACTIVATING",
     "ENTRAINED",
@@ -153,7 +153,7 @@ def checkpoint_to_state_row(
     trigger_governance = runtime_state.get("trigger_governance")
     if not isinstance(state, Mapping):
         raise PersistenceRecordError("checkpoint state is missing")
-    if state.get("phase") not in _PERSISTABLE_RUNTIME_PHASES:
+    if state.get("phase") not in _KNOWN_RUNTIME_PHASES:
         raise PersistenceRecordError("checkpoint state phase is not a recognized runtime semantic phase")
     if not isinstance(trigger_governance, Mapping):
         raise PersistenceRecordError("checkpoint trigger governance is missing")
