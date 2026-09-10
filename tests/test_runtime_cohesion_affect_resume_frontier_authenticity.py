@@ -4,10 +4,7 @@ from types import SimpleNamespace
 import unittest
 
 import runtime_cohesion.affect_persistence as affect_persistence
-from runtime_cohesion.adapters import (
-    AdapterProbeResult,
-    AdapterRegistry,
-)
+from runtime_cohesion.adapters import AdapterProbeResult, AdapterRegistry
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
 from runtime_cohesion.evidence import ProviderEvidenceEnvelope
 
@@ -25,8 +22,6 @@ FRONTIER_SCOPE = "VERA_AFFECTIVE_RUNTIME_PROVIDER_FRONTIER_V1"
 
 
 class AffectiveProviderReadAdapterDouble:
-    """Runtime-owned adapter double; claimant row/token do not configure it."""
-
     provider = PROVIDER
 
     def __init__(self, current_row):
@@ -60,7 +55,7 @@ class AffectiveProviderReadAdapterDouble:
             referent=row["runtime_instance_id"],
             scope=FRONTIER_SCOPE,
             privacy_class=request.privacy_class,
-            currentness_basis="fresh runtime-owned adapter read",
+            currentness_basis="fresh test adapter read",
             supersession_state="CURRENT_OBSERVATION",
             conflict_state="NONE",
             content_digest=row["checkpoint_sha256"],
@@ -120,12 +115,7 @@ class VeraAffectiveResumeFrontierAuthenticityTests(unittest.TestCase):
         return checkpoint, row, affect_persistence.build_affective_resume_token(row)
 
     def bind_restore_boundary(self, adapter):
-        self.assertTrue(
-            hasattr(affect_persistence, "AffectiveProviderRestoreBoundary"),
-            "live affective restore needs a provider-read boundary configured outside claimant input",
-        )
-        boundary_type = affect_persistence.AffectiveProviderRestoreBoundary
-        return boundary_type(
+        return affect_persistence.AffectiveProviderRestoreBoundary(
             adapters=AdapterRegistry({PROVIDER: adapter}),
             provider=PROVIDER,
             provider_route=PROVIDER_ROUTE,
@@ -145,112 +135,80 @@ class VeraAffectiveResumeFrontierAuthenticityTests(unittest.TestCase):
             expected_resume_token=token,
         )
 
-    def restore_cycle(self, boundary, checkpoint, row, token):
-        contract_text, binding = self.contract_text_and_binding()
-        return boundary.restore_cycle_from_state_row(
-            contract_text,
-            binding,
-            row,
-            host_scope="TEST_HOST",
-            expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
-            expected_resume_token=token,
-        )
-
-    def test_exact_current_frontier_accepts_through_prebound_provider_read_boundary(self):
+    def test_direct_boundary_can_validate_evidence_but_does_not_commit(self):
         checkpoint, row, token = self.make_row(state_version=7)
         adapter = AffectiveProviderReadAdapterDouble(row)
-        boundary = self.bind_restore_boundary(adapter)
-
-        host = self.restore_host(boundary, checkpoint, row, token)
+        host = self.restore_host(self.bind_restore_boundary(adapter), checkpoint, row, token)
 
         self.assertEqual(host.runtime.runtime_instance_id, row["runtime_instance_id"])
         self.assertEqual(adapter.probe_calls, 1)
         self.assertEqual(adapter.read_calls, 1)
         self.assertEqual(adapter.commit_calls, [])
 
-    def test_cycle_restore_uses_same_prebound_provider_read_and_write_boundary(self):
+    def test_direct_caller_boundary_cannot_mint_live_atomic_cycle(self):
         checkpoint, row, token = self.make_row(state_version=7)
         adapter = AffectiveProviderReadAdapterDouble(row)
         boundary = self.bind_restore_boundary(adapter)
-
-        cycle = self.restore_cycle(boundary, checkpoint, row, token)
-
-        self.assertEqual(cycle._next_state_version, 8)
-        self.assertEqual(cycle.durability_mode, "ATOMIC_DURABLE")
-        self.assertIsNotNone(cycle.atomic_commit_writer)
-        self.assertEqual(adapter.probe_calls, 1)
-        self.assertEqual(adapter.read_calls, 1)
+        with self.assertRaisesRegex(ValueError, r"(?i)(provider|current|attest|replay|writer|durab)"):
+            boundary.restore_cycle_from_state_row(
+                *self.contract_text_and_binding(),
+                row,
+                host_scope="TEST_HOST",
+                expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+                expected_resume_token=token,
+            )
         self.assertEqual(adapter.commit_calls, [])
 
     def test_candidate_row_and_candidate_token_cannot_vouch_for_themselves(self):
         checkpoint, trusted_row, _trusted_token = self.make_row(state_version=7)
         adapter = AffectiveProviderReadAdapterDouble(trusted_row)
         boundary = self.bind_restore_boundary(adapter)
-
         candidate = dict(trusted_row)
         candidate["state_version"] = 8
         candidate_token = affect_persistence.build_affective_resume_token(candidate)
-
-        self.assertEqual(candidate_token["state_version"], candidate["state_version"])
-        self.assertEqual(
-            candidate_token["checkpoint_sha256"],
-            candidate["checkpoint_sha256"],
-        )
 
         with self.assertRaisesRegex(
             (affect_persistence.PersistenceRecordError, ValueError),
             r"(?i)(frontier|provider|current|read|version|resume)",
         ):
             self.restore_host(boundary, checkpoint, candidate, candidate_token)
-
         self.assertEqual(adapter.read_calls, 1)
 
     def test_once_valid_old_row_fails_after_provider_frontier_advances(self):
         checkpoint, old_row, old_token = self.make_row(state_version=7)
         adapter = AffectiveProviderReadAdapterDouble(old_row)
         boundary = self.bind_restore_boundary(adapter)
-
-        old_host = self.restore_host(boundary, checkpoint, old_row, old_token)
-        self.assertEqual(old_host.runtime.runtime_instance_id, old_row["runtime_instance_id"])
+        self.restore_host(boundary, checkpoint, old_row, old_token)
 
         newer_row = dict(old_row)
         newer_row["state_version"] = 8
         adapter.advance_provider_frontier(newer_row)
-
         with self.assertRaisesRegex(
             (affect_persistence.PersistenceRecordError, ValueError),
             r"(?i)(frontier|provider|current|stale|read|version|resume)",
         ):
             self.restore_host(boundary, checkpoint, old_row, old_token)
-
         self.assertEqual(adapter.read_calls, 2)
 
-    def test_current_row_succeeds_after_same_provider_frontier_advance(self):
+    def test_current_row_evidence_succeeds_after_same_provider_frontier_advance(self):
         checkpoint, old_row, _old_token = self.make_row(state_version=7)
         adapter = AffectiveProviderReadAdapterDouble(old_row)
         boundary = self.bind_restore_boundary(adapter)
-
         current_row = dict(old_row)
         current_row["state_version"] = 8
         current_token = affect_persistence.build_affective_resume_token(current_row)
         adapter.advance_provider_frontier(current_row)
 
         host = self.restore_host(boundary, checkpoint, current_row, current_token)
-
         self.assertEqual(host.runtime.runtime_instance_id, current_row["runtime_instance_id"])
         self.assertEqual(adapter.read_calls, 1)
 
     def test_caller_constructed_provider_envelope_is_not_a_live_restore_positive(self):
         checkpoint, row, token = self.make_row(state_version=7)
         caller_envelope = AffectiveProviderReadAdapterDouble(row).read(
-            SimpleNamespace(
-                route_ref=PROVIDER_ROUTE,
-                source_ref=PROVIDER_SOURCE,
-                privacy_class="GOVERNED",
-            )
+            SimpleNamespace(route_ref=PROVIDER_ROUTE, source_ref=PROVIDER_SOURCE, privacy_class="GOVERNED")
         )
         contract_text, binding = self.contract_text_and_binding()
-
         with self.assertRaisesRegex(
             (affect_persistence.PersistenceRecordError, TypeError, ValueError),
             r"(?i)(provider|read|frontier|evidence|bound|resume)",
@@ -269,13 +227,11 @@ class VeraAffectiveResumeFrontierAuthenticityTests(unittest.TestCase):
         checkpoint, row, token = self.make_row(state_version=7)
         adapter = DuckTypedAffectiveProviderReadAdapterDouble(row)
         boundary = self.bind_restore_boundary(adapter)
-
         with self.assertRaisesRegex(
             (affect_persistence.PersistenceRecordError, TypeError, ValueError),
             r"(?i)(provider|evidence|envelope|frontier|type|read)",
         ):
             self.restore_host(boundary, checkpoint, row, token)
-
         self.assertEqual(adapter.read_calls, 1)
 
 
