@@ -5,7 +5,7 @@ import unittest
 
 from runtime_cohesion.adapters import AdapterProbeResult, AdapterRegistry
 from runtime_cohesion.evidence import ProviderEvidenceEnvelope
-from runtime_cohesion.executor import execute_domain_cycle
+from runtime_cohesion.executor import _expected_governing_dispatch, execute_domain_cycle
 
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = json.loads((ROOT / "architecture" / "VERA_COHESION_INDEX_V1.json").read_text(encoding="utf-8"))
@@ -14,6 +14,8 @@ FABRIC = json.loads((ROOT / "architecture" / "VERA_PROVIDER_FABRIC_V1.json").rea
 
 EXPECTED_PROP = "TASK_SCOPE_PERMISSION_OR_USER_CONSENT"
 EXPECTED_SCOPE = "PATRICK_OR_USER_CONTROLLED_OPERATION"
+SEMANTIC_PROP = "SEMANTIC_PROVENANCE_CURRENTNESS_STATUS"
+SEMANTIC_SCOPE = "EXACT_PROPOSITION_REFERENT_SOURCE_BINDING"
 
 
 class EvidenceAdapter:
@@ -181,28 +183,18 @@ class GoverningResolutionBoundaryTests(unittest.TestCase):
         self.assertFalse(any(record.status == "SATISFIED" for record in result.governing_resolutions))
         self.assertTrue(any(record.status == "UNRESOLVED" for record in result.governing_resolutions))
 
-    def test_missing_semantic_currentness_dispatch_keeps_private_history_io_closed(self):
-        live, github, registry = self.adapters()
-        result = execute_domain_cycle(
-            "AUTOBIOGRAPHICAL_HISTORY",
+    def test_semantic_currentness_dispatch_derives_exact_governing_pair(self):
+        dispatch, reason = _expected_governing_dispatch(
+            "SEMANTICS_PROVENANCE_CURRENTNESS",
             INDEX,
             CONTRACT,
-            FABRIC,
-            registry,
-            privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED", "PRIVATE_AUTOBIOGRAPHICAL"},
         )
-
-        all_known_reads = [*live.reads, *github.reads]
-        self.assertFalse(any(request.domain_id == "AUTOBIOGRAPHICAL_HISTORY" for request in all_known_reads))
-        semantic = [
-            record for record in result.governing_resolutions
-            if record.prerequisite_domain == "SEMANTICS_PROVENANCE_CURRENTNESS"
-        ]
-        self.assertEqual(len(semantic), 1)
-        self.assertEqual(semantic[0].status, "UNRESOLVED")
-        self.assertIsNone(semantic[0].proposition_or_effect_class)
-        self.assertIsNone(semantic[0].referent_scope)
-        self.assertIn("No resolver dispatch", semantic[0].reason)
+        self.assertIsNotNone(dispatch)
+        self.assertEqual(dispatch["id"], "dispatch:semantic-currentness")
+        self.assertEqual(dispatch["proposition_or_effect_class"], SEMANTIC_PROP)
+        self.assertEqual(dispatch["referent_scope"], SEMANTIC_SCOPE)
+        self.assertEqual(dispatch["resolver_ref"], "semantic_currentness")
+        self.assertIn("Exact governing proposition", reason)
 
 
 if __name__ == "__main__":
