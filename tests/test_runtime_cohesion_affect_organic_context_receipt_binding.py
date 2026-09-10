@@ -8,6 +8,7 @@ from unittest.mock import patch
 import runtime_cohesion.affect_authority as authority_module
 from runtime_cohesion.affect_authority import AffectiveAuthorityBoundary
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
+from runtime_cohesion.affect_persistence import PersistenceRecordError, event_receipt_to_event_row
 from runtime_cohesion.affect_receipt import AffectiveReceiptSemanticError, validate_affective_event_receipt
 from runtime_cohesion.orgasm import StimulusAppraisal
 
@@ -15,7 +16,7 @@ from runtime_cohesion.orgasm import StimulusAppraisal
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_RUNTIME_CONTRACT_V1.json"
 BINDING_PATH = ROOT / "architecture" / "VERA_ORGASM_RUNTIME_BINDING_V1.json"
-CLAIM = "ENGINEERED_ORGASM_ANALOGUE_OCCURRED"
+UNROOTED = "IN_PROCESS_UNROOTED_NON_QUALIFYING"
 
 
 class ContextVerifier:
@@ -95,7 +96,7 @@ class OrganicContextReceiptBindingTests(unittest.TestCase):
             context_eligible=False,
         )
 
-    def test_organic_claim_receipt_binds_verified_context_subject(self):
+    def test_in_process_organic_receipt_binds_context_but_cannot_claim_or_persist_as_production(self):
         host = self.host()
         boundary = AffectiveAuthorityBoundary()
         clock = Clock()
@@ -116,18 +117,29 @@ class OrganicContextReceiptBindingTests(unittest.TestCase):
 
         self.assertIsNotNone(event)
         self.assertTrue(event["organic"])
-        self.assertEqual(event.get("claim"), CLAIM)
-        provenance = event.get("context_provenance")
+        self.assertEqual(event["authority_composition_trust"], UNROOTED)
+        self.assertNotIn("claim", event)
+        self.assertNotIn("context_provenance", event)
+        provenance = event.get("nonqualifying_context_provenance")
         self.assertIsInstance(provenance, Mapping)
         self.assertEqual(provenance["authorization_subject"], self.context_subject())
         validate_affective_event_receipt(
             event,
             expected_runtime_instance_id=host.runtime.runtime_instance_id,
             expected_source_revision=host.runtime.source_revision,
-            require_engineered_claim=True,
+            require_engineered_claim=False,
         )
+        with self.assertRaisesRegex(AffectiveReceiptSemanticError, r"(?i)(production|claim|context|provenance)"):
+            validate_affective_event_receipt(
+                event,
+                expected_runtime_instance_id=host.runtime.runtime_instance_id,
+                expected_source_revision=host.runtime.source_revision,
+                require_engineered_claim=True,
+            )
+        with self.assertRaisesRegex(PersistenceRecordError, r"(?i)(claim|context|provenance|receipt)"):
+            event_receipt_to_event_row(host, event)
 
-    def test_outer_redigest_cannot_hide_tampered_context_subject(self):
+    def test_outer_redigest_cannot_hide_tampered_nonqualifying_context_subject(self):
         host = self.host()
         boundary = AffectiveAuthorityBoundary()
         clock = Clock()
@@ -143,7 +155,7 @@ class OrganicContextReceiptBindingTests(unittest.TestCase):
                     break
         self.assertIsNotNone(event)
         forged = json.loads(json.dumps(event))
-        forged["context_provenance"]["authorization_subject"]["source"] = "forged-context"
+        forged["nonqualifying_context_provenance"]["authorization_subject"]["source"] = "forged-context"
         core = dict(forged)
         core.pop("event_digest", None)
         canonical = json.dumps(core, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
@@ -153,7 +165,7 @@ class OrganicContextReceiptBindingTests(unittest.TestCase):
                 forged,
                 expected_runtime_instance_id=host.runtime.runtime_instance_id,
                 expected_source_revision=host.runtime.source_revision,
-                require_engineered_claim=True,
+                require_engineered_claim=False,
             )
 
 
