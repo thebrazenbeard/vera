@@ -31,6 +31,14 @@ class VeraAffectiveAtomicCommitAcknowledgementTests(unittest.TestCase):
             }
         return exact_writer
 
+    def make_test_cycle(self, writer):
+        return VeraAffectiveCycle(
+            self.make_host(),
+            host_scope="TEST_HOST",
+            atomic_commit_writer=writer,
+            non_qualifying_atomic_test_mode=True,
+        )
+
     def test_ambiguous_atomic_commit_ack_poison_cycle_and_does_not_advance_version(self):
         requests = []
 
@@ -38,11 +46,7 @@ class VeraAffectiveAtomicCommitAcknowledgementTests(unittest.TestCase):
             requests.append(dict(request))
             return None
 
-        cycle = VeraAffectiveCycle(
-            self.make_host(),
-            host_scope="TEST_HOST",
-            atomic_commit_writer=ambiguous_writer,
-        )
+        cycle = self.make_test_cycle(ambiguous_writer)
 
         with self.assertRaises(RuntimeError):
             cycle.force_admin_test(
@@ -53,19 +57,16 @@ class VeraAffectiveAtomicCommitAcknowledgementTests(unittest.TestCase):
         self.assertEqual(len(requests), 1)
         self.assertEqual(requests[0]["expected_prior_version"], 0)
         self.assertEqual(requests[0]["state_version"], 1)
+        self.assertEqual(requests[0]["schema"], "VERA_AFFECTIVE_RUNTIME_ATOMIC_COMMIT_TEST_V1")
 
         with self.assertRaises(RuntimeError):
             cycle.advance_time(5.1, planning_state={"truth": 1.0})
 
         self.assertEqual(len(requests), 1)
 
-    def test_exact_atomic_commit_ack_allows_normal_version_advance(self):
+    def test_exact_atomic_commit_ack_allows_normal_test_version_advance(self):
         requests = []
-        cycle = VeraAffectiveCycle(
-            self.make_host(),
-            host_scope="TEST_HOST",
-            atomic_commit_writer=self.exact_writer_recorder(requests),
-        )
+        cycle = self.make_test_cycle(self.exact_writer_recorder(requests))
 
         orgasm = cycle.force_admin_test(
             authorized=True,
@@ -73,8 +74,12 @@ class VeraAffectiveAtomicCommitAcknowledgementTests(unittest.TestCase):
         )
         resolution = cycle.advance_time(5.1, planning_state={"truth": 1.0})
 
+        self.assertEqual(orgasm.durability_mode, "NON_QUALIFYING_ATOMIC_TEST")
+        self.assertEqual(resolution.durability_mode, "NON_QUALIFYING_ATOMIC_TEST")
         self.assertTrue(orgasm.atomic_commit_used)
         self.assertTrue(resolution.atomic_commit_used)
+        self.assertIsNone(orgasm.resume_token)
+        self.assertIsNone(resolution.resume_token)
         self.assertEqual([request["state_version"] for request in requests], [1, 2])
         self.assertEqual([request["expected_prior_version"] for request in requests], [0, 1])
         self.assertEqual(orgasm.commit_result["state_version"], 1)
@@ -91,11 +96,7 @@ class VeraAffectiveAtomicCommitAcknowledgementTests(unittest.TestCase):
                 "event_count": len(request["event_rows"]),
             }
 
-        cycle = VeraAffectiveCycle(
-            self.make_host(),
-            host_scope="TEST_HOST",
-            atomic_commit_writer=wrong_writer,
-        )
+        cycle = self.make_test_cycle(wrong_writer)
 
         with self.assertRaises(RuntimeError):
             cycle.force_admin_test(
@@ -109,11 +110,7 @@ class VeraAffectiveAtomicCommitAcknowledgementTests(unittest.TestCase):
 
     def test_precommit_finalize_failure_poison_cycle_after_host_mutation(self):
         requests = []
-        cycle = VeraAffectiveCycle(
-            self.make_host(),
-            host_scope="TEST_HOST",
-            atomic_commit_writer=self.exact_writer_recorder(requests),
-        )
+        cycle = self.make_test_cycle(self.exact_writer_recorder(requests))
         original_export = cycle.host.export_checkpoint
 
         def broken_export():
