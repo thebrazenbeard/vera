@@ -268,6 +268,8 @@ class VeraAffectiveRuntimeHost:
         frame = self.machine_interoception()
         if frame["active_orgasm_event"]:
             return result
+        if not frame["context_eligible"]:
+            return result
 
         vector = self.experience_control_vector()
         recovery_active = frame["phase"] in {"RESOLUTION", "SATIATED_OR_REFRACTORY"}
