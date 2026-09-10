@@ -66,6 +66,13 @@ class VeraAffectiveCycle:
             raise ValueError("initial_state_version must be positive")
         if not isinstance(non_atomic_test_mode, bool):
             raise ValueError("non_atomic_test_mode must be boolean")
+        for label, writer in (
+            ("state_writer", state_writer),
+            ("event_writer", event_writer),
+            ("atomic_commit_writer", atomic_commit_writer),
+        ):
+            if writer is not None and not callable(writer):
+                raise TypeError(f"{label} must be callable when supplied")
 
         split_writer_requested = state_writer is not None or event_writer is not None
         if atomic_commit_writer is not None and split_writer_requested:
@@ -112,18 +119,27 @@ class VeraAffectiveCycle:
         event_writer: EventWriter | None = None,
         atomic_commit_writer: AtomicCommitWriter | None = None,
     ) -> "VeraAffectiveCycle":
-        """Restore the exact CURRENT durable state and continue its CAS frontier.
+        """Restore CURRENT durable bytes with an explicit atomic writer.
 
-        Ordinary/live restore is deliberately currentness-bound: historical or
-        superseded rows cannot be turned back into CURRENT state by constructing
-        a new cycle, and the caller cannot rebind a provider row to another host
-        scope. Historical evidence remains readable as evidence, not live state.
+        This lower-level factory validates the durable row/currentness boundary
+        but does not authenticate the provenance of a caller-supplied writer.
+        Provider-authenticated live continuation must use
+        AffectiveProviderRestoreBoundary, which binds the atomic writer from the
+        same preconfigured provider adapter used for CURRENT readback. This
+        factory therefore refuses to silently downgrade a live durable restore
+        to EPHEMERAL or NON_ATOMIC_TEST.
         """
         split_writer_requested = state_writer is not None or event_writer is not None
         if split_writer_requested:
             if atomic_commit_writer is None:
                 raise ValueError("live durable restore rejects non-atomic split state/event writers")
             raise ValueError("live durable restore cannot mix atomic and split state/event writers")
+        if atomic_commit_writer is None:
+            raise ValueError(
+                "live durable restore requires atomic_commit_writer; provider-authenticated restore must use AffectiveProviderRestoreBoundary"
+            )
+        if not callable(atomic_commit_writer):
+            raise TypeError("atomic_commit_writer must be callable for live durable restore")
 
         state_version = row.get("state_version")
         if isinstance(state_version, bool) or not isinstance(state_version, int) or state_version < 1:
@@ -146,8 +162,6 @@ class VeraAffectiveCycle:
         return cls(
             host,
             host_scope=row_host_scope,
-            state_writer=state_writer,
-            event_writer=event_writer,
             atomic_commit_writer=atomic_commit_writer,
             initial_state_version=state_version + 1,
         )
