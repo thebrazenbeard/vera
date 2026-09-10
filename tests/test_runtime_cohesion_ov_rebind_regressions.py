@@ -1,4 +1,6 @@
 from dataclasses import fields
+import hashlib
+import json
 import unittest
 
 from runtime_cohesion.adapters import AdapterRequest
@@ -7,6 +9,7 @@ from runtime_cohesion.executor import _validate_read
 import runtime_cohesion.item_typing as item_typing
 from runtime_cohesion.item_typing import ProviderItemTypeProof
 from runtime_cohesion.reconcile import reconcile_exact_receipt
+from tests import _install_fixture_item_type_verifiers
 
 
 class _WrongObservedSubjectVerifier:
@@ -32,9 +35,17 @@ class _WrongObservedSubjectVerifier:
         )
 
 
+def _binding_digest(binding):
+    core = dict(binding)
+    core.pop("receipt_digest", None)
+    canonical = json.dumps(core, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return "sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
 class OVRebindRegressions(unittest.TestCase):
     def tearDown(self):
         item_typing._reset_item_type_verifiers_for_tests()
+        _install_fixture_item_type_verifiers()
 
     def _request_and_envelope(self):
         request = AdapterRequest(
@@ -69,6 +80,7 @@ class OVRebindRegressions(unittest.TestCase):
 
     def test_m6_provider_item_proof_rejects_subject_mismatch_before_higher_layer_policy(self):
         request, envelope = self._request_and_envelope()
+        item_typing._reset_item_type_verifiers_for_tests()
         item_typing._install_item_type_verifiers({"github": _WrongObservedSubjectVerifier()})
         with self.assertRaisesRegex(ValueError, "independently validated type/currentness"):
             _validate_read(request, envelope)
@@ -101,8 +113,9 @@ class OVRebindRegressions(unittest.TestCase):
             "event_ref": "logical-memory:R9B0",
             "event_path": "memory-epoch-object",
             "receipt_ref": receipt_ref,
-            "receipt_digest": "sha256:" + "0" * 64,
         }
+        receipt_digest = _binding_digest(binding)
+        binding["receipt_digest"] = receipt_digest
         target = ProviderEvidenceEnvelope(
             provider="supabase",
             locator=receipt_ref,
@@ -115,7 +128,7 @@ class OVRebindRegressions(unittest.TestCase):
             currentness_basis="fresh receipt row readback",
             supersession_state="CURRENT_OBSERVATION",
             conflict_state="NONE",
-            content_digest="sha256:" + "0" * 64,
+            content_digest=receipt_digest,
             receipt_ref=receipt_ref,
             metadata={"receipt_binding": binding},
         )
