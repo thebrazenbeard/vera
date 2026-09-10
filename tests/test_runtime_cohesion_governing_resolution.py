@@ -16,6 +16,22 @@ EXPECTED_PROP = "TASK_SCOPE_PERMISSION_OR_USER_CONSENT"
 EXPECTED_SCOPE = "PATRICK_OR_USER_CONTROLLED_OPERATION"
 SEMANTIC_PROP = "SEMANTIC_PROVENANCE_CURRENTNESS_STATUS"
 SEMANTIC_SCOPE = "EXACT_PROPOSITION_REFERENT_SOURCE_BINDING"
+MANIFEST_SHA256 = "b7c70b1ad2c3bc533c7560320fb9a03b827f3eafad6296894216d75281b8dca1"
+SOURCE_IDENTITY = "github:thebrazenbeard/vera-control-plane#VERA_PROJECT_SOURCE_MANIFEST"
+
+
+def exact_semantic_binding(**overrides):
+    value = {
+        "control_release": "R10A0",
+        "control_round": "R10",
+        "control_manifest_sha256": MANIFEST_SHA256,
+        "binding_source_identity": SOURCE_IDENTITY,
+        "binding_source_revision": MANIFEST_SHA256,
+        "binding_currentness_state": "CURRENT_EXACT_R10_BINDING",
+        "binding_supersession_state": "CURRENT_OBSERVATION",
+    }
+    value.update(overrides)
+    return value
 
 
 class EvidenceAdapter:
@@ -28,6 +44,7 @@ class EvidenceAdapter:
         referent_override=None,
         proposition_override=None,
         referent_scope_override=None,
+        semantic_binding_overrides=None,
     ):
         self.provider = provider
         self.evidence_by_request = dict(evidence_by_request)
@@ -35,6 +52,7 @@ class EvidenceAdapter:
         self.referent_override = referent_override
         self.proposition_override = proposition_override
         self.referent_scope_override = referent_scope_override
+        self.semantic_binding_overrides = dict(semantic_binding_overrides or {})
         self.probes = []
         self.reads = []
 
@@ -64,6 +82,11 @@ class EvidenceAdapter:
                     self.referent_scope_override or request.governing_referent_scope
                 ),
             })
+        if (
+            request.domain_id == "SEMANTICS_PROVENANCE_CURRENTNESS"
+            and evidence_class in {"control_source", "live_observation"}
+        ):
+            metadata.update(exact_semantic_binding(**self.semantic_binding_overrides))
         return ProviderEvidenceEnvelope(
             provider=self.provider,
             locator=f"{self.provider}:{request.domain_id}:{request.source_ref}",
@@ -89,6 +112,8 @@ class GoverningResolutionBoundaryTests(unittest.TestCase):
         referent_override=None,
         proposition_override=None,
         referent_scope_override=None,
+        semantic_control_binding_overrides=None,
+        semantic_live_binding_overrides=None,
     ):
         live = EvidenceAdapter(
             "live_conversation",
@@ -96,11 +121,13 @@ class GoverningResolutionBoundaryTests(unittest.TestCase):
                 "CURRENT_TASK_CORRECTION_PERMISSION_CONSENT": live_class,
                 "CONTROL_AND_GOVERNANCE": "current_user_authority",
                 "SEMANTICS_PROVENANCE_CURRENTNESS": "live_observation",
+                "AUTOBIOGRAPHICAL_HISTORY": "current_user_report",
             },
             conflict_state=conflict_state,
             referent_override=referent_override,
             proposition_override=proposition_override,
             referent_scope_override=referent_scope_override,
+            semantic_binding_overrides=semantic_live_binding_overrides,
         )
         github = EvidenceAdapter(
             "github",
@@ -109,7 +136,9 @@ class GoverningResolutionBoundaryTests(unittest.TestCase):
                 ("CONTROL_AND_GOVERNANCE", "vera"): "source_provenance",
                 ("SEMANTICS_PROVENANCE_CURRENTNESS", "vera-control-plane"): "control_source",
                 ("SEMANTICS_PROVENANCE_CURRENTNESS", "semanticatlas"): "semantic_research",
+                ("AUTOBIOGRAPHICAL_HISTORY", "deepmemorystorage"): "historical_autobiographical",
             },
+            semantic_binding_overrides=semantic_control_binding_overrides,
         )
         return live, github, AdapterRegistry({"live_conversation": live, "github": github})
 
@@ -195,6 +224,72 @@ class GoverningResolutionBoundaryTests(unittest.TestCase):
         self.assertEqual(dispatch["referent_scope"], SEMANTIC_SCOPE)
         self.assertEqual(dispatch["resolver_ref"], "semantic_currentness")
         self.assertIn("Exact governing proposition", reason)
+
+    def test_exact_relational_r10_semantic_currentness_releases_private_history_io(self):
+        live, github, registry = self.adapters()
+        result = execute_domain_cycle(
+            "AUTOBIOGRAPHICAL_HISTORY",
+            INDEX,
+            CONTRACT,
+            FABRIC,
+            registry,
+            privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED", "PRIVATE_AUTOBIOGRAPHICAL"},
+        )
+        semantic = [
+            record for record in result.governing_resolutions
+            if record.prerequisite_domain == "SEMANTICS_PROVENANCE_CURRENTNESS"
+        ]
+        self.assertEqual(len(semantic), 1)
+        self.assertEqual(semantic[0].status, "SATISFIED")
+        all_reads = [*live.reads, *github.reads]
+        self.assertTrue(any(request.domain_id == "AUTOBIOGRAPHICAL_HISTORY" for request in all_reads))
+
+    def test_fresh_r8a2_control_source_cannot_release_private_history_io(self):
+        live, github, registry = self.adapters(
+            semantic_control_binding_overrides={
+                "control_release": "R8A2",
+                "control_round": "R8",
+                "control_manifest_sha256": "8" * 64,
+                "binding_source_revision": "8" * 64,
+            }
+        )
+        result = execute_domain_cycle(
+            "AUTOBIOGRAPHICAL_HISTORY",
+            INDEX,
+            CONTRACT,
+            FABRIC,
+            registry,
+            privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED", "PRIVATE_AUTOBIOGRAPHICAL"},
+        )
+        semantic = [
+            record for record in result.governing_resolutions
+            if record.prerequisite_domain == "SEMANTICS_PROVENANCE_CURRENTNESS"
+        ]
+        self.assertEqual(len(semantic), 1)
+        self.assertEqual(semantic[0].status, "CONFLICT")
+        all_reads = [*live.reads, *github.reads]
+        self.assertFalse(any(request.domain_id == "AUTOBIOGRAPHICAL_HISTORY" for request in all_reads))
+
+    def test_live_semantic_attestation_for_different_source_cannot_release_private_history_io(self):
+        live, github, registry = self.adapters(
+            semantic_live_binding_overrides={"binding_source_revision": "f" * 64}
+        )
+        result = execute_domain_cycle(
+            "AUTOBIOGRAPHICAL_HISTORY",
+            INDEX,
+            CONTRACT,
+            FABRIC,
+            registry,
+            privacy_allowlist={"CONVERSATION_SCOPED", "GOVERNED", "PRIVATE_AUTOBIOGRAPHICAL"},
+        )
+        semantic = [
+            record for record in result.governing_resolutions
+            if record.prerequisite_domain == "SEMANTICS_PROVENANCE_CURRENTNESS"
+        ]
+        self.assertEqual(len(semantic), 1)
+        self.assertEqual(semantic[0].status, "CONFLICT")
+        all_reads = [*live.reads, *github.reads]
+        self.assertFalse(any(request.domain_id == "AUTOBIOGRAPHICAL_HISTORY" for request in all_reads))
 
 
 if __name__ == "__main__":
