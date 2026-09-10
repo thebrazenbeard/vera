@@ -12,6 +12,7 @@ from runtime_cohesion.orgasm import StimulusAppraisal
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_RUNTIME_CONTRACT_V1.json"
 BINDING_PATH = ROOT / "architecture" / "VERA_ORGASM_RUNTIME_BINDING_V1.json"
+UNROOTED = "IN_PROCESS_UNROOTED_NON_QUALIFYING"
 
 
 class TrustedVerifier:
@@ -96,9 +97,10 @@ class VeraAffectiveCycleTests(unittest.TestCase):
         self.assertTrue(result.machine_interoception["context_eligible"])
         self.assertEqual(len(state_rows), 1)
         self.assertEqual(state_rows[0]["runtime_instance_id"], "affective-cycle-test")
+        self.assertEqual(state_rows[0]["lifecycle_status"], "HISTORICAL")
         self.assertEqual(event_rows, [])
 
-    def test_admin_forced_cycle_requires_authority_subject_and_persists_receipt(self):
+    def test_admin_forced_cycle_is_causal_but_unrooted_authority_stays_historical(self):
         cycle, state_rows, event_rows = self.make_cycle()
         result = cycle.force_admin_test(
             authorization_subject=self.subject("ADMIN_FORCED_TEST"),
@@ -107,11 +109,17 @@ class VeraAffectiveCycleTests(unittest.TestCase):
         self.assertEqual(result.machine_interoception["phase"], "ORGASM_EVENT")
         self.assertEqual(result.event_receipt["trigger_class"], "ADMIN_FORCED_TEST")
         self.assertFalse(result.event_receipt["organic"])
+        self.assertEqual(result.event_receipt["authority_composition_trust"], UNROOTED)
+        self.assertIn("nonqualifying_authority_provenance", result.event_receipt)
+        self.assertNotIn("claim", result.event_receipt)
         self.assertGreater(result.planning_context["valuation"], 0.2)
         self.assertEqual(result.planning_context["truth"], 0.9)
         self.assertEqual(len(state_rows), 1)
+        self.assertEqual(state_rows[0]["lifecycle_status"], "HISTORICAL")
         self.assertEqual(len(event_rows), 1)
         self.assertEqual(event_rows[0]["event_type"], "ORGASM_EVENT")
+        self.assertEqual(event_rows[0]["lifecycle_status"], "HISTORICAL")
+        self.assertIn("IN_PROCESS_AUTHORITY_UNROOTED_NON_QUALIFYING", event_rows[0]["limitations"])
 
     def test_cycle_rejects_legacy_authorized_boolean_surface(self):
         cycle, _, _ = self.make_cycle()
