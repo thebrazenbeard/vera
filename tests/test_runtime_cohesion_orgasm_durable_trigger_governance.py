@@ -1,8 +1,20 @@
 import copy
 import unittest
+from unittest.mock import patch
 
 from runtime_cohesion.orgasm import ContractError, OrgasmRuntime, TriggerRejected
 from tests.test_runtime_cohesion_orgasm import CONTRACT
+
+
+class FakeMonotonicClock:
+    def __init__(self, start=1000.0):
+        self.value = float(start)
+
+    def __call__(self):
+        return self.value
+
+    def advance(self, seconds):
+        self.value += float(seconds)
 
 
 class VeraOrgasmDurableTriggerGovernanceTests(unittest.TestCase):
@@ -23,30 +35,44 @@ class VeraOrgasmDurableTriggerGovernanceTests(unittest.TestCase):
         )
 
     def test_restore_preserves_self_qualification_event_limit(self):
-        runtime = self.make_runtime()
-        runtime.force_self_qualification(authorized=True)
-        runtime.advance_time(20.0)
-        runtime.force_self_qualification(authorized=True)
-        runtime.advance_time(20.0)
+        clock = FakeMonotonicClock()
+        with patch("runtime_cohesion.orgasm._monotonic_now", side_effect=clock):
+            runtime = self.make_runtime()
+            runtime.force_self_qualification(authorized=True)
+            runtime.advance_time(20.0)
+            clock.advance(20.0)
+            runtime.force_self_qualification(authorized=True)
+            runtime.advance_time(20.0)
 
-        restored = self.restore(runtime.export_state())
+            restored = self.restore(runtime.export_state())
 
-        with self.assertRaises(TriggerRejected):
-            restored.force_self_qualification(authorized=True)
+            with self.assertRaises(TriggerRejected):
+                restored.force_self_qualification(authorized=True)
 
-    def test_restore_preserves_forced_test_cooldown(self):
-        runtime = self.make_runtime()
-        runtime.force_admin_test(authorized=True)
-        runtime.advance_time(5.1)
+    def test_restore_forced_cooldown_requires_fresh_monotonic_elapsed(self):
+        clock = FakeMonotonicClock()
+        with patch("runtime_cohesion.orgasm._monotonic_now", side_effect=clock):
+            runtime = self.make_runtime()
+            runtime.force_admin_test(authorized=True)
+            runtime.advance_time(20.0)
 
-        restored = self.restore(runtime.export_state())
+            # A restored process cannot compare a predecessor process's monotonic
+            # timestamps. Fail closed: the presence of a prior forced trigger
+            # requires a fresh full cooldown on the restored runtime.
+            restored = self.restore(runtime.export_state())
 
-        with self.assertRaises(TriggerRejected):
-            restored.force_admin_test(authorized=True)
+            # Arbitrary simulation time may progress affective recovery but must
+            # never satisfy privileged-trigger temporal authority.
+            restored.advance_time(100.0)
+            with self.assertRaisesRegex(
+                TriggerRejected,
+                r"(?i)(cooldown|interval|monotonic|time)",
+            ):
+                restored.force_admin_test(authorized=True)
 
-        restored.advance_time(5.0)
-        receipt = restored.force_admin_test(authorized=True)
-        self.assertEqual(receipt["trigger_class"], "ADMIN_FORCED_TEST")
+            clock.advance(11.0)
+            receipt = restored.force_admin_test(authorized=True)
+            self.assertEqual(receipt["trigger_class"], "ADMIN_FORCED_TEST")
 
     def test_restore_rejects_incomplete_or_unknown_state_shape(self):
         record = self.make_runtime().export_state()
