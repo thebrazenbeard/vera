@@ -57,7 +57,7 @@ class ResumeProviderDouble:
             referent=row["runtime_instance_id"],
             scope=FRONTIER_SCOPE,
             privacy_class=request.privacy_class,
-            currentness_basis="fresh test adapter read",
+            currentness_basis="in-process test adapter read; provider origin unverified",
             supersession_state="CURRENT_OBSERVATION",
             conflict_state="NONE",
             content_digest=row["checkpoint_sha256"],
@@ -128,11 +128,11 @@ class VeraAffectiveResumeTokenRestoreTests(unittest.TestCase):
         self.assertIn("expected_resume_token", inspect.signature(runtime_cohesion.restore_current_affective_cycle).parameters)
         self.assertNotIn("expected_resume_token", inspect.signature(restore_host_from_state_row).parameters)
 
-    def test_exact_resume_token_binds_provider_state_version_frontier(self):
+    def test_exact_resume_token_binds_candidate_frontier_without_promoting_provider_origin(self):
         checkpoint, row, token = self.make_row(state_version=7)
         cycle = self.restore_provider(checkpoint, row, token)
         self.assertEqual(cycle._next_state_version, 8)
-        self.assertEqual(cycle.durability_mode, "ATOMIC_DURABLE")
+        self.assertEqual(cycle.durability_mode, "NON_QUALIFYING_ATOMIC_TEST")
 
     def test_low_level_restore_accepts_exact_bytes_only_as_replay_host(self):
         checkpoint, row, _token = self.make_row(state_version=7)
@@ -146,7 +146,7 @@ class VeraAffectiveResumeTokenRestoreTests(unittest.TestCase):
         )
         self.assertEqual(host.runtime.runtime_instance_id, row["runtime_instance_id"])
 
-    def test_same_checkpoint_with_changed_candidate_version_is_rejected_by_provider_currentness(self):
+    def test_same_checkpoint_with_changed_candidate_version_is_rejected_by_provider_observation(self):
         checkpoint, provider_row, _token = self.make_row(state_version=7)
         replayed = dict(provider_row)
         replayed["state_version"] = 8
