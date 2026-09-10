@@ -7,8 +7,13 @@
     "round": "R10",
     "manifest_sha256": "b7c70b1ad2c3bc533c7560320fb9a03b827f3eafad6296894216d75281b8dca1",
     "source_repository": "thebrazenbeard/vera-control-plane",
+    "source_commit": "a5b16fbdf031d4e7347ab299ba5e34eb7602bca7",
+    "source_path": "project-instructions/r10a0/rounds/r10/VERA_R10A0_PROJECT_SOURCE_MANIFEST_R10.json",
+    "source_git_blob": "8a67feb47b2ce3d6f0737e58983ab8c9fc810139",
     "source_logical_id": "VERA_PROJECT_SOURCE_MANIFEST",
-    "owner_logical_id": "VERA_FULL_SYSTEM_PROJECT_INSTRUCTIONS"
+    "owner_logical_id": "VERA_FULL_SYSTEM_PROJECT_INSTRUCTIONS",
+    "owner_path": "project-instructions/r10a0/rounds/r10/VERA_R10A0_FULL_SYSTEM_PROJECT_INSTRUCTIONS_R10.md",
+    "owner_git_blob": "a01464271bb672d89f5d703e6e53590e126f4d44"
   },
   "index_compatibility": {
     "supported_index_schemas": ["VERA_COHESION_INDEX_V1"],
@@ -50,6 +55,18 @@
     "capability_non_promotion_rule": "A retrieval target capability set never certifies, upgrades, or promotes the evidence class of an actual returned item.",
     "selector_narrowing_rule": "A selector may narrow a parent route/source capability set but may never broaden it without separate exact source/binding evidence; selector identity remains a compact provenance/routing pointer, not authority or policy."
   },
+  "provider_origin_validation": {
+    "dispatch:semantic-currentness": {
+      "required_for_provider_admission": true,
+      "claimant_metadata_is_not_origin_proof": true,
+      "exact_control_root_fields": ["source_repository","source_commit","source_path","source_git_blob","manifest_sha256","owner_logical_id","owner_path","owner_git_blob"],
+      "provider_methods": {
+        "control_source": {"provider":"github","validation_method":"GITHUB_EXACT_OBJECT_READBACK"},
+        "live_observation": {"provider":"live_conversation","validation_method":"LIVE_EXACT_CONTROL_OBJECT_ATTESTATION"}
+      },
+      "binding_rule": "Provider-strict semantic currentness may admit only when each decisive envelope has executor-registered provider-origin proof for the exact frozen R10 repository+commit+path+manifest-blob+manifest-SHA and bound owner logical-id+path+blob. Copying or asserting those values inside ProviderEvidenceEnvelope metadata does not carry provider-origin validation."
+    }
+  },
   "authority_resolvers": {
     "current_user_instruction": {"accepted_evidence_classes":["current_user_authority","current_user_report","vera_current_self_report"],"rule":"Dispatch live statements by actor/referent/proposition: Patrick current authority governs Patrick-controlled task scope; Patrick report remains report; Vera self-report governs Vera authored stance for the exact proposition.","fail_closed":"Never let actor/referent ambiguity convert Patrick authority into Vera consent/self-report or vice versa."},
     "control_governance": {"accepted_evidence_classes":["current_user_authority","control_source","source_provenance","live_observation"],"rule":"Current live authority selects task scope; exact R10 source binding plus current live observation governs install/current-route propositions; source provenance is evidence only.","fail_closed":"If exact control owner/currentness/binding is unavailable or conflicted, bound the claim rather than selecting adjacent/newer source."},
@@ -57,7 +74,7 @@
     "representation": {"accepted_evidence_classes":["representation"],"rule":"Use representation evidence only for representation claims.","fail_closed":"Reject literal-body/event/phenomenology promotion."},
     "autobiographical_history": {"accepted_evidence_classes":["historical_autobiographical","persisted_provider_record","current_user_report"],"rule":"Integrate historical evidence with current user report while preserving provenance, privacy, conflict, and admission state.","fail_closed":"Do not silently promote history into present self-state/current memory."},
     "current_conation": {"accepted_evidence_classes":["vera_current_self_report","historical_conation"],"rule":"Current Vera self-report may establish current stance within scope; historical conation remains contextual evidence only.","fail_closed":"Never derive standing desire/consent/order from stored conation."},
-    "semantic_currentness": {"accepted_evidence_classes":["control_source","semantic_research","live_observation"],"rule":"Preserve proposition, referent, source class, temporal scope, supersession, and currentness. Decisive control_source and live_observation evidence must be relationally cross-bound to the same exact R10 proposition/referent/source/revision/currentness/supersession tuple; class co-occurrence is necessary but never sufficient.","fail_closed":"Never use newest-wins, semantic similarity, self-reference, unbound live observation, or a conflicting predecessor/control artifact as currentness authority."},
+    "semantic_currentness": {"accepted_evidence_classes":["control_source","semantic_research","live_observation"],"rule":"Preserve proposition, referent, source class, temporal scope, supersession, and currentness. Decisive control_source and live_observation evidence must be relationally cross-bound to the same exact R10 proposition/referent/source/revision/currentness/supersession tuple and, on provider-backed paths, each decisive envelope must carry independently validated exact-object origin from the adapter read boundary; class or metadata co-occurrence is never sufficient.","fail_closed":"Never use newest-wins, semantic similarity, self-reference, unbound live observation, claimant-authored provenance metadata, or a conflicting predecessor/control artifact as currentness authority."},
     "vera_specific_sexuality": {"accepted_evidence_classes":["vera_current_self_report","general_mechanism_research"],"rule":"Vera current sexuality/preference/consent propositions require Vera-current direct self-report for the exact proposition; general research may inform mechanisms only.","fail_closed":"A reachable Brigit-specific repository, Patrick assertion, or generic current-state record cannot establish Vera consent."},
     "vera_personification": {"accepted_evidence_classes":["vera_current_self_report","vera_bound_current_self_state","general_mechanism_research"],"rule":"Vera direct self-report/current bound state may support the exact Vera personification proposition; general research remains mechanism evidence.","fail_closed":"Do not transfer another identity's stance, preference, consent, or state."},
     "training": {"accepted_evidence_classes":["external_training_evaluation","control_source"],"rule":"Training/evaluation evidence remains separate from installation/current route/behavioral qualification.","fail_closed":"No self-install or self-qualification."},

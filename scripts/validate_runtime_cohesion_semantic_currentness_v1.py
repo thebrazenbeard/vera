@@ -12,8 +12,14 @@ DISPATCH_ID = "dispatch:semantic-currentness"
 EXPECTED_MODE = "EXACT_SHARED_R10_CONTROL_BINDING"
 EXPECTED_CONTROL_ROOT_REF = "VERA_RUNTIME_CONTRACT_V1#control_root"
 EXPECTED_SOURCE_REPOSITORY = "thebrazenbeard/vera-control-plane"
+EXPECTED_SOURCE_COMMIT = "a5b16fbdf031d4e7347ab299ba5e34eb7602bca7"
+EXPECTED_SOURCE_PATH = "project-instructions/r10a0/rounds/r10/VERA_R10A0_PROJECT_SOURCE_MANIFEST_R10.json"
+EXPECTED_SOURCE_GIT_BLOB = "8a67feb47b2ce3d6f0737e58983ab8c9fc810139"
 EXPECTED_SOURCE_LOGICAL_ID = "VERA_PROJECT_SOURCE_MANIFEST"
 EXPECTED_OWNER_LOGICAL_ID = "VERA_FULL_SYSTEM_PROJECT_INSTRUCTIONS"
+EXPECTED_OWNER_PATH = "project-instructions/r10a0/rounds/r10/VERA_R10A0_FULL_SYSTEM_PROJECT_INSTRUCTIONS_R10.md"
+EXPECTED_OWNER_GIT_BLOB = "a01464271bb672d89f5d703e6e53590e126f4d44"
+EXPECTED_MANIFEST_SHA256 = "b7c70b1ad2c3bc533c7560320fb9a03b827f3eafad6296894216d75281b8dca1"
 EXPECTED_SOURCE_IDENTITY = f"github:{EXPECTED_SOURCE_REPOSITORY}#{EXPECTED_SOURCE_LOGICAL_ID}"
 EXPECTED_CURRENTNESS_STATE = "CURRENT_EXACT_R10_BINDING"
 EXPECTED_SUPERSESSION_STATE = "CURRENT_OBSERVATION"
@@ -40,19 +46,52 @@ def validate_semantic_currentness_binding(contract: Mapping[str, Any]) -> list[s
     control_root = contract.get("control_root")
     if not isinstance(control_root, Mapping):
         return ["runtime contract control_root is required"]
-    if control_root.get("release") != "R10A0":
-        errors.append("semantic currentness requires exact R10A0 control release")
-    if control_root.get("round") != "R10":
-        errors.append("semantic currentness requires exact R10 control round")
-    manifest = control_root.get("manifest_sha256")
-    if not isinstance(manifest, str) or len(manifest) != 64:
-        errors.append("semantic currentness requires exact control manifest SHA-256")
-    if control_root.get("source_repository") != EXPECTED_SOURCE_REPOSITORY:
-        errors.append("semantic currentness control source repository drift")
-    if control_root.get("source_logical_id") != EXPECTED_SOURCE_LOGICAL_ID:
-        errors.append("semantic currentness control source logical id drift")
-    if control_root.get("owner_logical_id") != EXPECTED_OWNER_LOGICAL_ID:
-        errors.append("semantic currentness control owner logical id drift")
+
+    expected_root = {
+        "release": "R10A0",
+        "round": "R10",
+        "manifest_sha256": EXPECTED_MANIFEST_SHA256,
+        "source_repository": EXPECTED_SOURCE_REPOSITORY,
+        "source_commit": EXPECTED_SOURCE_COMMIT,
+        "source_path": EXPECTED_SOURCE_PATH,
+        "source_git_blob": EXPECTED_SOURCE_GIT_BLOB,
+        "source_logical_id": EXPECTED_SOURCE_LOGICAL_ID,
+        "owner_logical_id": EXPECTED_OWNER_LOGICAL_ID,
+        "owner_path": EXPECTED_OWNER_PATH,
+        "owner_git_blob": EXPECTED_OWNER_GIT_BLOB,
+    }
+    if dict(control_root) != expected_root:
+        errors.append("semantic currentness control_root must bind the exact immutable R10 manifest and owner Git objects")
+
+    origin_registry = contract.get("provider_origin_validation")
+    origin_policy = origin_registry.get(DISPATCH_ID) if isinstance(origin_registry, Mapping) else None
+    if not isinstance(origin_policy, Mapping):
+        errors.append("semantic currentness provider-origin validation policy is required")
+    else:
+        if origin_policy.get("required_for_provider_admission") is not True:
+            errors.append("semantic currentness provider-origin validation must be mandatory")
+        if origin_policy.get("claimant_metadata_is_not_origin_proof") is not True:
+            errors.append("semantic currentness must explicitly reject claimant metadata as origin proof")
+        required_fields = origin_policy.get("exact_control_root_fields")
+        expected_fields = [
+            "source_repository",
+            "source_commit",
+            "source_path",
+            "source_git_blob",
+            "manifest_sha256",
+            "owner_logical_id",
+            "owner_path",
+            "owner_git_blob",
+        ]
+        if required_fields != expected_fields:
+            errors.append("semantic currentness exact provider-origin field registry drift")
+        methods = origin_policy.get("provider_methods")
+        expected_methods = {
+            "control_source": {"provider": "github", "validation_method": "GITHUB_EXACT_OBJECT_READBACK"},
+            "live_observation": {"provider": "live_conversation", "validation_method": "LIVE_EXACT_CONTROL_OBJECT_ATTESTATION"},
+        }
+        if methods != expected_methods:
+            errors.append("semantic currentness provider-origin method registry drift")
 
     registry = contract.get("resolver_dispatch_decisive_evidence")
     decisive = registry.get(DISPATCH_ID) if isinstance(registry, Mapping) else None
@@ -66,7 +105,7 @@ def validate_semantic_currentness_binding(contract: Mapping[str, Any]) -> list[s
     relation = decisive.get("relational_binding")
     if not isinstance(relation, Mapping):
         return errors + ["semantic currentness relational_binding is required"]
-    expected = {
+    expected_relation = {
         "mode": EXPECTED_MODE,
         "control_root_ref": EXPECTED_CONTROL_ROOT_REF,
         "required_source_identity": EXPECTED_SOURCE_IDENTITY,
@@ -74,16 +113,16 @@ def validate_semantic_currentness_binding(contract: Mapping[str, Any]) -> list[s
         "required_supersession_state": EXPECTED_SUPERSESSION_STATE,
         "shared_metadata_fields": EXPECTED_SHARED_FIELDS,
     }
-    if dict(relation) != expected:
+    if dict(relation) != expected_relation:
         errors.append("semantic currentness relational binding drift")
 
     resolver = contract.get("authority_resolvers", {}).get("semantic_currentness", {})
     rule = resolver.get("rule", "") if isinstance(resolver, Mapping) else ""
     fail_closed = resolver.get("fail_closed", "") if isinstance(resolver, Mapping) else ""
-    if "relationally cross-bound" not in rule:
-        errors.append("semantic currentness resolver must state relational cross-binding")
-    if "conflicting predecessor/control artifact" not in fail_closed:
-        errors.append("semantic currentness resolver must fail closed on conflicting control artifacts")
+    if "independently validated exact-object origin" not in rule:
+        errors.append("semantic currentness resolver must require independent exact-object provider origin")
+    if "claimant-authored provenance metadata" not in fail_closed:
+        errors.append("semantic currentness resolver must fail closed on claimant-authored provenance metadata")
     return errors
 
 
@@ -93,7 +132,7 @@ def main() -> int:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
-    print("VERA semantic currentness relational binding: OK")
+    print("VERA semantic currentness exact-object provider origin: OK")
     return 0
 
 

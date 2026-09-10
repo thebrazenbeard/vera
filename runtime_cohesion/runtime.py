@@ -209,6 +209,7 @@ def _semantic_currentness_relational_decision(
     expected_release = control_root.get("release")
     expected_round = control_root.get("round")
     expected_manifest = control_root.get("manifest_sha256")
+    expected_source_commit = control_root.get("source_commit")
     required_source_identity = relational.get("required_source_identity")
     required_currentness_state = relational.get("required_currentness_state")
     required_supersession_state = relational.get("required_supersession_state")
@@ -219,6 +220,7 @@ def _semantic_currentness_relational_decision(
             expected_release,
             expected_round,
             expected_manifest,
+            expected_source_commit,
             required_source_identity,
             required_currentness_state,
             required_supersession_state,
@@ -277,7 +279,7 @@ def _semantic_currentness_relational_decision(
         "control_round": expected_round,
         "control_manifest_sha256": expected_manifest,
         "binding_source_identity": required_source_identity,
-        "binding_source_revision": expected_manifest,
+        "binding_source_revision": expected_source_commit,
         "binding_currentness_state": required_currentness_state,
         "binding_supersession_state": required_supersession_state,
     }
@@ -537,17 +539,50 @@ def evaluate_proposition_admission(
 ) -> AdmissionDecision:
     """Provider-strict public admission boundary.
 
-    Type strictness preserves provider-envelope binding/currentness/conflict
-    fields through the operational admission path. It does not by itself prove
-    provider origin; adapter/read provenance remains a separate boundary.
+    Provider envelopes preserve binding/currentness/conflict fields, but
+    semantic-currentness admission additionally requires executor-registered
+    provider-origin validation for each decisive observation. Claimant-authored
+    metadata, even if byte-for-byte correct, is not provider-origin proof.
     """
     from .evidence import ProviderEvidenceEnvelope
+    from .origin import (
+        SEMANTIC_CURRENTNESS_DOMAIN,
+        SEMANTIC_CURRENTNESS_PROPOSITION,
+        SEMANTIC_CURRENTNESS_REFERENT_SCOPE,
+        SEMANTIC_DECISIVE_CLASSES,
+        validated_semantic_origin,
+    )
 
     materialized = tuple(observations)
     if not all(isinstance(item, ProviderEvidenceEnvelope) for item in materialized):
         raise TypeError(
             "provider-backed proposition admission requires ProviderEvidenceEnvelope observations"
         )
+
+    if (
+        domain_id == SEMANTIC_CURRENTNESS_DOMAIN
+        and proposition_or_effect_class == SEMANTIC_CURRENTNESS_PROPOSITION
+        and referent_scope == SEMANTIC_CURRENTNESS_REFERENT_SCOPE
+    ):
+        decisive_items = [
+            item for item in materialized
+            if item.evidence_class in SEMANTIC_DECISIVE_CLASSES
+        ]
+        if any(validated_semantic_origin(item, contract) is None for item in decisive_items):
+            observed = tuple(sorted({item.evidence_class for item in materialized}))
+            return AdmissionDecision(
+                status="UNRESOLVED",
+                dispatch_id=SEMANTIC_CURRENTNESS_DISPATCH_ID,
+                resolver_ref="semantic_currentness",
+                required_evidence_classes=tuple(sorted(SEMANTIC_DECISIVE_CLASSES)),
+                observed_evidence_classes=observed,
+                reason=(
+                    "Semantic currentness provider admission requires independently validated "
+                    "provider-origin proof for the exact R10 repository+commit+path+blob+SHA object; "
+                    "claimant-authored envelope metadata cannot satisfy this boundary."
+                ),
+            )
+
     return evaluate_abstract_proposition_admission(
         domain_id,
         proposition_or_effect_class,

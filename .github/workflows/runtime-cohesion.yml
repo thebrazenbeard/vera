@@ -1,31 +1,8 @@
 name: Vera Runtime Cohesion
 
+# Manual-only while runner allocation / cost authorization is unavailable.
+# Do not re-enable automatic PR execution without Patrick's explicit authority.
 on:
-  pull_request:
-    paths:
-      - "architecture/VERA_SYSTEM_MANIFEST_V1.json"
-      - "architecture/VERA_RUNTIME_ROUTING_CONTRACT_V1.json"
-      - "architecture/VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json"
-      - "architecture/VERA_RUNTIME_EVIDENCE_CONTRACT_V1.json"
-      - "architecture/VERA_COHESION_INDEX_V1.json"
-      - "architecture/VERA_RUNTIME_CONTRACT_V1.json"
-      - "architecture/VERA_PROVIDER_FABRIC_V1.json"
-      - "architecture/VERA_RUNTIME_COHESION_NATIVE_HOOK_V1.json"
-      - "architecture/VERA_COHESION_PAIR_RECEIPT_V1.json"
-      - "docs/VERA_RUNTIME_COHESION*.md"
-      - "docs/VERA_COHESION*.md"
-      - "runtime_cohesion/**"
-      - "scripts/validate_vera_runtime_cohesion_v1.py"
-      - "scripts/validate_runtime_cohesion_provider_fabric_v1.py"
-      - "scripts/validate_runtime_cohesion_support_snapshot_v1.py"
-      - "scripts/validate_runtime_cohesion_semantic_currentness_v1.py"
-      - "tests/test_vera_runtime_cohesion_v1.py"
-      - "tests/test_vera_runtime_evidence_contract_v1.py"
-      - "tests/test_vera_cohesion_index_v1.py"
-      - "tests/test_vera_runtime_contract_v1.py"
-      - "tests/test_runtime_cohesion_*.py"
-      - "tests/fixtures/runtime_cohesion/**"
-      - ".github/workflows/runtime-cohesion.yml"
   workflow_dispatch:
 
 permissions:
@@ -45,7 +22,7 @@ jobs:
         run: python scripts/validate_vera_runtime_cohesion_v1.py
       - name: Validate provider cohesion fabric
         run: python scripts/validate_runtime_cohesion_provider_fabric_v1.py
-      - name: Validate semantic currentness relational binding
+      - name: Validate semantic currentness exact-object provider origin
         run: python scripts/validate_runtime_cohesion_semantic_currentness_v1.py
       - name: Validate operational support immutable snapshot
         run: python scripts/validate_runtime_cohesion_support_snapshot_v1.py
@@ -69,6 +46,7 @@ jobs:
           tests.test_runtime_cohesion_admission
           tests.test_runtime_cohesion_admission_envelope_binding
           tests.test_runtime_cohesion_semantic_currentness_dispatch
+          tests.test_runtime_cohesion_semantic_origin_boundary
           tests.test_runtime_cohesion_failure_wiring
           tests.test_runtime_cohesion_native_hook
           -v
@@ -86,6 +64,7 @@ jobs:
           runtime_cohesion/failure.py
           runtime_cohesion/audit.py
           runtime_cohesion/adapters.py
+          runtime_cohesion/origin.py
           runtime_cohesion/executor.py
           tests/test_vera_runtime_cohesion_v1.py
           tests/test_vera_runtime_evidence_contract_v1.py
@@ -104,5 +83,6 @@ jobs:
           tests/test_runtime_cohesion_admission.py
           tests/test_runtime_cohesion_admission_envelope_binding.py
           tests/test_runtime_cohesion_semantic_currentness_dispatch.py
+          tests/test_runtime_cohesion_semantic_origin_boundary.py
           tests/test_runtime_cohesion_failure_wiring.py
           tests/test_runtime_cohesion_native_hook.py
