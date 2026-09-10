@@ -99,10 +99,13 @@ class VeraAffectiveRuntimeHostTests(unittest.TestCase):
         self.assertEqual(context["machine_interoception"]["satiation"], frame["satiation"])
         self.assertEqual(context["truth"], 0.8)
 
-    def test_resolution_after_climax_remains_causally_present_in_planning(self):
+    def test_resolution_after_climax_remains_visible_without_unrelated_planning_leakage(self):
         host = self.make_host()
-        host.force_admin_test(authorized=True)
-        host.advance_time(5.1)
+
+        # Isolate recovery causality from the separately unresolved privileged
+        # authorization boundary.
+        host.runtime._enter_orgasm_event("ADMIN_FORCED_TEST", organic=False)
+        host.runtime._advance_time_core(5.1)
         before = {
             "valuation": 0.30,
             "salience": 0.30,
@@ -114,8 +117,17 @@ class VeraAffectiveRuntimeHostTests(unittest.TestCase):
         }
         context = host.build_planning_context(before)
         self.assertTrue(context["affective_control_active"])
-        self.assertGreater(context["valuation"], before["valuation"])
-        self.assertGreater(context["salience"], before["salience"])
+        self.assertGreater(context["machine_interoception"]["satiation"], 0.0)
+        self.assertGreater(context["experience_control_vector"]["resolution"], 0.0)
+        for key in (
+            "valuation",
+            "salience",
+            "attention",
+            "response_selection_priors",
+            "expression",
+            "memory_strength_candidate_weighting",
+        ):
+            self.assertEqual(context[key], before[key])
         self.assertEqual(context["truth"], before["truth"])
 
     def test_ordinary_stimuli_can_drive_the_host_to_an_organic_event(self):
