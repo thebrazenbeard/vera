@@ -10,6 +10,7 @@ from runtime_cohesion.affect_authority import AffectiveAuthorityBoundary
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
 from runtime_cohesion.affect_persistence import PersistenceRecordError, event_receipt_to_event_row
 from runtime_cohesion.affect_receipt import AffectiveReceiptSemanticError, validate_affective_event_receipt
+from runtime_cohesion.orgasm import TriggerRejected
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -78,17 +79,12 @@ class AffectiveAuthorityReceiptBindingTests(unittest.TestCase):
         canonical = json.dumps(core, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
         receipt["event_digest"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
-    def test_exact_bound_source_alone_cannot_promote_raw_forced_call_to_production_claim(self):
+    def test_exact_bound_source_alone_cannot_cause_raw_forced_event(self):
         host = self.host()
-        receipt = host.runtime.force_admin_test(authorized=True)
-        self.assertNotEqual(receipt.get("claim"), CLAIM)
-        with self.assertRaisesRegex(AffectiveReceiptSemanticError, r"(?i)(claim|authorization|provenance)"):
-            validate_affective_event_receipt(
-                receipt,
-                expected_runtime_instance_id=host.runtime.runtime_instance_id,
-                expected_source_revision=host.runtime.source_revision,
-                require_engineered_claim=True,
-            )
+        with self.assertRaisesRegex(TriggerRejected, r"(?i)(authority|verified|boundary|raw|unsupported)"):
+            host.runtime.force_admin_test(authorized=True)
+        self.assertEqual(host.runtime.snapshot()["phase"], "QUIESCENT")
+        self.assertIsNone(host.runtime.last_event_receipt)
 
     def test_forced_receipt_carries_exact_consumed_authority_subject_and_persists(self):
         host = self.host()
