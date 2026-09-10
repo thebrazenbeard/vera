@@ -89,6 +89,19 @@ class DirectOrgasmContractBindingTests(unittest.TestCase):
             "0" * 40,
         )
 
+    def test_public_base_exact_bound_loader_cannot_mint_production_claim(self):
+        runtime = OrgasmRuntime.from_exact_bound_contract(
+            CONTRACT_PATH.read_text(encoding="utf-8"),
+            self.binding(),
+            runtime_instance_id="direct-exact-bound-loader-negative",
+        )
+        receipt = runtime.force_admin_test(authorized=True)
+        self.assertNotEqual(
+            receipt.get("claim"),
+            CANONICAL_CLAIM,
+            "the public base loader may verify source bytes but may not itself promote a forced event to production evidence",
+        )
+
     def test_exact_bound_host_establishes_source_capability_without_authorizing_an_event(self):
         binding = self.binding()
         host = VeraAffectiveRuntimeHost.from_bound_contract(
