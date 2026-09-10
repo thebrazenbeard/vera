@@ -1,7 +1,10 @@
+from collections.abc import Mapping
+import hashlib
 import json
 from pathlib import Path
 import unittest
 
+import runtime_cohesion.affect_authority as authority_module
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
 from runtime_cohesion.affect_persistence import checkpoint_to_state_row, restore_host_from_state_row
 from runtime_cohesion.orgasm import TriggerRejected
@@ -12,7 +15,50 @@ BINDING_PATH = ROOT / "architecture" / "VERA_ORGASM_RUNTIME_BINDING_V1.json"
 MIGRATION = ROOT / "supabase" / "migrations" / "20260909181500_close_vera_affective_runtime_first_write_race_v1.sql"
 
 
+class TrustedVerifier:
+    verifier_id = "affect-trigger-governance-persistence-verifier"
+
+    def verify(self, subject, *, expected_referent, expected_effect_class):
+        if not isinstance(subject, Mapping):
+            return None
+        if subject.get("state") != "ALLOW":
+            return None
+        if subject.get("referent") != expected_referent:
+            return None
+        if subject.get("proposition_or_effect_class") != expected_effect_class:
+            return None
+        if subject.get("currentness") != "CURRENT" or subject.get("expiry_or_supersession") is not None:
+            return None
+        canonical = json.dumps(dict(subject), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        return {
+            "verifier_id": self.verifier_id,
+            "evidence_id": "trigger-governance-persistence-evidence",
+            "evidence_digest": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+            "subject": dict(subject),
+        }
+
+
 class VeraAffectiveTriggerGovernancePersistenceTests(unittest.TestCase):
+    def setUp(self):
+        authority_module._reset_affective_authorization_verifier_for_tests()
+        authority_module._install_affective_authorization_verifier(TrustedVerifier())
+
+    def tearDown(self):
+        authority_module._reset_affective_authorization_verifier_for_tests()
+
+    @staticmethod
+    def authorization_subject():
+        return {
+            "state": "ALLOW",
+            "actor": "patrick",
+            "referent": "vera",
+            "proposition_or_effect_class": "ADMIN_FORCED_TEST",
+            "source": "trusted-trigger-governance-persistence-test",
+            "observed_at": "2026-09-10T20:00:00+00:00",
+            "currentness": "CURRENT",
+            "expiry_or_supersession": None,
+        }
+
     def make_host(self):
         return VeraAffectiveRuntimeHost.from_bound_contract(
             CONTRACT_PATH.read_text(encoding="utf-8"),
@@ -23,12 +69,8 @@ class VeraAffectiveTriggerGovernancePersistenceTests(unittest.TestCase):
 
     def test_provider_state_row_preserves_trigger_governance_and_restore_enforces_it(self):
         host = self.make_host()
-
-        # This test isolates durable cooldown/governance mechanics. The raw engine
-        # seam is intentionally nonqualifying and therefore does not claim that a
-        # boolean is production authorization evidence.
-        raw_receipt = host.runtime.force_admin_test(authorized=True)
-        self.assertNotIn("claim", raw_receipt)
+        receipt = host.force_admin_test(authorization_subject=self.authorization_subject())
+        self.assertEqual(receipt["trigger_class"], "ADMIN_FORCED_TEST")
         host.advance_time(5.1)
         checkpoint = host.export_checkpoint()
         row = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=1)
@@ -43,8 +85,8 @@ class VeraAffectiveTriggerGovernancePersistenceTests(unittest.TestCase):
             expected_host_scope="TEST_HOST",
             expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
         )
-        with self.assertRaises(TriggerRejected):
-            restored.runtime.force_admin_test(authorized=True)
+        with self.assertRaisesRegex(TriggerRejected, r"(?i)(cooldown|interval|monotonic)"):
+            restored.force_admin_test(authorization_subject=self.authorization_subject())
 
     def test_provider_migration_carries_trigger_governance_through_atomic_state_commit(self):
         sql = MIGRATION.read_text(encoding="utf-8").lower()
