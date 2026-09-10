@@ -11,7 +11,10 @@ CONTRACT_PATH = ROOT / "architecture" / "VERA_RUNTIME_CONTRACT_V1.json"
 DISPATCH_ID = "dispatch:semantic-currentness"
 EXPECTED_MODE = "EXACT_SHARED_R10_CONTROL_BINDING"
 EXPECTED_CONTROL_ROOT_REF = "VERA_RUNTIME_CONTRACT_V1#control_root"
-EXPECTED_SOURCE_IDENTITY = "VERA_R10A0_PROJECT_SOURCE_MANIFEST_R10.json"
+EXPECTED_SOURCE_REPOSITORY = "thebrazenbeard/vera-control-plane"
+EXPECTED_SOURCE_LOGICAL_ID = "VERA_PROJECT_SOURCE_MANIFEST"
+EXPECTED_OWNER_LOGICAL_ID = "VERA_FULL_SYSTEM_PROJECT_INSTRUCTIONS"
+EXPECTED_SOURCE_IDENTITY = f"github:{EXPECTED_SOURCE_REPOSITORY}#{EXPECTED_SOURCE_LOGICAL_ID}"
 EXPECTED_CURRENTNESS_STATE = "CURRENT_EXACT_R10_BINDING"
 EXPECTED_SUPERSESSION_STATE = "CURRENT_OBSERVATION"
 EXPECTED_SHARED_FIELDS = [
@@ -44,6 +47,12 @@ def validate_semantic_currentness_binding(contract: Mapping[str, Any]) -> list[s
     manifest = control_root.get("manifest_sha256")
     if not isinstance(manifest, str) or len(manifest) != 64:
         errors.append("semantic currentness requires exact control manifest SHA-256")
+    if control_root.get("source_repository") != EXPECTED_SOURCE_REPOSITORY:
+        errors.append("semantic currentness control source repository drift")
+    if control_root.get("source_logical_id") != EXPECTED_SOURCE_LOGICAL_ID:
+        errors.append("semantic currentness control source logical id drift")
+    if control_root.get("owner_logical_id") != EXPECTED_OWNER_LOGICAL_ID:
+        errors.append("semantic currentness control owner logical id drift")
 
     registry = contract.get("resolver_dispatch_decisive_evidence")
     decisive = registry.get(DISPATCH_ID) if isinstance(registry, Mapping) else None
