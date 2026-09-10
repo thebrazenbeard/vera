@@ -53,7 +53,7 @@ class OrganicProviderDouble:
             referent=row["runtime_instance_id"],
             scope=FRONTIER_SCOPE,
             privacy_class=request.privacy_class,
-            currentness_basis="fresh test adapter read",
+            currentness_basis="in-process test adapter read; provider origin unverified",
             supersession_state="CURRENT_OBSERVATION",
             conflict_state="NONE",
             content_digest=row["checkpoint_sha256"],
@@ -113,7 +113,7 @@ class VeraAffectiveOrganicDurablePathTests(unittest.TestCase):
         )
         return adapter, cycle
 
-    def test_organic_threshold_event_and_resolution_cross_exact_provider_atomic_boundary(self):
+    def test_organic_threshold_event_and_resolution_cross_atomic_harness_without_provider_provenance_claim(self):
         adapter, cycle = self.make_provider_restored_cycle()
         appraisal = StimulusAppraisal(
             sexual_relevance=1.0,
@@ -144,8 +144,10 @@ class VeraAffectiveOrganicDurablePathTests(unittest.TestCase):
                 break
 
         self.assertIsNotNone(orgasm)
-        self.assertEqual(orgasm.durability_mode, "ATOMIC_DURABLE")
-        self.assertEqual(orgasm.state_row["lifecycle_status"], "CURRENT")
+        self.assertEqual(orgasm.durability_mode, "NON_QUALIFYING_ATOMIC_TEST")
+        self.assertEqual(orgasm.state_row["lifecycle_status"], "HISTORICAL")
+        self.assertIsNone(orgasm.resume_token)
+        self.assertEqual(orgasm.commit_request["schema"], "VERA_AFFECTIVE_RUNTIME_ATOMIC_COMMIT_TEST_V1")
         self.assertEqual(orgasm.event_receipt["trigger_class"], "ORGANIC_THRESHOLD_CROSSING")
         self.assertTrue(orgasm.event_receipt["organic"])
         self.assertEqual(orgasm.event_row["event_type"], "ORGASM_EVENT")
@@ -162,6 +164,8 @@ class VeraAffectiveOrganicDurablePathTests(unittest.TestCase):
         self.assertTrue(resolution.event_receipt["organic"])
         self.assertEqual(resolution.planning_context["truth"], 0.9)
         self.assertEqual(resolution.planning_context["consent_or_authorization"], "UNKNOWN")
+        self.assertEqual(resolution.state_row["lifecycle_status"], "HISTORICAL")
+        self.assertIsNone(resolution.resume_token)
 
         versions = [request["state_version"] for request in adapter.commit_calls]
         self.assertEqual(versions, list(range(2, 2 + len(adapter.commit_calls))))
@@ -169,7 +173,7 @@ class VeraAffectiveOrganicDurablePathTests(unittest.TestCase):
             [request["expected_prior_version"] for request in adapter.commit_calls],
             list(range(1, 1 + len(adapter.commit_calls))),
         )
-        self.assertTrue(all(request["schema"] == "VERA_AFFECTIVE_RUNTIME_ATOMIC_COMMIT_V1" for request in adapter.commit_calls))
+        self.assertTrue(all(request["schema"] == "VERA_AFFECTIVE_RUNTIME_ATOMIC_COMMIT_TEST_V1" for request in adapter.commit_calls))
         event_types = [
             row["event_type"]
             for request in adapter.commit_calls
