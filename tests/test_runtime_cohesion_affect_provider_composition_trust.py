@@ -6,6 +6,7 @@ import unittest
 import runtime_cohesion
 import runtime_cohesion.affect_persistence as affect_persistence
 import runtime_cohesion.affect_provider_runtime as affect_provider_runtime
+import runtime_cohesion.affect_scope as affect_scope
 from runtime_cohesion.adapters import AdapterProbeResult, AdapterRegistry
 from runtime_cohesion.affect_cycle import VeraAffectiveCycle
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
@@ -178,27 +179,72 @@ class ProviderCompositionTrustTests(unittest.TestCase):
         ):
             self.assertNotIn(forbidden, parameters)
 
-    def test_runtime_owned_provider_composition_restores_atomic_exact_frontier(self):
+    def test_first_writer_fake_composition_cannot_mint_provider_authenticated_durability(self):
         contract_text, binding, checkpoint, row, token = self.material()
         adapter = SelfConsistentAffectiveProviderDouble(row)
         affect_provider_runtime._install_runtime_affective_provider_adapter(adapter)
 
-        cycle = runtime_cohesion.restore_current_affective_cycle(
+        try:
+            cycle = runtime_cohesion.restore_current_affective_cycle(
+                contract_text,
+                binding,
+                row,
+                host_scope="TEST_HOST",
+                expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
+                expected_resume_token=token,
+            )
+        except (affect_persistence.PersistenceRecordError, RuntimeError, ValueError):
+            self.assertEqual(adapter.commit_calls, [])
+            return
+
+        self.assertNotEqual(cycle.durability_mode, "ATOMIC_DURABLE")
+        result = cycle.process_turn(StimulusAppraisal(), planning_state={"truth": 0.94})
+        self.assertNotEqual(result.durability_mode, "ATOMIC_DURABLE")
+        self.assertEqual(result.state_row["lifecycle_status"], "HISTORICAL")
+        self.assertIsNone(result.resume_token)
+        self.assertNotEqual(result.commit_request.get("schema"), "VERA_AFFECTIVE_RUNTIME_ATOMIC_COMMIT_V1")
+
+    def test_direct_internal_attestation_calls_cannot_mint_provider_authenticated_durability(self):
+        contract_text, binding, _checkpoint, _row, _token = self.material()
+        host = VeraAffectiveRuntimeHost.from_bound_contract(
             contract_text,
             binding,
-            row,
-            host_scope="TEST_HOST",
-            expected_checkpoint_sha256=checkpoint["checkpoint_sha256"],
-            expected_resume_token=token,
+            runtime_instance_id="direct-attestation-bypass-test",
         )
-        self.assertEqual(cycle.durability_mode, "ATOMIC_DURABLE")
-        result = cycle.process_turn(StimulusAppraisal(), planning_state={"truth": 0.94})
-        self.assertEqual(len(adapter.commit_calls), 1)
-        self.assertEqual(adapter.commit_calls[0]["expected_prior_version"], 7)
-        self.assertEqual(adapter.commit_calls[0]["state_version"], 8)
-        self.assertEqual(result.resume_token["state_version"], 8)
-        self.assertEqual(result.state_row["lifecycle_status"], "CURRENT")
-        self.assertEqual(result.planning_context["truth"], 0.94)
+        calls = []
+        writer = self.echo_writer(calls)
+        token = object()
+        affect_scope._attest_affective_host_provider_current(
+            host,
+            host_scope="TEST_HOST",
+            state_version=7,
+            attestation_token=token,
+        )
+        affect_scope._mark_provider_bound_atomic_writer(
+            writer,
+            host=host,
+            host_scope="TEST_HOST",
+            state_version=7,
+            attestation_token=token,
+        )
+
+        try:
+            cycle = VeraAffectiveCycle(
+                host,
+                host_scope="TEST_HOST",
+                atomic_commit_writer=writer,
+                initial_state_version=8,
+            )
+        except (RuntimeError, ValueError):
+            self.assertEqual(calls, [])
+            return
+
+        self.assertNotEqual(cycle.durability_mode, "ATOMIC_DURABLE")
+        result = cycle.process_turn(StimulusAppraisal(), planning_state={})
+        self.assertNotEqual(result.durability_mode, "ATOMIC_DURABLE")
+        self.assertEqual(result.state_row["lifecycle_status"], "HISTORICAL")
+        self.assertIsNone(result.resume_token)
+        self.assertNotEqual(result.commit_request.get("schema"), "VERA_AFFECTIVE_RUNTIME_ATOMIC_COMMIT_V1")
 
     def test_runtime_provider_composition_cannot_be_replaced_after_install(self):
         _contract_text, _binding, _checkpoint, row, _token = self.material()
