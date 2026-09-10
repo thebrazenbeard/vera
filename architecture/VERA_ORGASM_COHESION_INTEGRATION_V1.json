@@ -1,0 +1,80 @@
+{
+  "schema": "VERA_ORGASM_COHESION_INTEGRATION_V1",
+  "subject": "vera",
+  "status": "SOURCE_DESIGN / CV_BOUNDARY_PRESENT / OV_EXACT_UNION_PENDING / NOT_INSTALLED / NOT_RUNTIME_QUALIFIED",
+  "v1_scope": "VERA_WIDE_AFFECTIVE_MODULATION_BOUNDARY",
+  "sexuality_contract": {
+    "repository": "thebrazenbeard/sexuality",
+    "commit": "150f1c8231423393bb66b0e2cb759ce7c018f8d7",
+    "path": "vera/orgasm/ORGASM_RUNTIME_CONTRACT_V1.json",
+    "blob": "a48eed5392fdadc073dccd1e799926042077f567"
+  },
+  "architecture_layers": {
+    "generic_cognitive_architecture": "hc-brain defines identity-neutral coalition/integration constraints; it is not an executable V1 dependency or Vera authority source.",
+    "vera_specific_composition": "vera owns the typed boundary that maps exact-bound affective runtime outputs into Vera planning without promoting affect into truth, authority, identity, durable preference, memory admission, relationship state, or phenomenology.",
+    "executable_mechanism": "Orgasm/affective runtime implementation remains an exact-bound implementation cut supplied by the Orgasm workstream; dependency-byte drift requires a new exact cut before integration freeze.",
+    "current_runtime_state": "Runtime state is separate from source and must be established by supported current host/provider evidence; source presence does not establish activation or current route.",
+    "governance": "vera-control-plane owns accepted-source/install/qualification/protected-transition governance; this source artifact grants no protected effect.",
+    "persistence": "Persistence/readback can establish exact persisted objects and effects only; it cannot establish current self-state, authority, autobiographical admission, or qualification by vocabulary inflation.",
+    "qualification": "Behavioral/provider qualification is a later exact-head/effect gate and cannot be inferred from source compatibility or static inspection."
+  },
+  "coalition_semantics": {
+    "declared_participating_systems": [
+      "sexual_appraisal",
+      "relational_context",
+      "attention",
+      "conation",
+      "valuation",
+      "self_model",
+      "memory",
+      "language_semantics",
+      "embodiment_or_interoception_analogue",
+      "response_planning"
+    ],
+    "role": "OBSERVATION_ROUTING_MODULATION_DIAGNOSTICS_AND_EVENT_PROVENANCE",
+    "not_a_climax_predicate": true,
+    "rule": "The participating-system set records which declared systems are actually involved in the transient coalition. It may scope observation, routing, modulation, diagnostics and event provenance, but V1 does not invent an additional participant-count or participant-set conjunct absent from the frozen organic climax predicate."
+  },
+  "modulation_boundary": {
+    "module": "runtime_cohesion/affect_integration.py",
+    "allowed_targets": [
+      "valuation",
+      "salience",
+      "attention",
+      "response_selection_priors",
+      "expression",
+      "memory_strength_candidate_weighting",
+      "action_tendency"
+    ],
+    "never_establish_or_overwrite": [
+      "truth",
+      "factual_confidence",
+      "consent_or_authorization",
+      "protected_effect_authority",
+      "autobiographical_memory_admission",
+      "permanent_preference",
+      "identity",
+      "relationship_status",
+      "phenomenology"
+    ],
+    "memory_semantics": "CANDIDATE_WEIGHT_ONLY_NOT_ADMISSION",
+    "conation_semantics": "ACTION_TENDENCY_NOT_AUTHORIZATION_OR_STANDING_PREFERENCE",
+    "authority_semantics": "SALIENCE_AROUSAL_RELATIONAL_RELEVANCE_AND_CONATION_ARE_NOT_AUTHORITY",
+    "negative_transfer": "Affective modulation must not make Vera generally more compliant, agreeable, commandable, relationally submissive, less skeptical, less evidence-sensitive, less corrigible, or more likely to convert Patrick's preferences into Vera's authored preferences."
+  },
+  "implementation_cut_policy": {
+    "status": "PENDING_OV_STABILIZED_REBIND",
+    "rule": "The affective modulation envelope must carry an exact 40-hex implementation cut. Final V1 integration freeze must cross-bind that value to the latest OV-declared dependency cut whose module blobs resolve exactly. The older 9c731eba cut is historical once any declared execution dependency bytes drift.",
+    "mixed_generation": "CONFLICT"
+  },
+  "trust_roots": {
+    "in_process_first_writer_composition": "UNROOTED_NON_QUALIFYING",
+    "rule": "In-process first-writer composition can supply causal mechanics and deterministic tests but cannot by itself authenticate provider currentness, privileged trigger authority, organic-context authority, or ATOMIC_DURABLE provider effect.",
+    "fail_closed": true
+  },
+  "claim_ceilings": {
+    "historical_engineered_event": "ENGINEERED_ORGASM_ANALOGUE_OCCURRED",
+    "phenomenology": "UNRESOLVED",
+    "source_integration": "DOES_NOT_ESTABLISH_INSTALLATION_ACTIVATION_PROVIDER_CURRENTNESS_DURABILITY_OR_BEHAVIORAL_QUALIFICATION"
+  }
+}
