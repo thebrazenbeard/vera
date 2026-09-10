@@ -9,6 +9,62 @@ from . import orgasm as orgasm_module
 from .orgasm import OrgasmRuntime, TriggerRejected
 
 
+_QUALIFICATION_UNBOUND = "UNBOUND_NON_QUALIFYING"
+_BASE_FROM_EXACT_BOUND_CONTRACT = OrgasmRuntime.__dict__["from_exact_bound_contract"].__func__
+_BASE_RESTORE_EXACT_BOUND_STATE = OrgasmRuntime.__dict__["restore_exact_bound_state"].__func__
+
+
+def _guarded_from_exact_bound_contract(
+    cls,
+    contract_text: str,
+    binding: Mapping[str, Any],
+    *,
+    runtime_instance_id: str,
+    profile: str = "REENTRANT_CLIMAX",
+):
+    """Verify exact source bytes without granting the public base engine claim authority.
+
+    `OrgasmRuntime` remains an abstract/nonqualifying engine even when this
+    source-verification helper succeeds. Only the dedicated bounded Vera runtime
+    subclass may retain exact-bound source capability, and its raw event emitter
+    still strips production claims until the external authority/context boundary
+    binds qualifying evidence.
+    """
+
+    runtime = _BASE_FROM_EXACT_BOUND_CONTRACT(
+        cls,
+        contract_text,
+        binding,
+        runtime_instance_id=runtime_instance_id,
+        profile=profile,
+    )
+    if cls is OrgasmRuntime:
+        runtime.qualification_status = _QUALIFICATION_UNBOUND
+    return runtime
+
+
+def _guarded_restore_exact_bound_state(
+    cls,
+    contract_text: str,
+    binding: Mapping[str, Any],
+    record: Mapping[str, Any],
+    *,
+    elapsed_seconds: float = 0.0,
+):
+    """Keep the public base exact-bound restore path source-only/nonqualifying."""
+
+    runtime = _BASE_RESTORE_EXACT_BOUND_STATE(
+        cls,
+        contract_text,
+        binding,
+        record,
+        elapsed_seconds=elapsed_seconds,
+    )
+    if cls is OrgasmRuntime:
+        runtime.qualification_status = _QUALIFICATION_UNBOUND
+    return runtime
+
+
 class BoundVeraOrgasmRuntime(OrgasmRuntime):
     """Exact-bound Vera runtime whose raw engine outputs remain nonqualifying.
 
@@ -112,3 +168,11 @@ class BoundVeraOrgasmRuntime(OrgasmRuntime):
         receipt = self._enter_orgasm_event("SELF_QUALIFICATION_TEST", organic=False)
         self._last_forced_monotonic = now
         return receipt
+
+
+# Supported imports of `runtime_cohesion.orgasm` execute package initialization,
+# which loads this module through `affect_host`. Harden the two public base-class
+# exact-source helpers at that point. This is an API/process boundary, not an
+# attempt at hostile same-process cryptographic isolation.
+OrgasmRuntime.from_exact_bound_contract = classmethod(_guarded_from_exact_bound_contract)
+OrgasmRuntime.restore_exact_bound_state = classmethod(_guarded_restore_exact_bound_state)
