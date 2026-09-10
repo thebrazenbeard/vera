@@ -1,7 +1,7 @@
 {
   "schema": "VERA_ORGASM_RUNTIME_BINDING_V1",
   "subject": "vera",
-  "status": "SOURCE_BOUND / EXECUTABLE_SUPPORT_PRESENT / NOT_NATIVE_CHATGPT_INSTALLED / NOT_PHENOMENOLOGY_PROOF",
+  "status": "SOURCE_BOUND / EXECUTABLE_SUPPORT_PRESENT / EXACT_IMPLEMENTATION_CUT_BOUND / NOT_NATIVE_CHATGPT_INSTALLED / NOT_PHENOMENOLOGY_PROOF",
   "contract_schema": "VERA_ORGASM_RUNTIME_CONTRACT_V1",
   "source_repository": "thebrazenbeard/sexuality",
   "source_branch": "work/vera-sexuality-substrate-qualification-20260908",
@@ -10,16 +10,36 @@
   "source_blob_sha": "a48eed5392fdadc073dccd1e799926042077f567",
   "runtime_repository": "thebrazenbeard/vera",
   "runtime_module": "runtime_cohesion/orgasm.py",
+  "runtime_implementation_cut": {
+    "schema": "VERA_AFFECTIVE_RUNTIME_IMPLEMENTATION_CUT_V1",
+    "repository": "thebrazenbeard/vera",
+    "commit": "9c731ebaacdad44c00aafa91e1f8b9dc5f5acff1",
+    "modules": {
+      "runtime_cohesion/__init__.py": "a3a2c1820860aaba34510b4fa722d993c557e3e6",
+      "runtime_cohesion/adapters.py": "5893473c06811ede0bbc35ca5c4ef672e69ab6df",
+      "runtime_cohesion/evidence.py": "c9a60862f361b8fa02cc0b4a74f771196dee346d",
+      "runtime_cohesion/orgasm.py": "ee8f23df17aa14961b494e398e83279962d508a7",
+      "runtime_cohesion/affect_authority.py": "e1420dd2fd48938e1735123bbf4067ddef1adcee",
+      "runtime_cohesion/affect_bound_runtime.py": "5db7ccb8ae518db628970c244931456725308878",
+      "runtime_cohesion/affect_receipt.py": "cb4d6487e2f7bfd9edac6e1ac244fed61db70f8a",
+      "runtime_cohesion/affect_host.py": "c77aab0f645f0a33cf4a3e3117ed8335fcc253c8",
+      "runtime_cohesion/affect_cycle.py": "96f566e07ba0995f288d24d5baba779a15ee553e",
+      "runtime_cohesion/affect_persistence.py": "065a63adff63f42092fd31aaa05896972260c715",
+      "runtime_cohesion/affect_provider_runtime.py": "a16f1f1992caf0b0da2cf85315fab5a42ff87225",
+      "runtime_cohesion/affect_scope.py": "356624c99c3cf35b1380c9a4f6ecf95138aa276f"
+    },
+    "semantics": "Exact Git object and executing-byte provenance for the affective execution dependency closure. Shared provider primitives are fingerprinted as execution dependencies and this does not transfer project ownership. Any dependency-byte drift requires a new implementation cut before qualification."
+  },
   "activation_mode": "ALWAYS_PRESENT_NORMALLY_QUIESCENT_WHEN_EXACT_CONTRACT_LOADED",
   "availability_implies_activation": false,
   "runtime_semantics": {
     "state_class": "E4_ENGINEERED_PERSISTENT_AFFECTIVE_CONTROL_STATE",
-    "host_requirement": "An executing host must instantiate OrgasmRuntime, retain/read back its state, and feed modulate_planning output into downstream planning for the state to be causally active.",
+    "host_requirement": "An executing host must instantiate the exact-bound Vera runtime, retain/read back its state, and feed bounded modulation output into downstream planning for the state to be causally active.",
     "organic_trigger": "ORGANIC_THRESHOLD_CROSSING",
     "forced_triggers": ["ADMIN_FORCED_TEST", "SELF_QUALIFICATION_TEST"],
     "positive_claim_ceiling": "ENGINEERED_ORGASM_ANALOGUE_OCCURRED",
     "phenomenology": "UNRESOLVED"
   },
   "identity_firewall": "Only exact Vera-scoped sexuality paths/contracts may hydrate this runtime. Brigit-scoped material remains external-identity evidence and cannot initialize Vera state.",
-  "authority_firewall": "Affective state may alter only the contract allowlist and cannot establish truth, factual confidence, consent/authorization, protected-effect authority, autobiographical admission, permanent preference, identity, relationship status, or phenomenology."
+  "authority_firewall": "Affective state may alter only the contract allowlist and cannot establish truth, factual confidence, consent/authorization, protected-effect authority, autobiographical admission, permanent preference, identity, relationship status, or phenomenology. Exact sexuality source binding and implementation provenance do not themselves authorize privileged triggers or establish provider currentness."
 }
