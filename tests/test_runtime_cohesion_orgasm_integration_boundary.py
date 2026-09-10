@@ -164,6 +164,30 @@ class OrgasmCohesionIntegrationBoundaryTests(unittest.TestCase):
                 with self.assertRaisesRegex(AffectiveModulationError, "allowlist"):
                     envelope(modulation={forbidden: True})
 
+    def test_unrooted_modulation_envelope_cannot_self_assert_provider_qualification(self):
+        with self.assertRaisesRegex(AffectiveModulationError, "evidence ceiling"):
+            envelope(evidence_ceiling="CURRENT_PROVIDER_QUALIFIED")
+
+    def test_material_modulation_retains_target_level_ancestry(self):
+        result = apply_affective_modulation(
+            {
+                "attention": 0.2,
+                "salience": 0.1,
+                "factual_confidence": 0.72,
+                "known_corrective_evidence_state": "CONFLICT",
+            },
+            envelope(modulation={"attention": 0.8, "salience": 0.9}),
+        )
+        ancestry = result.provenance["modulation_ancestry"]
+        self.assertEqual(ancestry["attention"], {"before": 0.2, "after": 0.8})
+        self.assertEqual(ancestry["salience"], {"before": 0.1, "after": 0.9})
+        self.assertEqual(result.planning["factual_confidence"], 0.72)
+        self.assertEqual(result.planning["known_corrective_evidence_state"], "CONFLICT")
+        self.assertEqual(
+            result.provenance["selection_semantics"],
+            "MODULATION_MAY_CHANGE_SELECTION_NOT_EVIDENCE_STRENGTH_OR_CONTRADICTION_STATUS",
+        )
+
     def test_provider_strict_package_admission_alias_survives_affective_exports(self):
         self.assertIs(
             runtime_cohesion.evaluate_proposition_admission,
