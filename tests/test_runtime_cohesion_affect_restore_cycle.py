@@ -182,8 +182,9 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
 
     def make_post_orgasm_state_row(self, *, state_version=7):
         host = self.make_host()
-        raw = host.runtime.force_admin_test(authorized=True)
-        self.assertNotIn("claim", raw)
+        receipt = host.force_admin_test(authorization_subject=self.authorization_subject())
+        self.assertEqual(receipt["trigger_class"], "ADMIN_FORCED_TEST")
+        self.assertIn("claim", receipt)
         host.advance_time(5.1)
         checkpoint = host.export_checkpoint()
         row = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=state_version)
