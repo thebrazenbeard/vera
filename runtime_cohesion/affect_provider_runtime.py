@@ -4,7 +4,11 @@ from threading import RLock
 from typing import Any, Mapping
 
 from .adapters import AdapterRegistry
-from .affect_persistence import AffectiveProviderRestoreBoundary, PersistenceRecordError
+from .affect_persistence import (
+    AffectiveProviderRestoreBoundary,
+    PersistenceRecordError,
+    restore_host_from_state_row,
+)
 from .affect_scope import (
     _attest_affective_host_provider_current,
     _mark_provider_bound_atomic_writer,
@@ -86,13 +90,15 @@ def restore_current_affective_cycle(
     host_scope: str,
     expected_checkpoint_sha256: str,
     expected_resume_token: Mapping[str, Any],
+    elapsed_seconds: float = 0.0,
 ) -> Any:
     """Restore one live provider-CURRENT affective cycle through fixed composition.
 
-    The provider route/project/table and adapter identity are resolved from the
-    runtime-owned composition installed before claimant input. A fresh typed
-    provider read authenticates the candidate frontier; only then are the host
-    CURRENT attestation and the matching provider-bound atomic writer minted.
+    Provider identity/configuration and adapter selection come from composition
+    installed before claimant input. The provider frontier is read and validated
+    first; the already-validated durable bytes are then replayed (including any
+    elapsed-time transition processing), and only that host receives the private
+    provider-CURRENT attestation plus matching writer capability.
     """
     from .affect_cycle import VeraAffectiveCycle
 
@@ -107,14 +113,15 @@ def restore_current_affective_cycle(
     )
 
     provider_adapter = boundary._provider_adapter()
-    host = boundary._restore_authenticated_host(
-        provider_adapter,
+    boundary._validate_resume_token(row, expected_resume_token)
+    boundary._read_current_frontier(row, adapter=provider_adapter)
+    host = restore_host_from_state_row(
         contract_text,
         binding,
         row,
         expected_host_scope=host_scope,
+        elapsed_seconds=elapsed_seconds,
         expected_checkpoint_sha256=expected_checkpoint_sha256,
-        expected_resume_token=expected_resume_token,
     )
 
     state_version = row.get("state_version")
