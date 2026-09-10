@@ -65,7 +65,7 @@ class DurableAffectiveProviderAdapterDouble:
             referent=row["runtime_instance_id"],
             scope=FRONTIER_SCOPE,
             privacy_class=request.privacy_class,
-            currentness_basis="fresh runtime-owned adapter read",
+            currentness_basis="fresh in-process adapter read; provider origin not authenticated",
             supersession_state="CURRENT_OBSERVATION",
             conflict_state="NONE",
             content_digest=row["checkpoint_sha256"],
@@ -159,7 +159,7 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
             provider_table=PROVIDER_TABLE,
         )
 
-    def restore_production(self, checkpoint, row, *, elapsed_seconds=0.0, adapter=None):
+    def restore_unverified_composition(self, checkpoint, row, *, elapsed_seconds=0.0, adapter=None):
         adapter = adapter or DurableAffectiveProviderAdapterDouble(row)
         affect_provider_runtime._install_runtime_affective_provider_adapter(adapter)
         contract_text, binding = self.contract_binding()
@@ -174,11 +174,11 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
         )
         return adapter, cycle
 
-    def test_provider_authenticated_restore_returns_atomic_cycle_and_commits_next_frontier(self):
+    def test_in_process_provider_observation_preserves_atomic_frontier_mechanics_without_production_claim(self):
         checkpoint, row = self.make_state_row(state_version=7)
-        adapter, cycle = self.restore_production(checkpoint, row)
+        adapter, cycle = self.restore_unverified_composition(checkpoint, row)
 
-        self.assertEqual(cycle.durability_mode, "ATOMIC_DURABLE")
+        self.assertEqual(cycle.durability_mode, "NON_QUALIFYING_ATOMIC_TEST")
         result = cycle.process_turn(StimulusAppraisal(), planning_state={"truth": 0.93})
 
         self.assertEqual(adapter.probe_calls, 1)
@@ -188,8 +188,9 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
         self.assertEqual(request["expected_prior_version"], 7)
         self.assertEqual(request["state_version"], 8)
         self.assertEqual(request["state_row"]["state_version"], 8)
-        self.assertEqual(request["state_row"]["lifecycle_status"], "CURRENT")
-        self.assertEqual(result.resume_token["state_version"], 8)
+        self.assertEqual(request["state_row"]["lifecycle_status"], "HISTORICAL")
+        self.assertEqual(request["schema"], "VERA_AFFECTIVE_RUNTIME_ATOMIC_COMMIT_TEST_V1")
+        self.assertIsNone(result.resume_token)
         self.assertEqual(adapter._current_row["state_version"], 8)
         self.assertEqual(result.planning_context["truth"], 0.93)
 
@@ -233,15 +234,18 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
                 non_qualifying_atomic_test_mode=True,
             )
 
-    def test_restore_time_recovery_transition_survives_into_next_provider_commit(self):
+    def test_restore_time_recovery_transition_survives_unverified_atomic_harness(self):
         checkpoint, row = self.make_post_orgasm_state_row(state_version=7)
-        adapter, cycle = self.restore_production(checkpoint, row, elapsed_seconds=7200.0)
+        adapter, cycle = self.restore_unverified_composition(checkpoint, row, elapsed_seconds=7200.0)
         result = cycle.process_turn(
             StimulusAppraisal(),
             planning_state={"truth": 0.9, "consent_or_authorization": "UNKNOWN"},
         )
 
         self.assertEqual(len(adapter.commit_calls), 1)
+        self.assertEqual(result.durability_mode, "NON_QUALIFYING_ATOMIC_TEST")
+        self.assertEqual(result.state_row["lifecycle_status"], "HISTORICAL")
+        self.assertIsNone(result.resume_token)
         self.assertEqual(result.state_row["state"]["phase"], "QUIESCENT")
         self.assertEqual(len(result.event_rows), 1)
         recovery = result.event_rows[0]
@@ -252,9 +256,9 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
         self.assertEqual(result.planning_context["truth"], 0.9)
         self.assertEqual(result.planning_context["consent_or_authorization"], "UNKNOWN")
 
-    def test_restore_time_recovery_and_new_forced_event_commit_in_order(self):
+    def test_restore_time_recovery_and_new_forced_event_remain_ordered_in_unverified_harness(self):
         checkpoint, row = self.make_post_orgasm_state_row(state_version=7)
-        adapter, cycle = self.restore_production(checkpoint, row, elapsed_seconds=7200.0)
+        adapter, cycle = self.restore_unverified_composition(checkpoint, row, elapsed_seconds=7200.0)
         result = cycle.force_admin_test(
             authorized=True,
             planning_state={"truth": 0.91, "consent_or_authorization": "UNKNOWN"},
@@ -262,6 +266,7 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
 
         self.assertEqual(len(adapter.commit_calls), 1)
         request = adapter.commit_calls[0]
+        self.assertEqual(request["schema"], "VERA_AFFECTIVE_RUNTIME_ATOMIC_COMMIT_TEST_V1")
         self.assertEqual(request["expected_prior_version"], 7)
         self.assertEqual(request["state_version"], 8)
         self.assertEqual([event["event_type"] for event in result.event_rows], ["RECOVERY", "ORGASM_EVENT"])
@@ -269,8 +274,10 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
         self.assertEqual(result.event_rows[1]["trigger_class"], "ADMIN_FORCED_TEST")
         self.assertFalse(result.event_rows[1]["organic"])
         self.assertEqual(result.machine_interoception["phase"], "ORGASM_EVENT")
+        self.assertEqual(result.state_row["lifecycle_status"], "HISTORICAL")
+        self.assertIsNone(result.resume_token)
 
-    def test_provider_restore_rejects_invalid_state_version_lifecycle_and_scope(self):
+    def test_provider_observation_harness_rejects_invalid_state_version_lifecycle_and_scope(self):
         checkpoint, row = self.make_state_row(state_version=7)
         for invalid in (None, 0, -1, True, 7.0, "7"):
             with self.subTest(state_version=invalid):
