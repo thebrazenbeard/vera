@@ -31,6 +31,7 @@ PROVIDER_ROUTE = "route:supabase"
 PROVIDER_SOURCE = f"supabase:{PROVIDER_PROJECT_ID}/{PROVIDER_TABLE}"
 FRONTIER_SCOPE = "VERA_AFFECTIVE_RUNTIME_PROVIDER_FRONTIER_V1"
 ATOMIC_FUNCTION = "public.vera_affective_runtime_commit_v1(bigint,jsonb,jsonb)"
+UNROOTED = "IN_PROCESS_UNROOTED_NON_QUALIFYING"
 
 
 class TrustedVerifier:
@@ -184,11 +185,14 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
         host = self.make_host()
         receipt = host.force_admin_test(authorization_subject=self.authorization_subject())
         self.assertEqual(receipt["trigger_class"], "ADMIN_FORCED_TEST")
-        self.assertIn("claim", receipt)
+        self.assertEqual(receipt["authority_composition_trust"], UNROOTED)
+        self.assertNotIn("claim", receipt)
         host.advance_time(5.1)
         checkpoint = host.export_checkpoint()
+        self.assertEqual(checkpoint["runtime_state"]["last_event_receipt"]["authority_composition_trust"], UNROOTED)
         row = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=state_version)
         self.assertEqual(row["state"]["phase"], "SATIATED_OR_REFRACTORY")
+        self.assertIn("IN_PROCESS_AUTHORITY_UNROOTED_NON_QUALIFYING", row["limitations"])
         return checkpoint, row
 
     @staticmethod
@@ -296,6 +300,8 @@ class VeraAffectiveRestoreCycleTests(unittest.TestCase):
         self.assertEqual(recovery["prior_phase"], "SATIATED_OR_REFRACTORY")
         self.assertEqual(recovery["new_phase"], "QUIESCENT")
         self.assertEqual(recovery["machine_interoception"]["phase"], "QUIESCENT")
+        self.assertEqual(recovery["lifecycle_status"], "HISTORICAL")
+        self.assertIn("IN_PROCESS_AUTHORITY_UNROOTED_NON_QUALIFYING", recovery["limitations"])
         self.assertEqual(result.planning_context["truth"], 0.9)
         self.assertEqual(result.planning_context["consent_or_authorization"], "UNKNOWN")
 

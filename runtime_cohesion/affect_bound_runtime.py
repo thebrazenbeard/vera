@@ -10,6 +10,7 @@ from .orgasm import OrgasmRuntime, StimulusAppraisal, TriggerRejected
 
 
 _QUALIFICATION_UNBOUND = "UNBOUND_NON_QUALIFYING"
+_IN_PROCESS_AUTHORITY_TRUST = "IN_PROCESS_UNROOTED_NON_QUALIFYING"
 _BASE_FROM_EXACT_BOUND_CONTRACT = OrgasmRuntime.__dict__["from_exact_bound_contract"].__func__
 _BASE_RESTORE_EXACT_BOUND_STATE = OrgasmRuntime.__dict__["restore_exact_bound_state"].__func__
 
@@ -129,6 +130,118 @@ class BoundVeraOrgasmRuntime(OrgasmRuntime):
             raise TriggerRejected("forced-test minimum privileged monotonic interval has not elapsed")
         return now
 
+    @classmethod
+    def restore_state(
+        cls,
+        contract: Mapping[str, Any],
+        record: Mapping[str, Any],
+        *,
+        source_revision: str,
+        elapsed_seconds: float = 0.0,
+    ) -> "BoundVeraOrgasmRuntime":
+        """Restore structurally valid Vera state without promoting source to qualification.
+
+        The generic base restore historically inferred that the canonical sexuality
+        source revision required a production engineered-event claim. That collapses
+        SOURCE into BEHAVIORAL QUALIFICATION and makes honest nonqualifying replay
+        impossible after the authority trust-root was tightened. The Vera-bound
+        runtime instead validates restored receipts as source-faithful historical
+        evidence. Production claim/currentness/durability gates remain outside this
+        restore function.
+        """
+        ContractError = orgasm_module.ContractError
+        if record.get("schema") != "VERA_ORGASM_DURABLE_STATE_V1":
+            raise ContractError("unsupported durable orgasm state schema")
+        if record.get("subject") != "vera":
+            raise ContractError("durable orgasm state must be Vera-scoped")
+        if record.get("source_revision") != source_revision:
+            raise ContractError("durable state source revision does not match the active contract binding")
+
+        runtime = cls(
+            contract,
+            runtime_instance_id=str(record.get("runtime_instance_id") or ""),
+            source_revision=source_revision,
+            profile=str(record.get("profile") or "REENTRANT_CLIMAX"),
+        )
+        raw_state = record.get("state")
+        if not isinstance(raw_state, Mapping):
+            raise ContractError("durable state payload is missing")
+        values = runtime._validate_durable_state_snapshot(raw_state)
+        runtime._state = orgasm_module._OrgasmState(**values)
+        if raw_state["organic_climax_eligible"] != runtime._organic_climax_eligible():
+            raise ContractError("durable orgasm state's derived organic eligibility is inconsistent")
+
+        last_receipt = record.get("last_event_receipt")
+        if last_receipt is not None and not isinstance(last_receipt, Mapping):
+            raise ContractError("durable last_event_receipt must be an object or null")
+        if isinstance(last_receipt, Mapping):
+            try:
+                orgasm_module.validate_affective_event_receipt(
+                    last_receipt,
+                    expected_runtime_instance_id=runtime.runtime_instance_id,
+                    expected_source_revision=source_revision,
+                    require_engineered_claim=False,
+                )
+            except orgasm_module.AffectiveReceiptSemanticError as exc:
+                raise ContractError("durable last_event_receipt semantic validation failed: " + str(exc)) from exc
+            runtime.last_event_receipt = dict(last_receipt)
+        else:
+            runtime.last_event_receipt = None
+
+        trigger_governance = record.get("trigger_governance")
+        self_qualification_limit = int(runtime._cfg["self_qualification_max_events_per_run"])
+        if trigger_governance is None:
+            runtime._logical_time_seconds = 0.0
+            runtime._last_forced_at = 0.0
+            runtime._self_qualification_events = self_qualification_limit
+            runtime._last_observation_qualifying = False
+        else:
+            if not isinstance(trigger_governance, Mapping):
+                raise ContractError("durable trigger governance must be an object")
+            if trigger_governance.get("schema") != "VERA_ORGASM_TRIGGER_GOVERNANCE_V1":
+                raise ContractError("unsupported durable trigger governance schema")
+
+            logical_time = trigger_governance.get("logical_time_seconds")
+            last_forced_at = trigger_governance.get("last_forced_at")
+            self_qualification_events = trigger_governance.get("self_qualification_events")
+            last_observation_qualifying = trigger_governance.get("last_observation_qualifying", False)
+            if isinstance(logical_time, bool) or not isinstance(logical_time, (int, float)) or not math.isfinite(float(logical_time)) or float(logical_time) < 0:
+                raise ContractError("durable trigger governance logical time must be finite and nonnegative")
+            if last_forced_at is not None:
+                if isinstance(last_forced_at, bool) or not isinstance(last_forced_at, (int, float)) or not math.isfinite(float(last_forced_at)):
+                    raise ContractError("durable trigger governance last_forced_at must be finite numeric or null")
+                if float(last_forced_at) < 0 or float(last_forced_at) > float(logical_time):
+                    raise ContractError("durable trigger governance last_forced_at is outside logical time")
+            if (
+                isinstance(self_qualification_events, bool)
+                or not isinstance(self_qualification_events, int)
+                or self_qualification_events < 0
+                or self_qualification_events > self_qualification_limit
+            ):
+                raise ContractError("durable trigger governance self-qualification count is invalid")
+            if not isinstance(last_observation_qualifying, bool):
+                raise ContractError("durable trigger governance observation continuity must be boolean")
+            if last_observation_qualifying and (
+                not runtime._state.context_eligible
+                or runtime._state.phase not in {"ACTIVATING", "ENTRAINED"}
+                or runtime._state.active_orgasm_event
+            ):
+                raise ContractError("durable trigger governance observation continuity is inconsistent with restored state")
+
+            runtime._logical_time_seconds = float(logical_time)
+            runtime._last_forced_at = None if last_forced_at is None else float(last_forced_at)
+            runtime._self_qualification_events = self_qualification_events
+            runtime._last_observation_qualifying = last_observation_qualifying
+
+        runtime._last_monotonic_observation = None
+        try:
+            trusted_restore_elapsed = orgasm_module._validated_elapsed_seconds(elapsed_seconds)
+        except ValueError as exc:
+            raise ContractError(str(exc)) from exc
+        if trusted_restore_elapsed:
+            runtime.advance_time(trusted_restore_elapsed)
+        return runtime
+
     def _emit_event_receipt(
         self,
         event_type: str,
@@ -139,6 +252,7 @@ class BoundVeraOrgasmRuntime(OrgasmRuntime):
         organic: bool,
         trigger_provenance: str,
     ) -> dict[str, Any]:
+        prior_receipt = dict(self.last_event_receipt) if isinstance(self.last_event_receipt, Mapping) else None
         receipt = super()._emit_event_receipt(
             event_type,
             state_before=state_before,
@@ -152,6 +266,10 @@ class BoundVeraOrgasmRuntime(OrgasmRuntime):
         if self._runtime_implementation_cut is not None:
             bounded["runtime_implementation_cut"] = _copy_cut(self._runtime_implementation_cut)
         bounded.pop("claim", None)
+
+        if event_type in {"RESOLUTION", "RECOVERY"} and isinstance(prior_receipt, Mapping):
+            if prior_receipt.get("authority_composition_trust") == _IN_PROCESS_AUTHORITY_TRUST:
+                bounded["authority_composition_trust"] = _IN_PROCESS_AUTHORITY_TRUST
 
         if bounded == receipt:
             return receipt
@@ -216,9 +334,5 @@ class BoundVeraOrgasmRuntime(OrgasmRuntime):
         return receipt
 
 
-# Supported imports of `runtime_cohesion.orgasm` execute package initialization,
-# which loads this module through `affect_host`. Harden the two public base-class
-# exact-source helpers at that point. This is an API/process boundary, not an
-# attempt at hostile same-process cryptographic isolation.
 OrgasmRuntime.from_exact_bound_contract = classmethod(_guarded_from_exact_bound_contract)
 OrgasmRuntime.restore_exact_bound_state = classmethod(_guarded_restore_exact_bound_state)

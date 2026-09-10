@@ -32,21 +32,13 @@ REQUIRED_RUNTIME_PATHS = {
 
 def rev_parse(spec):
     return subprocess.run(
-        ["git", "rev-parse", spec],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
+        ["git", "rev-parse", spec], cwd=ROOT, check=True, capture_output=True, text=True
     ).stdout.strip()
 
 
 def hash_object(path):
     return subprocess.run(
-        ["git", "hash-object", path],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
+        ["git", "hash-object", path], cwd=ROOT, check=True, capture_output=True, text=True
     ).stdout.strip()
 
 
@@ -114,13 +106,11 @@ class CurrentHeadRuntimeImplementationCutTests(unittest.TestCase):
         for path, blob in cut["modules"].items():
             self.assertRegex(blob, r"^[0-9a-f]{40}$")
             self.assertEqual(
-                rev_parse(f"{cut['commit']}:{path}"),
-                blob,
+                rev_parse(f"{cut['commit']}:{path}"), blob,
                 f"implementation cut must resolve {path} at the declared commit",
             )
             self.assertEqual(
-                hash_object(path),
-                blob,
+                hash_object(path), blob,
                 f"executing checkout bytes for {path} must match the declared cut",
             )
 
@@ -160,25 +150,25 @@ class CurrentHeadRuntimeImplementationCutTests(unittest.TestCase):
             with self.assertRaises(Exception):
                 validate_runtime_implementation_cut(mixed, repository_root=ROOT)
 
-    def test_checkpoint_receipt_and_provider_rows_carry_same_implementation_cut(self):
+    def test_checkpoint_receipt_and_historical_rows_carry_same_implementation_cut(self):
         cut = self.binding()["runtime_implementation_cut"]
         host = self.make_host()
         checkpoint = host.export_checkpoint()
         self.assertEqual(checkpoint["runtime_implementation_cut"], cut)
 
-        receipt = host.force_admin_test(
-            authorization_subject=self.authorization_subject(),
-        )
+        receipt = host.force_admin_test(authorization_subject=self.authorization_subject())
         self.assertEqual(receipt["runtime_implementation_cut"], cut)
+        self.assertNotIn("claim", receipt)
 
         state_row = checkpoint_to_state_row(
-            host.export_checkpoint(),
-            host_scope="TEST_HOST",
-            state_version=1,
+            host.export_checkpoint(), host_scope="TEST_HOST", state_version=1,
+            lifecycle_status="HISTORICAL",
         )
-        event_row = event_receipt_to_event_row(host, receipt)
+        event_row = event_receipt_to_event_row(host, receipt, lifecycle_status="HISTORICAL")
         self.assertEqual(state_row["runtime_implementation_cut"], cut)
         self.assertEqual(event_row["runtime_implementation_cut"], cut)
+        self.assertEqual(state_row["lifecycle_status"], "HISTORICAL")
+        self.assertEqual(event_row["lifecycle_status"], "HISTORICAL")
 
     def test_restore_rejects_checkpoint_or_provider_row_bound_to_a_different_implementation_cut(self):
         host = self.make_host()
@@ -189,17 +179,11 @@ class CurrentHeadRuntimeImplementationCutTests(unittest.TestCase):
 
         with self.assertRaises(Exception):
             VeraAffectiveRuntimeHost.restore_checkpoint(
-                CONTRACT_PATH.read_text(encoding="utf-8"),
-                self.binding(),
-                forged_checkpoint,
+                CONTRACT_PATH.read_text(encoding="utf-8"), self.binding(), forged_checkpoint,
                 expected_checkpoint_sha256="0" * 64,
             )
 
-        row = checkpoint_to_state_row(
-            checkpoint,
-            host_scope="TEST_HOST",
-            state_version=1,
-        )
+        row = checkpoint_to_state_row(checkpoint, host_scope="TEST_HOST", state_version=1)
         forged_row = copy.deepcopy(row)
         forged_row["runtime_implementation_cut"]["commit"] = "0" * 40
         self.assertNotEqual(forged_row["runtime_implementation_cut"], self.binding()["runtime_implementation_cut"])
