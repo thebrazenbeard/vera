@@ -40,14 +40,26 @@ class AffectiveSplitWriterDowngradeTests(unittest.TestCase):
             event_writer=lambda row: None,
         )
 
-    def test_valid_bound_host_with_atomic_writer_still_constructs(self):
+    def test_arbitrary_atomic_writer_is_not_production_durable(self):
+        with self.assertRaisesRegex(ValueError, r"(?i)(provider|writer|durab|test)"):
+            VeraAffectiveCycle(
+                self.make_host(),
+                host_scope="TEST_HOST",
+                atomic_commit_writer=lambda request: None,
+            )
+
+    def test_explicit_nonqualifying_atomic_test_mode_is_distinguishable(self):
         cycle = VeraAffectiveCycle(
             self.make_host(),
             host_scope="TEST_HOST",
-            atomic_commit_writer=lambda request: None,
+            atomic_commit_writer=lambda request: {
+                "state_version": request["state_version"],
+                "checkpoint_sha256": request["checkpoint_sha256"],
+                "event_count": len(request["event_rows"]),
+            },
+            non_qualifying_atomic_test_mode=True,
         )
-        self.assertIsNotNone(cycle.atomic_commit_writer)
-        self.assertEqual(cycle.durability_mode, "ATOMIC_DURABLE")
+        self.assertEqual(cycle.durability_mode, "NON_QUALIFYING_ATOMIC_TEST")
 
     def test_explicit_non_atomic_test_mode_is_distinguishable(self):
         cycle = VeraAffectiveCycle(
@@ -74,22 +86,9 @@ class AffectiveSplitWriterDowngradeTests(unittest.TestCase):
 
         self.assertFalse(result.atomic_commit_used)
         self.assertEqual(result.durability_mode, "NON_ATOMIC_TEST")
-
-        # A bounded split-write test may expose diagnostics, but it must not
-        # manufacture artifacts with the production schemas consumed as an
-        # exact provider CAS frontier or resumable durable-current token.
-        if result.commit_request is not None:
-            self.assertNotEqual(
-                result.commit_request.get("schema"),
-                "VERA_AFFECTIVE_RUNTIME_ATOMIC_COMMIT_V1",
-                "NON_ATOMIC_TEST must not emit a production atomic-commit envelope",
-            )
-        if result.resume_token is not None:
-            self.assertNotEqual(
-                result.resume_token.get("schema"),
-                "VERA_AFFECTIVE_RUNTIME_RESUME_TOKEN_V1",
-                "NON_ATOMIC_TEST must not emit a provider-qualified durable resume token",
-            )
+        self.assertEqual(result.state_row["lifecycle_status"], "HISTORICAL")
+        self.assertIsNone(result.resume_token)
+        self.assertIsNone(result.commit_request)
 
     def test_atomic_writer_cannot_be_mixed_with_split_callbacks(self):
         with self.assertRaisesRegex(ValueError, r"(?i)(atomic|split|durab)"):
