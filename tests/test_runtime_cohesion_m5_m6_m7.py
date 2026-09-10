@@ -128,6 +128,8 @@ class _IndependentMismatchVerifier:
             locator=envelope.locator,
             revision=envelope.revision,
             observed_at=envelope.observed_at,
+            referent=envelope.referent,
+            scope=envelope.scope,
             derived_evidence_class="source_provenance",
             currentness_basis=envelope.currentness_basis,
             supersession_state=envelope.supersession_state,
@@ -209,6 +211,8 @@ class RuntimeCohesionM5M6M7RegressionTests(unittest.TestCase):
             locator="supabase:receipt/1",
             revision="row-v1",
             observed_at="2026-09-10T16:00:00Z",
+            referent="receipt-object",
+            scope="PROVIDER_RECEIPT",
             derived_evidence_class="persisted_provider_record",
             currentness_basis="receipt readback",
             supersession_state="CURRENT_OBSERVATION",
@@ -225,10 +229,11 @@ class RuntimeCohesionM5M6M7RegressionTests(unittest.TestCase):
                 content_digest="sha256:abc",
             )
 
-    def test_m6_reusable_verifier_does_not_embed_domain_referent_equality(self):
+    def test_m6_reusable_verifier_attests_subject_without_embedding_domain_referent_policy(self):
         text = (ROOT / "runtime_cohesion" / "item_typing.py").read_text(encoding="utf-8")
         self.assertNotIn("request.domain_id", text)
-        self.assertNotIn("envelope.referent", text)
+        self.assertIn("(proof.referent, envelope.referent)", text)
+        self.assertIn("(proof.scope, envelope.scope)", text)
 
     def test_m7_same_revision_without_receipt_object_binding_cannot_verify(self):
         source = receipt_source(revision="same-revision")
@@ -244,6 +249,14 @@ class RuntimeCohesionM5M6M7RegressionTests(unittest.TestCase):
         self.assertEqual(result.status, "VERIFIED_EXACT")
         self.assertIsNone(source.receipt_ref)
         self.assertIn("source receipt_ref was not required", result.reason.lower())
+
+    def test_m7_missing_source_content_digest_cannot_verify(self):
+        source = receipt_source(digest=None)
+        target = receipt_target(source)
+        result = reconcile_receipt(source, target)
+        self.assertEqual(result.status, "UNRESOLVED")
+        self.assertIn("source", result.reason.lower())
+        self.assertIn("digest", result.reason.lower())
 
     def test_m7_optional_source_receipt_ref_is_cross_checked_if_present(self):
         source = receipt_source(receipt_ref="supabase:wrong-receipt")
