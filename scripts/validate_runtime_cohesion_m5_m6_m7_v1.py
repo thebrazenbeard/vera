@@ -49,8 +49,12 @@ def main() -> int:
     lower_typing = typing_text.lower()
     if "capability set is intentionally ignored" not in lower_typing:
         errors.append("item typing module must preserve capability non-promotion semantics")
-    if "request.domain_id" in typing_text or "envelope.referent" in typing_text:
+    if "request.domain_id" in typing_text:
         errors.append("lowest-level item origin/type verifier must remain below domain-specific referent policy")
+    if "(proof.referent, envelope.referent)" not in typing_text:
+        errors.append("item provenance proof must independently cross-bind the observed referent")
+    if "(proof.scope, envelope.scope)" not in typing_text:
+        errors.append("item provenance proof must independently cross-bind the observed scope")
     if "proof.event_ref, request.event_ref" not in typing_text or "proof.event_path, request.event_path" not in typing_text:
         errors.append("item provenance proof must cross-bind exact projection event ref/path when present")
     if "content-sensitive item typing requires an exact content_digest" not in typing_text:
@@ -113,6 +117,8 @@ def main() -> int:
         errors.append("optional source receipt_ref must be cross-checked only when independently present")
     if "source.receipt_ref is None or target.receipt_ref is None" in reconcile_text:
         errors.append("source receipt_ref must not be a prerequisite for downstream receipt proof")
+    if "not isinstance(source.content_digest, str) or not source.content_digest.strip()" not in reconcile_text:
+        errors.append("EXACT_RECEIPT must fail closed when the source object lacks a non-empty exact content digest")
     if "target revision equality was not used" not in reconcile_text:
         errors.append("receipt reconciler must explicitly avoid target revision equality as proof")
     if "target.content_digest != receipt_digest" not in reconcile_text:
