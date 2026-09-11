@@ -16,7 +16,7 @@ from .affect_scope import (
     bind_affective_host_scope,
     require_affective_host_cycle_eligible,
 )
-from .affect_signal import build_affective_modulation_signal
+from .affect_signal import _build_affective_modulation_signal_from_observation
 from .orgasm import StimulusAppraisal
 
 
@@ -52,10 +52,10 @@ class VeraAffectiveCycle:
     an explicit non-qualifying atomic test seam and cannot mint provider resume
     tokens, production commit schemas, or CURRENT provider-state evidence.
 
-    The cycle does not directly mutate generic Vera planning state. It emits a
-    typed affective modulation signal for the Cohesion-owned integration and
-    arbitration boundary. ``planning_context`` is retained only as an unchanged
-    compatibility snapshot of the caller's input.
+    Generic planning mutation is intentionally deferred to Cohesion. Each cycle
+    transition and its receipts are captured under the same runtime barrier as one
+    detached causal observation. Signal, checkpoint, state row and result-level
+    interoception are then derived from that single observation generation.
     """
 
     def __init__(
@@ -148,14 +148,6 @@ class VeraAffectiveCycle:
         atomic_commit_writer: AtomicCommitWriter | None = None,
         non_qualifying_atomic_test_mode: bool = False,
     ) -> "VeraAffectiveCycle":
-        """Low-level replay restore; never a provider-current production path.
-
-        Durable row bytes, embedded lifecycle labels, checkpoint pins, and a
-        caller callback cannot establish provider CURRENT provenance. The host
-        reconstructed here remains replay-only and therefore cannot enter a live
-        cycle. Production continuation uses ``restore_current_affective_cycle``
-        from runtime-owned provider composition.
-        """
         split_writer_requested = state_writer is not None or event_writer is not None
         if split_writer_requested:
             raise ValueError("low-level row restore cannot become a live cycle through split writers")
@@ -221,20 +213,17 @@ class VeraAffectiveCycle:
         *,
         planning_state: Mapping[str, Any],
         event_receipts: Sequence[Mapping[str, Any]] | None,
+        causal_observation: Mapping[str, Any],
     ) -> AffectiveCycleResult:
-        """Build one result without promoting test/ephemeral artifacts.
-
-        Only an internally provider-bound ``ATOMIC_DURABLE`` cycle emits CURRENT
-        state rows, the production atomic-commit schema, and a durable resume
-        token. Test and ephemeral paths remain causally useful diagnostics but
-        cannot manufacture provider-current evidence. Generic planning mutation
-        is intentionally deferred to the Cohesion-owned affective integration
-        boundary.
-        """
+        """Build one result from exactly one detached post-transition observation."""
         try:
             planning_context = dict(planning_state)
-            affective_modulation_signal = build_affective_modulation_signal(self.host)
-            checkpoint = self.host.export_checkpoint()
+            affective_modulation_signal = _build_affective_modulation_signal_from_observation(
+                self.host,
+                causal_observation,
+            )
+            checkpoint = self.host._export_checkpoint_from_observation(causal_observation)
+            machine_interoception = dict(checkpoint["machine_interoception"])
             state_version = self._next_state_version
             lifecycle_status = "CURRENT" if self.durability_mode == "ATOMIC_DURABLE" else "HISTORICAL"
             state_row = checkpoint_to_state_row(
@@ -293,7 +282,7 @@ class VeraAffectiveCycle:
         return AffectiveCycleResult(
             planning_context=dict(planning_context),
             affective_modulation_signal=dict(affective_modulation_signal),
-            machine_interoception=self.host.machine_interoception(),
+            machine_interoception=machine_interoception,
             checkpoint=dict(checkpoint),
             state_row=dict(state_row),
             event_receipt=dict(last_receipt) if last_receipt is not None else None,
@@ -316,17 +305,23 @@ class VeraAffectiveCycle:
         elapsed_seconds: float = 0.0,
     ) -> AffectiveCycleResult:
         self._require_usable_frontier()
-        if context_subject is None:
-            observed = self.host.observe(appraisal, elapsed_seconds=elapsed_seconds)
-        else:
-            observed = self.host._authority_boundary.observe(
-                self.host,
-                appraisal,
-                context_subject=context_subject,
-                elapsed_seconds=elapsed_seconds,
-            )
-        receipts = observed.get("event_receipts") or []
-        return self._finalize(planning_state=planning_state, event_receipts=receipts)
+        with self.host.runtime._observation_lock:
+            if context_subject is None:
+                observed = self.host.observe(appraisal, elapsed_seconds=elapsed_seconds)
+            else:
+                observed = self.host._authority_boundary.observe(
+                    self.host,
+                    appraisal,
+                    context_subject=context_subject,
+                    elapsed_seconds=elapsed_seconds,
+                )
+            receipts = observed.get("event_receipts") or []
+            observation = observed.get("causal_observation") or self.host._capture_cycle_observation()
+        return self._finalize(
+            planning_state=planning_state,
+            event_receipts=receipts,
+            causal_observation=observation,
+        )
 
     def force_admin_test(
         self,
@@ -335,9 +330,15 @@ class VeraAffectiveCycle:
         planning_state: Mapping[str, Any],
     ) -> AffectiveCycleResult:
         self._require_usable_frontier()
-        self.host.force_admin_test(authorization_subject=authorization_subject)
-        receipts = self.host.drain_event_receipts()
-        return self._finalize(planning_state=planning_state, event_receipts=receipts)
+        with self.host.runtime._observation_lock:
+            self.host.force_admin_test(authorization_subject=authorization_subject)
+            receipts = self.host.drain_event_receipts()
+            observation = self.host._capture_cycle_observation()
+        return self._finalize(
+            planning_state=planning_state,
+            event_receipts=receipts,
+            causal_observation=observation,
+        )
 
     def force_self_qualification(
         self,
@@ -346,9 +347,15 @@ class VeraAffectiveCycle:
         planning_state: Mapping[str, Any],
     ) -> AffectiveCycleResult:
         self._require_usable_frontier()
-        self.host.force_self_qualification(authorization_subject=authorization_subject)
-        receipts = self.host.drain_event_receipts()
-        return self._finalize(planning_state=planning_state, event_receipts=receipts)
+        with self.host.runtime._observation_lock:
+            self.host.force_self_qualification(authorization_subject=authorization_subject)
+            receipts = self.host.drain_event_receipts()
+            observation = self.host._capture_cycle_observation()
+        return self._finalize(
+            planning_state=planning_state,
+            event_receipts=receipts,
+            causal_observation=observation,
+        )
 
     def advance_time(
         self,
@@ -357,6 +364,12 @@ class VeraAffectiveCycle:
         planning_state: Mapping[str, Any],
     ) -> AffectiveCycleResult:
         self._require_usable_frontier()
-        advanced = self.host.advance_time(elapsed_seconds)
-        receipts = advanced.get("event_receipts") or []
-        return self._finalize(planning_state=planning_state, event_receipts=receipts)
+        with self.host.runtime._observation_lock:
+            advanced = self.host.advance_time(elapsed_seconds)
+            receipts = advanced.get("event_receipts") or []
+            observation = advanced.get("causal_observation") or self.host._capture_cycle_observation()
+        return self._finalize(
+            planning_state=planning_state,
+            event_receipts=receipts,
+            causal_observation=observation,
+        )
