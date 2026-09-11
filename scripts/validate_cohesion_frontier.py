@@ -24,6 +24,10 @@ REQUIRED_MUTABLE_INPUTS = {
     "vera-ov-cv-pr113",
 }
 
+EXPECTED_PR113_HEAD = "7b4cf386516c1af7a51ad0c368df4d6992e0183e"
+EXPECTED_PR113_AHEAD_FROM_OVERLAP_AUDIT = 7
+EXPECTED_PR113_DETACHMENT_TEST = "tests/test_runtime_cohesion_affect_observation_detachment.py"
+
 
 def _reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     result: dict[str, Any] = {}
@@ -114,6 +118,8 @@ def validate_frontier(frontier: dict[str, Any], registry: dict[str, Any]) -> Non
             raise ValueError(f"registry predecessor must be explicitly superseded for {source_id}")
 
     pr113 = by_id["vera-ov-cv-pr113"]
+    if pr113.get("current_observed_head") != EXPECTED_PR113_HEAD:
+        raise ValueError("PR113 current head does not match the refreshed evidence cut")
     drift = pr113.get("material_drift")
     if not isinstance(drift, dict):
         raise ValueError("PR113 material drift record is required")
@@ -125,8 +131,13 @@ def validate_frontier(frontier: dict[str, Any], registry: dict[str, Any]) -> Non
         raise ValueError("runtime source drift cannot be classified as metadata only")
     if runtime_paths and drift.get("reconciliation_required_before_harvest") is not True:
         raise ValueError("material drift requires reconciliation before harvest")
-    if drift.get("ahead_by_since_overlap_audit") != 6 or drift.get("behind_by_since_overlap_audit") != 0:
+    if (
+        drift.get("ahead_by_since_overlap_audit") != EXPECTED_PR113_AHEAD_FROM_OVERLAP_AUDIT
+        or drift.get("behind_by_since_overlap_audit") != 0
+    ):
         raise ValueError("PR113 comparison counts do not match the observed evidence cut")
+    if EXPECTED_PR113_DETACHMENT_TEST not in paths:
+        raise ValueError("PR113 detached-observation regression is missing from the evidence cut")
 
     protected = frontier.get("protected_effects_not_authorized")
     if not isinstance(protected, list) or not REQUIRED_PROTECTED_EFFECTS.issubset(set(protected)):
