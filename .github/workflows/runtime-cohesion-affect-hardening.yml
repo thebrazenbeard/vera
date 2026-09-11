@@ -24,6 +24,7 @@ jobs:
           tests.test_runtime_cohesion_affect_internal_snapshot_port
           tests.test_runtime_cohesion_affect_shared_application_frontier
           tests.test_runtime_cohesion_affect_atomic_observation
+          tests.test_runtime_cohesion_affect_observation_detachment
           tests.test_runtime_cohesion_affect_signal_to_cohesion_port
           tests.test_runtime_cohesion_affect_signal_mapping_snapshot
           tests.test_runtime_cohesion_affect_exact_host_instance_origin
@@ -41,6 +42,7 @@ jobs:
           tests/test_runtime_cohesion_affect_internal_snapshot_port.py
           tests/test_runtime_cohesion_affect_shared_application_frontier.py
           tests/test_runtime_cohesion_affect_atomic_observation.py
+          tests/test_runtime_cohesion_affect_observation_detachment.py
           tests/test_runtime_cohesion_affect_signal_to_cohesion_port.py
           tests/test_runtime_cohesion_affect_signal_mapping_snapshot.py
           tests/test_runtime_cohesion_affect_exact_host_instance_origin.py
