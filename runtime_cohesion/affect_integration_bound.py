@@ -186,12 +186,19 @@ class CohesionAffectiveIntegrationPort:
     ) -> IntegratedAffectivePlanningResult:
         if not isinstance(signal, Mapping):
             raise TypeError("signal must be a mapping")
-        expected_signal = build_affective_modulation_signal(self._host)
-        if dict(signal) != expected_signal:
+        supplied_signal = _canonical_copy(
+            signal,
+            label="affective modulation signal",
+        )
+        expected_signal = _canonical_copy(
+            build_affective_modulation_signal(self._host),
+            label="bound-host affective modulation signal",
+        )
+        if supplied_signal != expected_signal:
             raise ValueError(
                 "affective modulation signal does not match the currently bound exact host state"
             )
-        application = self._arbiter.apply(planning_state, signal)
+        application = self._arbiter.apply(planning_state, supplied_signal)
         return IntegratedAffectivePlanningResult(
             application=application,
             affective_runtime_cut_commit=self._affective_runtime_cut["commit"],
