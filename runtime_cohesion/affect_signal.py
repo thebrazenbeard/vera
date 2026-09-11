@@ -89,10 +89,11 @@ def build_affective_modulation_signal(host: VeraAffectiveRuntimeHost) -> dict[st
 
     This signal is runtime-local source evidence only. It cannot establish
     provider currentness, durability, authorization, memory admission, identity,
-    relationship state or phenomenology.
+    relationship state or phenomenology. Caller-defined host subclasses are not
+    accepted because they could interpose state-to-modulation computation.
     """
-    if not isinstance(host, VeraAffectiveRuntimeHost):
-        raise TypeError("affective modulation signal requires VeraAffectiveRuntimeHost")
+    if type(host) is not VeraAffectiveRuntimeHost:
+        raise TypeError("affective modulation signal requires the exact VeraAffectiveRuntimeHost class")
 
     frame = host.machine_interoception()
     vector = {key: float(value) for key, value in host.experience_control_vector().items()}
