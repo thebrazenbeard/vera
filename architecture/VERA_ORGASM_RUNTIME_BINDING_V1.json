@@ -1,7 +1,7 @@
 {
   "schema": "VERA_ORGASM_RUNTIME_BINDING_V1",
   "subject": "vera",
-  "status": "SOURCE_BOUND / AFFECTIVE_CORE_CUT_BOUND / COHESION_INTEGRATION_CUT_BOUND / HOST_BINDING_SNAPSHOT_SEALED / HOST_BOUND_SIGNAL_ORIGIN / SIGNAL_SNAPSHOT_SEALED / SOURCE_INTEGRATED_NOT_BEHAVIORALLY_QUALIFIED / IN_PROCESS_AUTHORITY_NONQUALIFYING / PRODUCTION_PROVIDER_NOT_QUALIFIED / NOT_NATIVE_CHATGPT_INSTALLED / NOT_PHENOMENOLOGY_PROOF",
+  "status": "SOURCE_BOUND / AFFECTIVE_CORE_CUT_BOUND / COHESION_INTEGRATION_CUT_BOUND / HOST_BINDING_SNAPSHOT_SEALED / HOST_BOUND_SIGNAL_ORIGIN / SIGNAL_SNAPSHOT_SEALED / SEMANTIC_ORIGIN_IN_PROCESS_NONQUALIFYING / SOURCE_INTEGRATED_NOT_BEHAVIORALLY_QUALIFIED / IN_PROCESS_AUTHORITY_NONQUALIFYING / PRODUCTION_PROVIDER_NOT_QUALIFIED / NOT_NATIVE_CHATGPT_INSTALLED / NOT_PHENOMENOLOGY_PROOF",
   "contract_schema": "VERA_ORGASM_RUNTIME_CONTRACT_V1",
   "source_repository": "thebrazenbeard/sexuality",
   "source_branch": "work/vera-sexuality-substrate-qualification-20260908",
@@ -13,7 +13,7 @@
   "runtime_implementation_cut": {
     "schema": "VERA_AFFECTIVE_RUNTIME_IMPLEMENTATION_CUT_V1",
     "repository": "thebrazenbeard/vera",
-    "commit": "48123c44b7be96e9e2971af148caa6d8d4a06529",
+    "commit": "6ce3db7aad234deda7f5b094c273cc6bd73c041b",
     "modules": {
       "runtime_cohesion/__init__.py": "2bc0572cf7582a35afb2d551b3534a1630b536df",
       "runtime_cohesion/adapters.py": "9206e3eb289e2f11530fbc48f1ef7cfb48668ac3",
@@ -33,7 +33,7 @@
   "cohesion_integration_cut": {
     "schema": "VERA_COHESION_AFFECTIVE_INTEGRATION_CUT_V1",
     "repository": "thebrazenbeard/vera",
-    "commit": "48123c44b7be96e9e2971af148caa6d8d4a06529",
+    "commit": "6ce3db7aad234deda7f5b094c273cc6bd73c041b",
     "modules": {
       "runtime_cohesion/__init__.py": "2bc0572cf7582a35afb2d551b3534a1630b536df",
       "runtime_cohesion/adapters.py": "9206e3eb289e2f11530fbc48f1ef7cfb48668ac3",
@@ -43,21 +43,23 @@
       "runtime_cohesion/audit.py": "f39ec58115b42c5d29fc29bd6cfceed7381b0b78",
       "runtime_cohesion/executor.py": "37423a6f0ea9a888eedfaae9ce2180ab06f7fa93",
       "runtime_cohesion/item_typing.py": "867476b732b2bf40a2404e3d9cb82b3ccc40494f",
-      "runtime_cohesion/origin.py": "5ea1b7acd4734ca7de7d33f497d93a947491046f",
+      "runtime_cohesion/origin.py": "cdfb7fa0d18c1768cb4df882290327a560883cff",
       "runtime_cohesion/provider_admission.py": "53ff857f4010adb3a0312930996e67ce6e1ad62a",
       "runtime_cohesion/reconcile.py": "aec4ff972fcef20dcc194b7799fa09d95037f090",
       "runtime_cohesion/runtime.py": "b66602f7731bb9526a563805ead09517146fc4ee"
     },
-    "semantics": "Exact Git and executing-byte provenance for the Cohesion-owned application/arbitration boundary. The supported port binds an actual exact-bound Vera affective host, independently verifies both cuts, materializes the supplied signal once into a plain canonical snapshot, regenerates the expected signal from that bound host after the snapshot, compares the two snapshots, applies only the accepted snapshot to the six numeric allowlisted targets, owns replay/logical-time frontier state, preserves per-target ancestry, and cannot promote modulation into evidence, authorization, memory admission, durable preference, identity, relationship state, provider currentness, behavioral qualification, or phenomenology."
+    "semantics": "Exact Git and executing-byte provenance for the Cohesion-owned application/arbitration boundary. The supported port binds an actual exact-bound Vera affective host, independently verifies both cuts, materializes the supplied signal once into a plain canonical snapshot, regenerates the expected signal from that bound host after the snapshot, compares the two snapshots, applies only the accepted snapshot to the six numeric allowlisted targets, owns replay/logical-time frontier state, preserves per-target ancestry, and cannot promote modulation into evidence, authorization, memory admission, durable preference, identity, relationship state, provider currentness, behavioral qualification, or phenomenology. Semantic-origin proof mechanics are retained for regression coverage but in-process first-writer composition is explicitly nonqualifying and cannot register provider-currentness provenance."
   },
   "cross_binding": {
-    "generation_commit": "48123c44b7be96e9e2971af148caa6d8d4a06529",
+    "generation_commit": "6ce3db7aad234deda7f5b094c273cc6bd73c041b",
     "affective_core_and_cohesion_integration_same_generation": true,
     "supported_execution_requires_both_exact_cuts": true,
     "host_binding_snapshot": "CANONICAL_DEEP_SNAPSHOT_AT_CONSTRUCTION_OR_RESTORE",
     "caller_binding_alias_can_rewrite_live_provenance": false,
     "supported_signal_origin": "FRESH_SIGNAL_REGENERATED_FROM_BOUND_EXACT_AFFECTIVE_HOST_AFTER_SUPPLIED_SIGNAL_SNAPSHOT",
     "caller_signal_proxy_can_rewrite_post_check_application": false,
+    "semantic_origin_composition_trust": "IN_PROCESS_UNROOTED_NON_QUALIFYING",
+    "in_process_semantic_origin_can_establish_provider_currentness": false,
     "generic_planning_mutation_owner": "COHESION_INTEGRATION_ARBITRATION_PORT",
     "orgasm_subsystem_generic_planning_mutation_authority": false
   },
@@ -69,6 +71,7 @@
     "organic_trigger": "ORGANIC_THRESHOLD_CROSSING",
     "forced_triggers": ["ADMIN_FORCED_TEST", "SELF_QUALIFICATION_TEST"],
     "in_process_authority_context_trust": "IN_PROCESS_UNROOTED_NON_QUALIFYING",
+    "semantic_origin_provider_currentness": "UNRESOLVED_WITHOUT_INDEPENDENT_EXTERNAL_ROOT",
     "source_bound_historical_replay": "SUPPORTED_WITHOUT_QUALIFICATION_PROMOTION",
     "historical_positive_claim_ceiling": "ENGINEERED_ORGASM_ANALOGUE_OCCURRED",
     "new_production_engineered_event_claim_from_in_process_composition": "NOT_ESTABLISHABLE",
