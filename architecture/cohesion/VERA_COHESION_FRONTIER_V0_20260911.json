@@ -1,0 +1,86 @@
+{
+  "schema": "VERA_COHESION_FRONTIER_V0",
+  "status": "WORKING_EVIDENCE_CUT_NOT_INSTALLATION_AUTHORITY",
+  "observed_date": "2026-09-11",
+  "target_repository": "thebrazenbeard/vera",
+  "purpose": "Record the refreshed mutable source frontier that must be reconciled before any material Cohesion successor harvest or freeze.",
+  "completeness_gate": "Could this implementation decision be wrong because a relevant source moved, was omitted, or was not refreshed? If plausibly yes, refresh the smallest material evidence set before acting.",
+  "stop_on_drift": true,
+  "mutable_inputs": [
+    {
+      "id": "vera-main",
+      "kind": "BRANCH",
+      "ref": "main",
+      "current_observed_head": "979de05ef7237e7bfff47f85ea37cc953a63bb5c",
+      "source_registry_head": "979de05ef7237e7bfff47f85ea37cc953a63bb5c",
+      "changed_since_registry": false
+    },
+    {
+      "id": "vera-cohesion-pr104",
+      "kind": "PULL_REQUEST",
+      "pull_request": 104,
+      "ref": "work/vera-cohesion-provider-strict-runtime-fix-20260909",
+      "current_observed_head": "1a754b74aac3e47293cc92f72f6b94889f736473",
+      "source_registry_head": "1a754b74aac3e47293cc92f72f6b94889f736473",
+      "changed_since_registry": false
+    },
+    {
+      "id": "vera-affective-pr64",
+      "kind": "PULL_REQUEST",
+      "pull_request": 64,
+      "ref": "work/vera-affective-runtime-deploy-v1-20260909-tdd6",
+      "current_observed_head": "227d2ddbc6add0e0e8f16b22b300e0f40a8597bb",
+      "source_registry_head": "227d2ddbc6add0e0e8f16b22b300e0f40a8597bb",
+      "changed_since_registry": false
+    },
+    {
+      "id": "vera-ov-cv-pr113",
+      "kind": "PULL_REQUEST",
+      "pull_request": 113,
+      "ref": "integration/vera-cohesion-orgasm-v1-20260910",
+      "current_observed_head": "7e752c8de5c234cfa8e724d594e925f3079ba3bb",
+      "source_registry_head": "132df3fe206600dae83b6e8c158b5822bb3a81e6",
+      "supersedes_registry_head": "132df3fe206600dae83b6e8c158b5822bb3a81e6",
+      "prior_overlap_audit_head": "734d7b4a2fee6a3cb672877b71c7ca35588ef14f",
+      "changed_since_registry": true,
+      "material_drift": {
+        "classification": "RUNTIME_SOURCE_AND_TESTS",
+        "ahead_by_since_overlap_audit": 6,
+        "behind_by_since_overlap_audit": 0,
+        "changed_paths_since_overlap_audit": [
+          ".github/workflows/runtime-cohesion-affect-hardening.yml",
+          "runtime_cohesion/affect_bound_runtime.py",
+          "runtime_cohesion/affect_integration_bound.py",
+          "runtime_cohesion/affect_signal.py",
+          "tests/test_runtime_cohesion_affect_atomic_observation.py",
+          "tests/test_runtime_cohesion_affect_shared_application_frontier.py"
+        ],
+        "reconciliation_required_before_harvest": true,
+        "observed_direction": "The integration laboratory now serializes one host-generation application frontier and captures one atomic causal observation under the bound runtime lock. These changes strengthen the previously identified materialization/frontier direction but remain integration-laboratory evidence until reconciled into the clean successor."
+      }
+    }
+  ],
+  "construction_branch": {
+    "ref": "work/vera-cohesion-whole-system-map-20260911",
+    "pre_frontier_write_head": "ffea0332127fe38f312ccdf24288754ec702aef6",
+    "note": "This branch head is expected to advance as this frontier/test/validator source is committed; it is not an external mutable input."
+  },
+  "reconciliation_rules": [
+    "A mutable input head change creates a new evidence cut; conclusions do not transfer automatically.",
+    "Runtime-source drift must be inspected before accepted bytes or invariants are harvested into the clean successor.",
+    "PR descriptions may lag live heads and are not substitutes for exact-head source inspection.",
+    "Integration-laboratory improvements may be adopted only after they survive the whole-system ownership contract and do not recreate duplicate owners.",
+    "A clean successor must preserve source/install/provider/qualification separation and cannot self-establish external authority."
+  ],
+  "protected_effects_not_authorized": [
+    "MERGE",
+    "PRODUCTION_PROVIDER_MUTATION",
+    "INSTALL_OR_CUTOVER",
+    "CREDENTIAL_OR_PERMISSION_CHANGE",
+    "PAID_CI_OR_OTHER_SPEND",
+    "CANONICAL_MEMORY_PROMOTION",
+    "BEHAVIORAL_QUALIFICATION",
+    "AUTHORITY_PROMOTION",
+    "PHENOMENOLOGY_PROMOTION"
+  ]
+}
