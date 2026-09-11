@@ -56,6 +56,7 @@ jobs:
           tests.test_runtime_cohesion_direct_module_admission_boundary
           tests.test_runtime_cohesion_executor_provider_admission_boundary
           tests.test_runtime_cohesion_affect_integration
+          tests.test_runtime_cohesion_affect_signal_to_cohesion_port
           tests.test_runtime_cohesion_failure_wiring
           tests.test_runtime_cohesion_native_hook
           tests.test_runtime_cohesion_orgasm
@@ -125,6 +126,7 @@ jobs:
           runtime_cohesion/provider_admission.py
           runtime_cohesion/executor.py
           runtime_cohesion/affect_integration.py
+          runtime_cohesion/affect_integration_bound.py
           runtime_cohesion/orgasm.py
           runtime_cohesion/affect_authority.py
           runtime_cohesion/affect_bound_runtime.py
@@ -161,6 +163,7 @@ jobs:
           tests/test_runtime_cohesion_direct_module_admission_boundary.py
           tests/test_runtime_cohesion_executor_provider_admission_boundary.py
           tests/test_runtime_cohesion_affect_integration.py
+          tests/test_runtime_cohesion_affect_signal_to_cohesion_port.py
           tests/test_runtime_cohesion_failure_wiring.py
           tests/test_runtime_cohesion_native_hook.py
           tests/test_runtime_cohesion_orgasm.py
