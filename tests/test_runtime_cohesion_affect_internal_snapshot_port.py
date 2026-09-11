@@ -1,3 +1,4 @@
+from collections.abc import Mapping
 import hashlib
 import inspect
 import json
@@ -20,7 +21,7 @@ class TrustedVerifier:
     verifier_id = "internal-snapshot-port-test-verifier"
 
     def verify(self, subject, *, expected_referent, expected_effect_class):
-        if not isinstance(subject, dict):
+        if not isinstance(subject, Mapping):
             return None
         if subject.get("state") != "ALLOW":
             return None
@@ -30,12 +31,13 @@ class TrustedVerifier:
             return None
         if subject.get("currentness") != "CURRENT" or subject.get("expiry_or_supersession") is not None:
             return None
-        canonical = json.dumps(subject, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        subject_copy = dict(subject)
+        canonical = json.dumps(subject_copy, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
         return {
             "verifier_id": self.verifier_id,
             "evidence_id": "internal-snapshot-port-test-evidence",
             "evidence_digest": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
-            "subject": dict(subject),
+            "subject": subject_copy,
         }
 
 
