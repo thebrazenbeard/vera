@@ -1,0 +1,44 @@
+name: Vera Cohesion Clean Successor
+
+# Manual-only. No automatic PR execution and no paid runner authorization is implied.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-clean-successor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate whole-system ownership contract
+        run: python scripts/validate_cohesion_ownership_contract.py
+      - name: Validate mutable frontier contract
+        run: python scripts/validate_cohesion_frontier.py
+      - name: Validate clean successor binding
+        run: python scripts/validate_cohesion_clean_successor.py
+      - name: Run clean successor regressions
+        run: >-
+          python -m unittest
+          tests.test_cohesion_ownership_contract
+          tests.test_cohesion_frontier_snapshot
+          tests.test_cohesion_clean_successor_binding
+          tests.test_runtime_cohesion_affect_atomic_observation
+          tests.test_runtime_cohesion_affect_shared_application_frontier
+          tests.test_runtime_cohesion_affect_observation_detachment
+          -v
+      - name: Compile clean successor validators and regressions
+        run: >-
+          python -m py_compile
+          scripts/validate_cohesion_ownership_contract.py
+          scripts/validate_cohesion_frontier.py
+          scripts/validate_cohesion_clean_successor.py
+          tests/test_cohesion_ownership_contract.py
+          tests/test_cohesion_frontier_snapshot.py
+          tests/test_cohesion_clean_successor_binding.py
