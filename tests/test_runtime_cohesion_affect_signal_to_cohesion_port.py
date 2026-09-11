@@ -1,5 +1,6 @@
 from collections.abc import Mapping
 import hashlib
+import inspect
 import json
 from pathlib import Path
 import unittest
@@ -60,10 +61,7 @@ class AffectiveSignalToCohesionPortTests(unittest.TestCase):
             event_writer=self.event_rows.append,
             non_atomic_test_mode=True,
         )
-        self.port = CohesionAffectiveIntegrationPort(
-            host=self.host,
-            cohesion_integration_cut=self.binding["cohesion_integration_cut"],
-        )
+        self.port = CohesionAffectiveIntegrationPort(host=self.host)
 
     def tearDown(self):
         authority_module._reset_affective_authorization_verifier_for_tests()
@@ -101,6 +99,10 @@ class AffectiveSignalToCohesionPortTests(unittest.TestCase):
             "relationship_status": "UNRESOLVED",
             "phenomenology": "UNRESOLVED",
         }
+
+    def test_port_constructor_exposes_no_caller_cut_selection(self):
+        params = inspect.signature(CohesionAffectiveIntegrationPort).parameters
+        self.assertEqual(set(params), {"host"})
 
     def test_supported_path_is_ov_signal_then_cohesion_application_with_ancestry(self):
         planning = self.planning_state()
@@ -189,12 +191,9 @@ class AffectiveSignalToCohesionPortTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "bound exact host state"):
             self.port.apply(self.planning_state(), other_signal)
 
-    def test_port_constructor_requires_actual_affective_host_not_cut_metadata(self):
+    def test_port_constructor_requires_actual_affective_host(self):
         with self.assertRaises(TypeError):
-            CohesionAffectiveIntegrationPort(
-                host=self.binding["runtime_implementation_cut"],
-                cohesion_integration_cut=self.binding["cohesion_integration_cut"],
-            )
+            CohesionAffectiveIntegrationPort(host=self.binding["runtime_implementation_cut"])
 
 
 if __name__ == "__main__":
