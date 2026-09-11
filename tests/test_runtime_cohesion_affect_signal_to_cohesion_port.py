@@ -195,6 +195,42 @@ class AffectiveSignalToCohesionPortTests(unittest.TestCase):
         with self.assertRaises(TypeError):
             CohesionAffectiveIntegrationPort(host=self.binding["runtime_implementation_cut"])
 
+    def test_host_binding_snapshot_rejects_post_construction_alias_rewrite(self):
+        caller_binding = json.loads(BINDING_PATH.read_text(encoding="utf-8"))
+        host = VeraAffectiveRuntimeHost.from_bound_contract(
+            CONTRACT_PATH.read_text(encoding="utf-8"),
+            caller_binding,
+            runtime_instance_id="binding-alias-seal-test",
+            profile="REENTRANT_CLIMAX",
+        )
+        sealed_binding = host.binding
+        sealed_runtime_cut = host.runtime_implementation_cut
+
+        caller_binding["cohesion_integration_cut"]["commit"] = "0" * 40
+        caller_binding["cross_binding"]["generation_commit"] = "0" * 40
+        caller_binding["runtime_implementation_cut"]["modules"]["runtime_cohesion/affect_host.py"] = "0" * 40
+
+        exposed_copy = host.binding
+        exposed_copy["cohesion_integration_cut"]["commit"] = "f" * 40
+        exposed_copy["cross_binding"]["generation_commit"] = "f" * 40
+        runtime_cut_copy = host.runtime_implementation_cut
+        runtime_cut_copy["modules"]["runtime_cohesion/affect_host.py"] = "f" * 40
+
+        self.assertEqual(host.binding, sealed_binding)
+        self.assertEqual(host.runtime_implementation_cut, sealed_runtime_cut)
+
+        port = CohesionAffectiveIntegrationPort(host=host)
+        signal = build_affective_modulation_signal(host)
+        integrated = port.apply(self.planning_state(), signal)
+        self.assertEqual(
+            integrated.affective_runtime_cut_commit,
+            sealed_binding["runtime_implementation_cut"]["commit"],
+        )
+        self.assertEqual(
+            integrated.cohesion_integration_cut_commit,
+            sealed_binding["cohesion_integration_cut"]["commit"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
