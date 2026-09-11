@@ -7,17 +7,19 @@ Provider I/O occurs only when a runtime explicitly invokes registered adapters.
 Public proposition admission is provider-strict. Lightweight policy fixtures use
 only the explicitly named abstract evaluator. Affective execution and generic
 planning application are separated: OV emits bounded modulation signals and the
-Cohesion-owned arbiter applies them without promoting signal content to evidence,
-authority, memory admission, identity, relationship state, or phenomenology.
+Cohesion-owned bound integration port applies them without promoting signal
+content to evidence, authority, memory admission, identity, relationship state,
+or phenomenology.
 """
 
 from .adapters import AdapterProbeResult, AdapterRegistry, AdapterRequest, ProviderAdapter
 from .affect_cycle import AffectiveCycleResult, VeraAffectiveCycle
 from .affect_host import AffectiveBindingError, VeraAffectiveRuntimeHost
-from .affect_integration import (
-    AffectiveModulationAncestry,
-    AffectiveModulationApplication,
-    AffectiveModulationArbiter,
+from .affect_integration import AffectiveModulationAncestry, AffectiveModulationApplication
+from .affect_integration_bound import (
+    CohesionAffectiveIntegrationPort,
+    IntegratedAffectivePlanningResult,
+    validate_cohesion_affective_integration_cut,
 )
 from .affect_persistence import (
     PersistenceRecordError,
@@ -69,7 +71,9 @@ __all__ = [
     "VeraAffectiveRuntimeHost",
     "AffectiveModulationAncestry",
     "AffectiveModulationApplication",
-    "AffectiveModulationArbiter",
+    "CohesionAffectiveIntegrationPort",
+    "IntegratedAffectivePlanningResult",
+    "validate_cohesion_affective_integration_cut",
     "PersistenceRecordError",
     "build_affective_resume_token",
     "build_atomic_commit_request",
