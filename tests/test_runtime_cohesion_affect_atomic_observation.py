@@ -4,9 +4,10 @@ from threading import Event, Thread
 import time
 import unittest
 
+from runtime_cohesion.affect_cycle import VeraAffectiveCycle
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
 from runtime_cohesion.affect_integration_bound import CohesionAffectiveIntegrationPort
-from runtime_cohesion.orgasm import OrgasmRuntime
+from runtime_cohesion.orgasm import OrgasmRuntime, TriggerRejected
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -55,7 +56,7 @@ class AtomicAffectiveObservationTests(unittest.TestCase):
         def apply_port():
             try:
                 application_result.append(self.port.apply(self.planning_state()))
-            except BaseException as exc:  # capture thread failures for main-thread assertion
+            except BaseException as exc:
                 errors.append(exc)
 
         def advance_runtime():
@@ -76,9 +77,6 @@ class AtomicAffectiveObservationTests(unittest.TestCase):
             mutation_thread.start()
             time.sleep(0.05)
 
-            # The supported mutation must be waiting on the same runtime-owned
-            # observation/mutation barrier rather than changing governance or
-            # state underneath the in-progress Cohesion observation.
             self.assertFalse(mutation_finished.is_set())
 
             allow_snapshot_to_finish.set()
@@ -93,12 +91,79 @@ class AtomicAffectiveObservationTests(unittest.TestCase):
         self.assertEqual(errors, [])
         self.assertEqual(len(application_result), 1)
         self.assertEqual(len(mutation_result), 1)
-
-        # The application must reflect the complete pre-transition generation;
-        # the transition happens only after the observation releases its barrier.
         self.assertEqual(application_result[0].application.logical_time_seconds, 0.0)
         self.assertEqual(self.host.runtime.export_state()["trigger_governance"]["logical_time_seconds"], 1.0)
         self.assertEqual(application_result[0].application.planning_state["truth"], "DO_NOT_TOUCH")
+
+    def test_generic_planning_mutation_is_cohesion_only(self):
+        planning = self.planning_state()
+        with self.assertRaisesRegex(TriggerRejected, "Cohesion"):
+            self.host.runtime.modulate_planning(planning)
+        with self.assertRaisesRegex(TriggerRejected, "Cohesion"):
+            self.host.build_planning_context(planning)
+        self.assertEqual(planning, self.planning_state())
+
+    def test_cycle_mutation_and_evidence_capture_are_one_generation(self):
+        cycle = VeraAffectiveCycle(self.host, host_scope="ATOMIC_CYCLE_TEST")
+        capture_entered = Event()
+        allow_capture_to_finish = Event()
+        mutation_finished = Event()
+        cycle_results = []
+        errors = []
+
+        original_capture = VeraAffectiveRuntimeHost._capture_cycle_observation
+
+        def blocking_capture(host):
+            observation = original_capture(host)
+            capture_entered.set()
+            if not allow_capture_to_finish.wait(timeout=5.0):
+                raise RuntimeError("test timed out waiting to release cycle capture")
+            return observation
+
+        def run_cycle():
+            try:
+                cycle_results.append(cycle.advance_time(1.0, planning_state=self.planning_state()))
+            except BaseException as exc:
+                errors.append(exc)
+
+        def mutate_after_capture():
+            try:
+                self.host.advance_time(1.0)
+            except BaseException as exc:
+                errors.append(exc)
+            finally:
+                mutation_finished.set()
+
+        VeraAffectiveRuntimeHost._capture_cycle_observation = blocking_capture
+        try:
+            cycle_thread = Thread(target=run_cycle)
+            cycle_thread.start()
+            self.assertTrue(capture_entered.wait(timeout=5.0))
+
+            mutation_thread = Thread(target=mutate_after_capture)
+            mutation_thread.start()
+            time.sleep(0.05)
+            self.assertFalse(mutation_finished.is_set())
+
+            allow_capture_to_finish.set()
+            cycle_thread.join(timeout=5.0)
+            mutation_thread.join(timeout=5.0)
+        finally:
+            VeraAffectiveRuntimeHost._capture_cycle_observation = original_capture
+            allow_capture_to_finish.set()
+
+        self.assertFalse(cycle_thread.is_alive())
+        self.assertFalse(mutation_thread.is_alive())
+        self.assertEqual(errors, [])
+        self.assertEqual(len(cycle_results), 1)
+
+        result = cycle_results[0]
+        checkpoint_time = result.checkpoint["runtime_state"]["trigger_governance"]["logical_time_seconds"]
+        signal_time = result.affective_modulation_signal["temporal_scope"]["logical_time_seconds"]
+        self.assertEqual(checkpoint_time, 1.0)
+        self.assertEqual(signal_time, checkpoint_time)
+        self.assertEqual(result.machine_interoception, result.checkpoint["machine_interoception"])
+        self.assertEqual(self.host.runtime.export_state()["trigger_governance"]["logical_time_seconds"], 2.0)
 
 
 if __name__ == "__main__":
