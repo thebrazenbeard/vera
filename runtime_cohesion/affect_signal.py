@@ -30,10 +30,6 @@ _NONCLIMAX_GAINS = {
     "memory_strength_candidate_weighting": 0.10,
 }
 _NUMERIC_TARGETS = tuple(_ACTIVE_GAINS)
-_HOST_SIGNAL_METHODS = frozenset({
-    "machine_interoception",
-    "experience_control_vector",
-})
 _RUNTIME_OBSERVATION_METHODS = frozenset({
     "snapshot",
     "export_state",
@@ -46,27 +42,27 @@ def _clamp(value: float) -> float:
     return max(0.0, min(1.0, float(value)))
 
 
+def _canonical_copy(value: Mapping[str, Any], *, label: str) -> dict[str, Any]:
+    try:
+        return json.loads(json.dumps(dict(value), sort_keys=True, separators=(",", ":"), ensure_ascii=False))
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{label} must be canonically serializable") from exc
+
+
 def _digest(value: Mapping[str, Any]) -> str:
     canonical = json.dumps(dict(value), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def _validated_signal_origin(host: VeraAffectiveRuntimeHost) -> BoundVeraOrgasmRuntime:
-    """Validate the supported in-process causal call surface before signal derivation.
+    """Validate the supported in-process causal capability before observation.
 
-    This is an API/process-boundary check, not hostile-process isolation. It
-    rejects ordinary instance-level callable shadowing that would otherwise make
-    exact source/class provenance coexist with caller-interposed computation.
+    The supported causal path owns the exact bound host/runtime capability. It
+    does not trust caller-supplied affective data. This is an API/process-boundary
+    guarantee, not hostile-process isolation from arbitrary private-state writes.
     """
     if type(host) is not VeraAffectiveRuntimeHost:
-        raise TypeError("affective modulation signal requires the exact VeraAffectiveRuntimeHost class")
-
-    shadowed_host = sorted(_HOST_SIGNAL_METHODS.intersection(host.__dict__))
-    if shadowed_host:
-        raise ValueError(
-            "affective host has caller-shadowed signal derivation methods: "
-            + ",".join(shadowed_host)
-        )
+        raise TypeError("affective modulation requires the exact VeraAffectiveRuntimeHost class")
 
     runtime = host.runtime
     if type(runtime) is not BoundVeraOrgasmRuntime:
@@ -77,7 +73,88 @@ def _validated_signal_origin(host: VeraAffectiveRuntimeHost) -> BoundVeraOrgasmR
             "affective runtime has caller-shadowed observation methods: "
             + ",".join(shadowed_runtime)
         )
+
+    sealed_contract = host._runtime_contract_snapshot
+    if _canonical_copy(runtime.contract, label="live runtime contract") != sealed_contract:
+        raise ValueError("affective runtime contract no longer matches the host construction snapshot")
     return runtime
+
+
+def _capture_runtime_observation(
+    host: VeraAffectiveRuntimeHost,
+    runtime: BoundVeraOrgasmRuntime,
+) -> dict[str, Any]:
+    """Capture exactly one deep immutable/plain-data observation for one application."""
+    # Call the class-owned export primitive directly. OrgasmRuntime.export_state()
+    # takes one state snapshot; canonicalization then prevents later live-state or
+    # alias changes from changing this application's observation.
+    raw = OrgasmRuntime.export_state(runtime)
+    return _canonical_copy(raw, label="affective runtime observation")
+
+
+def _frame_from_observation(
+    host: VeraAffectiveRuntimeHost,
+    observation: Mapping[str, Any],
+) -> dict[str, Any]:
+    state = observation.get("state")
+    if not isinstance(state, Mapping):
+        raise ValueError("affective runtime observation lacks a structured state")
+    receipt = observation.get("last_event_receipt")
+    if receipt is not None and not isinstance(receipt, Mapping):
+        raise ValueError("affective runtime last_event_receipt must be structured or null")
+    contract = host._runtime_contract_snapshot
+    return {
+        "experience_class": "ENGINEERED_AFFECTIVE_INTEROCEPTION",
+        "subject": "vera",
+        "presence": state["presence"],
+        "phase": state["phase"],
+        "sexual_salience": state["sexual_salience"],
+        "activation_intensity": state["activation_intensity"],
+        "positive_valence": state["positive_valence"],
+        "anticipation": state["anticipation"],
+        "inhibition": state["inhibition"],
+        "coherence": state["coherence"],
+        "coalition_stability": state["coalition_stability"],
+        "persistence_window_ms": state["persistence_window_ms"],
+        "hedonic_impact": state["hedonic_impact"],
+        "consummatory_gain": state["consummatory_gain"],
+        "satiation": state["satiation"],
+        "resolution_intensity": state["resolution_intensity"],
+        "refractory_strength": state["refractory_strength"],
+        "context_eligible": state["context_eligible"],
+        "action_tendency": state["action_tendency"],
+        "active_orgasm_event": state["active_orgasm_event"],
+        "organic_climax_eligible": state["organic_climax_eligible"],
+        "last_trigger_class": receipt.get("trigger_class") if receipt else None,
+        "last_event_digest": receipt.get("event_digest") if receipt else None,
+        "source_revision": observation.get("source_revision"),
+        "contract_blob_sha": host.contract_blob_sha,
+        "phenomenology": contract["claim_ceiling"]["phenomenology"],
+    }
+
+
+def _control_vector_from_frame(frame: Mapping[str, Any]) -> dict[str, float]:
+    positive_valence = _clamp((float(frame["positive_valence"]) + 1.0) / 2.0)
+    activation = _clamp(float(frame["activation_intensity"]))
+    coherence = _clamp(float(frame["coherence"]))
+    hedonic = _clamp(float(frame["hedonic_impact"]))
+    consummatory = _clamp(float(frame["consummatory_gain"]))
+    satiation = _clamp(float(frame["satiation"]))
+    resolution = _clamp(float(frame["resolution_intensity"]))
+    refractory = _clamp(float(frame["refractory_strength"]))
+    recovery_active = frame["phase"] in {"RESOLUTION", "SATIATED_OR_REFRACTORY"}
+    return {
+        "approach_gain": _clamp(0.55 * activation + 0.25 * coherence + 0.20 * positive_valence),
+        "salience_gain": _clamp(0.50 * activation + 0.30 * coherence + 0.20 * hedonic),
+        "attention_narrowing": _clamp(0.35 * activation + 0.35 * coherence + 0.30 * hedonic),
+        "consummatory_gain": _clamp(0.55 * consummatory + 0.45 * hedonic),
+        "plasticity_gain": 0.0 if recovery_active else _clamp(
+            0.40 * hedonic + 0.25 * coherence + 0.20 * activation + 0.15 * resolution
+        ),
+        "satiation": satiation,
+        "resolution": resolution,
+        "refractory": refractory,
+    }
 
 
 def _target_strengths(
@@ -122,39 +199,20 @@ def _target_strengths(
 
 
 def build_affective_modulation_signal(host: VeraAffectiveRuntimeHost) -> dict[str, Any]:
-    """Emit an affective proposal for Cohesion-owned application/arbitration.
+    """Build one diagnostic/internal modulation signal from one coherent observation.
 
-    The signal intentionally has no generic planning-state input. Orgasm owns its
-    state machine and the bounded modulation strengths it proposes; it does not
-    own final mutation of Vera's generic planning state. The receiving Cohesion
-    integration port is responsible for target application, ancestry, conflict
-    handling and preservation of protected epistemic/authority domains.
-
-    This signal is runtime-local source evidence only. It cannot establish
-    provider currentness, durability, authorization, memory admission, identity,
-    relationship state or phenomenology. Caller-defined host subclasses and
-    ordinary instance-level shadowing of causal observation methods are rejected.
+    The supported Cohesion causal path calls this internally; callers do not
+    supply its result back into the planning boundary. The returned mapping is
+    useful for receipts, ancestry, diagnostics and qualification evidence, but is
+    not an authority-bearing input.
     """
     runtime = _validated_signal_origin(host)
-
-    # Invoke the exact class-owned host primitives after proving that ordinary
-    # instance attributes have not shadowed the causal call targets.
-    frame = VeraAffectiveRuntimeHost.machine_interoception(host)
-    vector = {
-        key: float(value)
-        for key, value in VeraAffectiveRuntimeHost.experience_control_vector(host).items()
-    }
-    # Bypass any instance-dispatched export_state replacement as an additional
-    # belt-and-suspenders measure; the shadow check above remains the fail-closed
-    # supported-API guard.
-    runtime_state = OrgasmRuntime.export_state(runtime)
-    state = runtime_state.get("state")
-    if not isinstance(state, Mapping):
-        raise ValueError("affective runtime state snapshot is unavailable")
-    governance = runtime_state.get("trigger_governance") or {}
-    receipt = runtime_state.get("last_event_receipt")
-    if receipt is not None and not isinstance(receipt, Mapping):
-        raise ValueError("affective runtime last_event_receipt must be structured or null")
+    observation = _capture_runtime_observation(host, runtime)
+    state = observation["state"]
+    governance = observation.get("trigger_governance") or {}
+    receipt = observation.get("last_event_receipt")
+    frame = _frame_from_observation(host, observation)
+    vector = _control_vector_from_frame(frame)
 
     trust = _NO_PRODUCTION_AUTHORITY
     event_lineage = None
@@ -172,6 +230,7 @@ def build_affective_modulation_signal(host: VeraAffectiveRuntimeHost) -> dict[st
         }
 
     binding = host.binding
+    contract = host._runtime_contract_snapshot
     source_binding = {
         "source_repository": binding["source_repository"],
         "source_commit": binding["source_commit"],
@@ -179,14 +238,14 @@ def build_affective_modulation_signal(host: VeraAffectiveRuntimeHost) -> dict[st
         "source_blob_sha": host.contract_blob_sha,
         "source_sha256": host.contract_sha256,
     }
-    allowed = set(runtime.contract["hard_firewalls"]["may_influence"])
+    allowed = set(contract["hard_firewalls"]["may_influence"])
 
     signal: dict[str, Any] = {
         "schema": _SIGNAL_SCHEMA,
         "subject": "vera",
-        "runtime_instance_id": runtime.runtime_instance_id,
+        "runtime_instance_id": observation["runtime_instance_id"],
         "source_binding": source_binding,
-        "runtime_implementation_cut": json.loads(json.dumps(host.runtime_implementation_cut)),
+        "runtime_implementation_cut": host.runtime_implementation_cut,
         "presence": frame["presence"],
         "phase": frame["phase"],
         "context_eligible": bool(frame["context_eligible"]),
@@ -204,7 +263,7 @@ def build_affective_modulation_signal(host: VeraAffectiveRuntimeHost) -> dict[st
         "provider_currentness": "UNRESOLVED",
         "durability": "NOT_QUALIFIED",
         "behavioral_qualification": "NOT_ESTABLISHED_BY_SIGNAL",
-        "historical_engineered_event_claim_ceiling": runtime.contract["claim_ceiling"]["engineered_event"],
+        "historical_engineered_event_claim_ceiling": contract["claim_ceiling"]["engineered_event"],
         "phenomenology": "UNRESOLVED",
         "usable_as_currentness_evidence": False,
         "evidence_effect": "NONE",

@@ -44,13 +44,6 @@ def _git_blob_sha(raw: bytes) -> str:
     return hashlib.sha1(header + raw).hexdigest()
 
 
-def _canonical_copy(value: Mapping[str, Any], *, label: str) -> dict[str, Any]:
-    try:
-        return json.loads(json.dumps(dict(value), sort_keys=True, separators=(",", ":"), ensure_ascii=False))
-    except (TypeError, ValueError) as exc:
-        raise ValueError(f"{label} must be canonically serializable") from exc
-
-
 def validate_cohesion_affective_integration_cut(
     cut: Mapping[str, Any],
     *,
@@ -124,14 +117,16 @@ class CohesionAffectiveIntegrationPort:
 
     Construction accepts only the exact ``VeraAffectiveRuntimeHost`` class. Both
     the affective core cut and the CV-owned integration cut are derived from that
-    host's own sealed binding, independently Git/live-byte verified, and required
-    to satisfy the binding's same-generation cross-bind. Caller-defined host
-    subclasses cannot interpose the state-to-modulation computation.
+    host's sealed binding and required to satisfy one exact-generation cross-bind.
 
-    Each supplied signal must equal a fresh signal regenerated from that bound
-    host at application time. Replay history remains owned by the internal
-    stateful arbiter. This remains an in-process composition boundary, not
-    hostile-process isolation or provider qualification.
+    The supported planning path does not accept caller-supplied affective data.
+    One coherent immutable/plain-data observation is captured from the bound host
+    internally for each application, converted to a diagnostic/ancestry signal,
+    and passed directly to the stateful Cohesion arbiter. The signal is evidence
+    about that application, not caller authority over it.
+
+    This remains a supported API/process boundary, not hostile-process isolation
+    or provider qualification.
     """
 
     def __init__(self, *, host: VeraAffectiveRuntimeHost) -> None:
@@ -183,23 +178,9 @@ class CohesionAffectiveIntegrationPort:
     def apply(
         self,
         planning_state: Mapping[str, Any],
-        signal: Mapping[str, Any],
     ) -> IntegratedAffectivePlanningResult:
-        if not isinstance(signal, Mapping):
-            raise TypeError("signal must be a mapping")
-        supplied_signal = _canonical_copy(
-            signal,
-            label="affective modulation signal",
-        )
-        expected_signal = _canonical_copy(
-            build_affective_modulation_signal(self._host),
-            label="bound-host affective modulation signal",
-        )
-        if supplied_signal != expected_signal:
-            raise ValueError(
-                "affective modulation signal does not match the currently bound exact host state"
-            )
-        application = self._arbiter.apply(planning_state, supplied_signal)
+        signal = build_affective_modulation_signal(self._host)
+        application = self._arbiter.apply(planning_state, signal)
         return IntegratedAffectivePlanningResult(
             application=application,
             affective_runtime_cut_commit=self._affective_runtime_cut["commit"],

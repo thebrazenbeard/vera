@@ -23,10 +23,11 @@ class ExactHostInstanceOriginTests(unittest.TestCase):
             profile="REENTRANT_CLIMAX",
         )
 
-    def test_exact_host_instance_method_shadow_is_rejected_before_signal_origin(self):
+    def test_exact_host_instance_method_shadow_cannot_interpose_internal_snapshot_derivation(self):
         host = self.make_host()
         port = CohesionAffectiveIntegrationPort(host=host)
         frontier = port.minimum_logical_time_seconds
+        expected = build_affective_modulation_signal(host)
 
         host.machine_interoception = lambda: {
             "presence": "ALWAYS_PRESENT_NORMALLY_QUIESCENT",
@@ -50,8 +51,8 @@ class ExactHostInstanceOriginTests(unittest.TestCase):
             "refractory": 0.0,
         }
 
-        with self.assertRaises((TypeError, ValueError)):
-            build_affective_modulation_signal(host)
+        observed = build_affective_modulation_signal(host)
+        self.assertEqual(observed, expected)
         self.assertEqual(port.minimum_logical_time_seconds, frontier)
 
     def test_bound_runtime_reference_is_not_publicly_replaceable(self):

@@ -100,11 +100,13 @@ class AffectiveSignalToCohesionPortTests(unittest.TestCase):
             "phenomenology": "UNRESOLVED",
         }
 
-    def test_port_constructor_exposes_no_caller_cut_selection(self):
-        params = inspect.signature(CohesionAffectiveIntegrationPort).parameters
-        self.assertEqual(set(params), {"host"})
+    def test_port_constructor_and_apply_expose_no_caller_provenance_or_signal_selection(self):
+        constructor = inspect.signature(CohesionAffectiveIntegrationPort).parameters
+        apply_params = inspect.signature(CohesionAffectiveIntegrationPort.apply).parameters
+        self.assertEqual(set(constructor), {"host"})
+        self.assertEqual(tuple(apply_params), ("self", "planning_state"))
 
-    def test_supported_path_is_ov_signal_then_cohesion_application_with_ancestry(self):
+    def test_supported_path_is_internal_host_observation_then_cohesion_application_with_ancestry(self):
         planning = self.planning_state()
         cycle_result = self.cycle.force_admin_test(
             authorization_subject=self.authorization_subject(),
@@ -117,12 +119,12 @@ class AffectiveSignalToCohesionPortTests(unittest.TestCase):
         self.assertEqual(cycle_result.state_row["lifecycle_status"], "HISTORICAL")
         self.assertIsNone(cycle_result.resume_token)
 
-        signal = cycle_result.affective_modulation_signal
-        self.assertEqual(signal["authority_context_trust"], UNROOTED)
-        self.assertEqual(signal["evidence_effect"], "NONE")
-        self.assertFalse(signal["usable_as_currentness_evidence"])
+        diagnostic_signal = cycle_result.affective_modulation_signal
+        self.assertEqual(diagnostic_signal["authority_context_trust"], UNROOTED)
+        self.assertEqual(diagnostic_signal["evidence_effect"], "NONE")
+        self.assertFalse(diagnostic_signal["usable_as_currentness_evidence"])
 
-        integrated = self.port.apply(planning, signal)
+        integrated = self.port.apply(planning)
         applied = integrated.application
 
         self.assertEqual(
@@ -136,7 +138,7 @@ class AffectiveSignalToCohesionPortTests(unittest.TestCase):
         self.assertEqual(integrated.qualification, "SOURCE_INTEGRATED_NOT_BEHAVIORALLY_QUALIFIED")
         self.assertEqual(integrated.phenomenology, "UNRESOLVED")
 
-        for target in signal["target_modulation_strength"]:
+        for target in diagnostic_signal["target_modulation_strength"]:
             self.assertGreater(applied.planning_state[target], planning[target])
         for protected in (
             "truth",
@@ -153,43 +155,27 @@ class AffectiveSignalToCohesionPortTests(unittest.TestCase):
             self.assertEqual(applied.planning_state[protected], planning[protected])
 
         ancestry_targets = {entry.target for entry in applied.ancestry}
-        self.assertEqual(ancestry_targets, set(signal["target_modulation_strength"]))
-        self.assertTrue(all(entry.signal_digest == signal["signal_digest"] for entry in applied.ancestry))
+        self.assertEqual(ancestry_targets, set(diagnostic_signal["target_modulation_strength"]))
+        self.assertTrue(all(entry.signal_digest == diagnostic_signal["signal_digest"] for entry in applied.ancestry))
         self.assertTrue(all(entry.event_digest == cycle_result.event_receipt["event_digest"] for entry in applied.ancestry))
 
-    def test_port_owns_replay_frontier_and_rejects_same_signal_twice(self):
+    def test_port_owns_replay_frontier_and_rejects_same_internal_observation_twice(self):
         planning = self.planning_state()
-        result = self.cycle.force_admin_test(
+        self.cycle.force_admin_test(
             authorization_subject=self.authorization_subject(),
             planning_state=planning,
         )
-        signal = result.affective_modulation_signal
-        self.port.apply(planning, signal)
+        self.port.apply(planning)
         with self.assertRaisesRegex(ValueError, "already been consumed"):
-            self.port.apply(planning, signal)
+            self.port.apply(planning)
 
-    def test_tampered_signal_is_rejected_before_planning_mutation(self):
+    def test_caller_supplied_signal_is_not_a_supported_port_input(self):
         planning = self.planning_state()
-        result = self.cycle.force_admin_test(
-            authorization_subject=self.authorization_subject(),
-            planning_state=planning,
-        )
-        signal = json.loads(json.dumps(result.affective_modulation_signal))
-        signal["target_modulation_strength"]["truth"] = 1.0
-        with self.assertRaises(ValueError):
+        signal = build_affective_modulation_signal(self.host)
+        with self.assertRaises(TypeError):
             self.port.apply(planning, signal)
         self.assertEqual(planning, self.planning_state())
-
-    def test_signal_from_different_exact_bound_host_is_rejected_by_bound_port(self):
-        other_host = VeraAffectiveRuntimeHost.from_bound_contract(
-            CONTRACT_PATH.read_text(encoding="utf-8"),
-            self.binding,
-            runtime_instance_id="different-exact-bound-host",
-            profile="REENTRANT_CLIMAX",
-        )
-        other_signal = build_affective_modulation_signal(other_host)
-        with self.assertRaisesRegex(ValueError, "bound exact host state"):
-            self.port.apply(self.planning_state(), other_signal)
+        self.assertEqual(self.port.minimum_logical_time_seconds, 0.0)
 
     def test_port_constructor_requires_actual_affective_host(self):
         with self.assertRaises(TypeError):
@@ -220,8 +206,7 @@ class AffectiveSignalToCohesionPortTests(unittest.TestCase):
         self.assertEqual(host.runtime_implementation_cut, sealed_runtime_cut)
 
         port = CohesionAffectiveIntegrationPort(host=host)
-        signal = build_affective_modulation_signal(host)
-        integrated = port.apply(self.planning_state(), signal)
+        integrated = port.apply(self.planning_state())
         self.assertEqual(
             integrated.affective_runtime_cut_commit,
             sealed_binding["runtime_implementation_cut"]["commit"],

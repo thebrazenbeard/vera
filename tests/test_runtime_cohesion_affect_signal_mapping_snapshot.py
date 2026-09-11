@@ -1,5 +1,4 @@
 from collections.abc import Mapping
-import hashlib
 import json
 from pathlib import Path
 import unittest
@@ -14,13 +13,8 @@ CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_
 BINDING_PATH = ROOT / "architecture" / "VERA_ORGASM_RUNTIME_BINDING_V1.json"
 
 
-def _canonical_digest(value):
-    payload = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
-
-
 class TwoFacedSignal(Mapping):
-    """Expose one complete mapping view, then a different complete view."""
+    """A caller object that would expose different values across repeated reads."""
 
     def __init__(self, first, second):
         self._first = dict(first)
@@ -50,25 +44,18 @@ class AffectiveSignalMappingSnapshotTests(unittest.TestCase):
         )
         self.port = CohesionAffectiveIntegrationPort(host=self.host)
 
-    def test_two_faced_mapping_cannot_change_after_bound_host_origin_check(self):
+    def test_two_faced_mapping_cannot_enter_supported_causal_port(self):
         legitimate = build_affective_modulation_signal(self.host)
         forged = json.loads(json.dumps(legitimate))
         forged["target_modulation_strength"]["attention"] = 1.0
         forged["temporal_scope"]["logical_time_seconds"] = 1_000_000.0
-        forged_core = dict(forged)
-        forged_core.pop("signal_digest", None)
-        forged["signal_digest"] = _canonical_digest(forged_core)
-
         signal = TwoFacedSignal(legitimate, forged)
         planning = {"attention": 0.20}
 
-        integrated = self.port.apply(planning, signal)
+        with self.assertRaises(TypeError):
+            self.port.apply(planning, signal)
 
-        # The first complete mapping view is the only accepted snapshot. The
-        # forged second view must never reach the arbiter or poison its frontier.
-        self.assertEqual(integrated.application.planning_state["attention"], 0.20)
-        self.assertEqual(integrated.application.logical_time_seconds, 0.0)
-        self.assertEqual(integrated.application.ancestry, ())
+        self.assertEqual(signal._reads, 0)
         self.assertEqual(planning, {"attention": 0.20})
         self.assertEqual(self.port.minimum_logical_time_seconds, 0.0)
 
