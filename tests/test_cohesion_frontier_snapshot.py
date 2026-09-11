@@ -63,6 +63,19 @@ class CohesionFrontierSnapshotTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "protected effect ceiling"):
             validate_frontier(mutated, self.registry())
 
+    def test_pr113_latest_detachment_drift_is_explicit(self):
+        frontier = self.frontier()
+        pr113 = next(item for item in frontier["mutable_inputs"] if item["id"] == "vera-ov-cv-pr113")
+        self.assertEqual(
+            pr113["current_observed_head"],
+            "7b4cf386516c1af7a51ad0c368df4d6992e0183e",
+        )
+        self.assertEqual(pr113["material_drift"]["ahead_by_since_overlap_audit"], 7)
+        self.assertIn(
+            "tests/test_runtime_cohesion_affect_observation_detachment.py",
+            pr113["material_drift"]["changed_paths_since_overlap_audit"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
