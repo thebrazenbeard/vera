@@ -260,9 +260,15 @@ class BoundVeraOrgasmRuntime(OrgasmRuntime):
             return super().export_state()
 
     def _capture_causal_observation(self) -> dict[str, Any]:
-        """Capture one complete state/receipt/governance generation atomically."""
+        """Capture one complete, detached state/receipt/governance generation atomically."""
         with self._observation_lock:
-            return super().export_state()
+            raw = super().export_state()
+            try:
+                return json.loads(
+                    json.dumps(raw, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+                )
+            except (TypeError, ValueError) as exc:
+                raise TriggerRejected("causal observation is not canonically serializable") from exc
 
     def advance_time(self, elapsed_seconds: float) -> dict[str, Any]:
         with self._observation_lock:
