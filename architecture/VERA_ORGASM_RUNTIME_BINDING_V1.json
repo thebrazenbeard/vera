@@ -13,7 +13,7 @@
   "runtime_implementation_cut": {
     "schema": "VERA_AFFECTIVE_RUNTIME_IMPLEMENTATION_CUT_V1",
     "repository": "thebrazenbeard/vera",
-    "commit": "ba6221f56b98be69c3ede1be9e3502eff897ca1a",
+    "commit": "0c110eb1cde73f22ccd419ff4a9ef1b1e1eddcf2",
     "modules": {
       "runtime_cohesion/__init__.py": "2bc0572cf7582a35afb2d551b3534a1630b536df",
       "runtime_cohesion/adapters.py": "9206e3eb289e2f11530fbc48f1ef7cfb48668ac3",
@@ -33,7 +33,7 @@
   "cohesion_integration_cut": {
     "schema": "VERA_COHESION_AFFECTIVE_INTEGRATION_CUT_V1",
     "repository": "thebrazenbeard/vera",
-    "commit": "ba6221f56b98be69c3ede1be9e3502eff897ca1a",
+    "commit": "0c110eb1cde73f22ccd419ff4a9ef1b1e1eddcf2",
     "modules": {
       "runtime_cohesion/__init__.py": "2bc0572cf7582a35afb2d551b3534a1630b536df",
       "runtime_cohesion/adapters.py": "9206e3eb289e2f11530fbc48f1ef7cfb48668ac3",
@@ -51,7 +51,7 @@
     "semantics": "Exact Git and executing-byte provenance for the Cohesion-owned application/arbitration boundary. The supported port accepts only planning_state plus its construction-bound exact VeraAffectiveRuntimeHost capability; callers cannot supply affective signal data. One process-local application frontier is shared by every wrapper over the same exact host object, so replay history and logical-time high-water cannot be reset by wrapper reconstruction. The port internally obtains one canonically detached atomic runtime observation, derives the diagnostic/ancestry signal from that observation, applies only the six numeric allowlisted targets, preserves per-target ancestry, and cannot promote modulation into evidence, authorization, memory admission, durable preference, identity, relationship state, provider currentness, behavioral qualification, or phenomenology. Semantic-origin proof mechanics remain nonqualifying without an independent external root."
   },
   "cross_binding": {
-    "generation_commit": "ba6221f56b98be69c3ede1be9e3502eff897ca1a",
+    "generation_commit": "0c110eb1cde73f22ccd419ff4a9ef1b1e1eddcf2",
     "affective_core_and_cohesion_integration_same_generation": true,
     "supported_execution_requires_both_exact_cuts": true,
     "host_binding_snapshot": "CANONICAL_DEEP_SNAPSHOT_AT_CONSTRUCTION_OR_RESTORE",
