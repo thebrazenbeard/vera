@@ -25,11 +25,19 @@ class CohesionCleanSuccessorBindingTests(unittest.TestCase):
             repository_root=ROOT,
         )
 
-    def test_donor_cannot_become_clean_source_commit(self):
+    def test_donor_cannot_become_initial_flattened_source(self):
         record = self.record()
         mutated = deepcopy(record)
-        mutated["clean_source_commit"] = mutated["donor"]["head"]
-        with self.assertRaisesRegex(ValueError, "flattened clean source"):
+        mutated["initial_flattened_source"]["commit"] = mutated["donor"]["head"]
+        with self.assertRaisesRegex(ValueError, "initial flattened source"):
+            validate_clean_successor(mutated, ownership_path=OWNERSHIP_PATH, binding_path=BINDING_PATH, repository_root=ROOT)
+
+    def test_final_clean_source_must_follow_post_flatten_repairs(self):
+        record = self.record()
+        mutated = deepcopy(record)
+        mutated["clean_source_commit"] = mutated["initial_flattened_source"]["commit"]
+        mutated["clean_source_tree"] = mutated["initial_flattened_source"]["tree"]
+        with self.assertRaisesRegex(ValueError, "runtime binding is not rebound"):
             validate_clean_successor(mutated, ownership_path=OWNERSHIP_PATH, binding_path=BINDING_PATH, repository_root=ROOT)
 
     def test_source_cannot_claim_install_or_qualification(self):
