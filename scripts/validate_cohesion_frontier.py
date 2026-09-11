@@ -24,9 +24,12 @@ REQUIRED_MUTABLE_INPUTS = {
     "vera-ov-cv-pr113",
 }
 
-EXPECTED_PR113_HEAD = "7b4cf386516c1af7a51ad0c368df4d6992e0183e"
-EXPECTED_PR113_AHEAD_FROM_OVERLAP_AUDIT = 7
+EXPECTED_PR113_HEAD = "f7dbc3deeaaaeb46dcf7c7ea6b56a822f253232d"
+EXPECTED_PR113_AHEAD_FROM_OVERLAP_AUDIT = 10
+EXPECTED_PR113_RUNTIME_GENERATION = "ba6221f56b98be69c3ede1be9e3502eff897ca1a"
+EXPECTED_PR113_BINDING_BLOB = "037883261bd324e8080c323f1d96ff32179780ee"
 EXPECTED_PR113_DETACHMENT_TEST = "tests/test_runtime_cohesion_affect_observation_detachment.py"
+EXPECTED_PR113_BINDING_PATH = "architecture/VERA_ORGASM_RUNTIME_BINDING_V1.json"
 
 
 def _reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -136,8 +139,14 @@ def validate_frontier(frontier: dict[str, Any], registry: dict[str, Any]) -> Non
         or drift.get("behind_by_since_overlap_audit") != 0
     ):
         raise ValueError("PR113 comparison counts do not match the observed evidence cut")
+    if drift.get("runtime_generation") != EXPECTED_PR113_RUNTIME_GENERATION:
+        raise ValueError("PR113 runtime generation does not match the observed freeze")
+    if drift.get("binding_blob") != EXPECTED_PR113_BINDING_BLOB:
+        raise ValueError("PR113 binding blob does not match the observed freeze")
     if EXPECTED_PR113_DETACHMENT_TEST not in paths:
         raise ValueError("PR113 detached-observation regression is missing from the evidence cut")
+    if EXPECTED_PR113_BINDING_PATH not in paths:
+        raise ValueError("PR113 bound freeze is missing from the evidence cut")
 
     protected = frontier.get("protected_effects_not_authorized")
     if not isinstance(protected, list) or not REQUIRED_PROTECTED_EFFECTS.issubset(set(protected)):
