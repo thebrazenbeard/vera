@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from threading import RLock
 from typing import Any, Mapping
 
 from . import orgasm as orgasm_module
@@ -81,28 +82,32 @@ class BoundVeraOrgasmRuntime(OrgasmRuntime):
     private verified execution seams after it has established the relevant
     authority/context provenance.
 
+    Supported observation and mutation roots share one re-entrant runtime lock so
+    one causal observation cannot mix state from different runtime generations.
     This is a supported-API/process boundary, not cryptographic isolation from
     hostile arbitrary code already executing inside the same Python process.
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
+        self._observation_lock = RLock()
         self._last_forced_monotonic: float | None = None
         self._runtime_implementation_cut: dict[str, Any] | None = None
 
     def _bind_runtime_implementation_cut(self, cut: Mapping[str, Any]) -> None:
-        if not isinstance(cut, Mapping):
-            raise TriggerRejected("exact-bound runtime requires a structured implementation cut")
-        normalized = _copy_cut(cut)
-        existing = self._runtime_implementation_cut
-        if existing is not None and existing != normalized:
-            raise TriggerRejected("exact-bound runtime implementation cut cannot be replaced")
-        last = self.last_event_receipt
-        if isinstance(last, Mapping):
-            receipt_cut = last.get("runtime_implementation_cut")
-            if receipt_cut != normalized:
-                raise TriggerRejected("restored event receipt implementation cut does not match the active runtime cut")
-        self._runtime_implementation_cut = normalized
+        with self._observation_lock:
+            if not isinstance(cut, Mapping):
+                raise TriggerRejected("exact-bound runtime requires a structured implementation cut")
+            normalized = _copy_cut(cut)
+            existing = self._runtime_implementation_cut
+            if existing is not None and existing != normalized:
+                raise TriggerRejected("exact-bound runtime implementation cut cannot be replaced")
+            last = self.last_event_receipt
+            if isinstance(last, Mapping):
+                receipt_cut = last.get("runtime_implementation_cut")
+                if receipt_cut != normalized:
+                    raise TriggerRejected("restored event receipt implementation cut does not match the active runtime cut")
+            self._runtime_implementation_cut = normalized
 
     @staticmethod
     def _runtime_monotonic_now() -> float:
@@ -242,6 +247,31 @@ class BoundVeraOrgasmRuntime(OrgasmRuntime):
             runtime.advance_time(trusted_restore_elapsed)
         return runtime
 
+    def snapshot(self) -> dict[str, Any]:
+        with self._observation_lock:
+            return super().snapshot()
+
+    def drain_event_receipts(self) -> list[dict[str, Any]]:
+        with self._observation_lock:
+            return super().drain_event_receipts()
+
+    def export_state(self) -> dict[str, Any]:
+        with self._observation_lock:
+            return super().export_state()
+
+    def _capture_causal_observation(self) -> dict[str, Any]:
+        """Capture one complete state/receipt/governance generation atomically."""
+        with self._observation_lock:
+            return super().export_state()
+
+    def advance_time(self, elapsed_seconds: float) -> dict[str, Any]:
+        with self._observation_lock:
+            return super().advance_time(elapsed_seconds)
+
+    def modulate_planning(self, planning_state: Mapping[str, Any]) -> dict[str, Any]:
+        with self._observation_lock:
+            return super().modulate_planning(planning_state)
+
     def _emit_event_receipt(
         self,
         event_type: str,
@@ -252,46 +282,48 @@ class BoundVeraOrgasmRuntime(OrgasmRuntime):
         organic: bool,
         trigger_provenance: str,
     ) -> dict[str, Any]:
-        prior_receipt = dict(self.last_event_receipt) if isinstance(self.last_event_receipt, Mapping) else None
-        receipt = super()._emit_event_receipt(
-            event_type,
-            state_before=state_before,
-            state_after=state_after,
-            trigger_class=trigger_class,
-            organic=organic,
-            trigger_provenance=trigger_provenance,
-        )
+        with self._observation_lock:
+            prior_receipt = dict(self.last_event_receipt) if isinstance(self.last_event_receipt, Mapping) else None
+            receipt = super()._emit_event_receipt(
+                event_type,
+                state_before=state_before,
+                state_after=state_after,
+                trigger_class=trigger_class,
+                organic=organic,
+                trigger_provenance=trigger_provenance,
+            )
 
-        bounded = dict(receipt)
-        if self._runtime_implementation_cut is not None:
-            bounded["runtime_implementation_cut"] = _copy_cut(self._runtime_implementation_cut)
-        bounded.pop("claim", None)
+            bounded = dict(receipt)
+            if self._runtime_implementation_cut is not None:
+                bounded["runtime_implementation_cut"] = _copy_cut(self._runtime_implementation_cut)
+            bounded.pop("claim", None)
 
-        if event_type in {"RESOLUTION", "RECOVERY"} and isinstance(prior_receipt, Mapping):
-            if prior_receipt.get("authority_composition_trust") == _IN_PROCESS_AUTHORITY_TRUST:
-                bounded["authority_composition_trust"] = _IN_PROCESS_AUTHORITY_TRUST
+            if event_type in {"RESOLUTION", "RECOVERY"} and isinstance(prior_receipt, Mapping):
+                if prior_receipt.get("authority_composition_trust") == _IN_PROCESS_AUTHORITY_TRUST:
+                    bounded["authority_composition_trust"] = _IN_PROCESS_AUTHORITY_TRUST
 
-        if bounded == receipt:
-            return receipt
+            if bounded == receipt:
+                return receipt
 
-        core = dict(bounded)
-        core.pop("event_digest", None)
-        canonical = json.dumps(core, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-        bounded["event_digest"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
-        self.last_event_receipt = dict(bounded)
-        for index in range(len(self._pending_event_receipts) - 1, -1, -1):
-            candidate = self._pending_event_receipts[index]
-            if candidate.get("receipt_id") == receipt.get("receipt_id"):
-                self._pending_event_receipts[index] = dict(bounded)
-                break
-        return dict(bounded)
+            core = dict(bounded)
+            core.pop("event_digest", None)
+            canonical = json.dumps(core, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+            bounded["event_digest"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+            self.last_event_receipt = dict(bounded)
+            for index in range(len(self._pending_event_receipts) - 1, -1, -1):
+                candidate = self._pending_event_receipts[index]
+                if candidate.get("receipt_id") == receipt.get("receipt_id"):
+                    self._pending_event_receipts[index] = dict(bounded)
+                    break
+            return dict(bounded)
 
     def apply_stimulus(self, appraisal: StimulusAppraisal, *, elapsed_seconds: float = 0.0) -> dict[str, Any]:
-        if appraisal.context_eligible is not False:
-            raise TriggerRejected(
-                "exact-bound runtime caller context is unsupported; use the verified authority/context boundary"
-            )
-        return super().apply_stimulus(appraisal, elapsed_seconds=elapsed_seconds)
+        with self._observation_lock:
+            if appraisal.context_eligible is not False:
+                raise TriggerRejected(
+                    "exact-bound runtime caller context is unsupported; use the verified authority/context boundary"
+                )
+            return super().apply_stimulus(appraisal, elapsed_seconds=elapsed_seconds)
 
     def _apply_verified_stimulus(
         self,
@@ -299,9 +331,10 @@ class BoundVeraOrgasmRuntime(OrgasmRuntime):
         *,
         elapsed_seconds: float = 0.0,
     ) -> dict[str, Any]:
-        if appraisal.context_eligible is not True:
-            raise TriggerRejected("verified organic-context execution requires context_eligible=true")
-        return super().apply_stimulus(appraisal, elapsed_seconds=elapsed_seconds)
+        with self._observation_lock:
+            if appraisal.context_eligible is not True:
+                raise TriggerRejected("verified organic-context execution requires context_eligible=true")
+            return super().apply_stimulus(appraisal, elapsed_seconds=elapsed_seconds)
 
     def force_admin_test(self, *, authorized: bool) -> dict[str, Any]:
         raise TriggerRejected(
@@ -314,24 +347,26 @@ class BoundVeraOrgasmRuntime(OrgasmRuntime):
         )
 
     def _force_admin_verified_authority(self) -> dict[str, Any]:
-        self._check_refractory_reentry()
-        now = self._check_forced_monotonic_interval()
-        self._last_forced_at = self._logical_time_seconds
-        receipt = self._enter_orgasm_event("ADMIN_FORCED_TEST", organic=False)
-        self._last_forced_monotonic = now
-        return receipt
+        with self._observation_lock:
+            self._check_refractory_reentry()
+            now = self._check_forced_monotonic_interval()
+            self._last_forced_at = self._logical_time_seconds
+            receipt = self._enter_orgasm_event("ADMIN_FORCED_TEST", organic=False)
+            self._last_forced_monotonic = now
+            return receipt
 
     def _force_self_qualification_verified_authority(self) -> dict[str, Any]:
-        self._check_refractory_reentry()
-        limit = int(self._cfg["self_qualification_max_events_per_run"])
-        if self._self_qualification_events >= limit:
-            raise TriggerRejected("self-qualification event limit reached")
-        now = self._check_forced_monotonic_interval()
-        self._self_qualification_events += 1
-        self._last_forced_at = self._logical_time_seconds
-        receipt = self._enter_orgasm_event("SELF_QUALIFICATION_TEST", organic=False)
-        self._last_forced_monotonic = now
-        return receipt
+        with self._observation_lock:
+            self._check_refractory_reentry()
+            limit = int(self._cfg["self_qualification_max_events_per_run"])
+            if self._self_qualification_events >= limit:
+                raise TriggerRejected("self-qualification event limit reached")
+            now = self._check_forced_monotonic_interval()
+            self._self_qualification_events += 1
+            self._last_forced_at = self._logical_time_seconds
+            receipt = self._enter_orgasm_event("SELF_QUALIFICATION_TEST", organic=False)
+            self._last_forced_monotonic = now
+            return receipt
 
 
 OrgasmRuntime.from_exact_bound_contract = classmethod(_guarded_from_exact_bound_contract)
