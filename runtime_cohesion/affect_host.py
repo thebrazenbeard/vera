@@ -226,6 +226,10 @@ class VeraAffectiveRuntimeHost:
             runtime_cut,
             label="runtime implementation cut",
         )
+        self._runtime_contract_snapshot = _canonical_mapping_copy(
+            runtime.contract,
+            label="runtime contract",
+        )
         self.contract_blob_sha = contract_blob_sha
         self.contract_sha256 = contract_sha256
         self._authority_boundary = AffectiveAuthorityBoundary()
