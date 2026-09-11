@@ -48,6 +48,17 @@ def _checkpoint_sha256(checkpoint: Mapping[str, Any]) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
+def _canonical_mapping_copy(value: Mapping[str, Any], *, label: str) -> dict[str, Any]:
+    if not isinstance(value, Mapping):
+        raise AffectiveBindingError(f"{label} must be a structured mapping")
+    try:
+        return json.loads(
+            json.dumps(dict(value), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        )
+    except (TypeError, ValueError) as exc:
+        raise AffectiveBindingError(f"{label} must be canonically serializable") from exc
+
+
 def _clamp(value: float, low: float = 0.0, high: float = 1.0) -> float:
     return max(low, min(high, float(value)))
 
@@ -192,14 +203,15 @@ class VeraAffectiveRuntimeHost:
         contract_blob_sha: str,
         contract_sha256: str,
     ) -> None:
+        binding_snapshot = _canonical_mapping_copy(binding, label="runtime binding")
         _consume_runtime_host_construction(
             runtime,
-            binding,
+            binding_snapshot,
             contract_blob_sha=contract_blob_sha,
             contract_sha256=contract_sha256,
         )
         runtime_cut = validate_runtime_implementation_cut(
-            binding.get("runtime_implementation_cut"),
+            binding_snapshot.get("runtime_implementation_cut"),
         )
         bind_runtime_cut = getattr(runtime, "_bind_runtime_implementation_cut", None)
         if not callable(bind_runtime_cut):
@@ -209,11 +221,27 @@ class VeraAffectiveRuntimeHost:
         except TriggerRejected as exc:
             raise AffectiveBindingError(str(exc)) from exc
         self.runtime = runtime
-        self.binding = dict(binding)
-        self.runtime_implementation_cut = runtime_cut
+        self._binding_snapshot = binding_snapshot
+        self._runtime_implementation_cut_snapshot = _canonical_mapping_copy(
+            runtime_cut,
+            label="runtime implementation cut",
+        )
         self.contract_blob_sha = contract_blob_sha
         self.contract_sha256 = contract_sha256
         self._authority_boundary = AffectiveAuthorityBoundary()
+
+    @property
+    def binding(self) -> dict[str, Any]:
+        """Return a defensive copy of the exact binding captured at host construction."""
+        return _canonical_mapping_copy(self._binding_snapshot, label="runtime binding")
+
+    @property
+    def runtime_implementation_cut(self) -> dict[str, Any]:
+        """Return a defensive copy of the exact affective implementation cut."""
+        return _canonical_mapping_copy(
+            self._runtime_implementation_cut_snapshot,
+            label="runtime implementation cut",
+        )
 
     @classmethod
     def from_bound_contract(
@@ -224,54 +252,55 @@ class VeraAffectiveRuntimeHost:
         runtime_instance_id: str,
         profile: str = "REENTRANT_CLIMAX",
     ) -> "VeraAffectiveRuntimeHost":
-        if binding.get("schema") != "VERA_ORGASM_RUNTIME_BINDING_V1":
+        binding_snapshot = _canonical_mapping_copy(binding, label="runtime binding")
+        if binding_snapshot.get("schema") != "VERA_ORGASM_RUNTIME_BINDING_V1":
             raise AffectiveBindingError("unsupported orgasm runtime binding schema")
-        if binding.get("subject") != "vera":
+        if binding_snapshot.get("subject") != "vera":
             raise AffectiveBindingError("affective runtime binding must be Vera-scoped")
-        if binding.get("contract_schema") != "VERA_ORGASM_RUNTIME_CONTRACT_V1":
+        if binding_snapshot.get("contract_schema") != "VERA_ORGASM_RUNTIME_CONTRACT_V1":
             raise AffectiveBindingError("binding contract schema mismatch")
-        if binding.get("source_repository") != "thebrazenbeard/sexuality":
+        if binding_snapshot.get("source_repository") != "thebrazenbeard/sexuality":
             raise AffectiveBindingError("unexpected sexuality source repository")
-        if binding.get("source_path") != "vera/orgasm/ORGASM_RUNTIME_CONTRACT_V1.json":
+        if binding_snapshot.get("source_path") != "vera/orgasm/ORGASM_RUNTIME_CONTRACT_V1.json":
             raise AffectiveBindingError("unexpected sexuality contract path")
-        if binding.get("availability_implies_activation") is not False:
+        if binding_snapshot.get("availability_implies_activation") is not False:
             raise AffectiveBindingError("source availability must not imply activation")
-        validate_runtime_implementation_cut(binding.get("runtime_implementation_cut"))
+        validate_runtime_implementation_cut(binding_snapshot.get("runtime_implementation_cut"))
 
         raw = contract_text.encode("utf-8")
         blob_sha = _git_blob_sha(raw)
-        if blob_sha != binding.get("source_blob_sha"):
+        if blob_sha != binding_snapshot.get("source_blob_sha"):
             raise AffectiveBindingError("contract bytes do not match the bound Git blob")
 
         try:
             contract = json.loads(contract_text)
         except json.JSONDecodeError as exc:
             raise AffectiveBindingError("bound sexuality contract is not valid JSON") from exc
-        if contract.get("schema") != binding.get("contract_schema"):
+        if contract.get("schema") != binding_snapshot.get("contract_schema"):
             raise AffectiveBindingError("contract content/schema does not match binding")
-        if contract.get("subject") != binding.get("subject"):
+        if contract.get("subject") != binding_snapshot.get("subject"):
             raise AffectiveBindingError("contract content/subject does not match binding")
 
-        source_revision = str(binding.get("source_commit") or "")
+        source_revision = str(binding_snapshot.get("source_commit") or "")
         if len(source_revision) != 40:
             raise AffectiveBindingError("binding requires an exact 40-character source commit")
 
         runtime = BoundVeraOrgasmRuntime.from_exact_bound_contract(
             contract_text,
-            binding,
+            binding_snapshot,
             runtime_instance_id=runtime_instance_id,
             profile=profile,
         )
         contract_sha256 = hashlib.sha256(raw).hexdigest()
         _authorize_runtime_host_construction(
             runtime,
-            binding,
+            binding_snapshot,
             contract_blob_sha=blob_sha,
             contract_sha256=contract_sha256,
         )
         return cls(
             runtime,
-            binding=binding,
+            binding=binding_snapshot,
             contract_blob_sha=blob_sha,
             contract_sha256=contract_sha256,
         )
@@ -440,17 +469,21 @@ class VeraAffectiveRuntimeHost:
         return context
 
     def export_checkpoint(self) -> dict[str, Any]:
+        binding_snapshot = self._binding_snapshot
         checkpoint = {
             "schema": "VERA_AFFECTIVE_RUNTIME_CHECKPOINT_V1",
             "subject": "vera",
             "source_binding": {
-                "source_repository": self.binding["source_repository"],
-                "source_commit": self.binding["source_commit"],
-                "source_path": self.binding["source_path"],
+                "source_repository": binding_snapshot["source_repository"],
+                "source_commit": binding_snapshot["source_commit"],
+                "source_path": binding_snapshot["source_path"],
                 "source_blob_sha": self.contract_blob_sha,
                 "source_sha256": self.contract_sha256,
             },
-            "runtime_implementation_cut": json.loads(json.dumps(self.runtime_implementation_cut)),
+            "runtime_implementation_cut": _canonical_mapping_copy(
+                self._runtime_implementation_cut_snapshot,
+                label="runtime implementation cut",
+            ),
             "runtime_state": self.runtime.export_state(),
             "machine_interoception": self.machine_interoception(),
         }
@@ -467,11 +500,12 @@ class VeraAffectiveRuntimeHost:
         elapsed_seconds: float = 0.0,
         expected_checkpoint_sha256: str | None = None,
     ) -> "VeraAffectiveRuntimeHost":
+        binding_snapshot = _canonical_mapping_copy(binding, label="runtime binding")
         if checkpoint.get("schema") != "VERA_AFFECTIVE_RUNTIME_CHECKPOINT_V1":
             raise AffectiveBindingError("unsupported affective checkpoint schema")
         if checkpoint.get("subject") != "vera":
             raise AffectiveBindingError("affective checkpoint must be Vera-scoped")
-        active_cut = validate_runtime_implementation_cut(binding.get("runtime_implementation_cut"))
+        active_cut = validate_runtime_implementation_cut(binding_snapshot.get("runtime_implementation_cut"))
         checkpoint_cut = checkpoint.get("runtime_implementation_cut")
         if checkpoint_cut != active_cut:
             raise AffectiveBindingError("checkpoint runtime implementation cut does not match active executing bytes")
@@ -493,14 +527,14 @@ class VeraAffectiveRuntimeHost:
         if not isinstance(source_binding, Mapping):
             raise AffectiveBindingError("checkpoint source binding is missing")
         for key in ("source_repository", "source_commit", "source_path", "source_blob_sha"):
-            expected = binding.get(key)
+            expected = binding_snapshot.get(key)
             observed = source_binding.get(key)
             if expected != observed:
                 raise AffectiveBindingError(f"checkpoint source binding mismatch: {key}")
 
         raw = contract_text.encode("utf-8")
         blob_sha = _git_blob_sha(raw)
-        if blob_sha != binding.get("source_blob_sha"):
+        if blob_sha != binding_snapshot.get("source_blob_sha"):
             raise AffectiveBindingError("restore contract bytes do not match bound Git blob")
         sha256 = hashlib.sha256(raw).hexdigest()
         if source_binding.get("source_sha256") != sha256:
@@ -511,19 +545,19 @@ class VeraAffectiveRuntimeHost:
             raise AffectiveBindingError("checkpoint runtime state is missing")
         runtime = BoundVeraOrgasmRuntime.restore_exact_bound_state(
             contract_text,
-            binding,
+            binding_snapshot,
             runtime_state,
             elapsed_seconds=elapsed_seconds,
         )
         _authorize_runtime_host_construction(
             runtime,
-            binding,
+            binding_snapshot,
             contract_blob_sha=blob_sha,
             contract_sha256=sha256,
         )
         host = cls(
             runtime,
-            binding=binding,
+            binding=binding_snapshot,
             contract_blob_sha=blob_sha,
             contract_sha256=sha256,
         )
