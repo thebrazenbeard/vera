@@ -20,6 +20,7 @@ INTEGRATION = json.loads(
 CUT = "b39df9db48917469db58d4d7b6cd5cb1fe1690a8"
 SOURCE = "150f1c8231423393bb66b0e2cb759ce7c018f8d7"
 STATE_DIGEST = "a" * 64
+SIGNAL_DIGEST = "c" * 64
 RECEIPT_DIGEST = "b" * 64
 PARTICIPANTS = (
     "sexual_appraisal",
@@ -53,8 +54,13 @@ def envelope(**overrides):
             "action_tendency": "APPROACH",
         },
         "evidence_ceiling": "SOURCE_BOUND_EXECUTION_UNVERIFIED",
-        "observed_at": "2026-09-10T22:20:00Z",
+        "temporal_scope": {
+            "logical_time_seconds": 12.5,
+            "persistence_window_ms": 220,
+            "currentness_class": "RUNTIME_LOCAL_OBSERVATION_ONLY",
+        },
         "state_digest": STATE_DIGEST,
+        "signal_digest": SIGNAL_DIGEST,
         "receipt_id": "receipt:test:orgasm:1",
         "receipt_digest": RECEIPT_DIGEST,
     }
@@ -67,6 +73,7 @@ def apply_now(planning_state, signal, **overrides):
         "expected_runtime_instance_id": signal.runtime_instance_id,
         "expected_implementation_cut": signal.runtime_implementation_cut,
         "expected_state_digest": signal.state_digest,
+        "expected_signal_digest": signal.signal_digest,
         "expected_receipt_digest": signal.receipt_digest,
     }
     expected.update(overrides)
@@ -221,12 +228,13 @@ class OrgasmCohesionIntegrationBoundaryTests(unittest.TestCase):
         mismatches = (
             {"expected_runtime_instance_id": "other-runtime"},
             {"expected_implementation_cut": "f" * 40},
-            {"expected_state_digest": "c" * 64},
-            {"expected_receipt_digest": "d" * 64},
+            {"expected_state_digest": "d" * 64},
+            {"expected_signal_digest": "e" * 64},
+            {"expected_receipt_digest": "f" * 64},
         )
         for mismatch in mismatches:
             with self.subTest(mismatch=mismatch):
-                with self.assertRaisesRegex(AffectiveModulationError, "current|cross|receipt|implementation|state"):
+                with self.assertRaisesRegex(AffectiveModulationError, "current|cross|receipt|implementation|state|signal"):
                     apply_now({"attention": 0.2}, signal, **mismatch)
 
     def test_orgasm_event_requires_exact_receipt_binding_but_non_event_signal_can_be_receiptless(self):
@@ -245,6 +253,7 @@ class OrgasmCohesionIntegrationBoundaryTests(unittest.TestCase):
             expected_runtime_instance_id=activating.runtime_instance_id,
             expected_implementation_cut=activating.runtime_implementation_cut,
             expected_state_digest=activating.state_digest,
+            expected_signal_digest=activating.signal_digest,
             expected_receipt_digest=None,
         )
         self.assertAlmostEqual(result.planning["attention"], 0.6)
