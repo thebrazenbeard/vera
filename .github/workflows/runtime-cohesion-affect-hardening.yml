@@ -1,0 +1,48 @@
+name: Vera Affective Cohesion Hardening
+
+# Manual-only regression surface for the moving Orgasm/Cohesion laboratory.
+# Do not enable automatic execution without Patrick's explicit authority.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-affective-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run causal-boundary hostile regressions
+        run: >-
+          python -m unittest
+          tests.test_runtime_cohesion_affect_internal_snapshot_port
+          tests.test_runtime_cohesion_affect_shared_application_frontier
+          tests.test_runtime_cohesion_affect_atomic_observation
+          tests.test_runtime_cohesion_affect_signal_to_cohesion_port
+          tests.test_runtime_cohesion_affect_signal_mapping_snapshot
+          tests.test_runtime_cohesion_affect_exact_host_instance_origin
+          tests.test_runtime_cohesion_affect_host_runtime_reference
+          tests.test_runtime_cohesion_affect_exact_host_class
+          -v
+      - name: Compile affected runtime and hostile tests
+        run: >-
+          python -m py_compile
+          runtime_cohesion/affect_bound_runtime.py
+          runtime_cohesion/affect_integration.py
+          runtime_cohesion/affect_integration_bound.py
+          runtime_cohesion/affect_signal.py
+          runtime_cohesion/affect_host.py
+          tests/test_runtime_cohesion_affect_internal_snapshot_port.py
+          tests/test_runtime_cohesion_affect_shared_application_frontier.py
+          tests/test_runtime_cohesion_affect_atomic_observation.py
+          tests/test_runtime_cohesion_affect_signal_to_cohesion_port.py
+          tests/test_runtime_cohesion_affect_signal_mapping_snapshot.py
+          tests/test_runtime_cohesion_affect_exact_host_instance_origin.py
+          tests/test_runtime_cohesion_affect_host_runtime_reference.py
+          tests/test_runtime_cohesion_affect_exact_host_class.py
