@@ -1,7 +1,7 @@
 {
   "schema": "VERA_ORGASM_RUNTIME_BINDING_V1",
   "subject": "vera",
-  "status": "SOURCE_BOUND / AFFECTIVE_CORE_CUT_BOUND / COHESION_INTEGRATION_CUT_BOUND / HOST_BINDING_SNAPSHOT_SEALED / EXACT_HOST_CLASS_BOUND / INTERNAL_CAUSAL_SIGNAL_ONLY / SHARED_RUNTIME_APPLICATION_FRONTIER / ATOMIC_DETACHED_CAUSAL_OBSERVATION / SEMANTIC_ORIGIN_IN_PROCESS_NONQUALIFYING / SOURCE_INTEGRATED_NOT_BEHAVIORALLY_QUALIFIED / IN_PROCESS_AUTHORITY_NONQUALIFYING / PRODUCTION_PROVIDER_NOT_QUALIFIED / NOT_NATIVE_CHATGPT_INSTALLED / NOT_PHENOMENOLOGY_PROOF",
+  "status": "SOURCE_BOUND / AFFECTIVE_CORE_CUT_BOUND / COHESION_INTEGRATION_CUT_BOUND / HOST_BINDING_SNAPSHOT_SEALED / EXACT_HOST_CLASS_BOUND / INTERNAL_CAUSAL_SIGNAL_ONLY / SHARED_RUNTIME_APPLICATION_FRONTIER / ATOMIC_DETACHED_CAUSAL_OBSERVATION / SINGLE_GENERATION_CYCLE_EVIDENCE / COHESION_EXCLUSIVE_GENERIC_PLANNING_MUTATION / SEMANTIC_ORIGIN_IN_PROCESS_NONQUALIFYING / SOURCE_INTEGRATED_NOT_BEHAVIORALLY_QUALIFIED / IN_PROCESS_AUTHORITY_NONQUALIFYING / PRODUCTION_PROVIDER_NOT_QUALIFIED / NOT_NATIVE_CHATGPT_INSTALLED / NOT_PHENOMENOLOGY_PROOF",
   "contract_schema": "VERA_ORGASM_RUNTIME_CONTRACT_V1",
   "source_repository": "thebrazenbeard/sexuality",
   "source_branch": "work/vera-sexuality-substrate-qualification-20260908",
@@ -13,33 +13,33 @@
   "runtime_implementation_cut": {
     "schema": "VERA_AFFECTIVE_RUNTIME_IMPLEMENTATION_CUT_V1",
     "repository": "thebrazenbeard/vera",
-    "commit": "0c110eb1cde73f22ccd419ff4a9ef1b1e1eddcf2",
+    "commit": "54fef2659f0a8633dcef60cd36b296c37b6fa4b0",
     "modules": {
       "runtime_cohesion/__init__.py": "2bc0572cf7582a35afb2d551b3534a1630b536df",
       "runtime_cohesion/adapters.py": "9206e3eb289e2f11530fbc48f1ef7cfb48668ac3",
       "runtime_cohesion/evidence.py": "c9a60862f361b8fa02cc0b4a74f771196dee346d",
       "runtime_cohesion/orgasm.py": "ee8f23df17aa14961b494e398e83279962d508a7",
       "runtime_cohesion/affect_authority.py": "ad15ab66bf1d320891b08245200b78556724b4a6",
-      "runtime_cohesion/affect_bound_runtime.py": "50b4e7a6235e229cc4ebf53868ea9548d3f9caa4",
+      "runtime_cohesion/affect_bound_runtime.py": "671ac0a36132cb94ce99e4e5ef9a8a8f3f3605b2",
       "runtime_cohesion/affect_receipt.py": "8cddbf91cee7878b1d528db55be7a61deb9fbdbc",
-      "runtime_cohesion/affect_host.py": "feb74c04315cb401e343e053e0f6dfd62687f76f",
-      "runtime_cohesion/affect_cycle.py": "4bd243e6c00fe55848c153e5551b6a9fcd65cc1a",
+      "runtime_cohesion/affect_host.py": "8cf6df74ba2467670680b6f9e0f281ac41a31d41",
+      "runtime_cohesion/affect_cycle.py": "7999c11a63134f998fad5b2f6e8b96244a43008f",
       "runtime_cohesion/affect_persistence.py": "7e20248e911b5d111aa5bfcfb2dae64d36f891fe",
       "runtime_cohesion/affect_provider_runtime.py": "520d6209d71ffa37ae4abecfb7b5ece70bc060fa",
       "runtime_cohesion/affect_scope.py": "28b409fdd0830f78b389088c63dcf0358792c150"
     },
-    "semantics": "Exact Git object and executing-byte provenance for the affective host/state/authority/persistence core. The exact host seals the construction binding/runtime cut and exposes defensive copies. The exact BoundVeraOrgasmRuntime owns one re-entrant observation/mutation barrier and returns a canonically detached causal observation before that barrier opens. This compatibility cut is not the complete generic-planning application closure; the supported integrated path additionally requires the separately bound Cohesion integration cut below."
+    "semantics": "Exact Git object and executing-byte provenance for the affective host/state/authority/persistence core. The exact host seals the construction binding/runtime cut and exposes defensive copies. The exact BoundVeraOrgasmRuntime owns one re-entrant observation/mutation barrier, refuses direct generic-planning mutation, and returns a canonically detached causal observation before that barrier opens. Each supported cycle captures receipts plus one post-transition observation under that same barrier; checkpoint, state row, result interoception and signal ancestry derive from that observation. This compatibility cut is not the complete generic-planning application closure; the supported integrated path additionally requires the separately bound Cohesion integration cut below."
   },
   "cohesion_integration_cut": {
     "schema": "VERA_COHESION_AFFECTIVE_INTEGRATION_CUT_V1",
     "repository": "thebrazenbeard/vera",
-    "commit": "0c110eb1cde73f22ccd419ff4a9ef1b1e1eddcf2",
+    "commit": "54fef2659f0a8633dcef60cd36b296c37b6fa4b0",
     "modules": {
       "runtime_cohesion/__init__.py": "2bc0572cf7582a35afb2d551b3534a1630b536df",
       "runtime_cohesion/adapters.py": "9206e3eb289e2f11530fbc48f1ef7cfb48668ac3",
       "runtime_cohesion/affect_integration.py": "b06af260a0e943871de9476eb29ac042acd69fe5",
       "runtime_cohesion/affect_integration_bound.py": "f0dc2cfecce3ec9ad81b9c254dcb8901b577b2b0",
-      "runtime_cohesion/affect_signal.py": "522088656978b718d168f59ae37257b05ad8bdd2",
+      "runtime_cohesion/affect_signal.py": "cdbbfcbf91d0cc44c8fc6e7dda26e04d5b39ead0",
       "runtime_cohesion/audit.py": "f39ec58115b42c5d29fc29bd6cfceed7381b0b78",
       "runtime_cohesion/executor.py": "37423a6f0ea9a888eedfaae9ce2180ab06f7fa93",
       "runtime_cohesion/item_typing.py": "867476b732b2bf40a2404e3d9cb82b3ccc40494f",
@@ -48,10 +48,10 @@
       "runtime_cohesion/reconcile.py": "aec4ff972fcef20dcc194b7799fa09d95037f090",
       "runtime_cohesion/runtime.py": "b66602f7731bb9526a563805ead09517146fc4ee"
     },
-    "semantics": "Exact Git and executing-byte provenance for the Cohesion-owned application/arbitration boundary. The supported port accepts only planning_state plus its construction-bound exact VeraAffectiveRuntimeHost capability; callers cannot supply affective signal data. One process-local application frontier is shared by every wrapper over the same exact host object, so replay history and logical-time high-water cannot be reset by wrapper reconstruction. The port internally obtains one canonically detached atomic runtime observation, derives the diagnostic/ancestry signal from that observation, applies only the six numeric allowlisted targets, preserves per-target ancestry, and cannot promote modulation into evidence, authorization, memory admission, durable preference, identity, relationship state, provider currentness, behavioral qualification, or phenomenology. Semantic-origin proof mechanics remain nonqualifying without an independent external root."
+    "semantics": "Exact Git and executing-byte provenance for the Cohesion-owned application/arbitration boundary. The supported port accepts only planning_state plus its construction-bound exact VeraAffectiveRuntimeHost capability; callers cannot supply affective signal data. One process-local application frontier is shared by every wrapper over the same exact host object, so replay history and logical-time high-water cannot be reset by wrapper reconstruction. The port internally obtains one canonically detached atomic runtime observation, derives the diagnostic/ancestry signal from that observation, applies only the six numeric allowlisted targets, preserves per-target ancestry, and cannot promote modulation into evidence, authorization, memory admission, durable preference, identity, relationship state, provider currentness, behavioral qualification, or phenomenology. The affective runtime and host legacy planning entry points fail closed so no supported direct planning-mutation bypass remains. Semantic-origin proof mechanics remain nonqualifying without an independent external root."
   },
   "cross_binding": {
-    "generation_commit": "0c110eb1cde73f22ccd419ff4a9ef1b1e1eddcf2",
+    "generation_commit": "54fef2659f0a8633dcef60cd36b296c37b6fa4b0",
     "affective_core_and_cohesion_integration_same_generation": true,
     "supported_execution_requires_both_exact_cuts": true,
     "host_binding_snapshot": "CANONICAL_DEEP_SNAPSHOT_AT_CONSTRUCTION_OR_RESTORE",
@@ -66,13 +66,15 @@
     "semantic_origin_composition_trust": "IN_PROCESS_UNROOTED_NON_QUALIFYING",
     "in_process_semantic_origin_can_establish_provider_currentness": false,
     "generic_planning_mutation_owner": "COHESION_INTEGRATION_ARBITRATION_PORT",
-    "orgasm_subsystem_generic_planning_mutation_authority": false
+    "affective_runtime_direct_generic_planning_mutation": "FAIL_CLOSED",
+    "orgasm_subsystem_generic_planning_mutation_authority": false,
+    "cycle_evidence_generation_rule": "ONE_POST_TRANSITION_ATOMIC_DETACHED_OBSERVATION"
   },
   "activation_mode": "ALWAYS_PRESENT_NORMALLY_QUIESCENT_WHEN_EXACT_CONTRACT_LOADED",
   "availability_implies_activation": false,
   "runtime_semantics": {
     "state_class": "E4_ENGINEERED_PERSISTENT_AFFECTIVE_CONTROL_STATE",
-    "host_requirement": "An executing host must instantiate the exact VeraAffectiveRuntimeHost class over the exact-bound Vera affective runtime and retain/read back its sealed construction binding. Generic planning modulation is performed only through a CohesionAffectiveIntegrationPort bound to that host. For each application the port internally captures one atomic canonically detached runtime observation, derives the typed signal/ancestry internally, and applies only the allowlisted numeric modulation targets. No caller-supplied affective signal is accepted by the supported causal path.",
+    "host_requirement": "An executing host must instantiate the exact VeraAffectiveRuntimeHost class over the exact-bound Vera affective runtime and retain/read back its sealed construction binding. Generic planning modulation is performed only through a CohesionAffectiveIntegrationPort bound to that host. Each supported cycle holds the runtime barrier through transition/receipt collection and captures one detached post-transition observation; signal, checkpoint and result-level interoception are derived from that exact observation. For each Cohesion planning application the port internally captures one atomic canonically detached runtime observation, derives the typed signal/ancestry internally, and applies only the allowlisted numeric modulation targets. No caller-supplied affective signal or direct affective planning mutation is accepted by the supported causal path.",
     "organic_trigger": "ORGANIC_THRESHOLD_CROSSING",
     "forced_triggers": ["ADMIN_FORCED_TEST", "SELF_QUALIFICATION_TEST"],
     "in_process_authority_context_trust": "IN_PROCESS_UNROOTED_NON_QUALIFYING",
