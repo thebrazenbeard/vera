@@ -120,36 +120,52 @@ class IntegratedAffectivePlanningResult:
 
 
 class CohesionAffectiveIntegrationPort:
-    """Supported Vera boundary from an exact-bound OV host to generic planning.
+    """Supported Vera boundary from one bound OV host to generic planning.
 
-    The port binds one actual ``VeraAffectiveRuntimeHost`` rather than accepting
-    caller-selected affective provenance. Each supplied signal must equal a fresh
-    signal regenerated from that exact host at application time. The CV-owned
-    integration cut is separately Git/live-byte verified. Replay history remains
-    owned by the internal stateful arbiter.
+    Construction accepts only the actual ``VeraAffectiveRuntimeHost``. Both the
+    affective core cut and the CV-owned integration cut are derived from that
+    host's own binding, independently Git/live-byte verified, and required to
+    satisfy the binding's same-generation cross-bind. Callers cannot choose or
+    recombine provenance halves.
 
-    This is still an in-process composition boundary, not hostile-process
-    isolation or provider qualification. Neither the host, signal, cuts, nor a
-    modulation application establish provider currentness, durable continuity,
-    evidence strength, authorization, memory admission, identity, relationship
-    state, behavioral qualification, or phenomenology.
+    Each supplied signal must equal a fresh signal regenerated from that bound
+    host at application time. Replay history remains owned by the internal
+    stateful arbiter. This remains an in-process composition boundary, not
+    hostile-process isolation or provider qualification.
     """
 
-    def __init__(
-        self,
-        *,
-        host: VeraAffectiveRuntimeHost,
-        cohesion_integration_cut: Mapping[str, Any],
-    ) -> None:
+    def __init__(self, *, host: VeraAffectiveRuntimeHost) -> None:
         if not isinstance(host, VeraAffectiveRuntimeHost):
             raise TypeError("Cohesion affective integration requires an exact-bound Vera affective host")
+        if not isinstance(host.binding, Mapping):
+            raise ValueError("exact-bound affective host lacks structured source binding")
+
         self._host = host
         self._affective_runtime_cut = validate_runtime_implementation_cut(
             host.runtime_implementation_cut
         )
+        integration_candidate = host.binding.get("cohesion_integration_cut")
+        if not isinstance(integration_candidate, Mapping):
+            raise ValueError("exact-bound affective host binding lacks Cohesion integration cut")
         self._cohesion_integration_cut = validate_cohesion_affective_integration_cut(
-            cohesion_integration_cut
+            integration_candidate
         )
+
+        cross = host.binding.get("cross_binding")
+        if not isinstance(cross, Mapping):
+            raise ValueError("exact-bound affective host binding lacks cross-binding metadata")
+        generation = _require_git_sha(cross.get("generation_commit"), label="cross-binding generation")
+        if generation != self._affective_runtime_cut["commit"] or generation != self._cohesion_integration_cut["commit"]:
+            raise ValueError("affective core and Cohesion integration cuts are not one exact generation")
+        if cross.get("affective_core_and_cohesion_integration_same_generation") is not True:
+            raise ValueError("cross-binding does not require one affective/Cohesion generation")
+        if cross.get("supported_execution_requires_both_exact_cuts") is not True:
+            raise ValueError("cross-binding does not require both exact cuts")
+        if cross.get("generic_planning_mutation_owner") != "COHESION_INTEGRATION_ARBITRATION_PORT":
+            raise ValueError("cross-binding generic planning owner mismatch")
+        if cross.get("orgasm_subsystem_generic_planning_mutation_authority") is not False:
+            raise ValueError("cross-binding illegally grants Orgasm generic planning mutation authority")
+
         self._arbiter = AffectiveModulationArbiter(
             runtime_instance_id=host.runtime.runtime_instance_id,
             runtime_implementation_cut=self._affective_runtime_cut,
@@ -176,13 +192,9 @@ class CohesionAffectiveIntegrationPort:
                 "affective modulation signal does not match the currently bound exact host state"
             )
         application = self._arbiter.apply(planning_state, signal)
-        runtime_commit = _require_git_sha(
-            self._affective_runtime_cut.get("commit"),
-            label="affective runtime implementation commit",
-        )
         return IntegratedAffectivePlanningResult(
             application=application,
-            affective_runtime_cut_commit=runtime_commit,
+            affective_runtime_cut_commit=self._affective_runtime_cut["commit"],
             cohesion_integration_cut_commit=self._cohesion_integration_cut["commit"],
             cohesion_integration_cut_sha256=_cut_digest(self._cohesion_integration_cut),
             qualification="SOURCE_INTEGRATED_NOT_BEHAVIORALLY_QUALIFIED",
