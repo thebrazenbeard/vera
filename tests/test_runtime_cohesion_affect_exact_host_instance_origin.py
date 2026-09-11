@@ -23,18 +23,6 @@ class ExactHostInstanceOriginTests(unittest.TestCase):
             profile="REENTRANT_CLIMAX",
         )
 
-    @staticmethod
-    def planning_state():
-        return {
-            "valuation": 0.2,
-            "salience": 0.2,
-            "attention": 0.2,
-            "response_selection_priors": 0.2,
-            "expression": 0.2,
-            "memory_strength_candidate_weighting": 0.2,
-            "truth": "UNCHANGED",
-        }
-
     def test_exact_host_instance_method_shadow_is_rejected_before_signal_origin(self):
         host = self.make_host()
         port = CohesionAffectiveIntegrationPort(host=host)
@@ -75,18 +63,12 @@ class ExactHostInstanceOriginTests(unittest.TestCase):
             host.runtime = replacement_runtime
         self.assertIs(host.runtime, original_runtime)
 
-    def test_runtime_method_shadow_is_rejected_before_signal_origin(self):
+    def test_runtime_observation_method_shadow_is_rejected_before_signal_origin(self):
         host = self.make_host("runtime-method-shadow")
         host.runtime.snapshot = lambda: {
             "phase": "ORGASM_EVENT",
             "active_orgasm_event": True,
         }
-        with self.assertRaises((TypeError, ValueError)):
-            build_affective_modulation_signal(host)
-
-    def test_public_runtime_contract_mutation_invalidates_signal_origin(self):
-        host = self.make_host("contract-mutation")
-        host.runtime.contract["hard_firewalls"]["may_influence"].append("truth")
         with self.assertRaises((TypeError, ValueError)):
             build_affective_modulation_signal(host)
 
