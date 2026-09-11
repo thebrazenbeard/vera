@@ -5,7 +5,9 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+from threading import RLock
 from typing import Any, Mapping
+from weakref import WeakKeyDictionary
 
 from .affect_host import VeraAffectiveRuntimeHost, validate_runtime_implementation_cut
 from .affect_integration import AffectiveModulationApplication, AffectiveModulationArbiter
@@ -112,6 +114,47 @@ class IntegratedAffectivePlanningResult:
     phenomenology: str
 
 
+@dataclass
+class _SharedAffectiveApplicationFrontier:
+    """One process-local replay/high-water frontier for one exact host generation."""
+
+    arbiter: AffectiveModulationArbiter
+    lock: RLock
+
+
+_FRONTIER_REGISTRY_LOCK = RLock()
+_HOST_APPLICATION_FRONTIERS: WeakKeyDictionary[
+    VeraAffectiveRuntimeHost,
+    _SharedAffectiveApplicationFrontier,
+] = WeakKeyDictionary()
+
+
+def _frontier_for_host(
+    host: VeraAffectiveRuntimeHost,
+    runtime_cut: Mapping[str, Any],
+) -> _SharedAffectiveApplicationFrontier:
+    """Return the unique process-local application frontier for this exact host.
+
+    Wrapper reconstruction over the same host must not reset replay history or
+    the logical-time high-water. A genuinely distinct host object represents a
+    distinct application generation unless a later durable restore protocol
+    explicitly binds a successor frontier.
+    """
+
+    with _FRONTIER_REGISTRY_LOCK:
+        frontier = _HOST_APPLICATION_FRONTIERS.get(host)
+        if frontier is None:
+            frontier = _SharedAffectiveApplicationFrontier(
+                arbiter=AffectiveModulationArbiter(
+                    runtime_instance_id=host.runtime.runtime_instance_id,
+                    runtime_implementation_cut=runtime_cut,
+                ),
+                lock=RLock(),
+            )
+            _HOST_APPLICATION_FRONTIERS[host] = frontier
+        return frontier
+
+
 class CohesionAffectiveIntegrationPort:
     """Supported Vera boundary from one bound OV host to generic planning.
 
@@ -125,8 +168,11 @@ class CohesionAffectiveIntegrationPort:
     and passed directly to the stateful Cohesion arbiter. The signal is evidence
     about that application, not caller authority over it.
 
-    This remains a supported API/process boundary, not hostile-process isolation
-    or provider qualification.
+    Replay history and logical-time high-water are owned by one process-local
+    frontier keyed to the exact host object, not by whichever public wrapper was
+    constructed most recently. This remains a supported API/process boundary,
+    not hostile-process isolation, durable restart continuity, or provider
+    qualification.
     """
 
     def __init__(self, *, host: VeraAffectiveRuntimeHost) -> None:
@@ -162,25 +208,27 @@ class CohesionAffectiveIntegrationPort:
         if cross.get("orgasm_subsystem_generic_planning_mutation_authority") is not False:
             raise ValueError("cross-binding illegally grants Orgasm generic planning mutation authority")
 
-        self._arbiter = AffectiveModulationArbiter(
-            runtime_instance_id=host.runtime.runtime_instance_id,
-            runtime_implementation_cut=self._affective_runtime_cut,
-        )
+        self._frontier = _frontier_for_host(host, self._affective_runtime_cut)
 
     @property
     def runtime_instance_id(self) -> str:
-        return self._arbiter.runtime_instance_id
+        with self._frontier.lock:
+            return self._frontier.arbiter.runtime_instance_id
 
     @property
     def minimum_logical_time_seconds(self) -> float:
-        return self._arbiter.minimum_logical_time_seconds
+        with self._frontier.lock:
+            return self._frontier.arbiter.minimum_logical_time_seconds
 
     def apply(
         self,
         planning_state: Mapping[str, Any],
     ) -> IntegratedAffectivePlanningResult:
-        signal = build_affective_modulation_signal(self._host)
-        application = self._arbiter.apply(planning_state, signal)
+        # Serialize signal acquisition + replay validation + frontier advancement
+        # for every wrapper over the same exact host generation.
+        with self._frontier.lock:
+            signal = build_affective_modulation_signal(self._host)
+            application = self._frontier.arbiter.apply(planning_state, signal)
         return IntegratedAffectivePlanningResult(
             application=application,
             affective_runtime_cut_commit=self._affective_runtime_cut["commit"],
