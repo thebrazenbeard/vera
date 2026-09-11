@@ -32,12 +32,20 @@ class CohesionFrontierSnapshotTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate mutable input id"):
             validate_frontier(mutated, self.registry())
 
-    def test_pr113_registry_drift_must_be_explicitly_superseded(self):
+    def test_pr113_registry_and_current_head_are_reconciled(self):
+        frontier = self.frontier()
+        pr113 = next(item for item in frontier["mutable_inputs"] if item["id"] == "vera-ov-cv-pr113")
+        self.assertEqual(pr113["source_registry_head"], pr113["current_observed_head"])
+        self.assertEqual(pr113["previous_registry_head"], "132df3fe206600dae83b6e8c158b5822bb3a81e6")
+        self.assertFalse(pr113["changed_since_registry"])
+
+    def test_frontier_rejects_registry_head_substitution(self):
         frontier = self.frontier()
         mutated = deepcopy(frontier)
         pr113 = next(item for item in mutated["mutable_inputs"] if item["id"] == "vera-ov-cv-pr113")
-        pr113["supersedes_registry_head"] = pr113["current_observed_head"]
-        with self.assertRaisesRegex(ValueError, "registry predecessor"):
+        pr113["source_registry_head"] = pr113["previous_registry_head"]
+        pr113["changed_since_registry"] = True
+        with self.assertRaisesRegex(ValueError, "registry predecessor mismatch"):
             validate_frontier(mutated, self.registry())
 
     def test_material_drift_requires_reconciliation_before_harvest(self):
@@ -86,6 +94,19 @@ class CohesionFrontierSnapshotTests(unittest.TestCase):
         self.assertEqual(
             pr113["material_drift"]["binding_blob"],
             "037883261bd324e8080c323f1d96ff32179780ee",
+        )
+        self.assertTrue(pr113["material_drift"]["reconciliation_completed"])
+
+    def test_r2_inputs_include_clean_runtime_repair_and_qualification_subject(self):
+        frontier = self.frontier()
+        by_id = {item["id"]: item for item in frontier["immutable_evidence_inputs"]}
+        self.assertEqual(
+            by_id["vera-clean-successor-repair-generation"]["commit"],
+            "54fef2659f0a8633dcef60cd36b296c37b6fa4b0",
+        )
+        self.assertEqual(
+            by_id["orgasm-qualification-subject"]["blob"],
+            "8d754cbcf26367c0d7b074db3787cfe7709a70fb",
         )
 
 
