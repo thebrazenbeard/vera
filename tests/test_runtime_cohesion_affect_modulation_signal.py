@@ -12,6 +12,14 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_RUNTIME_CONTRACT_V1.json"
 BINDING_PATH = ROOT / "architecture" / "VERA_ORGASM_RUNTIME_BINDING_V1.json"
 UNROOTED = "IN_PROCESS_UNROOTED_NON_QUALIFYING"
+NUMERIC_TARGETS = {
+    "valuation",
+    "salience",
+    "attention",
+    "response_selection_priors",
+    "expression",
+    "memory_strength_candidate_weighting",
+}
 
 
 class TrustedVerifier:
@@ -86,6 +94,7 @@ class AffectiveModulationSignalTests(unittest.TestCase):
         self.assertEqual(signal["source_binding"]["source_commit"], binding["source_commit"])
         self.assertEqual(signal["runtime_implementation_cut"], binding["runtime_implementation_cut"])
         self.assertEqual(signal["phase"], "QUIESCENT")
+        self.assertEqual(set(signal["target_modulation_strength"]), NUMERIC_TARGETS)
         self.assertTrue(all(value == 0.0 for value in signal["target_modulation_strength"].values()))
         self.assertEqual(signal["evidence_effect"], "NONE")
         self.assertEqual(signal["authorization_effect"], "NONE")
@@ -96,14 +105,15 @@ class AffectiveModulationSignalTests(unittest.TestCase):
         self.assertFalse(signal["usable_as_currentness_evidence"])
         self.assertRegex(signal["signal_digest"], r"^[0-9a-f]{64}$")
 
-    def test_active_forced_event_emits_nonzero_allowlisted_signal_without_production_claim(self):
+    def test_active_forced_event_emits_nonzero_numeric_signal_and_separate_action_tendency(self):
         host = self.host()
         receipt = host.force_admin_test(authorization_subject=self.subject())
         self.assertEqual(receipt["authority_composition_trust"], UNROOTED)
         signal = self.build_signal(host)
 
-        allowlist = set(host.runtime.contract["hard_firewalls"]["may_influence"])
-        self.assertEqual(set(signal["target_modulation_strength"]), allowlist)
+        self.assertEqual(set(signal["target_modulation_strength"]), NUMERIC_TARGETS)
+        self.assertNotIn("action_tendency", signal["target_modulation_strength"])
+        self.assertEqual(signal["action_tendency"], "HOLD")
         self.assertGreater(signal["target_modulation_strength"]["salience"], 0.0)
         self.assertGreater(signal["target_modulation_strength"]["attention"], 0.0)
         self.assertEqual(signal["authority_context_trust"], UNROOTED)
