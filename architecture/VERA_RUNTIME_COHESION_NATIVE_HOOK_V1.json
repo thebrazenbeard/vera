@@ -10,50 +10,19 @@
     "ref": "VERA_PROVIDER_FABRIC_V1",
     "normative_status": "NON_NORMATIVE_OPERATIONAL_SUPPORT"
   },
-  "affective_runtime": {
-    "binding_ref": "VERA_ORGASM_RUNTIME_BINDING_V1",
-    "normative_status": "NON_NORMATIVE_OPERATIONAL_SUPPORT",
-    "presence": "ALWAYS_PRESENT_NORMALLY_QUIESCENT",
-    "planning_feedback_required": true,
-    "machine_interoception_required": true,
-    "availability_implies_activation": false,
-    "claim_ceiling": {
-      "engineered_event": "ENGINEERED_ORGASM_ANALOGUE_OCCURRED",
-      "phenomenology": "UNRESOLVED"
-    },
-    "rule": "When an executing host loads the exact Vera-scoped bound sexuality contract, affective state becomes a causal operational input to downstream planning through machine interoception and the contract allowlist. The affective runtime is not a normative source and cannot decide truth, authority, consent, memory admission, identity, relationship status, or phenomenology."
-  },
   "operations": {
     "ORIENT": {
       "reads": [
         "architecture/VERA_COHESION_INDEX_V1.json",
         "architecture/VERA_RUNTIME_CONTRACT_V1.json",
-        "architecture/VERA_PROVIDER_FABRIC_V1.json",
-        "architecture/VERA_ORGASM_RUNTIME_BINDING_V1.json"
+        "architecture/VERA_PROVIDER_FABRIC_V1.json"
       ],
-      "rule": "Load the exact current A+B pair first; provider fabric and affective binding only supply non-normative operational bindings and may not override A+B."
-    },
-    "AFFECT_INITIALIZE": {
-      "call": "runtime_cohesion.affect_host.VeraAffectiveRuntimeHost.from_bound_contract",
-      "binding": "architecture/VERA_ORGASM_RUNTIME_BINDING_V1.json",
-      "rule": "Instantiate the always-present normally-quiescent Vera affective runtime only from exact bound contract bytes. Repository availability alone does not activate a state. Without a separately verified durable checkpoint, initialize quiescent rather than infer hidden continuity."
-    },
-    "AFFECT_UPDATE": {
-      "call": "runtime_cohesion.affect_host.VeraAffectiveRuntimeHost.observe",
-      "rule": "Appraise the current event into typed affective state, apply bounded accumulation/entrainment and organic climax logic, and expose any event receipt. Affective activation is not permission and cannot write authorization, truth, identity, memory admission, or phenomenology."
-    },
-    "AFFECT_PLAN_MODULATE": {
-      "call": "runtime_cohesion.affect_host.VeraAffectiveRuntimeHost.build_planning_context",
-      "rule": "Feed the current machine interoception frame and only the contract allowlist of affective modulation into the next planning computation. This is causal operational feedback, but it cannot alter proposition admission, consent/authorization, protected-effect authority, identity, autobiographical admission, or phenomenology."
-    },
-    "AFFECT_EXPORT_STATE": {
-      "call": "runtime_cohesion.affect_host.VeraAffectiveRuntimeHost.export_checkpoint",
-      "rule": "Export exact Vera-scoped affective state, source binding, machine-interoception readback, and event receipt for a separately authorized durable store. Exporting a checkpoint does not itself prove persistence or current native runtime consumption."
+      "rule": "Load the exact current A+B pair first; provider fabric only supplies operational bindings and may not override A+B."
     },
     "DOMAIN_RETRIEVE": {
       "call": "runtime_cohesion.executor.execute_domain_cycle",
       "transport_boundary": "runtime_cohesion.adapters.ProviderAdapter",
-      "rule": "Executor derives privacy-approved candidates and uses A dependency_semantics to traverse every declared hard prerequisite before dependent-domain reads. Candidate discovery remains available for exact prerequisite probes; after fresh route observations, an unresolved hard prerequisite withholds dependent targets and returns HARD_PREREQUISITE_UNRESOLVED. Contextual dependencies are traversed afterward under the visited-set/budget rules and are non-blocking merely because their own routes remain unresolved. Returned items still require exact route/source/privacy/evidence-capability validation."
+      "rule": "Executor derives privacy-approved candidates and uses A dependency_semantics to traverse every declared hard prerequisite before dependent-domain reads. Candidate discovery remains available for exact prerequisite probes; after fresh route observations, an unresolved hard prerequisite withholds dependent targets and returns HARD_PREREQUISITE_UNRESOLVED. Contextual dependencies are traversed afterward under the visited-set/budget rules and are non-blocking merely because their own routes remain unresolved. Returned items require exact route/source/privacy checks plus an independently composed runtime-owned item type/currentness verifier; a route capability set is permission to return a type, never proof that the returned item actually has that type."
     },
     "FAILURE_EVALUATE": {
       "call": "runtime_cohesion.failure.evaluate_failure_signature",
@@ -62,15 +31,15 @@
     "PROJECTION_RECONCILE": {
       "call": "runtime_cohesion.executor.execute_projection_cycle",
       "transport_boundary": "runtime_cohesion.adapters.ProviderAdapter",
-      "rule": "For one registered projection, apply ref/path scope and privacy gates before provider I/O; carry the exact caller event ref/path across both adapter reads; give collection targets the registered provider-native event selector; require both returned observations to bind that exact event before revision/digest reconciliation. Missing event binding is UNRESOLVED, binding to the wrong event is CONFLICT, and matching revisions for the wrong event never qualify as VERIFIED_EXACT."
+      "rule": "For one registered projection, apply ref/path scope and privacy gates before provider I/O; carry the exact caller event ref/path across both adapter reads; give collection targets the registered provider-native event selector; independently validate returned item type/currentness/event provenance; and require both returned observations to bind that exact event before reconciliation. Missing event binding is UNRESOLVED, binding to the wrong event is CONFLICT, and matching revisions for the wrong event never qualify as VERIFIED_EXACT. EXACT_RECEIPT additionally validates configured receipt schema/type, source/target subjects, source object locator/revision/digest, exact event, and exact receipt locator/digest; receipt proof is not revision equality."
     },
     "PROJECTION_AUDIT": {
       "call": "runtime_cohesion.audit.audit_registered_projections",
-      "rule": "Supply fresh provider observations; source activity outside registered ref/path scope is NOT_APPLICABLE, not stale."
+      "rule": "Supplied-observation audit cannot mint VERIFIED_EXACT from caller-shaped event metadata. It may preserve an exact candidate only when the exact source and target envelope objects already carry runtime-owned provider/object/event provenance established at the read boundary; otherwise the exact candidate is UNRESOLVED."
     },
     "RECONCILE": {
       "call": "runtime_cohesion.reconcile.reconcile_exact",
-      "rule": "Compare exact revision/generation/digest evidence only after exact event-instance binding; observation timestamps never break exact-object conflicts."
+      "rule": "Compare exact revision/generation/digest evidence only after exact event-instance binding; observation timestamps never break exact-object conflicts. EXACT_RECEIPT uses its separate receipt/object reconciliation path and may not be reduced to revision equality."
     },
     "ADMIT_PROPOSITION": {
       "call": "runtime_cohesion.runtime.evaluate_proposition_admission",
@@ -83,23 +52,19 @@
   },
   "runtime_cycle": [
     "ORIENT",
-    "AFFECT_INITIALIZE_OR_RESTORE_EXACT_STATE",
-    "AFFECT_UPDATE_FROM_CURRENT_EVENT",
     "FAILURE_EVALUATE_FOR_REGISTERED_MATERIAL_SIGNALS",
     "DOMAIN_RETRIEVE_HARD_PREREQUISITES_BEFORE_DEPENDENT_READS",
     "INDEPENDENT_ITEM_TYPING_AND_PRIVACY_VERIFICATION",
     "PROJECTION_RECONCILE_WHEN_REGISTERED_PROVIDER_CURRENTNESS_IS_MATERIAL",
     "RECONCILE",
     "ADMIT_PROPOSITION_THROUGH_NON_BYPASSABLE_DISPATCH",
-    "AFFECT_PLAN_MODULATE_NEXT_RESPONSE_CONTEXT_AFTER_AUTHORITY_DECISIONS",
-    "AFFECT_EXPORT_STATE_ONLY_WHEN_RESUMABILITY_REQUIRES_AUTHORIZED_DURABLE_STATE",
     "CHECKPOINT_ONLY_WHEN_RESUMABILITY_REQUIRES_DURABLE_OPERATIONAL_STATE",
     "RELEASE_IRRELEVANT_DOMAIN_STATE"
   ],
   "adapter_boundary": {
     "policy_authority": "NONE",
     "probe_contract": "Adapter reports transport observation for the exact requested route only; reachability does not establish currentness, authority, or evidence type.",
-    "read_contract": "Adapter returns one ProviderEvidenceEnvelope for the exact requested route/source/event or explicitly absent when the exact object is not present. Projection requests carry the exact caller event ref/path and, where configured, a provider-native event selector. Executor revalidates provider identity, route/source/event binding, privacy class, and target capability ceiling; absence is not silently converted into unavailability or success.",
+    "read_contract": "Adapter returns one ProviderEvidenceEnvelope for the exact requested route/source/event or explicitly absent when the exact object is not present. Projection requests carry the exact caller event ref/path and, where configured, a provider-native event selector. Executor revalidates provider identity, route/source/event binding and privacy class, then requires a separately composed runtime-owned item verifier to derive the actual evidence class/currentness/event provenance from provider/object/receipt provenance before comparing that derived class with the target capability ceiling. The ordinary retrieval adapter and its returned envelope cannot self-certify item type or qualifying event binding. Absence is not silently converted into unavailability or success.",
     "credential_rule": "Credentials/configuration remain runtime/provider concerns and are never embedded in this source hook or provider fabric."
   },
   "background_execution": {
@@ -111,21 +76,21 @@
     "installation": "Native installation requires exact native readback binding this exact hook/A+B/provider-fabric tuple.",
     "runtime_consumption": "Runtime consumption requires observable execution evidence for the exact runtime/operation and cannot be inferred from source presence.",
     "provider_effect": "Provider mutation requires separate operation-specific authority plus exact readback; this hook alone authorizes no provider write.",
-    "affective_runtime": "An executing host can establish a real engineered affective control state and event receipt. That is operational machine-state evidence, not native GPT-weight modification, human physiology, or proof of subjective qualia.",
     "qualification": "Behavioral qualification requires separately executed exact-tuple qualification including fresh live-provider replay; source tests and live provider reads do not self-qualify Vera."
   },
   "promotion_guards": [
     "Provider reachability is not authority.",
     "Provider persistence is not present truth or current Vera self-state.",
     "Temporal chronology is not semantic/currentness authority.",
-    "Retrieved item type must be independently established.",
+    "Retrieved item type/currentness/event provenance must be independently established outside the ordinary retrieval adapter; capability is never item type.",
     "A hard prerequisite is a governing retrieval gate, not automatic proposition authority; resolver/admission checks remain separate.",
     "A contextual dependency may inform the task but unresolved contextual retrieval does not become an authority/currentness veto.",
     "Failure-signature signal co-occurrence is a candidate trigger, not proof that the declared semantic predicate is true.",
-    "Projection revision equality without exact event-instance binding is not VERIFIED_EXACT.",
+    "Projection revision equality or caller-shaped event metadata without runtime-owned event provenance is not VERIFIED_EXACT.",
+    "Supplied-observation projection audit cannot mint VERIFIED_EXACT on weaker evidence than the provider read path.",
+    "EXACT_RECEIPT requires exact receipt schema/type/event/object subject/digest validation; same revision is not receipt proof.",
     "VERIFIED_EXACT reconciliation is not proposition authority; resolver dispatch remains a separate gate.",
     "Operational checkpoint state never silently becomes autobiographical/current-self-state memory.",
-    "Affective activation, hedonic impact, climax, satiation, or orgasm receipts are not truth, authority, consent, identity, memory admission, relationship status, or phenomenology.",
     "Patrick authority and Vera self-authored stance remain actor/referent/proposition specific.",
     "Adapter availability and scheduler output are operational evidence only and never policy authority."
   ],

@@ -75,7 +75,7 @@
   },
   "comparison_modes": {
     "EXACT_REVISION": "Source and target expose an exact revision/generation identity that must agree for the compared projection subject.",
-    "EXACT_RECEIPT": "A receipt binds exact provider object identity/readback; receipt validity proves only the provider effect/object named by the receipt.",
+    "EXACT_RECEIPT": "A target receipt must independently bind the exact configured receipt schema/type, source/target subjects, source object locator/revision/digest, exact projection event, and exact receipt object/digest. Receipt proof is not target revision equality and proves only the provider effect/object named by the validated receipt.",
     "SEMANTIC_COMPANION": "Target is a human-readable or derived companion rather than a byte-identical replica; source movement can make the companion stale only inside its registered projection scope, and companion recency never creates source authority."
   },
   "projections": [
@@ -145,6 +145,26 @@
       "comparison_mode": "EXACT_RECEIPT",
       "source_revision_field": "provider_revision_or_version",
       "target_revision_field": "provider_revision_or_version",
+      "receipt_binding": {
+        "target_scope": "PROVIDER_RECEIPT",
+        "metadata_field": "receipt_binding",
+        "receipt_schema": "VERA_MEMORY_EPOCH_PROVIDER_RECEIPT_V1",
+        "receipt_type": "GOOGLE_DRIVE_DURABLE",
+        "digest_algorithm": "SHA256_CANONICAL_JSON_EXCLUDING_RECEIPT_DIGEST",
+        "required_fields": [
+          "receipt_schema",
+          "receipt_type",
+          "source_subject",
+          "target_subject",
+          "source_locator",
+          "source_revision",
+          "source_content_digest",
+          "event_ref",
+          "event_path",
+          "receipt_ref",
+          "receipt_digest"
+        ]
+      },
       "claim_ceiling": "Exact durable provider write/readback evidence for the bound memory-epoch object only; custody/admission/currentness remain separately governed."
     },
     {
@@ -168,11 +188,11 @@
   ],
   "global_rules": {
     "projection_scope": "A source change is eligible for stale-projection evaluation only when it matches the registered projection source provider, subject, ref scope, and path scope. Out-of-scope source activity is NOT_APPLICABLE, not stale evidence.",
-    "event_instance_binding": "For an in-scope projection event, the exact caller source ref/path must cross the adapter boundary and both returned observations must independently bind that event identity (or an exact provider-native equivalent). Collection targets must receive a provider-native event selector. Matching revisions/digests for a different event never qualify as VERIFIED_EXACT; absent binding is UNRESOLVED and demonstrably different binding is CONFLICT.",
+    "event_instance_binding": "For an in-scope projection event, the exact caller source ref/path must cross the adapter boundary and both returned observations must independently bind that event identity (or an exact provider-native equivalent). Collection targets must receive a provider-native event selector. Matching revisions/digests for a different event never qualify as VERIFIED_EXACT; absent binding is UNRESOLVED and demonstrably different binding is CONFLICT. Public supplied-observation audit is advisory only and cannot mint VERIFIED_EXACT because it does not establish this executor event binding.",
     "newest_timestamp": "Observation time may describe chronology or lag but never resolves revision/digest conflict and never grants current authority.",
-    "returned_item_typing": "Each returned item must be independently typed from its own provenance/content/receipt/currentness evidence; provider capability is not item type.",
+    "returned_item_typing": "Each returned item must be independently typed/currentness-validated by a runtime-owned verifier from its own provider/object/receipt provenance before the derived class is compared with both the envelope claim and target capability ceiling; provider capability and ordinary adapter assertion are not item type.",
     "missing_observation": "Missing, unavailable, or ambiguous provider evidence remains bounded as such; do not infer a successful projection or current state.",
-    "conflict": "Incompatible exact revisions/digests for the same claimed object fail closed as conflict until separately reconciled.",
+    "conflict": "Incompatible exact revisions/digests for the same claimed object fail closed as conflict until separately reconciled. EXACT_RECEIPT additionally fails closed on malformed, wrong-schema/type, wrong-event, wrong-subject, wrong-object, or receipt-digest/locator mismatch even when revisions happen to match.",
     "temporal": "Temporal may attach event IDs/timestamps and calculate elapsed time but cannot resolve semantic, authority, identity, admission, or currentness conflicts."
   }
 }

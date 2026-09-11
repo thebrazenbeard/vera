@@ -9,6 +9,7 @@ BUDGET_OK = "WITHIN_BUDGET"
 BUDGET_EXHAUSTED = "UNRESOLVED_RETRIEVAL_BUDGET_EXHAUSTED"
 ADMISSION_STATUSES = {"ADMITTED", "UNRESOLVED", "CONFLICT"}
 GOVERNING_DEPENDENCY_STATES = {"SATISFIED", "UNRESOLVED", "CONFLICT"}
+SEMANTIC_CURRENTNESS_DISPATCH_ID = "dispatch:semantic-currentness"
 
 
 @dataclass(frozen=True)
@@ -78,7 +79,10 @@ def _decisive_evidence_requirements(
     if not isinstance(registry, Mapping):
         return None
     decisive = registry.get(dispatch_id)
-    if not isinstance(decisive, Mapping) or set(decisive) != {"all_of", "any_of"}:
+    if not isinstance(decisive, Mapping):
+        return None
+    allowed_keys = {"all_of", "any_of", "relational_binding"}
+    if not {"all_of", "any_of"}.issubset(decisive) or not set(decisive).issubset(allowed_keys):
         return None
     all_raw = decisive.get("all_of")
     any_raw = decisive.get("any_of")
@@ -93,14 +97,293 @@ def _decisive_evidence_requirements(
     return all_of, any_of
 
 
-def evaluate_proposition_admission(
+def _admissible_evidence_class(
+    item: Any,
+    *,
+    domain_id: str,
+    proposition_or_effect_class: str,
+    referent_scope: str,
+) -> str | None:
+    evidence_class = getattr(item, "evidence_class", None)
+    if not isinstance(evidence_class, str) or not evidence_class:
+        return None
+
+    # Lightweight abstract evidence objects remain supported for isolated policy
+    # tests. Rich provider envelopes, however, cannot discard their own binding,
+    # conflict, or currentness state merely by crossing the admission boundary.
+    rich_fields = ("referent", "supersession_state", "conflict_state", "metadata")
+    if not any(hasattr(item, field) for field in rich_fields):
+        return evidence_class
+    if not all(hasattr(item, field) for field in rich_fields):
+        return None
+    if getattr(item, "referent") != domain_id:
+        return None
+    if getattr(item, "supersession_state") != "CURRENT_OBSERVATION":
+        return None
+    if getattr(item, "conflict_state") != "NONE":
+        return None
+    metadata = getattr(item, "metadata")
+    if not isinstance(metadata, Mapping):
+        return None
+    if metadata.get("proposition_or_effect_class") != proposition_or_effect_class:
+        return None
+    if metadata.get("referent_scope") != referent_scope:
+        return None
+    return evidence_class
+
+
+def _semantic_currentness_relational_decision(
+    *,
+    dispatch_id: str,
+    resolver_ref: str,
+    domain_id: str,
+    proposition_or_effect_class: str,
+    referent_scope: str,
+    observations: tuple[Any, ...],
+    contract: Mapping[str, Any],
+    required_evidence_classes: tuple[str, ...],
+    observed_evidence_classes: tuple[str, ...],
+) -> AdmissionDecision | None:
+    if dispatch_id != SEMANTIC_CURRENTNESS_DISPATCH_ID:
+        return None
+
+    registry = contract.get("resolver_dispatch_decisive_evidence")
+    decisive = registry.get(dispatch_id) if isinstance(registry, Mapping) else None
+    relational = decisive.get("relational_binding") if isinstance(decisive, Mapping) else None
+    if not isinstance(relational, Mapping):
+        return AdmissionDecision(
+            status="UNRESOLVED",
+            dispatch_id=dispatch_id,
+            resolver_ref=resolver_ref,
+            required_evidence_classes=required_evidence_classes,
+            observed_evidence_classes=observed_evidence_classes,
+            reason="Semantic currentness has no explicit relational binding rule; evidence-class co-occurrence is not sufficient currentness authority.",
+        )
+
+    required_keys = {
+        "mode",
+        "control_root_ref",
+        "required_source_identity",
+        "required_currentness_state",
+        "required_supersession_state",
+        "shared_metadata_fields",
+    }
+    if set(relational) != required_keys:
+        return AdmissionDecision(
+            status="UNRESOLVED",
+            dispatch_id=dispatch_id,
+            resolver_ref=resolver_ref,
+            required_evidence_classes=required_evidence_classes,
+            observed_evidence_classes=observed_evidence_classes,
+            reason="Semantic currentness relational binding rule is malformed or incomplete.",
+        )
+    if relational.get("mode") != "EXACT_SHARED_R10_CONTROL_BINDING":
+        return AdmissionDecision(
+            status="UNRESOLVED",
+            dispatch_id=dispatch_id,
+            resolver_ref=resolver_ref,
+            required_evidence_classes=required_evidence_classes,
+            observed_evidence_classes=observed_evidence_classes,
+            reason="Semantic currentness relational binding mode is unsupported.",
+        )
+    if relational.get("control_root_ref") != "VERA_RUNTIME_CONTRACT_V1#control_root":
+        return AdmissionDecision(
+            status="UNRESOLVED",
+            dispatch_id=dispatch_id,
+            resolver_ref=resolver_ref,
+            required_evidence_classes=required_evidence_classes,
+            observed_evidence_classes=observed_evidence_classes,
+            reason="Semantic currentness relational rule does not bind the runtime contract control root.",
+        )
+
+    control_root = contract.get("control_root")
+    if not isinstance(control_root, Mapping):
+        return AdmissionDecision(
+            status="UNRESOLVED",
+            dispatch_id=dispatch_id,
+            resolver_ref=resolver_ref,
+            required_evidence_classes=required_evidence_classes,
+            observed_evidence_classes=observed_evidence_classes,
+            reason="Runtime contract control root is unavailable for semantic currentness reconciliation.",
+        )
+    expected_release = control_root.get("release")
+    expected_round = control_root.get("round")
+    expected_manifest = control_root.get("manifest_sha256")
+    expected_source_commit = control_root.get("source_commit")
+    required_source_identity = relational.get("required_source_identity")
+    required_currentness_state = relational.get("required_currentness_state")
+    required_supersession_state = relational.get("required_supersession_state")
+    shared_fields = relational.get("shared_metadata_fields")
+    if not all(
+        isinstance(value, str) and value
+        for value in (
+            expected_release,
+            expected_round,
+            expected_manifest,
+            expected_source_commit,
+            required_source_identity,
+            required_currentness_state,
+            required_supersession_state,
+        )
+    ):
+        return AdmissionDecision(
+            status="UNRESOLVED",
+            dispatch_id=dispatch_id,
+            resolver_ref=resolver_ref,
+            required_evidence_classes=required_evidence_classes,
+            observed_evidence_classes=observed_evidence_classes,
+            reason="Semantic currentness exact R10 binding requirements are incomplete.",
+        )
+    expected_fields = [
+        "control_release",
+        "control_round",
+        "control_manifest_sha256",
+        "binding_source_identity",
+        "binding_source_revision",
+        "binding_currentness_state",
+        "binding_supersession_state",
+    ]
+    if shared_fields != expected_fields:
+        return AdmissionDecision(
+            status="UNRESOLVED",
+            dispatch_id=dispatch_id,
+            resolver_ref=resolver_ref,
+            required_evidence_classes=required_evidence_classes,
+            observed_evidence_classes=observed_evidence_classes,
+            reason="Semantic currentness shared binding field registry is incomplete or reordered.",
+        )
+
+    decisive_items: dict[str, list[Any]] = {"control_source": [], "live_observation": []}
+    for item in observations:
+        evidence_class = _admissible_evidence_class(
+            item,
+            domain_id=domain_id,
+            proposition_or_effect_class=proposition_or_effect_class,
+            referent_scope=referent_scope,
+        )
+        if evidence_class in decisive_items:
+            decisive_items[evidence_class].append(item)
+
+    if not decisive_items["control_source"] or not decisive_items["live_observation"]:
+        return AdmissionDecision(
+            status="UNRESOLVED",
+            dispatch_id=dispatch_id,
+            resolver_ref=resolver_ref,
+            required_evidence_classes=required_evidence_classes,
+            observed_evidence_classes=observed_evidence_classes,
+            reason="Semantic currentness requires both control_source and live_observation evidence bound to the same exact R10 source state.",
+        )
+
+    expected_binding = {
+        "control_release": expected_release,
+        "control_round": expected_round,
+        "control_manifest_sha256": expected_manifest,
+        "binding_source_identity": required_source_identity,
+        "binding_source_revision": expected_source_commit,
+        "binding_currentness_state": required_currentness_state,
+        "binding_supersession_state": required_supersession_state,
+    }
+
+    normalized_bindings: dict[str, list[tuple[str, ...]]] = {"control_source": [], "live_observation": []}
+    for evidence_class, items in decisive_items.items():
+        for item in items:
+            metadata = getattr(item, "metadata", None)
+            if not isinstance(metadata, Mapping) or any(field not in metadata for field in expected_fields):
+                return AdmissionDecision(
+                    status="UNRESOLVED",
+                    dispatch_id=dispatch_id,
+                    resolver_ref=resolver_ref,
+                    required_evidence_classes=required_evidence_classes,
+                    observed_evidence_classes=observed_evidence_classes,
+                    reason=f"{evidence_class} lacks exact semantic-currentness binding metadata; class identity alone cannot establish currentness.",
+                )
+
+            observed_binding = {field: metadata.get(field) for field in expected_fields}
+            if evidence_class == "control_source" and any(
+                observed_binding[field] != expected_binding[field]
+                for field in ("control_release", "control_round", "control_manifest_sha256")
+            ):
+                return AdmissionDecision(
+                    status="CONFLICT",
+                    dispatch_id=dispatch_id,
+                    resolver_ref=resolver_ref,
+                    required_evidence_classes=required_evidence_classes,
+                    observed_evidence_classes=observed_evidence_classes,
+                    reason="control_source explicitly conflicts with the exact runtime contract R10 control root.",
+                )
+            if observed_binding["binding_source_identity"] != required_source_identity:
+                return AdmissionDecision(
+                    status="CONFLICT",
+                    dispatch_id=dispatch_id,
+                    resolver_ref=resolver_ref,
+                    required_evidence_classes=required_evidence_classes,
+                    observed_evidence_classes=observed_evidence_classes,
+                    reason="Semantic currentness decisive evidence is not bound to the required exact R10 source identity.",
+                )
+            if observed_binding["binding_currentness_state"] != required_currentness_state:
+                return AdmissionDecision(
+                    status="CONFLICT",
+                    dispatch_id=dispatch_id,
+                    resolver_ref=resolver_ref,
+                    required_evidence_classes=required_evidence_classes,
+                    observed_evidence_classes=observed_evidence_classes,
+                    reason="Semantic currentness decisive evidence carries a conflicting currentness state.",
+                )
+            if (
+                observed_binding["binding_supersession_state"] != required_supersession_state
+                or getattr(item, "supersession_state", None) != required_supersession_state
+            ):
+                return AdmissionDecision(
+                    status="UNRESOLVED",
+                    dispatch_id=dispatch_id,
+                    resolver_ref=resolver_ref,
+                    required_evidence_classes=required_evidence_classes,
+                    observed_evidence_classes=observed_evidence_classes,
+                    reason="Semantic currentness decisive evidence is not current under the required supersession state.",
+                )
+            normalized_bindings[evidence_class].append(
+                tuple(str(observed_binding[field]) for field in expected_fields)
+            )
+
+    all_bindings = normalized_bindings["control_source"] + normalized_bindings["live_observation"]
+    first_binding = all_bindings[0]
+    if any(binding != first_binding for binding in all_bindings[1:]):
+        return AdmissionDecision(
+            status="CONFLICT",
+            dispatch_id=dispatch_id,
+            resolver_ref=resolver_ref,
+            required_evidence_classes=required_evidence_classes,
+            observed_evidence_classes=observed_evidence_classes,
+            reason="control_source and live_observation do not attest the same exact source/revision/control/currentness/supersession binding.",
+        )
+    if any(first_binding[index] != str(expected_binding[field]) for index, field in enumerate(expected_fields)):
+        return AdmissionDecision(
+            status="CONFLICT",
+            dispatch_id=dispatch_id,
+            resolver_ref=resolver_ref,
+            required_evidence_classes=required_evidence_classes,
+            observed_evidence_classes=observed_evidence_classes,
+            reason="Semantic currentness shared binding does not resolve to the exact R10 proposition/referent/source/currentness state.",
+        )
+
+    return AdmissionDecision(
+        status="ADMITTED",
+        dispatch_id=dispatch_id,
+        resolver_ref=resolver_ref,
+        required_evidence_classes=required_evidence_classes,
+        observed_evidence_classes=observed_evidence_classes,
+        reason="Observed decisive evidence satisfies the class rule and one exact shared R10 proposition/referent/source/currentness/supersession binding.",
+    )
+
+
+def evaluate_abstract_proposition_admission(
     domain_id: str,
     proposition_or_effect_class: str,
     referent_scope: str,
     observations: Iterable[Any],
     contract: Mapping[str, Any],
 ) -> AdmissionDecision:
-    """Fail closed unless B dispatch explicitly admits decisive evidence.
+    """Evaluate proposition admission for abstract policy evidence.
 
     Transport, readability, persistence, and exact cross-provider reconciliation
     are not proposition authority. Dispatch selection occurs before terminal
@@ -108,8 +391,13 @@ def evaluate_proposition_admission(
     `resolver_dispatch_decisive_evidence` registry with explicit `all_of` and
     `any_of` semantics; the resolver's broader accepted set is only a capability
     ceiling and never silently becomes the deciding rule.
+
+    This deliberately retains lightweight evidence support for isolated policy
+    tests. Provider-backed callers must use `evaluate_proposition_admission`,
+    which first requires full `ProviderEvidenceEnvelope` objects.
     """
 
+    materialized = tuple(observations)
     dispatch_rows = contract.get("resolver_dispatch", [])
     candidates: list[Mapping[str, Any]] = []
     for row in dispatch_rows:
@@ -125,8 +413,13 @@ def evaluate_proposition_admission(
 
     observed = tuple(sorted({
         evidence_class
-        for item in observations
-        if isinstance((evidence_class := getattr(item, "evidence_class", None)), str) and evidence_class
+        for item in materialized
+        if (evidence_class := _admissible_evidence_class(
+            item,
+            domain_id=domain_id,
+            proposition_or_effect_class=proposition_or_effect_class,
+            referent_scope=referent_scope,
+        )) is not None
     }))
 
     if not candidates:
@@ -205,6 +498,19 @@ def evaluate_proposition_admission(
     all_satisfied = all_of.issubset(observed_set)
     any_satisfied = not any_of or bool(observed_set.intersection(any_of))
     if all_satisfied and any_satisfied:
+        relational = _semantic_currentness_relational_decision(
+            dispatch_id=dispatch_id,
+            resolver_ref=resolver_ref,
+            domain_id=domain_id,
+            proposition_or_effect_class=proposition_or_effect_class,
+            referent_scope=referent_scope,
+            observations=materialized,
+            contract=contract,
+            required_evidence_classes=tuple(sorted(required)),
+            observed_evidence_classes=observed,
+        )
+        if relational is not None:
+            return relational
         return AdmissionDecision(
             status="ADMITTED",
             dispatch_id=dispatch_id,
@@ -221,6 +527,68 @@ def evaluate_proposition_admission(
         required_evidence_classes=tuple(sorted(required)),
         observed_evidence_classes=observed,
         reason="Readable/reconciled evidence is insufficient to satisfy the selected dispatch's decisive evidence rule.",
+    )
+
+
+def evaluate_proposition_admission(
+    domain_id: str,
+    proposition_or_effect_class: str,
+    referent_scope: str,
+    observations: Iterable[Any],
+    contract: Mapping[str, Any],
+) -> AdmissionDecision:
+    """Provider-strict public admission boundary.
+
+    Provider envelopes preserve binding/currentness/conflict fields, but
+    semantic-currentness admission additionally requires executor-registered
+    provider-origin validation for each decisive observation. Claimant-authored
+    metadata, even if byte-for-byte correct, is not provider-origin proof.
+    """
+    from .evidence import ProviderEvidenceEnvelope
+    from .origin import (
+        SEMANTIC_CURRENTNESS_DOMAIN,
+        SEMANTIC_CURRENTNESS_PROPOSITION,
+        SEMANTIC_CURRENTNESS_REFERENT_SCOPE,
+        SEMANTIC_DECISIVE_CLASSES,
+        validated_semantic_origin,
+    )
+
+    materialized = tuple(observations)
+    if not all(isinstance(item, ProviderEvidenceEnvelope) for item in materialized):
+        raise TypeError(
+            "provider-backed proposition admission requires ProviderEvidenceEnvelope observations"
+        )
+
+    if (
+        domain_id == SEMANTIC_CURRENTNESS_DOMAIN
+        and proposition_or_effect_class == SEMANTIC_CURRENTNESS_PROPOSITION
+        and referent_scope == SEMANTIC_CURRENTNESS_REFERENT_SCOPE
+    ):
+        decisive_items = [
+            item for item in materialized
+            if item.evidence_class in SEMANTIC_DECISIVE_CLASSES
+        ]
+        if any(validated_semantic_origin(item, contract) is None for item in decisive_items):
+            observed = tuple(sorted({item.evidence_class for item in materialized}))
+            return AdmissionDecision(
+                status="UNRESOLVED",
+                dispatch_id=SEMANTIC_CURRENTNESS_DISPATCH_ID,
+                resolver_ref="semantic_currentness",
+                required_evidence_classes=tuple(sorted(SEMANTIC_DECISIVE_CLASSES)),
+                observed_evidence_classes=observed,
+                reason=(
+                    "Semantic currentness provider admission requires independently validated "
+                    "provider-origin proof for the exact R10 repository+commit+path+blob+SHA object; "
+                    "claimant-authored envelope metadata cannot satisfy this boundary."
+                ),
+            )
+
+    return evaluate_abstract_proposition_admission(
+        domain_id,
+        proposition_or_effect_class,
+        referent_scope,
+        materialized,
+        contract,
     )
 
 

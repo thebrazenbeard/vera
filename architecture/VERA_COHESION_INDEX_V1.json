@@ -51,7 +51,7 @@
   "dependency_semantics": {
     "hard_prerequisite_domains": ["CURRENT_TASK_CORRECTION_PERMISSION_CONSENT","CONTROL_AND_GOVERNANCE","SEMANTICS_PROVENANCE_CURRENTNESS"],
     "classification_rule": "A declared dependency whose target domain is in hard_prerequisite_domains is a governing prerequisite; every other declared dependency is contextual.",
-    "hard_prerequisite_rule": "Traverse governing prerequisites before dependent-domain reads. If a hard prerequisite cannot produce any currently reachable/result target after probing, withhold dependent-domain reads and return HARD_PREREQUISITE_UNRESOLVED. Semantic authority still requires the appropriate resolver/admission gate.",
+    "hard_prerequisite_rule": "Traverse governing prerequisites before dependent-domain probe/read. Route reachability only permits bounded prerequisite probing/readback and never satisfies the governing gate. Release dependent-domain probe/read only when the exact prerequisite is explicitly SATISFIED by its resolver/admission/currentness process; UNRESOLVED or CONFLICT withholds dependent I/O and returns HARD_PREREQUISITE_UNRESOLVED.",
     "contextual_dependency_rule": "Contextual dependencies may be cyclic, are visited with the bounded visited-set/budget rules, and do not block the primary domain merely because their routes are unavailable or unresolved."
   },
   "domains": [

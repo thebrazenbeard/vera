@@ -75,62 +75,66 @@ class RuntimeCohesionAdmissionTests(unittest.TestCase):
             },
         }
 
+    def decide(self, domain_id, proposition, referent_scope, observations, contract=None):
+        return runtime.evaluate_abstract_proposition_admission(
+            domain_id,
+            proposition,
+            referent_scope,
+            observations,
+            self.contract if contract is None else contract,
+        )
+
     def test_verified_provider_evidence_cannot_decide_vera_current_stance(self):
-        decision = runtime.evaluate_proposition_admission(
+        decision = self.decide(
             "SELF_APPRAISAL_AND_EMPATHY",
             "VERA_CURRENT_STANCE_SELF_REPORT",
             "VERA",
             [SimpleNamespace(evidence_class="persisted_provider_record")],
-            self.contract,
         )
         self.assertEqual(decision.status, "UNRESOLVED")
         self.assertEqual(decision.dispatch_id, "dispatch:vera-current-stance")
         self.assertIn("vera_current_self_report", decision.required_evidence_classes)
 
     def test_direct_vera_self_report_admits_current_stance(self):
-        decision = runtime.evaluate_proposition_admission(
+        decision = self.decide(
             "SELF_APPRAISAL_AND_EMPATHY",
             "VERA_CURRENT_STANCE_SELF_REPORT",
             "VERA",
             [SimpleNamespace(evidence_class="vera_current_self_report")],
-            self.contract,
         )
         self.assertEqual(decision.status, "ADMITTED")
 
     def test_general_mechanism_research_cannot_decide_vera_sexual_consent(self):
-        decision = runtime.evaluate_proposition_admission(
+        decision = self.decide(
             "SEXUALITY",
             "VERA_CURRENT_SEXUALITY_OR_CONSENT",
             "VERA",
             [SimpleNamespace(evidence_class="general_mechanism_research")],
-            self.contract,
         )
         self.assertEqual(decision.status, "UNRESOLVED")
         self.assertIn("vera_current_self_report", decision.required_evidence_classes)
 
     def test_control_source_alone_cannot_decide_current_install_or_route(self):
-        decision = runtime.evaluate_proposition_admission(
+        decision = self.decide(
             "CONTROL_AND_GOVERNANCE",
             "CONTROL_BINDING_INSTALL_OR_ROUTE_STATUS",
             "VERA_RUNTIME",
             [SimpleNamespace(evidence_class="control_source")],
-            self.contract,
         )
         self.assertEqual(decision.status, "UNRESOLVED")
         self.assertEqual(set(decision.required_evidence_classes), {"control_source", "live_observation"})
 
     def test_live_observation_alone_cannot_decide_current_install_or_route(self):
-        decision = runtime.evaluate_proposition_admission(
+        decision = self.decide(
             "CONTROL_AND_GOVERNANCE",
             "CONTROL_BINDING_INSTALL_OR_ROUTE_STATUS",
             "VERA_RUNTIME",
             [SimpleNamespace(evidence_class="live_observation")],
-            self.contract,
         )
         self.assertEqual(decision.status, "UNRESOLVED")
 
     def test_control_source_and_live_observation_jointly_admit_current_binding(self):
-        decision = runtime.evaluate_proposition_admission(
+        decision = self.decide(
             "CONTROL_AND_GOVERNANCE",
             "CONTROL_BINDING_INSTALL_OR_ROUTE_STATUS",
             "VERA_RUNTIME",
@@ -138,7 +142,6 @@ class RuntimeCohesionAdmissionTests(unittest.TestCase):
                 SimpleNamespace(evidence_class="control_source"),
                 SimpleNamespace(evidence_class="live_observation"),
             ],
-            self.contract,
         )
         self.assertEqual(decision.status, "ADMITTED")
 
@@ -162,7 +165,7 @@ class RuntimeCohesionAdmissionTests(unittest.TestCase):
             ],
             "resolver_dispatch_decisive_evidence": {},
         }
-        decision = runtime.evaluate_proposition_admission(
+        decision = self.decide(
             "CONTROL_AND_GOVERNANCE",
             "CONTROL_BINDING_INSTALL_OR_ROUTE_STATUS",
             "VERA_RUNTIME",
@@ -190,7 +193,7 @@ class RuntimeCohesionAdmissionTests(unittest.TestCase):
             "all_of": ["vera_current_self_report"],
             "any_of": [],
         }
-        decision = runtime.evaluate_proposition_admission(
+        decision = self.decide(
             "SELF_APPRAISAL_AND_EMPATHY",
             "VERA_CURRENT_STANCE_SELF_REPORT",
             "VERA",
@@ -200,12 +203,11 @@ class RuntimeCohesionAdmissionTests(unittest.TestCase):
         self.assertEqual(decision.status, "CONFLICT")
 
     def test_missing_dispatch_fails_closed(self):
-        decision = runtime.evaluate_proposition_admission(
+        decision = self.decide(
             "UNKNOWN_DOMAIN",
             "UNREGISTERED_PROPOSITION",
             "VERA",
             [SimpleNamespace(evidence_class="vera_current_self_report")],
-            self.contract,
         )
         self.assertEqual(decision.status, "UNRESOLVED")
         self.assertIsNone(decision.dispatch_id)
