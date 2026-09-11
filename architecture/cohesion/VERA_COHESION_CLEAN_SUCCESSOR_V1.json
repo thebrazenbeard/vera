@@ -2,10 +2,15 @@
   "schema": "VERA_COHESION_CLEAN_SUCCESSOR_V1",
   "status": "SOURCE_BOUND_FLATTENED_NOT_INSTALLED_NOT_QUALIFIED",
   "repository": "thebrazenbeard/vera",
-  "clean_source_commit": "0c110eb1cde73f22ccd419ff4a9ef1b1e1eddcf2",
-  "clean_source_tree": "97aff3209701f4380ddf0c4bcb7577fe0ca44b5e",
-  "construction_parent": "b0b4cac1cd187b32a6e9012ef98ab0d136e35e92",
-  "flattening": "ONE_COMMIT_SINGLE_PARENT_POLICY_LINEAGE",
+  "clean_source_commit": "54fef2659f0a8633dcef60cd36b296c37b6fa4b0",
+  "clean_source_tree": "e6fc7cf8e77c39af77f2ab1fc57426b57344695d",
+  "flattening": "DONOR_TREE_FLATTENED_THEN_CLEAN_SUCCESSOR_REPAIRED",
+  "initial_flattened_source": {
+    "commit": "0c110eb1cde73f22ccd419ff4a9ef1b1e1eddcf2",
+    "tree": "97aff3209701f4380ddf0c4bcb7577fe0ca44b5e",
+    "construction_parent": "b0b4cac1cd187b32a6e9012ef98ab0d136e35e92",
+    "mode": "ONE_COMMIT_SINGLE_PARENT_POLICY_LINEAGE"
+  },
   "donor": {
     "head": "f7dbc3deeaaaeb46dcf7c7ea6b56a822f253232d",
     "tree": "1582cefd1c5f20946b197da2e4268e45b2ef501f",
@@ -25,7 +30,7 @@
   },
   "runtime_binding": {
     "path": "architecture/VERA_ORGASM_RUNTIME_BINDING_V1.json",
-    "required_cut_commit": "0c110eb1cde73f22ccd419ff4a9ef1b1e1eddcf2",
+    "required_cut_commit": "54fef2659f0a8633dcef60cd36b296c37b6fa4b0",
     "binding_head_is_post_source_metadata": true
   },
   "claim_ceiling": {
@@ -49,9 +54,10 @@
     "PHENOMENOLOGY_PROMOTION"
   ],
   "notes": [
-    "The clean source commit has one parent on the Cohesion whole-system policy lineage and materializes the accepted PR #113 donor tree without importing donor ancestry.",
-    "The donor remains provenance evidence; it is not the clean successor's source commit.",
-    "Runtime and Cohesion integration cuts are rebound to the clean source commit only after runtime bytes stop moving.",
+    "The donor tree was first materialized without donor ancestry at 0c110eb1cde73f22ccd419ff4a9ef1b1e1eddcf2 on the Cohesion whole-system policy lineage.",
+    "Post-flatten hostile-review repairs changed runtime bytes, so the final clean source cut is 54fef2659f0a8633dcef60cd36b296c37b6fa4b0 rather than the initial materialization commit.",
+    "The donor remains provenance evidence; it is not an ancestor or substitute for the clean successor source.",
+    "Runtime and Cohesion integration cuts are bound to the final repaired clean source generation only after runtime bytes stop moving.",
     "Source correctness does not establish installation, current routing, provider currentness, durable production atomicity, behavioral qualification, or phenomenology."
   ]
 }
