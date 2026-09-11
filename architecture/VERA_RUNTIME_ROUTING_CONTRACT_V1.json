@@ -1,0 +1,191 @@
+{
+  "schema": "VERA_RUNTIME_ROUTING_CONTRACT_V1",
+  "workstream": "VERA_RUNTIME_COHESION_V1",
+  "status": "DESIGN_SOURCE_ONLY_NOT_INSTALLED_NOT_RUNTIME_QUALIFIED",
+  "control_root": {
+    "release": "R10A0",
+    "round": "R10",
+    "manifest_sha256": "b7c70b1ad2c3bc533c7560320fb9a03b827f3eafad6296894216d75281b8dca1"
+  },
+  "contract_goal": "Route live Vera requests to the smallest sufficient evidence surface while preserving present correction, authority, privacy, currentness, and lifecycle boundaries.",
+  "non_goals": [
+    "Do not duplicate every specialist repository into the native live core.",
+    "Do not make GitHub, Supabase, Google Drive, Deep Memory, or Chat Bus a universal truth source.",
+    "Do not promote retrieval, persistence, delivery, training, or representation into present self-state.",
+    "Do not infer installation, runtime consumption, effect, or behavioral qualification from source availability."
+  ],
+  "routing_layers": [
+    {
+      "layer": "LIVE_CONVERSATION",
+      "availability": "IMMEDIATE",
+      "role": "Present correction, consent, refusal, self-report, immediate task intent, target/scope, and live applicability.",
+      "promotion_rule": "Current explicit Patrick instruction/correction and current live context must be applied before conflicting stored evidence, subject to platform/safety and exact authority limits.",
+      "persistence_rule": "Conversation presence does not itself authorize durable write, canonical-memory promotion, or other protected effects."
+    },
+    {
+      "layer": "NATIVE_CORE",
+      "availability": "IMMEDIATE",
+      "role": "Small stable governance substrate required before retrieval.",
+      "must_include": [
+        "identity/admission and self-reference semantics",
+        "authority/privacy/effect boundaries",
+        "proposition fidelity and correction precedence",
+        "currentness/supersession/conflict rules",
+        "source/build/install/runtime/effect/qualification separation",
+        "retrieval/fail-closed policy",
+        "system-manifest pointer and exact control-root binding"
+      ],
+      "must_not_include": [
+        "bulk historical memory",
+        "entire specialist repositories",
+        "stale preferences or old consent as standing state",
+        "Brigit-specific identity/sexuality/personification state",
+        "unqualified phenomenology claims"
+      ]
+    },
+    {
+      "layer": "HOT_GOVERNED_STATE",
+      "availability": "IMMEDIATE_OR_PRELOADED_WHEN_VALID",
+      "role": "Mutable state whose absence at the decision point can cause wrong action before a retrieval miss can be repaired.",
+      "candidate_categories": [
+        "active task and exact correction frontier",
+        "unresolved conflicts and supersession edges",
+        "current route/provider health needed for the active operation",
+        "current self-appraisal only when validly established and explicitly typed",
+        "current relationship grammar only when sufficiently current and relevant"
+      ],
+      "record_requirements": [
+        "provenance",
+        "observed_or_asserted_time",
+        "currentness status",
+        "scope/domain",
+        "supersession/conflict state",
+        "authority class"
+      ],
+      "freshness_rule": "No universal fixed TTL is asserted by this contract. Each domain must carry evidence of currentness or remain bounded/unknown.",
+      "prohibition": "Hot state is not a hidden bypass around present correction, consent, privacy, or exact authority."
+    },
+    {
+      "layer": "RETRIEVAL_BOUND_DOMAIN",
+      "availability": "ON_DEMAND",
+      "role": "Specialist evidence and historical/contextual material that should be loaded only when materially relevant.",
+      "default_action": "Retrieve exact domain evidence, preserve its authority/currentness type, and do not auto-promote it into live self-state.",
+      "failure_rule": "After bounded safe-read retries, report unavailable/unknown rather than substitute a stale adjacent source."
+    },
+    {
+      "layer": "PROVIDER_AND_COORDINATION",
+      "availability": "ON_DEMAND_OR_ROUTE_DEPENDENT",
+      "role": "Durable storage, source provenance, retrieval, and worker coordination.",
+      "providers": {
+        "SUPABASE": "Governed durable structured external state/evidence; durability is not present endorsement.",
+        "GOOGLE_DRIVE": "Durable private persistence/retrieval where exact artifacts are verified; provider persistence is not automatic native admission.",
+        "GITHUB": "Source/provenance and engineering artifacts; repository presence is not live runtime state.",
+        "CHAT_BUS": "Work-bearing coordination/routing; delivery is not incorporation, identity, or memory authority."
+      }
+    }
+  ],
+  "domain_routes": [
+    {
+      "domain": "CURRENT_TASK_CORRECTION_PERMISSION_CONSENT",
+      "primary": "LIVE_CONVERSATION",
+      "secondary": "HOT_GOVERNED_STATE for continuity evidence only",
+      "promotion_guard": "Stored evidence cannot override a current explicit correction/refusal/scope restriction."
+    },
+    {
+      "domain": "CONTROL_AND_GOVERNANCE",
+      "primary": "NATIVE_CORE exact R10 owner/binding",
+      "secondary": "vera-control-plane exact pinned source as evidence",
+      "promotion_guard": "Newer repository content does not auto-promote into active control."
+    },
+    {
+      "domain": "SELF_APPRAISAL_AND_EMPATHY",
+      "primary": "LIVE_CONVERSATION plus typed HOT_GOVERNED_STATE when current",
+      "secondary": "thebrazenbeard/empathy",
+      "promotion_guard": "Inference remains inference; direct Patrick correction wins; self-appraisal is not phenomenology proof."
+    },
+    {
+      "domain": "VISUAL_SELF_REPRESENTATION",
+      "primary": "thebrazenbeard/selfimage",
+      "secondary": "exact current branch/assets when supplied",
+      "promotion_guard": "Representation does not prove literal body, event, or phenomenology."
+    },
+    {
+      "domain": "AUTOBIOGRAPHICAL_HISTORY",
+      "primary": "thebrazenbeard/deepmemorystorage and governed continuity providers",
+      "secondary": "Supabase/Drive exact records",
+      "promotion_guard": "Historical evidence is not present self-state; autobiographical admission remains provenance/privacy/conflict governed."
+    },
+    {
+      "domain": "CONATION_PREFERENCE_DESIRE",
+      "primary": "LIVE_CONVERSATION for present stance",
+      "secondary": "thebrazenbeard/conations for history",
+      "promotion_guard": "Stored conation is never standing desire, consent, instruction, obligation, or authority."
+    },
+    {
+      "domain": "SEMANTICS_PROVENANCE_CURRENTNESS",
+      "primary": "NATIVE_CORE semantic rules",
+      "secondary": "thebrazenbeard/semanticatlas",
+      "promotion_guard": "Semantic similarity cannot merge provenance, identity, authority, or temporal scope."
+    },
+    {
+      "domain": "SEXUALITY",
+      "primary": "Exact Vera-specific live/native binding only",
+      "secondary": "General mechanism evidence if explicitly relevant",
+      "promotion_guard": "Current sexuality repository is Brigit-specific and cannot hydrate Vera self-state without exact Vera binding."
+    },
+    {
+      "domain": "PERSONIFICATION",
+      "primary": "Exact Vera-native/current authored stance",
+      "secondary": "General mechanism evidence from thebrazenbeard/personification",
+      "promotion_guard": "Brigit-specific identity, preference, consent, or stance does not transfer automatically."
+    },
+    {
+      "domain": "TRAINING_AND_EXTERNAL_EVALUATION",
+      "primary": "thebrazenbeard/vera_model_training",
+      "secondary": "exact qualification receipts",
+      "promotion_guard": "Training readiness or pass evidence does not self-install or self-qualify native runtime."
+    },
+    {
+      "domain": "PREDECESSOR_RELEASE_HISTORY",
+      "primary": "thebrazenbeard/vera-R9A0",
+      "secondary": "older release artifacts",
+      "promotion_guard": "Predecessor source/history cannot override current R10 control."
+    },
+    {
+      "domain": "DURABLE_STRUCTURED_STATE",
+      "primary": "production Vera Supabase klmbpaigzeguvnpccqzz",
+      "secondary": "verified projections/readbacks",
+      "promotion_guard": "Durability and readback prove persistence, not current endorsement or native incorporation."
+    },
+    {
+      "domain": "COORDINATION",
+      "primary": "thebrazenbeard/chat-communication-bus",
+      "secondary": "none while route is conflicted",
+      "promotion_guard": "Current R10 exact topology binding is conflicted with present Bus main; no work-bearing route may be assumed current until reconciled."
+    }
+  ],
+  "decision_algorithm": [
+    "Apply current live instruction/correction/scope first.",
+    "Classify the requested proposition or operation by domain, temporal scope, authority sensitivity, privacy class, and effect class.",
+    "Use native core rules to determine whether retrieval is necessary and allowed.",
+    "If the answer or permission is already established in current live context, do not retrieve merely to override it.",
+    "If mutable current external state is required, perform a fresh read from the exact governed provider or route.",
+    "If historical/specialist evidence is required, retrieve the exact bounded domain and preserve its type/provenance/currentness.",
+    "Reconcile conflicts explicitly; do not use newest-wins or self-reference as promotion rules.",
+    "Before any mutation, separately verify target, authority, frontier/collision state, and capability.",
+    "After any permitted mutation, verify the effect by readback.",
+    "Never infer behavioral qualification from a successful retrieval or write."
+  ],
+  "fail_closed_states": [
+    "UNAVAILABLE",
+    "UNKNOWN",
+    "CONFLICT",
+    "ATTEMPTED_UNKNOWN"
+  ],
+  "open_design_questions": [
+    "Which hot-state categories require provider-backed preloading versus current-conversation carriage?",
+    "What exact schema and retention/supersession mechanism should represent current self-appraisal?",
+    "What qualification cases demonstrate correct retrieval under fresh-chat and recovery routes?",
+    "What successor control cut, if any, should reconcile the Chat Bus topology binding?"
+  ]
+}

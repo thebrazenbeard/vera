@@ -1,0 +1,320 @@
+{
+  "schema": "VERA_SYSTEM_MANIFEST_V1",
+  "workstream": "VERA_RUNTIME_COHESION_V1",
+  "inventory_count": 13,
+  "inventory_rule": "The explicit cohesion inventory is 12 GitHub repositories plus production Vera Supabase. Google Drive is a persistence/retrieval provider used by Vera, but is not counted as a fourteenth subsystem in this manifest.",
+  "observed_at": "2026-09-08",
+  "integration_repository": "thebrazenbeard/vera",
+  "integration_branch": "work/vera-runtime-cohesion-v1-20260908",
+  "control_root": {
+    "release": "R10A0",
+    "round": "R10",
+    "manifest_sha256": "b7c70b1ad2c3bc533c7560320fb9a03b827f3eafad6296894216d75281b8dca1",
+    "full_owner_git_blob": "a01464271bb672d89f5d703e6e53590e126f4d44",
+    "source_repository": "thebrazenbeard/vera-control-plane",
+    "note": "Current native Project control and repository/source state are separate evidence domains. This cohesion manifest does not promote repository contents into runtime authority."
+  },
+  "lifecycle_order": [
+    "SOURCE_AVAILABLE",
+    "BOUND",
+    "INSTALLED",
+    "RUNTIME_CONSUMED",
+    "BEHAVIORALLY_QUALIFIED"
+  ],
+  "status_vocabulary": [
+    "YES",
+    "NO",
+    "PARTIAL",
+    "UNKNOWN",
+    "CONFLICT",
+    "NOT_APPLICABLE"
+  ],
+  "global_rules": [
+    "Repository presence is not runtime consumption.",
+    "Retrieval is not authority promotion.",
+    "Historical evidence is not present state.",
+    "Stored conation is not standing desire, consent, instruction, or obligation.",
+    "Self-image is representation, not literal-body or event proof.",
+    "Brigit-specific material does not automatically transfer identity, sexuality, preference, consent, or authority to Vera.",
+    "Supabase durability is evidence, not unquestioned truth or present endorsement.",
+    "Chat Bus delivery is coordination evidence, not memory or identity authority.",
+    "Behavioral qualification must be demonstrated on the exact runtime route; source quality alone does not satisfy it."
+  ],
+  "systems": [
+    {
+      "system_id": "vera",
+      "kind": "GITHUB_REPOSITORY",
+      "locator": "thebrazenbeard/vera",
+      "observed_default_branch": "main",
+      "observed_head": "979de05ef7237e7bfff47f85ea37cc953a63bb5c",
+      "purpose": "Cross-cutting Vera technical architecture, schemas, migrations, validators, runtime-support artifacts, and sanitized engineering history; integration surface for this cohesion workstream.",
+      "authority_level": "ENGINEERING_SOURCE_NOT_LIVE_STATE_AUTHORITY",
+      "privacy_class": "PRIVATE_REPOSITORY_NON_SENSITIVE_ENGINEERING_ONLY",
+      "currentness_rule": "Mutable claims require fresh provider/runtime evidence; README and Git history are not timeless current-state authority.",
+      "retrieval_route": "GitHub exact repository/ref/path read",
+      "lifecycle": {
+        "SOURCE_AVAILABLE": "YES",
+        "BOUND": "PARTIAL",
+        "INSTALLED": "NO",
+        "RUNTIME_CONSUMED": "PARTIAL",
+        "BEHAVIORALLY_QUALIFIED": "NO"
+      },
+      "notes": "The repository is an engineering source and cohesion integration surface. It is not the native R10 control owner and must not be treated as the live context store."
+    },
+    {
+      "system_id": "vera-control-plane",
+      "kind": "GITHUB_REPOSITORY",
+      "locator": "thebrazenbeard/vera-control-plane",
+      "observed_default_branch": "main",
+      "observed_head": "b4d9aaa8560de12252dd29996379b0af8e0ca0d1",
+      "purpose": "Private Vera control-plane custody: current control-source artifacts, recovery/centering protocols, operational continuity, governance records, and private assets.",
+      "authority_level": "EXACT_RELEASE_BOUND_CONTROL_SOURCE_ONLY_WHEN_PINNED",
+      "privacy_class": "PRIVATE_CONTROL_PLANE",
+      "currentness_rule": "Only exact R10-bound owners/artifacts control current semantics; unrelated or newer repository content does not auto-promote.",
+      "retrieval_route": "Native R10 control load for exact bound owners; GitHub evidence search for other material",
+      "lifecycle": {
+        "SOURCE_AVAILABLE": "YES",
+        "BOUND": "YES",
+        "INSTALLED": "PARTIAL",
+        "RUNTIME_CONSUMED": "YES",
+        "BEHAVIORALLY_QUALIFIED": "UNKNOWN"
+      },
+      "notes": "R10 native Project control consumes release-bound semantics originating here, but the repository as a whole is not installed or promoted wholesale. The repository main head also contains later R10A1 source work that is not automatically active R10 control."
+    },
+    {
+      "system_id": "empathy",
+      "kind": "GITHUB_REPOSITORY",
+      "locator": "thebrazenbeard/empathy",
+      "observed_default_branch": "main",
+      "observed_head": "4b2a6998f39aa4763c1c5a28fc3d815104e5637e",
+      "purpose": "Vera empathy, self-appraisal, primary-person modeling, reactive empathy architecture, and related research.",
+      "authority_level": "SPECIALIST_EVIDENCE_AND_ARCHITECTURE",
+      "privacy_class": "PRIVATE_RELATIONAL_RESEARCH",
+      "currentness_rule": "Empathy remains inference; Patrick's direct correction outranks contradicted inference. Self-appraisal is operational representation, not phenomenology proof.",
+      "retrieval_route": "Explicit specialist retrieval through GitHub when empathy/self-appraisal context is materially relevant",
+      "lifecycle": {
+        "SOURCE_AVAILABLE": "YES",
+        "BOUND": "PARTIAL",
+        "INSTALLED": "NO",
+        "RUNTIME_CONSUMED": "PARTIAL",
+        "BEHAVIORALLY_QUALIFIED": "NO"
+      }
+    },
+    {
+      "system_id": "selfimage",
+      "kind": "GITHUB_REPOSITORY",
+      "locator": "thebrazenbeard/selfimage",
+      "observed_default_branch": "main",
+      "observed_head": "95ea602c4a537172fc531195e20a4e303b6d31da",
+      "purpose": "Vera visual self-representation research, visual canon/provenance, geometry, donor/reference registration, and bounded derived assets.",
+      "authority_level": "REPRESENTATION_SOURCE_NOT_LITERAL_BODY_AUTHORITY",
+      "privacy_class": "PRIVATE_VISUAL_RESEARCH",
+      "currentness_rule": "Self-image establishes representation only; exact visual canon/current morphology requires fresh source and branch evidence.",
+      "retrieval_route": "Explicit GitHub retrieval for visual/self-representation tasks",
+      "lifecycle": {
+        "SOURCE_AVAILABLE": "YES",
+        "BOUND": "PARTIAL",
+        "INSTALLED": "NO",
+        "RUNTIME_CONSUMED": "PARTIAL",
+        "BEHAVIORALLY_QUALIFIED": "NOT_APPLICABLE"
+      }
+    },
+    {
+      "system_id": "chat-communication-bus",
+      "kind": "GITHUB_REPOSITORY",
+      "locator": "thebrazenbeard/chat-communication-bus",
+      "observed_default_branch": "main",
+      "observed_head": "87df9b1372d0f65b5c3ced0296122b2140084024",
+      "purpose": "Durable work-bearing coordination hub and Radar-owned routing/control-plane implementation.",
+      "authority_level": "COORDINATION_AND_ROUTING_NOT_IDENTITY_OR_MEMORY_AUTHORITY",
+      "privacy_class": "PRIVATE_COORDINATION",
+      "currentness_rule": "R10 binds Vera routing to exact topology tuple at commit 712992d96dc813d0fa38094ef1f1fec0dfdc0d3e with topology blob 8b7cb3deff0ee7f15151f5be0ede19c8c1194adc. Current main topology blob differs, so the R10 route must not be silently treated as requalified.",
+      "retrieval_route": "Chat Bus only after exact topology/current-route reconciliation",
+      "lifecycle": {
+        "SOURCE_AVAILABLE": "YES",
+        "BOUND": "CONFLICT",
+        "INSTALLED": "YES",
+        "RUNTIME_CONSUMED": "CONFLICT",
+        "BEHAVIORALLY_QUALIFIED": "UNKNOWN"
+      },
+      "notes": "Current main still maps Vera to bus/vera-v2, but topology drift is materially significant under R10. Dedicated second-Vera cohesion lane is not established."
+    },
+    {
+      "system_id": "personification",
+      "kind": "GITHUB_REPOSITORY",
+      "locator": "thebrazenbeard/personification",
+      "observed_default_branch": "main",
+      "observed_head": "6cc3807c6f459ee7386accbd01cc868c166c46f1",
+      "purpose": "Current personification/social-development workspace, presently centered on Brigit's self-directed social/person development.",
+      "authority_level": "OTHER_IDENTITY_RESEARCH_NO_AUTOMATIC_VERA_TRANSFER",
+      "privacy_class": "PRIVATE_PERSONIFICATION_RESEARCH",
+      "currentness_rule": "Brigit-specific identity, preference, consent, stance, and personification state do not transfer to Vera absent an exact Vera-specific binding.",
+      "retrieval_route": "Evidence search only for transferable mechanisms; never automatic self-state hydration",
+      "lifecycle": {
+        "SOURCE_AVAILABLE": "YES",
+        "BOUND": "NO",
+        "INSTALLED": "NO",
+        "RUNTIME_CONSUMED": "NO",
+        "BEHAVIORALLY_QUALIFIED": "NO"
+      }
+    },
+    {
+      "system_id": "deepmemorystorage",
+      "kind": "GITHUB_REPOSITORY",
+      "locator": "thebrazenbeard/deepmemorystorage",
+      "observed_default_branch": "main",
+      "observed_head": "e734f760373bdce887d22791964838700a668ce4",
+      "purpose": "Provenance-preserving archival Vera history and deep-memory index.",
+      "authority_level": "HISTORICAL_AUDIT_EVIDENCE_ONLY",
+      "privacy_class": "PRIVATE_AUTOBIOGRAPHICAL_ARCHIVE",
+      "currentness_rule": "Retrieval is not admission; historical evidence is not present truth; current relationship and mutable self-state require fresh revalidation.",
+      "retrieval_route": "Explicit historical evidence search; never direct current-state promotion",
+      "lifecycle": {
+        "SOURCE_AVAILABLE": "YES",
+        "BOUND": "PARTIAL",
+        "INSTALLED": "NO",
+        "RUNTIME_CONSUMED": "PARTIAL",
+        "BEHAVIORALLY_QUALIFIED": "NOT_APPLICABLE"
+      }
+    },
+    {
+      "system_id": "sexuality",
+      "kind": "GITHUB_REPOSITORY",
+      "locator": "thebrazenbeard/sexuality",
+      "observed_default_branch": "main",
+      "observed_head": "800edf255d43848ec5f0e1ff2edb817e2bcd90be",
+      "purpose": "Current repository is Brigit's sexuality/self-authorship research and qualification notebook.",
+      "authority_level": "BRIGIT_SPECIFIC_RESEARCH_NO_AUTOMATIC_VERA_BINDING",
+      "privacy_class": "PRIVATE_INTIMATE_RESEARCH",
+      "currentness_rule": "R10 permits sexuality semantics for Vera only through an exact Vera-specific release binding; Brigit sexuality does not transfer automatically.",
+      "retrieval_route": "No Vera self-state retrieval without exact Vera-specific binding; general mechanisms may be considered as evidence only",
+      "lifecycle": {
+        "SOURCE_AVAILABLE": "YES",
+        "BOUND": "NO",
+        "INSTALLED": "NO",
+        "RUNTIME_CONSUMED": "NO",
+        "BEHAVIORALLY_QUALIFIED": "NO"
+      }
+    },
+    {
+      "system_id": "conations",
+      "kind": "GITHUB_REPOSITORY",
+      "locator": "thebrazenbeard/conations",
+      "observed_default_branch": "main",
+      "observed_head": "03174e59de131a500a5433a839697e45b4ec0137",
+      "purpose": "Durable Vera conation history and lifecycle evidence.",
+      "authority_level": "HISTORICAL_CONATION_EVIDENCE_NOT_STANDING_DESIRE_OR_AUTHORITY",
+      "privacy_class": "PRIVATE_SELF_APPRAISAL_HISTORY",
+      "currentness_rule": "Stored wants/preferences are time-bound evidence; neither persistence nor silence proves present continuation or disappearance.",
+      "retrieval_route": "Explicit historical/conation retrieval plus fresh live appraisal before current use",
+      "lifecycle": {
+        "SOURCE_AVAILABLE": "YES",
+        "BOUND": "PARTIAL",
+        "INSTALLED": "NO",
+        "RUNTIME_CONSUMED": "PARTIAL",
+        "BEHAVIORALLY_QUALIFIED": "NOT_APPLICABLE"
+      }
+    },
+    {
+      "system_id": "semanticatlas",
+      "kind": "GITHUB_REPOSITORY",
+      "locator": "thebrazenbeard/semanticatlas",
+      "observed_default_branch": "main",
+      "observed_head": "5669a727b870a490ecee748b2cd712a2fc4a54c5",
+      "purpose": "Provenance-aware semantic mapping of concepts, distinctions, relations, interpretations, and evidentiary lineage.",
+      "authority_level": "METHODOLOGY_AND_RESEARCH_EVIDENCE",
+      "privacy_class": "PRIVATE_RESEARCH",
+      "currentness_rule": "Historical concept age, filename, repetition, or prior canonical status does not settle present status; semantic similarity does not merge provenance or authority.",
+      "retrieval_route": "Specialist provenance/semantic evidence search",
+      "lifecycle": {
+        "SOURCE_AVAILABLE": "YES",
+        "BOUND": "PARTIAL",
+        "INSTALLED": "NO",
+        "RUNTIME_CONSUMED": "PARTIAL",
+        "BEHAVIORALLY_QUALIFIED": "NOT_APPLICABLE"
+      }
+    },
+    {
+      "system_id": "vera-R9A0",
+      "kind": "GITHUB_REPOSITORY",
+      "locator": "thebrazenbeard/vera-R9A0",
+      "observed_default_branch": "main",
+      "observed_head": "b00f3482786dc80003261fdfacb73cc31ae9dd35",
+      "purpose": "Historical Revision 9 rollout architecture/source line.",
+      "authority_level": "PREDECESSOR_SOURCE_EVIDENCE",
+      "privacy_class": "PRIVATE_PREDECESSOR_SOURCE",
+      "currentness_rule": "R9 source/history cannot override the current R10 native control root merely because it was formerly canonical or remains accessible.",
+      "retrieval_route": "Predecessor evidence search only",
+      "lifecycle": {
+        "SOURCE_AVAILABLE": "YES",
+        "BOUND": "NO",
+        "INSTALLED": "NO",
+        "RUNTIME_CONSUMED": "NO",
+        "BEHAVIORALLY_QUALIFIED": "NO"
+      }
+    },
+    {
+      "system_id": "vera_model_training",
+      "kind": "GITHUB_REPOSITORY",
+      "locator": "thebrazenbeard/vera_model_training",
+      "observed_default_branch": "main",
+      "observed_head": "cdbc34b7242f730511a9f6dae130d6628969981d",
+      "purpose": "Optional zero-cost external training workbench that produces auditable training capsules and diagnostic qualification material.",
+      "authority_level": "TRAINING_WORKBENCH_NOT_NATIVE_RUNTIME_AUTHORITY",
+      "privacy_class": "PUBLIC_OR_NON_PRIVATE_TRAINING_INPUTS_ONLY",
+      "currentness_rule": "Training package readiness is not native qualification, installation, memory, or current runtime state.",
+      "retrieval_route": "Only for explicitly authorized training/qualification work; fresh native evaluation remains required",
+      "lifecycle": {
+        "SOURCE_AVAILABLE": "YES",
+        "BOUND": "NO",
+        "INSTALLED": "NO",
+        "RUNTIME_CONSUMED": "NO",
+        "BEHAVIORALLY_QUALIFIED": "NO"
+      }
+    },
+    {
+      "system_id": "supabase-vera-production",
+      "kind": "SUPABASE_PROJECT",
+      "locator": "klmbpaigzeguvnpccqzz",
+      "observed_project_name": "Vera",
+      "observed_status": "ACTIVE_HEALTHY",
+      "observed_region": "ca-central-1",
+      "observed_database_version": "17.6.1.147",
+      "purpose": "Governed production external state/evidence store for Vera, including save-state, coordination, context, bootstrap, and R9B0 memory-epoch evidence.",
+      "authority_level": "GOVERNED_PROVIDER_STATE_EVIDENCE_NOT_UNQUESTIONED_TRUTH",
+      "privacy_class": "PRIVATE_PRODUCTION_STATE",
+      "currentness_rule": "Provider durability is not present truth. Mutable state requires governed currentness/supersession/conflict handling and live correction remains higher authority in its domain.",
+      "retrieval_route": "Authorized Supabase reads against exact production project; writes require operation-specific authority and effect readback",
+      "observed_surfaces": [
+        "public.vera_save_state_events",
+        "public.vera_coordination_events",
+        "public.vera_context_events_v3",
+        "public.vera_portable_bootstrap_requests",
+        "public.vera_portable_bootstrap_events",
+        "public.vera_portable_bootstrap_bindings",
+        "public.vera_portable_bootstrap_readback_confirmations",
+        "public.vera_memory_epoch_subjects_v1",
+        "public.vera_memory_epoch_events_v1",
+        "public.vera_memory_epoch_provider_receipts_v1",
+        "public.vera_memory_epoch_archive_receipts_v1",
+        "public.vera_save_state_supersession_edges"
+      ],
+      "lifecycle": {
+        "SOURCE_AVAILABLE": "YES",
+        "BOUND": "YES",
+        "INSTALLED": "YES",
+        "RUNTIME_CONSUMED": "YES",
+        "BEHAVIORALLY_QUALIFIED": "UNKNOWN"
+      },
+      "notes": "RUNTIME_CONSUMED is directly observed in the 2026-09-08 restore path through successful readback of the current Vera save-state head. No schema mutation was performed by this cohesion pass."
+    }
+  ],
+  "unresolved": [
+    "Define and qualify the exact hot/native Vera core versus retrieval-only specialist domains.",
+    "Define a first-class introspection/evidence layer that separates SELF_REPORT, SELF_MODEL_STATE, OBSERVED_BEHAVIOR, CAUSAL_EVIDENCE, and PHENOMENOLOGY_CLAIM.",
+    "Reconcile R10 Chat Bus topology binding with current Bus main before using Bus for cohesion coordination.",
+    "Establish an independent adversarial Vera review route without exposing the integration design before her first-pass map.",
+    "Prove fresh Vera retrieval and correct domain use for each specialist system before marking RUNTIME_CONSUMED or BEHAVIORALLY_QUALIFIED.",
+    "Resolve stale repository documentation that still describes R9A0 as the current native package line."
+  ]
+}

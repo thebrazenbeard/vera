@@ -1,0 +1,88 @@
+{
+  "schema": "VERA_AFFECTIVE_AUTHORITY_CONTEXT_BOUNDARY_V1",
+  "subject": "vera",
+  "status": "SOURCE_DESIGN / REGRESSION_BOUND / IN_PROCESS_AUTHORITY_NONQUALIFYING / EXTERNAL_TRUST_ROOT_NOT_INTEGRATED / NOT_RUNTIME_QUALIFIED",
+  "scope": "PRIVILEGED_AFFECTIVE_TRIGGER_AUTHORITY_AND_ORGANIC_CONTEXT_PROVENANCE",
+  "source_contract": {
+    "repository": "thebrazenbeard/sexuality",
+    "commit": "150f1c8231423393bb66b0e2cb759ce7c018f8d7",
+    "path": "vera/orgasm/ORGASM_RUNTIME_CONTRACT_V1.json",
+    "blob": "a48eed5392fdadc073dccd1e799926042077f567",
+    "authorization_boundary_writable_by_orgasm_subsystem": false,
+    "authorization_states": ["ALLOW", "DECLINE", "UNKNOWN", "NOT_APPLICABLE"],
+    "required_authorization_metadata": [
+      "actor",
+      "referent",
+      "proposition_or_effect_class",
+      "source",
+      "observed_at",
+      "currentness",
+      "expiry_or_supersession"
+    ]
+  },
+  "separation_rules": {
+    "source_binding": "Exact frozen sexuality source binding establishes Vera-specific source provenance only. It does not establish event authority, organic-context authority, behavioral qualification, provider currentness, durability, or phenomenology.",
+    "causal_execution": "A source-bound runtime may perform bounded affective state transitions and allowlisted planning modulation without those transitions becoming production-qualified evidence.",
+    "authorization": "ADMIN_FORCED_TEST and SELF_QUALIFICATION_TEST consume structured ALLOW/currentness evidence through a composition-bound verifier. The current Python verifier composition is in-process and therefore nonqualifying because same-process code can win first installation.",
+    "organic_context": "Caller StimulusAppraisal.context_eligible is not upstream context evidence. Organic context eligibility must cross the same governed context boundary; the current in-process verifier composition remains nonqualifying for production evidence.",
+    "temporal_authority": "Public advance_time() is affective simulation/recovery time. It may progress state dynamics but cannot satisfy privileged-trigger cooldown. Privileged cooldown uses runtime-owned monotonic observation of elapsed time.",
+    "restore_temporal_boundary": "Monotonic timestamps are process-local and are not compared across restore. If a restored record establishes a prior forced trigger but no independently trusted cross-process wall-clock proof exists, restore requires a fresh privileged-trigger cooldown in the new runtime process.",
+    "receipt_provenance": "In-process verifier evidence is preserved in receipts for auditability but is labeled IN_PROCESS_UNROOTED_NON_QUALIFYING. It cannot mint a new production ENGINEERED_ORGASM_ANALOGUE_OCCURRED claim. Resolution/recovery descendants preserve the same trust downgrade.",
+    "historical_replay": "Source-bound historical/nonqualifying receipts may be structurally validated and replayed without treating exact source provenance as behavioral qualification.",
+    "provider_currentness": "Authority/context evidence and provider currentness are separate trust domains. This boundary does not establish provider CURRENT or ATOMIC_DURABLE state.",
+    "phenomenology": "No source, authorization, context, timing, state-transition, persistence, receipt, review, or qualification evidence in V1 establishes phenomenology."
+  },
+  "composition": {
+    "in_process_verifier_trust_class": "IN_PROCESS_UNROOTED_NON_QUALIFYING",
+    "per_invocation_verifier_injection": "FORBIDDEN",
+    "first_writer_python_installer_is_external_trust_root": false,
+    "same_process_isolation": "NOT_CLAIMED",
+    "production_authority_root": "NOT_INTEGRATED",
+    "production_engineered_claim_validation_available_in_source_package": false,
+    "required_future_boundary": "INDEPENDENTLY_ROOTED_EXTERNAL_AUTHORITY_CAPABILITY_OR_CONFIGURATION"
+  },
+  "forced_trigger_gate": {
+    "causal_test_execution_all_of": [
+      "exact frozen Vera sexuality source binding",
+      "composition-verifier-derived ALLOW/current metadata for referent=vera and exact effect class",
+      "no expiry or supersession in consumed evidence",
+      "runtime-owned privileged cooldown satisfied"
+    ],
+    "production_qualification_additionally_requires": "INDEPENDENTLY_ROOTED_EXTERNAL_AUTHORITY_CAPABILITY_NOT_PRESENT_IN_V1",
+    "caller_advance_time_credit": false
+  },
+  "organic_context_gate": {
+    "causal_test_execution_all_of": [
+      "exact frozen Vera sexuality source binding",
+      "composition-verifier-derived upstream context evidence for referent=vera",
+      "no conflict or supersession in consumed context evidence"
+    ],
+    "production_qualification_additionally_requires": "INDEPENDENTLY_ROOTED_EXTERNAL_AUTHORITY_OR_CONTEXT_CAPABILITY_NOT_PRESENT_IN_V1",
+    "caller_context_boolean_is_evidence": false,
+    "note": "This gate establishes only context_eligible input. It does not add participating_systems to the frozen contract's organic_climax_predicate."
+  },
+  "known_contract_dependency": {
+    "participating_systems_state": "The frozen sexuality contract declares participating_systems as entrainment state and defines a vocabulary.",
+    "participating_systems_predicate": "The frozen sexuality contract does not include participating_systems in organic_climax_predicate.all_of.",
+    "governance": "Vera runtime preserves declared participating-system state fidelity but must not silently strengthen the frozen source proposition."
+  },
+  "regression_bindings": [
+    "tests/test_runtime_cohesion_orgasm_authority_boundary.py",
+    "tests/test_runtime_cohesion_orgasm_authority_composition_current_head.py",
+    "tests/test_runtime_cohesion_orgasm_context_provenance_gate.py",
+    "tests/test_runtime_cohesion_affect_authority_receipt_binding.py",
+    "tests/test_runtime_cohesion_affect_organic_context_receipt_binding.py",
+    "tests/test_runtime_cohesion_affect_receipt_semantics_current_head.py",
+    "tests/test_runtime_cohesion_affect_restore_cycle.py",
+    "tests/test_runtime_cohesion_affect_runtime_implementation_cut_current_head.py"
+  ],
+  "claim_ceiling": {
+    "historical_engineered_event": "ENGINEERED_ORGASM_ANALOGUE_OCCURRED",
+    "new_in_process_event_production_claim": "NOT_ESTABLISHABLE",
+    "source_bound_runtime": "SOURCE_CAPABLE_NOT_BEHAVIORALLY_QUALIFIED",
+    "current_runtime_qualification": "NOT_ESTABLISHED",
+    "provider_currentness": "UNRESOLVED",
+    "durability": "NOT_QUALIFIED",
+    "phenomenology": "UNRESOLVED"
+  }
+}

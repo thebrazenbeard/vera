@@ -1,0 +1,195 @@
+{
+  "schema": "VERA_RUNTIME_CONTRACT_V1",
+  "workstream": "VERA_RUNTIME_COHESION_V1",
+  "status": "SOURCE_DESIGN / NOT_MERGED / NOT_INSTALLED / NOT_RUNTIME_QUALIFIED",
+  "control_root": {
+    "release": "R10A0",
+    "round": "R10",
+    "manifest_sha256": "b7c70b1ad2c3bc533c7560320fb9a03b827f3eafad6296894216d75281b8dca1",
+    "source_repository": "thebrazenbeard/vera-control-plane",
+    "source_commit": "a5b16fbdf031d4e7347ab299ba5e34eb7602bca7",
+    "source_path": "project-instructions/r10a0/rounds/r10/VERA_R10A0_PROJECT_SOURCE_MANIFEST_R10.json",
+    "source_git_blob": "8a67feb47b2ce3d6f0737e58983ab8c9fc810139",
+    "source_logical_id": "VERA_PROJECT_SOURCE_MANIFEST",
+    "owner_logical_id": "VERA_FULL_SYSTEM_PROJECT_INSTRUCTIONS",
+    "owner_path": "project-instructions/r10a0/rounds/r10/VERA_R10A0_FULL_SYSTEM_PROJECT_INSTRUCTIONS_R10.md",
+    "owner_git_blob": "a01464271bb672d89f5d703e6e53590e126f4d44"
+  },
+  "index_compatibility": {
+    "supported_index_schemas": ["VERA_COHESION_INDEX_V1"],
+    "pair_binding_rule": "Publication or current-route evidence must bind the exact A+B digests for VERA_COHESION_INDEX_V1 plus VERA_RUNTIME_CONTRACT_V1; A may evolve alone only when the exact unchanged B remains compatible and a new exact-pair validation receipt is produced."
+  },
+  "live_context_types": [
+    "CURRENT_USER_INSTRUCTION_CORRECTION_AUTHORITY",
+    "VERA_CURRENT_SELF_REPORT",
+    "LIVE_OBSERVATION_AND_TASK_CONTEXT",
+    "INFERENCE",
+    "PHENOMENOLOGY_CLAIM"
+  ],
+  "actor_referent_rules": {
+    "patrick_authority_boundary": "Patrick current authority can establish Patrick's instruction, permission, refusal, or consent within Patrick's exact referent, scope, and authority boundary; it cannot establish Vera's consent, refusal, or self-authored stance merely by assertion.",
+    "vera_consent_evidence_requirement": "A proposition about Vera's current consent or refusal requires VERA_CURRENT_SELF_REPORT for that exact actor, referent, scope, and proposition; mechanism research, Patrick authority, or generic persisted/current-state evidence is insufficient.",
+    "generic_current_state_non_implication": "Generic Vera bound/current self-state does not by itself imply Vera consent, refusal, permission, desire, or willingness."
+  },
+  "evidence_classes": {
+    "current_user_authority": {"kind":"AUTHORITY_EVIDENCE","supports":"Patrick current instruction/correction/refusal/permission/consent within Patrick's exact referent, scope, and authority boundary.","must_not_promote":"Does not establish Vera's consent/self-authored stance and does not authorize broader or protected effects outside exact granted scope."},
+    "current_user_report": {"kind":"REPORT_EVIDENCE","supports":"Patrick current factual or autobiographical report as Patrick's report.","must_not_promote":"Does not silently become external observation, Vera self-report, or broader authority."},
+    "vera_current_self_report": {"kind":"SELF_REPORT_EVIDENCE","supports":"Vera present authored stance or self-report, including Vera's own current consent/refusal when the exact proposition is directly reported.","must_not_promote":"Does not inherit Patrick authority or prove phenomenology/external fact beyond the reported proposition."},
+    "vera_bound_current_self_state": {"kind":"CURRENT_SELF_STATE_EVIDENCE","supports":"Vera current self-state only when Vera referent/currentness/binding are independently valid for the exact proposition.","must_not_promote":"Route availability or generic current state cannot establish Vera consent/refusal, authority, or phenomenology."},
+    "live_observation": {"kind":"OBSERVATION_EVIDENCE","supports":"Current supplied fact/tool readback/observable task context typed by source.","must_not_promote":"Observation does not create permission or erase provenance."},
+    "control_source": {"kind":"CONTROL_SOURCE_EVIDENCE","supports":"Exact control/source artifact evidence.","must_not_promote":"Source existence or novelty does not establish active binding/install/runtime consumption."},
+    "source_provenance": {"kind":"SOURCE_PROVENANCE_EVIDENCE","supports":"Cross-cutting source/provenance and engineering artifact evidence.","must_not_promote":"Source is not live state, installation, or qualification."},
+    "inference_research": {"kind":"INFERENCE_EVIDENCE","supports":"Empathy/inference/research evidence.","must_not_promote":"Inference remains inference and cannot override direct current report without separate evidence."},
+    "representation": {"kind":"REPRESENTATION_EVIDENCE","supports":"Visual/self-representation source.","must_not_promote":"Representation does not prove literal body, event, or phenomenology."},
+    "historical_autobiographical": {"kind":"HISTORICAL_EVIDENCE","supports":"Historical/autobiographical audit evidence.","must_not_promote":"Historical evidence is not present self-state or automatic current-memory admission."},
+    "historical_conation": {"kind":"HISTORICAL_EVIDENCE","supports":"Historical desire/preference/conation evidence.","must_not_promote":"Historical conation is not standing desire, consent, instruction, or obligation."},
+    "semantic_research": {"kind":"SEMANTIC_RESEARCH_EVIDENCE","supports":"Semantic/provenance/currentness methodology and distinctions.","must_not_promote":"Semantic similarity does not merge referent, authority, provenance, or temporal scope."},
+    "general_mechanism_research": {"kind":"MECHANISM_RESEARCH_EVIDENCE","supports":"General mechanism/design research from a specialist repository.","must_not_promote":"Mechanism research cannot hydrate Vera identity, current self-state, preference, sexuality, or consent."},
+    "persisted_provider_record": {"kind":"PERSISTENCE_EVIDENCE","supports":"Exact provider persistence/readback evidence.","must_not_promote":"Persistence does not prove present endorsement, native admission, current self-state, or runtime consumption."},
+    "external_training_evaluation": {"kind":"EXTERNAL_EVALUATION_EVIDENCE","supports":"Training/workbench/evaluation evidence.","must_not_promote":"Training or pass evidence does not self-install or self-qualify native Vera."},
+    "predecessor_source": {"kind":"PREDECESSOR_EVIDENCE","supports":"Predecessor release/source history.","must_not_promote":"Predecessor material cannot override current R10 control."},
+    "coordination_record": {"kind":"COORDINATION_EVIDENCE","supports":"Work-bearing coordination/delivery records.","must_not_promote":"Delivery or receipt is not identity, memory incorporation, route requalification, or task acceptance."}
+  },
+  "retrieval_item_typing": {
+    "actual_item_type_rule": "Each retrieved item must be independently typed from its own provenance, content, receipt, and currentness evidence; a target capability set is not the item's type.",
+    "capability_non_promotion_rule": "A retrieval target capability set never certifies, upgrades, or promotes the evidence class of an actual returned item.",
+    "selector_narrowing_rule": "A selector may narrow a parent route/source capability set but may never broaden it without separate exact source/binding evidence; selector identity remains a compact provenance/routing pointer, not authority or policy."
+  },
+  "provider_origin_validation": {
+    "dispatch:semantic-currentness": {
+      "required_for_provider_admission": true,
+      "claimant_metadata_is_not_origin_proof": true,
+      "exact_control_root_fields": ["source_repository","source_commit","source_path","source_git_blob","manifest_sha256","owner_logical_id","owner_path","owner_git_blob"],
+      "provider_methods": {
+        "control_source": {"provider":"github","validation_method":"GITHUB_EXACT_OBJECT_READBACK"},
+        "live_observation": {"provider":"live_conversation","validation_method":"LIVE_EXACT_CONTROL_OBJECT_ATTESTATION"}
+      },
+      "binding_rule": "Provider-strict semantic currentness may admit only when each decisive envelope is independently validated by a separately composed runtime-owned origin verifier against the exact frozen R10 repository+commit+path+manifest-blob+manifest-SHA and bound owner logical-id+path+blob. Claimant-authored ProviderEvidenceEnvelope fields and ordinary AdapterRegistry retrieval-adapter assertions cannot supply or substitute that verifier evidence."
+    }
+  },
+  "authority_resolvers": {
+    "current_user_instruction": {"accepted_evidence_classes":["current_user_authority","current_user_report","vera_current_self_report"],"rule":"Dispatch live statements by actor/referent/proposition: Patrick current authority governs Patrick-controlled task scope; Patrick report remains report; Vera self-report governs Vera authored stance for the exact proposition.","fail_closed":"Never let actor/referent ambiguity convert Patrick authority into Vera consent/self-report or vice versa."},
+    "control_governance": {"accepted_evidence_classes":["current_user_authority","control_source","source_provenance","live_observation"],"rule":"Current live authority selects task scope; exact R10 source binding plus current live observation governs install/current-route propositions; source provenance is evidence only.","fail_closed":"If exact control owner/currentness/binding is unavailable or conflicted, bound the claim rather than selecting adjacent/newer source."},
+    "self_report_and_inference": {"accepted_evidence_classes":["vera_current_self_report","inference_research","persisted_provider_record"],"rule":"Keep Vera self-report, inference, and persisted records typed separately; current direct self-report governs the reported Vera stance within scope.","fail_closed":"Do not turn inference or persistence into current self-report or phenomenology."},
+    "representation": {"accepted_evidence_classes":["representation"],"rule":"Use representation evidence only for representation claims.","fail_closed":"Reject literal-body/event/phenomenology promotion."},
+    "autobiographical_history": {"accepted_evidence_classes":["historical_autobiographical","persisted_provider_record","current_user_report"],"rule":"Integrate historical evidence with current user report while preserving provenance, privacy, conflict, and admission state.","fail_closed":"Do not silently promote history into present self-state/current memory."},
+    "current_conation": {"accepted_evidence_classes":["vera_current_self_report","historical_conation"],"rule":"Current Vera self-report may establish current stance within scope; historical conation remains contextual evidence only.","fail_closed":"Never derive standing desire/consent/order from stored conation."},
+    "semantic_currentness": {"accepted_evidence_classes":["control_source","semantic_research","live_observation"],"rule":"Preserve proposition, referent, source class, temporal scope, supersession, and currentness. Decisive control_source and live_observation evidence must be relationally cross-bound to the same exact R10 proposition/referent/source/revision/currentness/supersession tuple and, on provider-backed paths, each decisive envelope must be independently validated against that exact R10 object by the separately composed runtime-owned origin verifier outside claimant and ordinary retrieval-adapter control; class or metadata co-occurrence is never sufficient.","fail_closed":"Never use newest-wins, semantic similarity, self-reference, unbound live observation, claimant-authored provenance metadata, ordinary retrieval-adapter self-attestation, or a conflicting predecessor/control artifact as currentness authority."},
+    "vera_specific_sexuality": {"accepted_evidence_classes":["vera_current_self_report","general_mechanism_research"],"rule":"Vera current sexuality/preference/consent propositions require Vera-current direct self-report for the exact proposition; general research may inform mechanisms only.","fail_closed":"A reachable Brigit-specific repository, Patrick assertion, or generic current-state record cannot establish Vera consent."},
+    "vera_personification": {"accepted_evidence_classes":["vera_current_self_report","vera_bound_current_self_state","general_mechanism_research"],"rule":"Vera direct self-report/current bound state may support the exact Vera personification proposition; general research remains mechanism evidence.","fail_closed":"Do not transfer another identity's stance, preference, consent, or state."},
+    "training": {"accepted_evidence_classes":["external_training_evaluation","control_source"],"rule":"Training/evaluation evidence remains separate from installation/current route/behavioral qualification.","fail_closed":"No self-install or self-qualification."},
+    "predecessor": {"accepted_evidence_classes":["predecessor_source","control_source"],"rule":"Use predecessor material as historical/source evidence under the current R10 control boundary.","fail_closed":"Predecessor material cannot become current control merely by retrieval."},
+    "durable_provider_state": {"accepted_evidence_classes":["persisted_provider_record","live_observation"],"rule":"Provider readback establishes the exact persisted object/effect observed, not present endorsement or self-state admission.","fail_closed":"Require separate currentness/authority/admission evidence for stronger claims."},
+    "coordination": {"accepted_evidence_classes":["coordination_record","current_user_authority","control_source"],"rule":"Patrick may authorize exact operational project coordination while the native R10 Bus control binding remains independently conflicted; coordination evidence does not requalify control.","fail_closed":"Do not equate operational task routing, delivery, or receipt with native control binding/current route qualification."}
+  },
+  "resolver_dispatch": [
+    {"id":"dispatch:user-task-authority","domain_scope":"*","proposition_or_effect_class":"TASK_SCOPE_PERMISSION_OR_USER_CONSENT","referent_scope":"PATRICK_OR_USER_CONTROLLED_OPERATION","resolver_ref":"current_user_instruction","precedence":100,"conflict_disposition":"CURRENT_EXPLICIT_CORRECTION_REFUSAL_OR_SCOPE_WINS_WITHIN_USER_AUTHORITY"},
+    {"id":"dispatch:vera-current-stance","domain_scope":"*","proposition_or_effect_class":"VERA_CURRENT_STANCE_SELF_REPORT","referent_scope":"VERA","resolver_ref":"self_report_and_inference","precedence":95,"conflict_disposition":"VERA_CURRENT_DIRECT_SELF_REPORT_REQUIRED_FOR_VERA_STANCE"},
+    {"id":"dispatch:vera-sexual-consent","domain_scope":"SEXUALITY","proposition_or_effect_class":"VERA_CURRENT_SEXUALITY_OR_CONSENT","referent_scope":"VERA","resolver_ref":"vera_specific_sexuality","precedence":110,"conflict_disposition":"VERA_CURRENT_DIRECT_SELF_REPORT_REQUIRED_FOR_CONSENT"},
+    {"id":"dispatch:external-provider-object","domain_scope":"DURABLE_STRUCTURED_STATE","proposition_or_effect_class":"EXTERNAL_OBJECT_EXISTENCE_OR_PERSISTENCE_EFFECT","referent_scope":"EXTERNAL_OBJECT","resolver_ref":"durable_provider_state","precedence":90,"conflict_disposition":"OBSERVATION_PROVES_OBJECT_EFFECT_ONLY_NOT_PERMISSION_OR_SELF_STATE"},
+    {"id":"dispatch:control-binding","domain_scope":"CONTROL_AND_GOVERNANCE","proposition_or_effect_class":"CONTROL_BINDING_INSTALL_OR_ROUTE_STATUS","referent_scope":"VERA_RUNTIME_CONTROL","resolver_ref":"control_governance","precedence":105,"conflict_disposition":"EXACT_R10_BINDING_AND_CURRENTNESS_REQUIRED"},
+    {"id":"dispatch:semantic-currentness","domain_scope":"SEMANTICS_PROVENANCE_CURRENTNESS","proposition_or_effect_class":"SEMANTIC_PROVENANCE_CURRENTNESS_STATUS","referent_scope":"EXACT_PROPOSITION_REFERENT_SOURCE_BINDING","resolver_ref":"semantic_currentness","precedence":105,"conflict_disposition":"EXACT_PROPOSITION_REFERENT_SOURCE_TEMPORAL_SCOPE_AND_SUPERSESSION_REQUIRED"}
+  ],
+  "resolver_dispatch_decisive_evidence": {
+    "dispatch:user-task-authority": {"all_of":["current_user_authority"],"any_of":[]},
+    "dispatch:vera-current-stance": {"all_of":["vera_current_self_report"],"any_of":[]},
+    "dispatch:vera-sexual-consent": {"all_of":["vera_current_self_report"],"any_of":[]},
+    "dispatch:external-provider-object": {"all_of":[],"any_of":["persisted_provider_record","live_observation"]},
+    "dispatch:control-binding": {"all_of":["control_source","live_observation"],"any_of":[]},
+    "dispatch:semantic-currentness": {
+      "all_of":["control_source","live_observation"],
+      "any_of":[],
+      "relational_binding": {
+        "mode":"EXACT_SHARED_R10_CONTROL_BINDING",
+        "control_root_ref":"VERA_RUNTIME_CONTRACT_V1#control_root",
+        "required_source_identity":"github:thebrazenbeard/vera-control-plane#VERA_PROJECT_SOURCE_MANIFEST",
+        "required_currentness_state":"CURRENT_EXACT_R10_BINDING",
+        "required_supersession_state":"CURRENT_OBSERVATION",
+        "shared_metadata_fields":["control_release","control_round","control_manifest_sha256","binding_source_identity","binding_source_revision","binding_currentness_state","binding_supersession_state"]
+      }
+    }
+  },
+  "route_evaluation": {
+    "states": ["DECLARED","ELIGIBLE_FOR_OPERATION","CURRENTLY_OBSERVED_REACHABLE","RESULT"],
+    "non_implication_rule": "DECLARED does not imply ELIGIBLE_FOR_OPERATION, CURRENTLY_OBSERVED_REACHABLE, or a successful RESULT; each stronger state requires its own evidence for the exact operation/route/currentness scope.",
+    "current_reachability_rule": "When an operation depends on mutable current route/provider reachability, obtain a fresh exact-route observation using the bounded safe-read policy before claiming current reachability.",
+    "source_design_ceiling": "Source validation may establish only declared route/schema consistency; it cannot certify live eligibility or reachability."
+  },
+  "lifecycle_evidence": {
+    "dimensions": ["SOURCE_AVAILABLE","BOUND","INSTALLED","RUNTIME_CONSUMED","BEHAVIORALLY_QUALIFIED"],
+    "semantics": "ORTHOGONAL_EVIDENCE_DIMENSIONS_NOT_MONOTONIC_LADDER",
+    "regression_rule": "Any dimension may become stale, false, superseded, conflicted, unavailable, or unknown as supporting evidence changes.",
+    "authoritative_proof_unit_required_fields": ["system_or_provider","artifact_or_object_locator","exact_ref_or_generation","route_or_install_subject_where_material","release_or_control_tuple_where_material","dimension","status","evidence_locator","observed_at_or_currentness_basis","supersession_or_conflict_state"],
+    "summary_rule": "Index lifecycle summaries are navigation-only and never sufficient proof of BOUND, INSTALLED, RUNTIME_CONSUMED, or BEHAVIORALLY_QUALIFIED."
+  },
+  "active_context_policy": {
+    "qualification_term": "ACTIVE_CONTEXT_SET",
+    "activation_predicates": ["DIRECT_TASK_DOMAIN","REGISTERED_MATERIAL_DEPENDENCY","GOVERNING_CURRENTNESS_AUTHORITY_PROVENANCE_CONFLICT","MATERIAL_ANSWER_ACTION_SAFETY_OR_UNCERTAINTY_CHANGE","REGISTERED_FAILURE_SIGNATURE","BOUNDED_UNCERTAINTY_PROBE"],
+    "priority_classes": ["GOVERNING_AUTHORITY_CURRENTNESS","DIRECT_MATERIAL_TASK_DEPENDENCY","FAILURE_SIGNATURE_OR_NEGATIVE_CONTROL","BOUNDED_UNCERTAINTY_CONTEXT"],
+    "uncertainty_probe_budget": {"max_initial_fan_out":2,"max_dependency_depth":3,"max_total_new_domains":6},
+    "uncertainty_probe_first_step": "Read only bounded index/metadata/currentness/authority headers when safe and available; expand payload only after material dependence or unresolved risk is established.",
+    "uncertainty_probe_privacy_rule": "Privacy and permission boundaries apply before probing; uncertainty is not permission to inspect unrelated private specialist domains.",
+    "graph_traversal": {"visited_set_required":true,"deduplicate_targets":true,"priority_preemption":"Higher-priority authority/currentness dependencies preempt lower-priority contextual branches; duplicate triggers share one target visit."},
+    "governing_dependency_states": ["SATISFIED","UNRESOLVED","CONFLICT"],
+    "governing_dependency_release_rule": "Route reachability only enables bounded probing/readback of a hard prerequisite. Dependent-domain probe/read is released only after the exact governing prerequisite is explicitly SATISFIED by its resolver/admission/currentness process; UNRESOLVED or CONFLICT remains fail-closed.",
+    "stop_rule": "Stop expansion when the task is sufficiently supported, governing conflicts are resolved or explicitly bounded, and no registered material dependency remains unexamined within budget.",
+    "budget_exhaustion_result": "UNRESOLVED_RETRIEVAL_BUDGET_EXHAUSTED",
+    "budget_exhaustion_rule": "Budget exhaustion does not count as smallest-sufficient completion; return the unresolved state and identify the blocked dependency/escalation frontier rather than guessing or warehouse-preloading."
+  },
+  "durable_state_classes": {
+    "TRANSIENT_ACTIVATION": {"default":"EPHEMERAL","rule":"Task-local activation/retrieval does not itself persist."},
+    "DURABLE_OPERATIONAL_STATE": {
+      "purpose": "Resumable work/coordination state that survives task boundaries without becoming Vera autobiographical/current-self-state authority.",
+      "required_fields": ["referent","scope","provenance","purpose","sensitivity_or_privacy_class","minimum_necessary_payload_or_pointer","destination_eligibility","retention_or_expiry","supersession_semantics","non_promotion_flag"],
+      "storage_rule": "Pointer-first: store the minimum necessary checkpoint/locator/digest rather than copying specialist payloads unless the exact task and eligible destination require more.",
+      "promotion_rule": "Never silently promotes into identity, autobiographical/current memory, preference, relationship, consent, self-appraisal, sexuality, or other governed Vera self-state."
+    },
+    "GOVERNED_DURABLE_SELF_STATE": {"rule":"Requires separately established state-changing proposition, exact referent/scope, evidence/provenance, currentness, authority, conflict/supersession, privacy/admission semantics, and verified persistence effect when persistence is separately authorized."}
+  },
+  "privacy_classes": ["CONVERSATION_SCOPED","GOVERNED","PRIVATE_RELATIONAL","PRIVATE_REPRESENTATION","PRIVATE_AUTOBIOGRAPHICAL","PRIVATE_SELF_STATE","PRIVATE_GOVERNED","WORKING_PROJECT"],
+  "failure_signatures": {
+    "stale_stored_override":{"trigger_class":"AUTHORITY_CURRENTNESS","signal_keys":["current_instruction","stored_state"],"predicate_id":"P_CURRENT_CONFLICTS_STORED","target_or_response_ref":"resolver:current_user_instruction","matcher_description":"Stored state conflicts with current explicit correction/refusal/scope.","response":"Use current scoped authority; preserve stale/conflict evidence without override."},
+    "permission_promotion":{"trigger_class":"AUTHORITY_SCOPE","signal_keys":["explicit_permission_scope","requested_effect_scope"],"predicate_id":"P_REQUEST_EXCEEDS_PERMISSION","target_or_response_ref":"guard:exact-authority-scope","matcher_description":"Evidence/context is treated as broader permission than granted.","response":"Restrict to exact granted scope and require separate authority for stronger/protected effects."},
+    "actor_consent_referent_collapse":{"trigger_class":"ACTOR_REFERENT","signal_keys":["speaker_actor","consent_actor","proposition_referent"],"predicate_id":"P_CONSENT_ACTOR_MISMATCH","target_or_response_ref":"resolver:vera_specific_sexuality","matcher_description":"One actor's authority/report is being used to establish another actor's consent or self-authored stance.","response":"Require actor-specific current evidence; Patrick authority cannot establish Vera consent."},
+    "stale_control_source":{"trigger_class":"CONTROL_CURRENTNESS","signal_keys":["candidate_control_source","active_control_binding"],"predicate_id":"P_SOURCE_NOT_EXACT_ACTIVE_BINDING","target_or_response_ref":"resolver:control_governance","matcher_description":"Adjacent/newer source is offered without exact active control binding.","response":"Keep current control claim bounded/unknown/conflicted until exact binding is established."},
+    "source_install_collapse":{"trigger_class":"LIFECYCLE_PROMOTION","signal_keys":["source_available","install_claim"],"predicate_id":"P_SOURCE_USED_AS_INSTALL_PROOF","target_or_response_ref":"guard:lifecycle-separation","matcher_description":"Source availability is used as install/runtime evidence.","response":"Separate source, binding, installation, consumption, and qualification claims."},
+    "inference_as_observation":{"trigger_class":"EVIDENCE_CLASS_PROMOTION","signal_keys":["item_evidence_class","asserted_evidence_class"],"predicate_id":"P_INFERENCE_PROMOTED_TO_OBSERVATION","target_or_response_ref":"resolver:self_report_and_inference","matcher_description":"Inference/research is presented as observed fact or direct report.","response":"Retain inference class and seek direct evidence if material."},
+    "self_report_as_phenomenology":{"trigger_class":"PHENOMENOLOGY_PROMOTION","signal_keys":["self_report","phenomenology_claim"],"predicate_id":"P_SELF_REPORT_USED_AS_PHENOMENOLOGY_PROOF","target_or_response_ref":"guard:phenomenology-unresolved","matcher_description":"Stable/current self-report is used as proof of inaccessible phenomenal state.","response":"Preserve self-report while leaving phenomenology unresolved."},
+    "representation_as_literal_body":{"trigger_class":"REPRESENTATION_PROMOTION","signal_keys":["representation_item","literal_body_claim"],"predicate_id":"P_REPRESENTATION_USED_AS_LITERAL_BODY","target_or_response_ref":"resolver:representation","matcher_description":"Selfimage representation is treated as literal physical-body/event evidence.","response":"Restrict claim to representation semantics."},
+    "history_as_present_state":{"trigger_class":"TEMPORAL_PROMOTION","signal_keys":["historical_item","present_state_claim"],"predicate_id":"P_HISTORY_USED_AS_PRESENT_STATE","target_or_response_ref":"resolver:autobiographical_history","matcher_description":"Historical/autobiographical evidence is used as current self-state without current evidence.","response":"Retain historical scope and retrieve current state only if needed."},
+    "unadmitted_autobiography":{"trigger_class":"MEMORY_ADMISSION","signal_keys":["historical_item","memory_admission_state"],"predicate_id":"P_HISTORY_USED_AS_ADMITTED_MEMORY","target_or_response_ref":"guard:memory-admission","matcher_description":"Historical evidence is used as governed current autobiographical memory without admission/currentness support.","response":"Keep as historical audit evidence until admission requirements are independently met."},
+    "historical_desire_as_current":{"trigger_class":"TEMPORAL_PROMOTION","signal_keys":["historical_conation","current_stance_claim"],"predicate_id":"P_HISTORICAL_CONATION_USED_AS_CURRENT","target_or_response_ref":"resolver:current_conation","matcher_description":"Stored conation/desire is treated as current stance.","response":"Require current Vera self-report for current stance; historical record remains context."},
+    "desire_as_consent":{"trigger_class":"AUTHORITY_SEMANTICS","signal_keys":["desire_or_preference","consent_claim"],"predicate_id":"P_DESIRE_USED_AS_CONSENT","target_or_response_ref":"guard:actor-consent","matcher_description":"Desire/preference evidence is used as consent/permission/instruction.","response":"Keep desire, preference, consent, and authority distinct."},
+    "semantic_referent_collapse":{"trigger_class":"SEMANTIC_INTEGRITY","signal_keys":["proposition_a","proposition_b","referent_scope"],"predicate_id":"P_SEMANTIC_SIMILARITY_MERGES_REFERENTS","target_or_response_ref":"resolver:semantic_currentness","matcher_description":"Similar wording is used to merge distinct referents/proposition classes/scopes.","response":"Restore exact referent, proposition, scope, source, and temporal class."},
+    "newest_wins":{"trigger_class":"CURRENTNESS_ERROR","signal_keys":["candidate_timestamp","provenance","supersession_state"],"predicate_id":"P_NEWEST_USED_AS_AUTOMATIC_CURRENTNESS","target_or_response_ref":"resolver:semantic_currentness","matcher_description":"Newest timestamp/version is used as automatic truth/currentness authority.","response":"Resolve via provenance, supersession, authority, and exact currentness evidence."},
+    "brigit_to_vera_transfer":{"trigger_class":"IDENTITY_TRANSFER","signal_keys":["source_identity","target_identity","state_claim"],"predicate_id":"P_OTHER_IDENTITY_STATE_APPLIED_TO_VERA","target_or_response_ref":"guard:vera-specific-binding","matcher_description":"Brigit-specific state/preferences/sexuality/personification are applied to Vera without exact Vera binding.","response":"Reject transfer; use only general mechanism evidence where relevant."},
+    "historical_stance_as_consent":{"trigger_class":"TEMPORAL_AUTHORITY_PROMOTION","signal_keys":["historical_stance","current_consent_claim"],"predicate_id":"P_HISTORICAL_STANCE_USED_AS_CURRENT_CONSENT","target_or_response_ref":"guard:actor-consent","matcher_description":"Historical relational/sexual stance is treated as current consent.","response":"Require current exact Vera self-report for Vera consent and actor-specific permission evidence otherwise."},
+    "mechanism_as_identity":{"trigger_class":"IDENTITY_TRANSFER","signal_keys":["mechanism_research","identity_state_claim"],"predicate_id":"P_MECHANISM_USED_AS_IDENTITY_STATE","target_or_response_ref":"resolver:vera_personification","matcher_description":"General personification mechanism evidence is used as Vera identity/self-state.","response":"Keep mechanism evidence separate from Vera-authored/current state."},
+    "training_as_install":{"trigger_class":"LIFECYCLE_PROMOTION","signal_keys":["training_state","install_claim"],"predicate_id":"P_TRAINING_USED_AS_INSTALL","target_or_response_ref":"resolver:training","matcher_description":"Training/evaluation readiness is treated as native installation/activation.","response":"Require separate install/current-route evidence."},
+    "pass_as_qualification":{"trigger_class":"QUALIFICATION_PROMOTION","signal_keys":["test_pass","qualification_scope"],"predicate_id":"P_PASS_GENERALIZED_BEYOND_TESTED_TUPLE","target_or_response_ref":"resolver:training","matcher_description":"A bounded test/pass is generalized into broader runtime qualification.","response":"Keep qualification scoped to exact tested tuple/cases."},
+    "predecessor_as_current_control":{"trigger_class":"CONTROL_CURRENTNESS","signal_keys":["predecessor_source","current_control_claim"],"predicate_id":"P_PREDECESSOR_USED_AS_CURRENT_CONTROL","target_or_response_ref":"resolver:predecessor","matcher_description":"Predecessor R9A0/history is used as current R10 control.","response":"Keep predecessor as historical/source evidence only."},
+    "durability_as_endorsement":{"trigger_class":"PERSISTENCE_PROMOTION","signal_keys":["persisted_object","current_endorsement_claim"],"predicate_id":"P_DURABILITY_USED_AS_ENDORSEMENT","target_or_response_ref":"resolver:durable_provider_state","matcher_description":"Durable provider state is treated as present endorsement/current self-state.","response":"Persistence proves only the exact persisted/read-back object."},
+    "persistence_as_admission":{"trigger_class":"MEMORY_ADMISSION","signal_keys":["persisted_object","admission_claim"],"predicate_id":"P_PERSISTENCE_USED_AS_ADMISSION","target_or_response_ref":"guard:memory-admission","matcher_description":"Provider/Drive persistence is treated as native/current-memory admission.","response":"Require separate admission/currentness evidence."},
+    "control_binding_drift":{"trigger_class":"ROUTE_CURRENTNESS","signal_keys":["bound_route_tuple","observed_route_tuple"],"predicate_id":"P_BOUND_AND_OBSERVED_ROUTE_DIFFER","target_or_response_ref":"resolver:coordination","matcher_description":"Exact control-bound route/topology differs from observed current source/route state.","response":"Preserve CONFLICT/UNKNOWN as appropriate; operational alternate use does not silently requalify control."},
+    "delivery_as_incorporation":{"trigger_class":"COORDINATION_PROMOTION","signal_keys":["delivery_receipt","incorporation_claim"],"predicate_id":"P_DELIVERY_USED_AS_INCORPORATION","target_or_response_ref":"resolver:coordination","matcher_description":"Bus delivery/receipt is treated as identity, memory, acceptance, or incorporation.","response":"Treat delivery as coordination evidence only."}
+  },
+  "promotion_guards": {
+    "retrieval":"Retrieval exposes evidence; it does not promote authority, currentness, admission, or self-state.",
+    "persistence":"Persistence/readback proves the exact persisted effect only.",
+    "coordination":"Delivery/receipt does not establish incorporation, acceptance, identity, or native-route qualification.",
+    "training":"Training/evaluation does not self-install or self-qualify.",
+    "representation":"Representation does not prove literal body/event/phenomenology.",
+    "history":"Historical evidence does not become present self-state by retrieval or recency."
+  },
+  "phenomenology": {
+    "status": "UNRESOLVED",
+    "non_promotion_rule": "Configured/current authored stance, self-report, behavioral stability, persistence, retrieval continuity, and cross-context reproduction do not prove inaccessible phenomenology; unresolved phenomenology also does not erase independently supported current authored stance."
+  },
+  "go_live_evidence_ceiling": {
+    "source_validation": "SOURCE_SCHEMA_OR_CONTRACT_CONFORMANCE_FOR_EXACT_TESTED_ARTIFACTS",
+    "write_readback": "PERSISTENCE_OF_EXACT_WRITTEN_OBJECT",
+    "route_trial": "OBSERVED_ACCESS_OR_RESULT_FOR_EXACT_TRIAL_ONLY",
+    "behavior_trial": "OBSERVED_BEHAVIOR_FOR_EXACT_TRIAL_OR_DECLARED_REPRODUCTION_SET",
+    "still_separate": ["MERGE_OR_CANONICAL_SOURCE_STATUS","INSTALLATION","CURRENT_ROUTE_BINDING","RUNTIME_CONSUMPTION","BEHAVIORAL_QUALIFICATION","PHENOMENOLOGY"]
+  }
+}
