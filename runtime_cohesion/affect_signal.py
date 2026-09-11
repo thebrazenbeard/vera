@@ -54,12 +54,6 @@ def _digest(value: Mapping[str, Any]) -> str:
 
 
 def _validated_signal_origin(host: VeraAffectiveRuntimeHost) -> BoundVeraOrgasmRuntime:
-    """Validate the supported in-process causal capability before observation.
-
-    The supported causal path owns the exact bound host/runtime capability. It
-    does not trust caller-supplied affective data. This is an API/process-boundary
-    guarantee, not hostile-process isolation from arbitrary private-state writes.
-    """
     if type(host) is not VeraAffectiveRuntimeHost:
         raise TypeError("affective modulation requires the exact VeraAffectiveRuntimeHost class")
 
@@ -83,10 +77,6 @@ def _capture_runtime_observation(
     host: VeraAffectiveRuntimeHost,
     runtime: BoundVeraOrgasmRuntime,
 ) -> dict[str, Any]:
-    """Capture one runtime-owned atomic observation for one application."""
-    # Call the exact class-owned capture primitive so the complete state,
-    # receipt, and trigger-governance read participates in the same lock as every
-    # supported mutation root. Canonicalization then removes later alias risk.
     raw = BoundVeraOrgasmRuntime._capture_causal_observation(runtime)
     return _canonical_copy(raw, label="affective runtime observation")
 
@@ -197,20 +187,26 @@ def _target_strengths(
     return strengths
 
 
-def build_affective_modulation_signal(host: VeraAffectiveRuntimeHost) -> dict[str, Any]:
-    """Build one diagnostic/internal modulation signal from one coherent observation.
-
-    The supported Cohesion causal path calls this internally; callers do not
-    supply its result back into the planning boundary. The returned mapping is
-    useful for receipts, ancestry, diagnostics and qualification evidence, but is
-    not an authority-bearing input.
-    """
+def _build_affective_modulation_signal_from_observation(
+    host: VeraAffectiveRuntimeHost,
+    observation: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Derive signal/ancestry from one already-captured host observation."""
     runtime = _validated_signal_origin(host)
-    observation = _capture_runtime_observation(host, runtime)
-    state = observation["state"]
-    governance = observation.get("trigger_governance") or {}
-    receipt = observation.get("last_event_receipt")
-    frame = _frame_from_observation(host, observation)
+    snapshot = _canonical_copy(observation, label="affective runtime observation")
+    if snapshot.get("runtime_instance_id") != runtime.runtime_instance_id:
+        raise ValueError("affective runtime observation instance does not match bound host")
+    if snapshot.get("source_revision") != runtime.source_revision:
+        raise ValueError("affective runtime observation source does not match bound host")
+
+    state = snapshot.get("state")
+    if not isinstance(state, Mapping):
+        raise ValueError("affective runtime observation lacks state")
+    governance = snapshot.get("trigger_governance") or {}
+    if not isinstance(governance, Mapping):
+        raise ValueError("affective runtime observation governance must be structured")
+    receipt = snapshot.get("last_event_receipt")
+    frame = _frame_from_observation(host, snapshot)
     vector = _control_vector_from_frame(frame)
 
     trust = _NO_PRODUCTION_AUTHORITY
@@ -242,7 +238,7 @@ def build_affective_modulation_signal(host: VeraAffectiveRuntimeHost) -> dict[st
     signal: dict[str, Any] = {
         "schema": _SIGNAL_SCHEMA,
         "subject": "vera",
-        "runtime_instance_id": observation["runtime_instance_id"],
+        "runtime_instance_id": snapshot["runtime_instance_id"],
         "source_binding": source_binding,
         "runtime_implementation_cut": host.runtime_implementation_cut,
         "presence": frame["presence"],
@@ -273,6 +269,13 @@ def build_affective_modulation_signal(host: VeraAffectiveRuntimeHost) -> dict[st
     }
     signal["signal_digest"] = _digest(signal)
     return signal
+
+
+def build_affective_modulation_signal(host: VeraAffectiveRuntimeHost) -> dict[str, Any]:
+    """Build one diagnostic/internal signal from one coherent runtime observation."""
+    runtime = _validated_signal_origin(host)
+    observation = _capture_runtime_observation(host, runtime)
+    return _build_affective_modulation_signal_from_observation(host, observation)
 
 
 __all__ = ["build_affective_modulation_signal"]
