@@ -52,6 +52,7 @@ jobs:
           tests.test_runtime_cohesion_untyped_evidence_laundering
           tests.test_runtime_cohesion_m5_m6_m7
           tests.test_runtime_cohesion_ov_rebind_regressions
+          tests.test_runtime_cohesion_affect_integration
           tests.test_runtime_cohesion_failure_wiring
           tests.test_runtime_cohesion_native_hook
           -v
@@ -73,6 +74,7 @@ jobs:
           runtime_cohesion/origin.py
           runtime_cohesion/item_typing.py
           runtime_cohesion/executor.py
+          runtime_cohesion/affect_integration.py
           tests/__init__.py
           tests/test_vera_runtime_cohesion_v1.py
           tests/test_vera_runtime_evidence_contract_v1.py
@@ -95,5 +97,6 @@ jobs:
           tests/test_runtime_cohesion_untyped_evidence_laundering.py
           tests/test_runtime_cohesion_m5_m6_m7.py
           tests/test_runtime_cohesion_ov_rebind_regressions.py
+          tests/test_runtime_cohesion_affect_integration.py
           tests/test_runtime_cohesion_failure_wiring.py
           tests/test_runtime_cohesion_native_hook.py
