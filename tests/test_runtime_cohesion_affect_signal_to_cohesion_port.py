@@ -8,6 +8,7 @@ import runtime_cohesion.affect_authority as authority_module
 from runtime_cohesion.affect_cycle import VeraAffectiveCycle
 from runtime_cohesion.affect_host import VeraAffectiveRuntimeHost
 from runtime_cohesion.affect_integration_bound import CohesionAffectiveIntegrationPort
+from runtime_cohesion.affect_signal import build_affective_modulation_signal
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -60,8 +61,7 @@ class AffectiveSignalToCohesionPortTests(unittest.TestCase):
             non_atomic_test_mode=True,
         )
         self.port = CohesionAffectiveIntegrationPort(
-            runtime_instance_id="signal-to-cohesion-port-test",
-            affective_runtime_implementation_cut=self.binding["runtime_implementation_cut"],
+            host=self.host,
             cohesion_integration_cut=self.binding["cohesion_integration_cut"],
         )
 
@@ -177,6 +177,24 @@ class AffectiveSignalToCohesionPortTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.port.apply(planning, signal)
         self.assertEqual(planning, self.planning_state())
+
+    def test_signal_from_different_exact_bound_host_is_rejected_by_bound_port(self):
+        other_host = VeraAffectiveRuntimeHost.from_bound_contract(
+            CONTRACT_PATH.read_text(encoding="utf-8"),
+            self.binding,
+            runtime_instance_id="different-exact-bound-host",
+            profile="REENTRANT_CLIMAX",
+        )
+        other_signal = build_affective_modulation_signal(other_host)
+        with self.assertRaisesRegex(ValueError, "bound exact host state"):
+            self.port.apply(self.planning_state(), other_signal)
+
+    def test_port_constructor_requires_actual_affective_host_not_cut_metadata(self):
+        with self.assertRaises(TypeError):
+            CohesionAffectiveIntegrationPort(
+                host=self.binding["runtime_implementation_cut"],
+                cohesion_integration_cut=self.binding["cohesion_integration_cut"],
+            )
 
 
 if __name__ == "__main__":
