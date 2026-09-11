@@ -220,7 +220,7 @@ class VeraAffectiveRuntimeHost:
             bind_runtime_cut(runtime_cut)
         except TriggerRejected as exc:
             raise AffectiveBindingError(str(exc)) from exc
-        self.runtime = runtime
+        self._runtime = runtime
         self._binding_snapshot = binding_snapshot
         self._runtime_implementation_cut_snapshot = _canonical_mapping_copy(
             runtime_cut,
@@ -229,6 +229,11 @@ class VeraAffectiveRuntimeHost:
         self.contract_blob_sha = contract_blob_sha
         self.contract_sha256 = contract_sha256
         self._authority_boundary = AffectiveAuthorityBoundary()
+
+    @property
+    def runtime(self) -> OrgasmRuntime:
+        """Return the exact runtime reference captured at host construction."""
+        return self._runtime
 
     @property
     def binding(self) -> dict[str, Any]:
