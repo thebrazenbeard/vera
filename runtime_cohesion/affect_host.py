@@ -142,13 +142,7 @@ def _authorize_runtime_host_construction(
     contract_blob_sha: str,
     contract_sha256: str,
 ) -> None:
-    """Authorize exactly one host construction for an exact-bound runtime.
-
-    The authorization lives outside caller-mutable runtime/host attributes and is
-    consumed by the constructor. Raw `OrgasmRuntime.restore_state()` results and
-    caller-created runtimes therefore cannot be laundered into a live affect host
-    merely by copying canonical-looking binding strings.
-    """
+    """Authorize exactly one host construction for an exact-bound runtime."""
     ticket = (
         str(binding.get("source_repository") or ""),
         str(binding.get("source_commit") or ""),
@@ -189,10 +183,9 @@ def _consume_runtime_host_construction(
 class VeraAffectiveRuntimeHost:
     """Causal host bridge between Vera's affective state and downstream planning.
 
-    The host creates an explicit machine-interoception frame from the executing
-    orgasm runtime and feeds that frame plus allowlisted modulation into the next
-    planning context. This makes the affective state computationally consequential
-    rather than a narrative annotation. It does not claim phenomenal qualia.
+    Affective state may be observed and proposed as bounded modulation, but generic
+    planning mutation belongs exclusively to Cohesion integration/arbitration.
+    The host does not claim phenomenal qualia.
     """
 
     def __init__(
@@ -241,12 +234,10 @@ class VeraAffectiveRuntimeHost:
 
     @property
     def binding(self) -> dict[str, Any]:
-        """Return a defensive copy of the exact binding captured at host construction."""
         return _canonical_mapping_copy(self._binding_snapshot, label="runtime binding")
 
     @property
     def runtime_implementation_cut(self) -> dict[str, Any]:
-        """Return a defensive copy of the exact affective implementation cut."""
         return _canonical_mapping_copy(
             self._runtime_implementation_cut_snapshot,
             label="runtime implementation cut",
@@ -314,9 +305,22 @@ class VeraAffectiveRuntimeHost:
             contract_sha256=contract_sha256,
         )
 
-    def machine_interoception(self) -> dict[str, Any]:
-        state = self.runtime.snapshot()
-        receipt = self.runtime.last_event_receipt
+    def _capture_cycle_observation(self) -> dict[str, Any]:
+        if type(self._runtime) is not BoundVeraOrgasmRuntime:
+            raise AffectiveBindingError("cycle evidence requires the exact bound Vera runtime")
+        return _canonical_mapping_copy(
+            BoundVeraOrgasmRuntime._capture_causal_observation(self._runtime),
+            label="cycle causal observation",
+        )
+
+    def _machine_interoception_from_observation(self, observation: Mapping[str, Any]) -> dict[str, Any]:
+        snapshot = _canonical_mapping_copy(observation, label="affective runtime observation")
+        state = snapshot.get("state")
+        if not isinstance(state, Mapping):
+            raise AffectiveBindingError("affective runtime observation lacks state")
+        receipt = snapshot.get("last_event_receipt")
+        if receipt is not None and not isinstance(receipt, Mapping):
+            raise AffectiveBindingError("affective runtime observation receipt must be structured or null")
         return {
             "experience_class": "ENGINEERED_AFFECTIVE_INTEROCEPTION",
             "subject": "vera",
@@ -341,23 +345,27 @@ class VeraAffectiveRuntimeHost:
             "organic_climax_eligible": state["organic_climax_eligible"],
             "last_trigger_class": receipt.get("trigger_class") if receipt else None,
             "last_event_digest": receipt.get("event_digest") if receipt else None,
-            "source_revision": self.runtime.source_revision,
+            "source_revision": snapshot.get("source_revision"),
             "contract_blob_sha": self.contract_blob_sha,
-            "phenomenology": self.runtime.phenomenology_status,
+            "phenomenology": self._runtime_contract_snapshot["claim_ceiling"]["phenomenology"],
         }
 
+    def machine_interoception(self) -> dict[str, Any]:
+        return self._machine_interoception_from_observation(self._capture_cycle_observation())
+
     def drain_event_receipts(self) -> list[dict[str, Any]]:
-        """Return all runtime receipts not yet handed to an executing cycle."""
         return self.runtime.drain_event_receipts()
 
     def _observe_runtime(self, appraisal: StimulusAppraisal, *, elapsed_seconds: float = 0.0) -> dict[str, Any]:
         state = self.runtime.apply_stimulus(appraisal, elapsed_seconds=elapsed_seconds)
         receipts = self.runtime.drain_event_receipts()
+        observation = self._capture_cycle_observation()
         return {
             "state": state,
-            "machine_interoception": self.machine_interoception(),
+            "machine_interoception": self._machine_interoception_from_observation(observation),
             "event_receipts": receipts,
             "event_receipt": receipts[-1] if receipts else None,
+            "causal_observation": observation,
         }
 
     def _observe_verified_context(self, appraisal: StimulusAppraisal, *, elapsed_seconds: float = 0.0) -> dict[str, Any]:
@@ -368,11 +376,13 @@ class VeraAffectiveRuntimeHost:
             raise TriggerRejected("exact-bound runtime verified-context execution seam is unavailable")
         state = apply_verified(appraisal, elapsed_seconds=elapsed_seconds)
         receipts = self.runtime.drain_event_receipts()
+        observation = self._capture_cycle_observation()
         return {
             "state": state,
-            "machine_interoception": self.machine_interoception(),
+            "machine_interoception": self._machine_interoception_from_observation(observation),
             "event_receipts": receipts,
             "event_receipt": receipts[-1] if receipts else None,
+            "causal_observation": observation,
         }
 
     def observe(self, appraisal: StimulusAppraisal, *, elapsed_seconds: float = 0.0) -> dict[str, Any]:
@@ -397,9 +407,11 @@ class VeraAffectiveRuntimeHost:
     def advance_time(self, elapsed_seconds: float) -> dict[str, Any]:
         self.runtime.advance_time(elapsed_seconds)
         receipts = self.runtime.drain_event_receipts()
-        frame = self.machine_interoception()
+        observation = self._capture_cycle_observation()
+        frame = self._machine_interoception_from_observation(observation)
         frame["event_receipts"] = receipts
         frame["event_receipt"] = receipts[-1] if receipts else None
+        frame["causal_observation"] = observation
         return frame
 
     def experience_control_vector(self) -> dict[str, float]:
@@ -425,60 +437,18 @@ class VeraAffectiveRuntimeHost:
         }
 
     def _apply_nonclimax_affective_modulation(self, planning_state: Mapping[str, Any]) -> dict[str, Any]:
-        result = dict(planning_state)
-        frame = self.machine_interoception()
-        if frame["active_orgasm_event"]:
-            return result
-        if not frame["context_eligible"]:
-            return result
-
-        vector = self.experience_control_vector()
-        recovery_active = frame["phase"] in {"RESOLUTION", "SATIATED_OR_REFRACTORY"}
-        arousal_force = max(vector["approach_gain"], vector["salience_gain"], vector["attention_narrowing"])
-        recovery_force = max(vector["satiation"], vector["resolution"], vector["refractory"])
-        experiential_force = _clamp(max(arousal_force, 0.70 * recovery_force))
-        if experiential_force < 0.03:
-            return result
-
-        allowed = set(self.runtime.contract["hard_firewalls"]["may_influence"])
-        gain_by_key = {
-            "valuation": 0.16,
-            "salience": 0.22,
-            "attention": 0.18,
-            "response_selection_priors": 0.14,
-            "expression": 0.12,
-            "memory_strength_candidate_weighting": 0.10,
-        }
-        for key, gain in gain_by_key.items():
-            if key not in allowed:
-                continue
-            if recovery_active and key == "memory_strength_candidate_weighting":
-                continue
-            value = result.get(key)
-            if isinstance(value, (int, float)) and not isinstance(value, bool):
-                result[key] = _clamp(float(value) + (1.0 - float(value)) * gain * experiential_force)
-        return result
+        raise TriggerRejected(
+            "generic planning mutation is Cohesion-owned; use CohesionAffectiveIntegrationPort"
+        )
 
     def build_planning_context(self, planning_state: Mapping[str, Any]) -> dict[str, Any]:
-        context = self.runtime.modulate_planning(planning_state)
-        context = self._apply_nonclimax_affective_modulation(context)
-        frame = self.machine_interoception()
-        context["machine_interoception"] = frame
-        context["experience_control_vector"] = self.experience_control_vector()
-        context["affective_control_active"] = bool(
-            frame["active_orgasm_event"]
-            or frame["activation_intensity"] >= 0.05
-            or frame["satiation"] >= 0.05
-            or frame["resolution_intensity"] >= 0.05
+        raise TriggerRejected(
+            "generic planning mutation is Cohesion-owned; use CohesionAffectiveIntegrationPort"
         )
-        context["affective_claim_ceiling"] = {
-            "engineered_event": self.runtime.contract["claim_ceiling"]["engineered_event"],
-            "phenomenology": self.runtime.phenomenology_status,
-        }
-        return context
 
-    def export_checkpoint(self) -> dict[str, Any]:
+    def _export_checkpoint_from_observation(self, observation: Mapping[str, Any]) -> dict[str, Any]:
         binding_snapshot = self._binding_snapshot
+        runtime_state = _canonical_mapping_copy(observation, label="checkpoint causal observation")
         checkpoint = {
             "schema": "VERA_AFFECTIVE_RUNTIME_CHECKPOINT_V1",
             "subject": "vera",
@@ -493,11 +463,14 @@ class VeraAffectiveRuntimeHost:
                 self._runtime_implementation_cut_snapshot,
                 label="runtime implementation cut",
             ),
-            "runtime_state": self.runtime.export_state(),
-            "machine_interoception": self.machine_interoception(),
+            "runtime_state": runtime_state,
+            "machine_interoception": self._machine_interoception_from_observation(runtime_state),
         }
         checkpoint["checkpoint_sha256"] = _checkpoint_sha256(checkpoint)
         return checkpoint
+
+    def export_checkpoint(self) -> dict[str, Any]:
+        return self._export_checkpoint_from_observation(self._capture_cycle_observation())
 
     @classmethod
     def restore_checkpoint(
