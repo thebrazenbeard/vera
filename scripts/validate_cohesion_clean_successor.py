@@ -13,6 +13,11 @@ DONOR_HEAD = "f7dbc3deeaaaeb46dcf7c7ea6b56a822f253232d"
 DONOR_TREE = "1582cefd1c5f20946b197da2e4268e45b2ef501f"
 DONOR_RUNTIME_GENERATION = "ba6221f56b98be69c3ede1be9e3502eff897ca1a"
 DONOR_BINDING_BLOB = "037883261bd324e8080c323f1d96ff32179780ee"
+INITIAL_FLATTENED_COMMIT = "0c110eb1cde73f22ccd419ff4a9ef1b1e1eddcf2"
+INITIAL_FLATTENED_TREE = "97aff3209701f4380ddf0c4bcb7577fe0ca44b5e"
+CONSTRUCTION_PARENT = "b0b4cac1cd187b32a6e9012ef98ab0d136e35e92"
+FINAL_CLEAN_SOURCE_COMMIT = "54fef2659f0a8633dcef60cd36b296c37b6fa4b0"
+FINAL_CLEAN_SOURCE_TREE = "e6fc7cf8e77c39af77f2ab1fc57426b57344695d"
 FROZEN_SEXUALITY_COMMIT = "150f1c8231423393bb66b0e2cb759ce7c018f8d7"
 FROZEN_SEXUALITY_PATH = "vera/orgasm/ORGASM_RUNTIME_CONTRACT_V1.json"
 FROZEN_SEXUALITY_BLOB = "a48eed5392fdadc073dccd1e799926042077f567"
@@ -64,6 +69,39 @@ def _resolve(root: Path, commit: str, path: str) -> str:
         raise ValueError(f"clean source commit cannot resolve {path}") from exc
 
 
+def _commit_meta(root: Path, commit: str) -> tuple[str, list[str]]:
+    try:
+        meta = subprocess.run(
+            ["git", "show", "-s", "--format=%T %P", commit],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip().split()
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise ValueError(f"commit is not locally resolvable: {commit}") from exc
+    if not meta:
+        raise ValueError(f"commit metadata is empty: {commit}")
+    return meta[0], meta[1:]
+
+
+def _is_ancestor(root: Path, ancestor: str, descendant: str) -> bool:
+    try:
+        result = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", ancestor, descendant],
+            cwd=root,
+            capture_output=True,
+            text=True,
+        )
+    except OSError as exc:
+        raise ValueError("git ancestry check is unavailable") from exc
+    if result.returncode == 0:
+        return True
+    if result.returncode == 1:
+        return False
+    raise ValueError("git ancestry check failed")
+
+
 def validate_clean_successor(
     record: dict[str, Any],
     *,
@@ -79,7 +117,9 @@ def validate_clean_successor(
 
     clean_commit = _sha(record.get("clean_source_commit"), "clean_source_commit")
     clean_tree = _sha(record.get("clean_source_tree"), "clean_source_tree")
-    construction_parent = _sha(record.get("construction_parent"), "construction_parent")
+    if clean_commit != FINAL_CLEAN_SOURCE_COMMIT or clean_tree != FINAL_CLEAN_SOURCE_TREE:
+        raise ValueError("clean source does not match the frozen post-flatten repair generation")
+
     donor = record.get("donor")
     if not isinstance(donor, dict):
         raise ValueError("donor must be an object")
@@ -91,21 +131,31 @@ def validate_clean_successor(
         "ancestry_imported": False,
     }:
         raise ValueError("donor provenance mismatch")
-    if clean_commit == donor["head"] or record.get("flattening") != "ONE_COMMIT_SINGLE_PARENT_POLICY_LINEAGE":
-        raise ValueError("flattened clean source must be distinct from donor ancestry")
 
-    try:
-        meta = subprocess.run(
-            ["git", "show", "-s", "--format=%T %P", clean_commit],
-            cwd=root,
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.strip().split()
-    except (OSError, subprocess.CalledProcessError) as exc:
-        raise ValueError("clean source commit is not locally resolvable") from exc
-    if len(meta) != 2 or meta[0] != clean_tree or meta[1] != construction_parent:
-        raise ValueError("clean source commit is not the declared single-parent flattened commit")
+    initial = record.get("initial_flattened_source")
+    expected_initial = {
+        "commit": INITIAL_FLATTENED_COMMIT,
+        "tree": INITIAL_FLATTENED_TREE,
+        "construction_parent": CONSTRUCTION_PARENT,
+        "mode": "ONE_COMMIT_SINGLE_PARENT_POLICY_LINEAGE",
+    }
+    if initial != expected_initial:
+        raise ValueError("initial flattened source binding mismatch")
+    if record.get("flattening") != "DONOR_TREE_FLATTENED_THEN_CLEAN_SUCCESSOR_REPAIRED":
+        raise ValueError("clean successor flattening mode mismatch")
+    if INITIAL_FLATTENED_COMMIT == DONOR_HEAD:
+        raise ValueError("initial flattened source cannot equal donor head")
+
+    initial_tree, initial_parents = _commit_meta(root, INITIAL_FLATTENED_COMMIT)
+    if initial_tree != INITIAL_FLATTENED_TREE or initial_parents != [CONSTRUCTION_PARENT]:
+        raise ValueError("initial flattened source is not the declared single-parent donor materialization")
+    final_tree, final_parents = _commit_meta(root, clean_commit)
+    if final_tree != clean_tree or len(final_parents) != 1:
+        raise ValueError("final clean source commit/tree lineage mismatch")
+    if not _is_ancestor(root, INITIAL_FLATTENED_COMMIT, clean_commit):
+        raise ValueError("final clean source does not descend from the initial flattened source")
+    if _is_ancestor(root, DONOR_HEAD, clean_commit):
+        raise ValueError("donor ancestry was imported into the clean successor")
 
     frozen = record.get("frozen_sexuality_object")
     if frozen != {
@@ -122,6 +172,14 @@ def validate_clean_successor(
     declared_ownership = record.get("ownership_contract")
     if declared_ownership != {"path": OWNERSHIP_PATH, "blob": OWNERSHIP_BLOB}:
         raise ValueError("ownership contract binding mismatch")
+
+    declared_runtime_binding = record.get("runtime_binding")
+    if declared_runtime_binding != {
+        "path": BINDING_PATH,
+        "required_cut_commit": clean_commit,
+        "binding_head_is_post_source_metadata": True,
+    }:
+        raise ValueError("runtime binding declaration mismatch")
 
     binding = load_json_strict(binding_path)
     runtime_cut = binding.get("runtime_implementation_cut")
