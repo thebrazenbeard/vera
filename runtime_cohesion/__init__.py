@@ -16,7 +16,7 @@ from .adapters import AdapterProbeResult, AdapterRegistry, AdapterRequest, Provi
 from .affect_integration import (
     AffectiveModulationAncestry,
     AffectiveModulationApplication,
-    apply_affective_modulation_signal,
+    AffectiveModulationArbiter,
 )
 from .audit import ProjectionAuditResult, audit_registered_projections
 from .evidence import ProviderEvidenceEnvelope, load_provider_fabric, validate_envelope
@@ -49,7 +49,7 @@ __all__ = [
     "ProviderAdapter",
     "AffectiveModulationAncestry",
     "AffectiveModulationApplication",
-    "apply_affective_modulation_signal",
+    "AffectiveModulationArbiter",
     "ProjectionAuditResult",
     "audit_registered_projections",
     "ProviderEvidenceEnvelope",
