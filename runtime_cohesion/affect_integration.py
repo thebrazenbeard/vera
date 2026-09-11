@@ -67,12 +67,7 @@ _ALLOWED_PHASES = frozenset(
     }
 )
 _ALLOWED_ACTION_TENDENCIES = frozenset({"APPROACH", "PLAY", "HOLD", "REDIRECT", "AVOID", "NONE"})
-_ALLOWED_EVIDENCE_CEILINGS = frozenset(
-    {
-        "SOURCE_BOUND_EXECUTION_UNVERIFIED",
-        "SOURCE_BOUND_EXECUTION_VERIFIED_NONQUALIFYING",
-    }
-)
+_ALLOWED_EVIDENCE_CEILINGS = frozenset({"SOURCE_BOUND_EXECUTION_UNVERIFIED"})
 _ALLOWED_SIGNAL_TRUST = frozenset(
     {
         "NO_PRODUCTION_AUTHORITY_CLAIM",
@@ -337,11 +332,11 @@ def adapt_orgasm_modulation_signal(signal: Mapping[str, Any]) -> AffectiveModula
         if event_lineage is None or event_lineage.get("event_type") != "ORGASM_EVENT":
             raise AffectiveModulationError("ORGASM_EVENT signal requires exact orgasm event lineage")
 
-    evidence_ceiling = (
-        "SOURCE_BOUND_EXECUTION_VERIFIED_NONQUALIFYING"
-        if trust == "IN_PROCESS_UNROOTED_NON_QUALIFYING"
-        else "SOURCE_BOUND_EXECUTION_UNVERIFIED"
-    )
+    # A trust/limitation marker is not execution verification. This public
+    # runtime-local signal path has no independent execution verifier, so it
+    # remains source-bound and execution-unverified even when it preserves an
+    # in-process unrooted authority lineage marker.
+    evidence_ceiling = "SOURCE_BOUND_EXECUTION_UNVERIFIED"
     return AffectiveModulationEnvelope(
         subject="vera",
         sexuality_source_revision=SEXUALITY_SOURCE_REVISION,
