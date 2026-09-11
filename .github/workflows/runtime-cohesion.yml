@@ -49,6 +49,7 @@ jobs:
           tests.test_runtime_cohesion_admission_envelope_binding
           tests.test_runtime_cohesion_semantic_currentness_dispatch
           tests.test_runtime_cohesion_semantic_origin_boundary
+          tests.test_runtime_cohesion_semantic_origin_unrooted_first_writer
           tests.test_runtime_cohesion_untyped_evidence_laundering
           tests.test_runtime_cohesion_m5_m6_m7
           tests.test_runtime_cohesion_ov_rebind_regressions
@@ -57,6 +58,7 @@ jobs:
           tests.test_runtime_cohesion_executor_provider_admission_boundary
           tests.test_runtime_cohesion_affect_integration
           tests.test_runtime_cohesion_affect_signal_to_cohesion_port
+          tests.test_runtime_cohesion_affect_signal_mapping_snapshot
           tests.test_runtime_cohesion_failure_wiring
           tests.test_runtime_cohesion_native_hook
           tests.test_runtime_cohesion_orgasm
@@ -156,6 +158,7 @@ jobs:
           tests/test_runtime_cohesion_admission_envelope_binding.py
           tests/test_runtime_cohesion_semantic_currentness_dispatch.py
           tests/test_runtime_cohesion_semantic_origin_boundary.py
+          tests/test_runtime_cohesion_semantic_origin_unrooted_first_writer.py
           tests/test_runtime_cohesion_untyped_evidence_laundering.py
           tests/test_runtime_cohesion_m5_m6_m7.py
           tests/test_runtime_cohesion_ov_rebind_regressions.py
@@ -164,6 +167,7 @@ jobs:
           tests/test_runtime_cohesion_executor_provider_admission_boundary.py
           tests/test_runtime_cohesion_affect_integration.py
           tests/test_runtime_cohesion_affect_signal_to_cohesion_port.py
+          tests/test_runtime_cohesion_affect_signal_mapping_snapshot.py
           tests/test_runtime_cohesion_failure_wiring.py
           tests/test_runtime_cohesion_native_hook.py
           tests/test_runtime_cohesion_orgasm.py
