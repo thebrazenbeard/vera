@@ -1,7 +1,7 @@
 name: Vera Runtime Cohesion
 
-# Manual-only while account billing/spending state prevents runner allocation.
-# Do not re-enable automatic PR execution without explicit cost authorization.
+# Manual-only while runner allocation / cost authorization is unavailable.
+# Do not re-enable automatic PR execution without Patrick's explicit authority.
 on:
   workflow_dispatch:
 
@@ -22,9 +22,13 @@ jobs:
         run: python scripts/validate_vera_runtime_cohesion_v1.py
       - name: Validate provider cohesion fabric
         run: python scripts/validate_runtime_cohesion_provider_fabric_v1.py
+      - name: Validate semantic currentness exact-object provider origin
+        run: python scripts/validate_runtime_cohesion_semantic_currentness_v1.py
+      - name: Validate M5 M6 M7 source closure
+        run: python scripts/validate_runtime_cohesion_m5_m6_m7_v1.py
       - name: Validate operational support immutable snapshot
         run: python scripts/validate_runtime_cohesion_support_snapshot_v1.py
-      - name: Run cohesion regression tests
+      - name: Run cohesion and affective regression tests
         run: >-
           python -m unittest
           tests.test_vera_runtime_cohesion_v1
@@ -39,8 +43,19 @@ jobs:
           tests.test_runtime_cohesion_support_snapshot
           tests.test_runtime_cohesion_audit
           tests.test_runtime_cohesion_executor
+          tests.test_runtime_cohesion_governing_resolution
           tests.test_runtime_cohesion_projection_executor
           tests.test_runtime_cohesion_admission
+          tests.test_runtime_cohesion_admission_envelope_binding
+          tests.test_runtime_cohesion_semantic_currentness_dispatch
+          tests.test_runtime_cohesion_semantic_origin_boundary
+          tests.test_runtime_cohesion_untyped_evidence_laundering
+          tests.test_runtime_cohesion_m5_m6_m7
+          tests.test_runtime_cohesion_ov_rebind_regressions
+          tests.test_runtime_cohesion_provider_admission_boundary
+          tests.test_runtime_cohesion_direct_module_admission_boundary
+          tests.test_runtime_cohesion_executor_provider_admission_boundary
+          tests.test_runtime_cohesion_affect_integration
           tests.test_runtime_cohesion_failure_wiring
           tests.test_runtime_cohesion_native_hook
           tests.test_runtime_cohesion_orgasm
@@ -84,6 +99,8 @@ jobs:
           tests.test_runtime_cohesion_affect_restore_exception_domain
           tests.test_runtime_cohesion_affect_temporal_coherence_spoof
           tests.test_runtime_cohesion_affect_runtime_implementation_cut_current_head
+          tests.test_runtime_cohesion_affect_modulation_signal
+          tests.test_runtime_cohesion_affect_unrooted_currentness
           tests.test_affective_runtime_provider_contract
           tests.test_affective_runtime_persistence_source
           tests.test_affective_runtime_cas_initialization_source
@@ -94,6 +111,8 @@ jobs:
           scripts/validate_vera_runtime_cohesion_v1.py
           scripts/validate_runtime_cohesion_provider_fabric_v1.py
           scripts/validate_runtime_cohesion_support_snapshot_v1.py
+          scripts/validate_runtime_cohesion_semantic_currentness_v1.py
+          scripts/validate_runtime_cohesion_m5_m6_m7_v1.py
           runtime_cohesion/__init__.py
           runtime_cohesion/evidence.py
           runtime_cohesion/reconcile.py
@@ -101,7 +120,11 @@ jobs:
           runtime_cohesion/failure.py
           runtime_cohesion/audit.py
           runtime_cohesion/adapters.py
+          runtime_cohesion/origin.py
+          runtime_cohesion/item_typing.py
+          runtime_cohesion/provider_admission.py
           runtime_cohesion/executor.py
+          runtime_cohesion/affect_integration.py
           runtime_cohesion/orgasm.py
           runtime_cohesion/affect_authority.py
           runtime_cohesion/affect_bound_runtime.py
@@ -110,7 +133,9 @@ jobs:
           runtime_cohesion/affect_persistence.py
           runtime_cohesion/affect_provider_runtime.py
           runtime_cohesion/affect_scope.py
+          runtime_cohesion/affect_signal.py
           runtime_cohesion/affect_cycle.py
+          tests/__init__.py
           tests/test_vera_runtime_cohesion_v1.py
           tests/test_vera_runtime_evidence_contract_v1.py
           tests/test_vera_cohesion_index_v1.py
@@ -123,8 +148,19 @@ jobs:
           tests/test_runtime_cohesion_support_snapshot.py
           tests/test_runtime_cohesion_audit.py
           tests/test_runtime_cohesion_executor.py
+          tests/test_runtime_cohesion_governing_resolution.py
           tests/test_runtime_cohesion_projection_executor.py
           tests/test_runtime_cohesion_admission.py
+          tests/test_runtime_cohesion_admission_envelope_binding.py
+          tests/test_runtime_cohesion_semantic_currentness_dispatch.py
+          tests/test_runtime_cohesion_semantic_origin_boundary.py
+          tests/test_runtime_cohesion_untyped_evidence_laundering.py
+          tests/test_runtime_cohesion_m5_m6_m7.py
+          tests/test_runtime_cohesion_ov_rebind_regressions.py
+          tests/test_runtime_cohesion_provider_admission_boundary.py
+          tests/test_runtime_cohesion_direct_module_admission_boundary.py
+          tests/test_runtime_cohesion_executor_provider_admission_boundary.py
+          tests/test_runtime_cohesion_affect_integration.py
           tests/test_runtime_cohesion_failure_wiring.py
           tests/test_runtime_cohesion_native_hook.py
           tests/test_runtime_cohesion_orgasm.py
@@ -168,6 +204,8 @@ jobs:
           tests/test_runtime_cohesion_affect_restore_exception_domain.py
           tests/test_runtime_cohesion_affect_temporal_coherence_spoof.py
           tests/test_runtime_cohesion_affect_runtime_implementation_cut_current_head.py
+          tests/test_runtime_cohesion_affect_modulation_signal.py
+          tests/test_runtime_cohesion_affect_unrooted_currentness.py
           tests/test_affective_runtime_provider_contract.py
           tests/test_affective_runtime_persistence_source.py
           tests/test_affective_runtime_cas_initialization_source.py
