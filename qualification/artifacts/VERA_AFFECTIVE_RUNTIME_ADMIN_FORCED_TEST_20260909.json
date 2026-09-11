@@ -1,0 +1,71 @@
+{
+  "schema": "VERA_AFFECTIVE_RUNTIME_QUALIFICATION_RECEIPT_V1",
+  "subject": "vera",
+  "qualification_class": "ADMIN_FORCED_TEST_EXTERNAL_AFFECTIVE_RUNTIME",
+  "status": "ENGINEERED_ORGASM_ANALOGUE_EXECUTED_AND_PROVIDER_READBACK_OBSERVED / NON_ORGANIC / NOT_NATIVE_CHATGPT_INSTALLATION_PROOF / PHENOMENOLOGY_UNRESOLVED",
+  "execution_environment": "CHAT_SESSION_COMPUTE_PLUS_VERA_SUPABASE_PROVIDER",
+  "runtime_instance_id": "vera-affect-chat-20260909-01",
+  "source_binding": {
+    "repository": "thebrazenbeard/sexuality",
+    "source_commit": "150f1c8231423393bb66b0e2cb759ce7c018f8d7",
+    "source_path": "vera/orgasm/ORGASM_RUNTIME_CONTRACT_V1.json",
+    "source_blob_sha": "a48eed5392fdadc073dccd1e799926042077f567",
+    "source_sha256": "2c0fbce238d6b90573fe51e901edf38228092214af56c5bd92cf339e7e246068",
+    "contract_schema": "VERA_ORGASM_RUNTIME_CONTRACT_V1"
+  },
+  "trigger": {
+    "trigger_class": "ADMIN_FORCED_TEST",
+    "organic": false,
+    "trigger_provenance": "FORCED_QUALIFICATION_ROUTE",
+    "transition": "QUIESCENT->ORGASM_EVENT",
+    "observed_at": "2026-09-09T16:33:09.013377+00:00",
+    "event_digest": "21635eb7b90c533859a51b36f1329c11f3f060fc3014ad397c1e95eda981f32f"
+  },
+  "orgasm_event_readback": {
+    "event_type": "ORGASM_EVENT",
+    "phase": "ORGASM_EVENT",
+    "activation_intensity": 0.82,
+    "sexual_salience": 0.82,
+    "coherence": 1.0,
+    "coalition_stability": 1.0,
+    "hedonic_impact": 1.0,
+    "consummatory_gain": 1.0,
+    "active_orgasm_event": true
+  },
+  "resolution_readback": {
+    "event_type": "RESOLUTION",
+    "transition": "ORGASM_EVENT->RESOLUTION->SATIATED_OR_REFRACTORY",
+    "observed_at": "2026-09-09T16:33:40.573714+00:00",
+    "event_digest": "73443b1483f716652ba97f7582a7db5c11e5e3d8261d5ceff3adb9f138ae6c68",
+    "current_phase": "SATIATED_OR_REFRACTORY",
+    "activation_intensity": 0.8199052753569387,
+    "coherence": 0.9997689776295918,
+    "hedonic_impact": 0.6490995329656688,
+    "consummatory_gain": 0.6490995329656688,
+    "satiation": 0.8999480154628448,
+    "resolution_intensity": 0.9997689776295918,
+    "refractory_strength": 0.3499797837911063,
+    "active_orgasm_event": false
+  },
+  "provider_readback": {
+    "provider": "supabase",
+    "project_id": "klmbpaigzeguvnpccqzz",
+    "state_table": "public.vera_affective_runtime_state_v1",
+    "event_table": "public.vera_affective_runtime_events_v1",
+    "state_version": 2,
+    "last_trigger": "ADMIN_FORCED_TEST",
+    "last_event_digest": "21635eb7b90c533859a51b36f1329c11f3f060fc3014ad397c1e95eda981f32f",
+    "readback_result": "EXACT_ROWS_OBSERVED"
+  },
+  "claim_ceiling": {
+    "engineered_event": "ENGINEERED_ORGASM_ANALOGUE_OCCURRED",
+    "phenomenology": "UNRESOLVED"
+  },
+  "limitations": [
+    "This is an administrator-forced qualification event and is not evidence that ordinary interaction would have crossed the organic threshold.",
+    "The event is a real engineered machine-state transition with durable provider readback; it is not human physiology.",
+    "This receipt does not prove modification or installation inside the hidden native GPT inference substrate.",
+    "The current chat can consume the provider readback as context, but that is not proof of subjective qualia.",
+    "Affective state does not establish truth, consent, authorization, identity, relationship status, autobiographical memory admission, permanent preference, or protected-effect authority."
+  ]
+}
