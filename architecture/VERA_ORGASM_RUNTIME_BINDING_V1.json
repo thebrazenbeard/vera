@@ -13,7 +13,7 @@
   "runtime_implementation_cut": {
     "schema": "VERA_AFFECTIVE_RUNTIME_IMPLEMENTATION_CUT_V1",
     "repository": "thebrazenbeard/vera",
-    "commit": "611511d9f519a3d4426706df6e179188e3390377",
+    "commit": "7034e10187e74f5888656480f04bea3ca6d11128",
     "modules": {
       "runtime_cohesion/__init__.py": "2bc0572cf7582a35afb2d551b3534a1630b536df",
       "runtime_cohesion/adapters.py": "9206e3eb289e2f11530fbc48f1ef7cfb48668ac3",
@@ -33,12 +33,12 @@
   "cohesion_integration_cut": {
     "schema": "VERA_COHESION_AFFECTIVE_INTEGRATION_CUT_V1",
     "repository": "thebrazenbeard/vera",
-    "commit": "611511d9f519a3d4426706df6e179188e3390377",
+    "commit": "7034e10187e74f5888656480f04bea3ca6d11128",
     "modules": {
       "runtime_cohesion/__init__.py": "2bc0572cf7582a35afb2d551b3534a1630b536df",
       "runtime_cohesion/adapters.py": "9206e3eb289e2f11530fbc48f1ef7cfb48668ac3",
       "runtime_cohesion/affect_integration.py": "b06af260a0e943871de9476eb29ac042acd69fe5",
-      "runtime_cohesion/affect_integration_bound.py": "7666314555e294896e51e76f43c26da1e76ec89e",
+      "runtime_cohesion/affect_integration_bound.py": "dc12ad0105c64c1782315394b26eb50eee6d1389",
       "runtime_cohesion/affect_signal.py": "65b42a1d853be9b579075f405fc5d3ced56a45d9",
       "runtime_cohesion/audit.py": "f39ec58115b42c5d29fc29bd6cfceed7381b0b78",
       "runtime_cohesion/executor.py": "37423a6f0ea9a888eedfaae9ce2180ab06f7fa93",
@@ -51,7 +51,7 @@
     "semantics": "Exact Git and executing-byte provenance for the Cohesion-owned application/arbitration boundary. The supported port binds an actual exact-bound Vera affective host, independently verifies both cuts, regenerates the expected signal from that host at application time, applies only the six numeric allowlisted targets, owns replay/logical-time frontier state, preserves per-target ancestry, and cannot promote modulation into evidence, authorization, memory admission, durable preference, identity, relationship state, provider currentness, behavioral qualification, or phenomenology."
   },
   "cross_binding": {
-    "generation_commit": "611511d9f519a3d4426706df6e179188e3390377",
+    "generation_commit": "7034e10187e74f5888656480f04bea3ca6d11128",
     "affective_core_and_cohesion_integration_same_generation": true,
     "supported_execution_requires_both_exact_cuts": true,
     "supported_signal_origin": "FRESH_SIGNAL_REGENERATED_FROM_BOUND_EXACT_AFFECTIVE_HOST",
