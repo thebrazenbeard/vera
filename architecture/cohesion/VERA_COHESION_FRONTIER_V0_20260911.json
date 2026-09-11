@@ -38,14 +38,14 @@
       "kind": "PULL_REQUEST",
       "pull_request": 113,
       "ref": "integration/vera-cohesion-orgasm-v1-20260910",
-      "current_observed_head": "7e752c8de5c234cfa8e724d594e925f3079ba3bb",
+      "current_observed_head": "7b4cf386516c1af7a51ad0c368df4d6992e0183e",
       "source_registry_head": "132df3fe206600dae83b6e8c158b5822bb3a81e6",
       "supersedes_registry_head": "132df3fe206600dae83b6e8c158b5822bb3a81e6",
       "prior_overlap_audit_head": "734d7b4a2fee6a3cb672877b71c7ca35588ef14f",
       "changed_since_registry": true,
       "material_drift": {
         "classification": "RUNTIME_SOURCE_AND_TESTS",
-        "ahead_by_since_overlap_audit": 6,
+        "ahead_by_since_overlap_audit": 7,
         "behind_by_since_overlap_audit": 0,
         "changed_paths_since_overlap_audit": [
           ".github/workflows/runtime-cohesion-affect-hardening.yml",
@@ -53,17 +53,18 @@
           "runtime_cohesion/affect_integration_bound.py",
           "runtime_cohesion/affect_signal.py",
           "tests/test_runtime_cohesion_affect_atomic_observation.py",
-          "tests/test_runtime_cohesion_affect_shared_application_frontier.py"
+          "tests/test_runtime_cohesion_affect_shared_application_frontier.py",
+          "tests/test_runtime_cohesion_affect_observation_detachment.py"
         ],
         "reconciliation_required_before_harvest": true,
-        "observed_direction": "The integration laboratory now serializes one host-generation application frontier and captures one atomic causal observation under the bound runtime lock. These changes strengthen the previously identified materialization/frontier direction but remain integration-laboratory evidence until reconciled into the clean successor."
+        "observed_direction": "The integration laboratory now serializes one host-generation application frontier and captures one atomic causal observation under the bound runtime lock. The newest test additionally requires the captured observation to detach nested receipt data before lock release; the donor head adds that regression but has not yet repaired the alias in _capture_causal_observation. These changes strengthen the materialization/frontier direction without creating provider/currentness/qualification authority."
       }
     }
   ],
   "construction_branch": {
     "ref": "work/vera-cohesion-whole-system-map-20260911",
-    "pre_frontier_write_head": "ffea0332127fe38f312ccdf24288754ec702aef6",
-    "note": "This branch head is expected to advance as this frontier/test/validator source is committed; it is not an external mutable input."
+    "pre_frontier_write_head": "dd4dc2ea48ddd0ee8f729e7946cc111bf0dae657",
+    "note": "This branch head is expected to advance as frontier/reconciliation/plan source is committed; it is not an external mutable input."
   },
   "reconciliation_rules": [
     "A mutable input head change creates a new evidence cut; conclusions do not transfer automatically.",
