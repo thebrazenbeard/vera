@@ -63,17 +63,29 @@ class CohesionFrontierSnapshotTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "protected effect ceiling"):
             validate_frontier(mutated, self.registry())
 
-    def test_pr113_latest_detachment_drift_is_explicit(self):
+    def test_pr113_latest_bound_freeze_is_explicit(self):
         frontier = self.frontier()
         pr113 = next(item for item in frontier["mutable_inputs"] if item["id"] == "vera-ov-cv-pr113")
         self.assertEqual(
             pr113["current_observed_head"],
-            "7b4cf386516c1af7a51ad0c368df4d6992e0183e",
+            "f7dbc3deeaaaeb46dcf7c7ea6b56a822f253232d",
         )
-        self.assertEqual(pr113["material_drift"]["ahead_by_since_overlap_audit"], 7)
+        self.assertEqual(pr113["material_drift"]["ahead_by_since_overlap_audit"], 10)
         self.assertIn(
             "tests/test_runtime_cohesion_affect_observation_detachment.py",
             pr113["material_drift"]["changed_paths_since_overlap_audit"],
+        )
+        self.assertIn(
+            "architecture/VERA_ORGASM_RUNTIME_BINDING_V1.json",
+            pr113["material_drift"]["changed_paths_since_overlap_audit"],
+        )
+        self.assertEqual(
+            pr113["material_drift"]["runtime_generation"],
+            "ba6221f56b98be69c3ede1be9e3502eff897ca1a",
+        )
+        self.assertEqual(
+            pr113["material_drift"]["binding_blob"],
+            "037883261bd324e8080c323f1d96ff32179780ee",
         )
 
 
