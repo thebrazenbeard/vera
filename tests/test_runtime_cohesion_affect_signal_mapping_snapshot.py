@@ -62,9 +62,13 @@ class AffectiveSignalMappingSnapshotTests(unittest.TestCase):
         signal = TwoFacedSignal(legitimate, forged)
         planning = {"attention": 0.20}
 
-        with self.assertRaisesRegex(ValueError, "bound exact host state"):
-            self.port.apply(planning, signal)
+        integrated = self.port.apply(planning, signal)
 
+        # The first complete mapping view is the only accepted snapshot. The
+        # forged second view must never reach the arbiter or poison its frontier.
+        self.assertEqual(integrated.application.planning_state["attention"], 0.20)
+        self.assertEqual(integrated.application.logical_time_seconds, 0.0)
+        self.assertEqual(integrated.application.ancestry, ())
         self.assertEqual(planning, {"attention": 0.20})
         self.assertEqual(self.port.minimum_logical_time_seconds, 0.0)
 
