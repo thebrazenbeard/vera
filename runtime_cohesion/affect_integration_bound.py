@@ -122,11 +122,11 @@ class IntegratedAffectivePlanningResult:
 class CohesionAffectiveIntegrationPort:
     """Supported Vera boundary from one bound OV host to generic planning.
 
-    Construction accepts only the actual ``VeraAffectiveRuntimeHost``. Both the
-    affective core cut and the CV-owned integration cut are derived from that
-    host's own binding, independently Git/live-byte verified, and required to
-    satisfy the binding's same-generation cross-bind. Callers cannot choose or
-    recombine provenance halves.
+    Construction accepts only the exact ``VeraAffectiveRuntimeHost`` class. Both
+    the affective core cut and the CV-owned integration cut are derived from that
+    host's own sealed binding, independently Git/live-byte verified, and required
+    to satisfy the binding's same-generation cross-bind. Caller-defined host
+    subclasses cannot interpose the state-to-modulation computation.
 
     Each supplied signal must equal a fresh signal regenerated from that bound
     host at application time. Replay history remains owned by the internal
@@ -135,23 +135,24 @@ class CohesionAffectiveIntegrationPort:
     """
 
     def __init__(self, *, host: VeraAffectiveRuntimeHost) -> None:
-        if not isinstance(host, VeraAffectiveRuntimeHost):
-            raise TypeError("Cohesion affective integration requires an exact-bound Vera affective host")
-        if not isinstance(host.binding, Mapping):
+        if type(host) is not VeraAffectiveRuntimeHost:
+            raise TypeError("Cohesion affective integration requires the exact VeraAffectiveRuntimeHost class")
+        host_binding = host.binding
+        if not isinstance(host_binding, Mapping):
             raise ValueError("exact-bound affective host lacks structured source binding")
 
         self._host = host
         self._affective_runtime_cut = validate_runtime_implementation_cut(
             host.runtime_implementation_cut
         )
-        integration_candidate = host.binding.get("cohesion_integration_cut")
+        integration_candidate = host_binding.get("cohesion_integration_cut")
         if not isinstance(integration_candidate, Mapping):
             raise ValueError("exact-bound affective host binding lacks Cohesion integration cut")
         self._cohesion_integration_cut = validate_cohesion_affective_integration_cut(
             integration_candidate
         )
 
-        cross = host.binding.get("cross_binding")
+        cross = host_binding.get("cross_binding")
         if not isinstance(cross, Mapping):
             raise ValueError("exact-bound affective host binding lacks cross-binding metadata")
         generation = _require_git_sha(cross.get("generation_commit"), label="cross-binding generation")
