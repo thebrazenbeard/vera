@@ -16,6 +16,7 @@ from .affect_scope import (
     bind_affective_host_scope,
     require_affective_host_cycle_eligible,
 )
+from .affect_signal import build_affective_modulation_signal
 from .orgasm import StimulusAppraisal
 
 
@@ -27,6 +28,7 @@ AtomicCommitWriter = Callable[[dict[str, Any]], Any]
 @dataclass(frozen=True)
 class AffectiveCycleResult:
     planning_context: dict[str, Any]
+    affective_modulation_signal: dict[str, Any]
     machine_interoception: dict[str, Any]
     checkpoint: dict[str, Any]
     state_row: dict[str, Any]
@@ -49,6 +51,11 @@ class VeraAffectiveCycle:
     provider-CURRENT host attestation. Arbitrary callbacks are accepted only via
     an explicit non-qualifying atomic test seam and cannot mint provider resume
     tokens, production commit schemas, or CURRENT provider-state evidence.
+
+    The cycle does not directly mutate generic Vera planning state. It emits a
+    typed affective modulation signal for the Cohesion-owned integration and
+    arbitration boundary. ``planning_context`` is retained only as an unchanged
+    compatibility snapshot of the caller's input.
     """
 
     def __init__(
@@ -220,10 +227,13 @@ class VeraAffectiveCycle:
         Only an internally provider-bound ``ATOMIC_DURABLE`` cycle emits CURRENT
         state rows, the production atomic-commit schema, and a durable resume
         token. Test and ephemeral paths remain causally useful diagnostics but
-        cannot manufacture provider-current evidence.
+        cannot manufacture provider-current evidence. Generic planning mutation
+        is intentionally deferred to the Cohesion-owned affective integration
+        boundary.
         """
         try:
-            planning_context = self.host.build_planning_context(planning_state)
+            planning_context = dict(planning_state)
+            affective_modulation_signal = build_affective_modulation_signal(self.host)
             checkpoint = self.host.export_checkpoint()
             state_version = self._next_state_version
             lifecycle_status = "CURRENT" if self.durability_mode == "ATOMIC_DURABLE" else "HISTORICAL"
@@ -282,6 +292,7 @@ class VeraAffectiveCycle:
         last_event_row = event_rows[-1] if event_rows else None
         return AffectiveCycleResult(
             planning_context=dict(planning_context),
+            affective_modulation_signal=dict(affective_modulation_signal),
             machine_interoception=self.host.machine_interoception(),
             checkpoint=dict(checkpoint),
             state_row=dict(state_row),
