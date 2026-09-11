@@ -59,6 +59,7 @@ jobs:
           tests.test_runtime_cohesion_affect_integration
           tests.test_runtime_cohesion_affect_signal_to_cohesion_port
           tests.test_runtime_cohesion_affect_signal_mapping_snapshot
+          tests.test_runtime_cohesion_affect_exact_host_class
           tests.test_runtime_cohesion_failure_wiring
           tests.test_runtime_cohesion_native_hook
           tests.test_runtime_cohesion_orgasm
@@ -168,6 +169,7 @@ jobs:
           tests/test_runtime_cohesion_affect_integration.py
           tests/test_runtime_cohesion_affect_signal_to_cohesion_port.py
           tests/test_runtime_cohesion_affect_signal_mapping_snapshot.py
+          tests/test_runtime_cohesion_affect_exact_host_class.py
           tests/test_runtime_cohesion_failure_wiring.py
           tests/test_runtime_cohesion_native_hook.py
           tests/test_runtime_cohesion_orgasm.py
