@@ -3,11 +3,22 @@
 This package is operational support for the normative cohesion index/runtime
 contract pair. Importing it performs no provider I/O and creates no authority.
 Provider I/O occurs only when a runtime explicitly invokes registered adapters.
+
+Public proposition admission is provider-strict. Lightweight policy fixtures use
+only the explicitly named abstract evaluator. Affective execution and generic
+planning application are separated: OV emits bounded modulation signals and the
+Cohesion-owned arbiter applies them without promoting signal content to evidence,
+authority, memory admission, identity, relationship state, or phenomenology.
 """
 
 from .adapters import AdapterProbeResult, AdapterRegistry, AdapterRequest, ProviderAdapter
 from .affect_cycle import AffectiveCycleResult, VeraAffectiveCycle
 from .affect_host import AffectiveBindingError, VeraAffectiveRuntimeHost
+from .affect_integration import (
+    AffectiveModulationAncestry,
+    AffectiveModulationApplication,
+    AffectiveModulationArbiter,
+)
 from .affect_persistence import (
     PersistenceRecordError,
     build_affective_resume_token,
@@ -21,6 +32,7 @@ from .audit import ProjectionAuditResult, audit_registered_projections
 from .evidence import ProviderEvidenceEnvelope, load_provider_fabric, validate_envelope
 from .executor import (
     DomainExecutionResult,
+    GoverningResolutionRecord,
     ProjectionExecutionResult,
     execute_domain_cycle,
     execute_projection_cycle,
@@ -32,14 +44,19 @@ from .orgasm import (
     StimulusAppraisal,
     TriggerRejected as OrgasmTriggerRejected,
 )
+from .provider_admission import evaluate_provider_proposition_admission
 from .reconcile import ReconciliationResult, reconcile_exact
 from .runtime import (
     AdmissionDecision,
     RetrievalPlan,
     build_operational_checkpoint,
     build_retrieval_plan,
-    evaluate_proposition_admission,
+    evaluate_abstract_proposition_admission,
 )
+
+# Public package-level admission is provider-strict. Lightweight policy fixtures
+# remain available only through the explicitly named abstract evaluator.
+evaluate_proposition_admission = evaluate_provider_proposition_admission
 
 __all__ = [
     "AdapterProbeResult",
@@ -50,6 +67,9 @@ __all__ = [
     "VeraAffectiveCycle",
     "AffectiveBindingError",
     "VeraAffectiveRuntimeHost",
+    "AffectiveModulationAncestry",
+    "AffectiveModulationApplication",
+    "AffectiveModulationArbiter",
     "PersistenceRecordError",
     "build_affective_resume_token",
     "build_atomic_commit_request",
@@ -63,6 +83,7 @@ __all__ = [
     "load_provider_fabric",
     "validate_envelope",
     "DomainExecutionResult",
+    "GoverningResolutionRecord",
     "ProjectionExecutionResult",
     "execute_domain_cycle",
     "execute_projection_cycle",
@@ -80,4 +101,6 @@ __all__ = [
     "build_operational_checkpoint",
     "build_retrieval_plan",
     "evaluate_proposition_admission",
+    "evaluate_provider_proposition_admission",
+    "evaluate_abstract_proposition_admission",
 ]
