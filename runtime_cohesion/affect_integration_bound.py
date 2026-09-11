@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 import json
+from pathlib import Path
+import subprocess
 from typing import Any, Mapping
 
 from .affect_integration import AffectiveModulationApplication, AffectiveModulationArbiter
@@ -35,6 +37,11 @@ def _require_git_sha(value: Any, *, label: str) -> str:
     return value
 
 
+def _git_blob_sha(raw: bytes) -> str:
+    header = b"blob " + str(len(raw)).encode("ascii") + b"\0"
+    return hashlib.sha1(header + raw).hexdigest()
+
+
 def _canonical_copy(value: Mapping[str, Any], *, label: str) -> dict[str, Any]:
     try:
         return json.loads(json.dumps(dict(value), sort_keys=True, separators=(",", ":"), ensure_ascii=False))
@@ -42,7 +49,12 @@ def _canonical_copy(value: Mapping[str, Any], *, label: str) -> dict[str, Any]:
         raise ValueError(f"{label} must be canonically serializable") from exc
 
 
-def validate_cohesion_affective_integration_cut(cut: Mapping[str, Any]) -> dict[str, Any]:
+def validate_cohesion_affective_integration_cut(
+    cut: Mapping[str, Any],
+    *,
+    repository_root: Path | str | None = None,
+) -> dict[str, Any]:
+    """Cross-bind the CV-owned affective application cut to Git and live bytes."""
     if not isinstance(cut, Mapping):
         raise ValueError("Cohesion affective integration cut must be a structured mapping")
     if cut.get("schema") != _INTEGRATION_CUT_SCHEMA:
@@ -53,10 +65,35 @@ def validate_cohesion_affective_integration_cut(cut: Mapping[str, Any]) -> dict[
     modules = cut.get("modules")
     if not isinstance(modules, Mapping) or set(modules) != _REQUIRED_INTEGRATION_PATHS:
         raise ValueError("Cohesion affective integration cut module set mismatch")
-    normalized = {
-        path: _require_git_sha(modules[path], label=f"Cohesion integration blob for {path}")
-        for path in sorted(_REQUIRED_INTEGRATION_PATHS)
-    }
+
+    root = Path(repository_root) if repository_root is not None else Path(__file__).resolve().parents[1]
+    root = root.resolve()
+    normalized: dict[str, str] = {}
+    for path in sorted(_REQUIRED_INTEGRATION_PATHS):
+        blob = _require_git_sha(modules[path], label=f"Cohesion integration blob for {path}")
+        file_path = (root / path).resolve()
+        try:
+            file_path.relative_to(root)
+        except ValueError as exc:
+            raise ValueError("Cohesion integration path escapes repository root") from exc
+        if not file_path.is_file():
+            raise ValueError(f"Cohesion integration file is missing: {path}")
+        if _git_blob_sha(file_path.read_bytes()) != blob:
+            raise ValueError(f"executing Cohesion integration bytes do not match cut: {path}")
+        try:
+            resolved = subprocess.run(
+                ["git", "rev-parse", f"{commit}:{path}"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+        except (OSError, subprocess.CalledProcessError) as exc:
+            raise ValueError(f"Cohesion integration commit/path cannot be resolved: {path}") from exc
+        if resolved != blob:
+            raise ValueError(f"Cohesion integration commit resolves a different blob: {path}")
+        normalized[path] = blob
+
     return {
         "schema": _INTEGRATION_CUT_SCHEMA,
         "repository": "thebrazenbeard/vera",
