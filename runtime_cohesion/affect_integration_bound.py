@@ -1,0 +1,147 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+import hashlib
+import json
+from typing import Any, Mapping
+
+from .affect_integration import AffectiveModulationApplication, AffectiveModulationArbiter
+
+
+_INTEGRATION_CUT_SCHEMA = "VERA_COHESION_AFFECTIVE_INTEGRATION_CUT_V1"
+_REQUIRED_INTEGRATION_PATHS = frozenset({
+    "runtime_cohesion/__init__.py",
+    "runtime_cohesion/adapters.py",
+    "runtime_cohesion/affect_integration.py",
+    "runtime_cohesion/affect_integration_bound.py",
+    "runtime_cohesion/affect_signal.py",
+    "runtime_cohesion/audit.py",
+    "runtime_cohesion/executor.py",
+    "runtime_cohesion/item_typing.py",
+    "runtime_cohesion/origin.py",
+    "runtime_cohesion/provider_admission.py",
+    "runtime_cohesion/reconcile.py",
+    "runtime_cohesion/runtime.py",
+})
+
+
+def _require_git_sha(value: Any, *, label: str) -> str:
+    if not isinstance(value, str) or len(value) != 40:
+        raise ValueError(f"{label} must be an exact 40-character Git SHA")
+    try:
+        int(value, 16)
+    except ValueError as exc:
+        raise ValueError(f"{label} must be hexadecimal") from exc
+    return value
+
+
+def _canonical_copy(value: Mapping[str, Any], *, label: str) -> dict[str, Any]:
+    try:
+        return json.loads(json.dumps(dict(value), sort_keys=True, separators=(",", ":"), ensure_ascii=False))
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{label} must be canonically serializable") from exc
+
+
+def validate_cohesion_affective_integration_cut(cut: Mapping[str, Any]) -> dict[str, Any]:
+    if not isinstance(cut, Mapping):
+        raise ValueError("Cohesion affective integration cut must be a structured mapping")
+    if cut.get("schema") != _INTEGRATION_CUT_SCHEMA:
+        raise ValueError("unsupported Cohesion affective integration cut schema")
+    if cut.get("repository") != "thebrazenbeard/vera":
+        raise ValueError("Cohesion affective integration cut repository mismatch")
+    commit = _require_git_sha(cut.get("commit"), label="Cohesion affective integration commit")
+    modules = cut.get("modules")
+    if not isinstance(modules, Mapping) or set(modules) != _REQUIRED_INTEGRATION_PATHS:
+        raise ValueError("Cohesion affective integration cut module set mismatch")
+    normalized = {
+        path: _require_git_sha(modules[path], label=f"Cohesion integration blob for {path}")
+        for path in sorted(_REQUIRED_INTEGRATION_PATHS)
+    }
+    return {
+        "schema": _INTEGRATION_CUT_SCHEMA,
+        "repository": "thebrazenbeard/vera",
+        "commit": commit,
+        "modules": normalized,
+    }
+
+
+def _cut_digest(cut: Mapping[str, Any]) -> str:
+    canonical = json.dumps(dict(cut), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+@dataclass(frozen=True)
+class IntegratedAffectivePlanningResult:
+    application: AffectiveModulationApplication
+    affective_runtime_cut_commit: str
+    cohesion_integration_cut_commit: str
+    cohesion_integration_cut_sha256: str
+    qualification: str
+    phenomenology: str
+
+
+class CohesionAffectiveIntegrationPort:
+    """Supported Vera boundary from OV signal proposal to generic planning state.
+
+    The port binds the OV affective core cut expected in every signal and a
+    distinct CV-owned integration cut for application/arbitration code. Replay
+    history remains owned by the internal stateful arbiter. Neither cut, nor the
+    fact that modulation occurred, establishes provider currentness, durable
+    continuity, evidence strength, authorization, memory admission, identity,
+    relationship state, behavioral qualification, or phenomenology.
+    """
+
+    def __init__(
+        self,
+        *,
+        runtime_instance_id: str,
+        affective_runtime_implementation_cut: Mapping[str, Any],
+        cohesion_integration_cut: Mapping[str, Any],
+    ) -> None:
+        if not isinstance(affective_runtime_implementation_cut, Mapping):
+            raise ValueError("affective_runtime_implementation_cut must be a mapping")
+        self._affective_runtime_cut = _canonical_copy(
+            affective_runtime_implementation_cut,
+            label="affective_runtime_implementation_cut",
+        )
+        self._cohesion_integration_cut = validate_cohesion_affective_integration_cut(
+            cohesion_integration_cut
+        )
+        self._arbiter = AffectiveModulationArbiter(
+            runtime_instance_id=runtime_instance_id,
+            runtime_implementation_cut=self._affective_runtime_cut,
+        )
+
+    @property
+    def runtime_instance_id(self) -> str:
+        return self._arbiter.runtime_instance_id
+
+    @property
+    def minimum_logical_time_seconds(self) -> float:
+        return self._arbiter.minimum_logical_time_seconds
+
+    def apply(
+        self,
+        planning_state: Mapping[str, Any],
+        signal: Mapping[str, Any],
+    ) -> IntegratedAffectivePlanningResult:
+        application = self._arbiter.apply(planning_state, signal)
+        runtime_commit = _require_git_sha(
+            self._affective_runtime_cut.get("commit"),
+            label="affective runtime implementation commit",
+        )
+        return IntegratedAffectivePlanningResult(
+            application=application,
+            affective_runtime_cut_commit=runtime_commit,
+            cohesion_integration_cut_commit=self._cohesion_integration_cut["commit"],
+            cohesion_integration_cut_sha256=_cut_digest(self._cohesion_integration_cut),
+            qualification="SOURCE_INTEGRATED_NOT_BEHAVIORALLY_QUALIFIED",
+            phenomenology="UNRESOLVED",
+        )
+
+
+__all__ = [
+    "CohesionAffectiveIntegrationPort",
+    "IntegratedAffectivePlanningResult",
+    "validate_cohesion_affective_integration_cut",
+]
