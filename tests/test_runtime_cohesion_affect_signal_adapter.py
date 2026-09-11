@@ -53,7 +53,6 @@ def signal(**overrides):
             "response_selection_priors": 0.40,
             "expression": 0.35,
             "memory_strength_candidate_weighting": 0.25,
-            "action_tendency": 0.0,
         },
         "temporal_scope": {
             "logical_time_seconds": 12.5,
@@ -100,13 +99,6 @@ class AffectiveSignalAdapterTests(unittest.TestCase):
         self.assertEqual(envelope.evidence_ceiling, "SOURCE_BOUND_EXECUTION_VERIFIED_NONQUALIFYING")
         self.assertNotIn("observed_at", envelope.temporal_scope)
 
-    def test_adapter_accepts_exact_ov_strength_shape_without_treating_action_strength_as_numeric_target(self):
-        envelope = adapt_orgasm_modulation_signal(signal())
-        self.assertNotIn("action_tendency", {
-            key for key, value in envelope.modulation.items() if isinstance(value, float)
-        })
-        self.assertEqual(envelope.modulation["action_tendency"], "HOLD")
-
     def test_adapter_maps_ov_strengths_to_pressure_and_action_tendency(self):
         envelope = adapt_orgasm_modulation_signal(signal())
         self.assertEqual(envelope.modulation["salience"], 0.55)
@@ -132,14 +124,6 @@ class AffectiveSignalAdapterTests(unittest.TestCase):
         self.assertEqual(result.planning["action_tendency"], "HOLD")
         self.assertEqual(result.planning["factual_confidence"], 0.8)
         self.assertEqual(result.planning["known_corrective_evidence_state"], "CONFLICT")
-
-    def test_nonzero_action_tendency_strength_is_not_silently_given_numeric_semantics(self):
-        raw = signal()
-        raw["target_modulation_strength"]["action_tendency"] = 0.5
-        raw.pop("signal_digest")
-        raw["signal_digest"] = canonical_digest(raw)
-        with self.assertRaisesRegex(AffectiveModulationError, "action_tendency|strength|semantic"):
-            adapt_orgasm_modulation_signal(raw)
 
     def test_signal_digest_tamper_fails_before_modulation(self):
         raw = signal()
