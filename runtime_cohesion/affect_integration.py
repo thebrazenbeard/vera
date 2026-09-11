@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import hashlib
 import json
 import math
-from typing import Any, Collection, Mapping
+from typing import Any, Mapping
 
 
 _SIGNAL_SCHEMA = "VERA_AFFECTIVE_MODULATION_SIGNAL_V1"
@@ -45,6 +45,8 @@ _ALLOWED_PHASES = {
 }
 _ALLOWED_ACTION_TENDENCIES = {"APPROACH", "PLAY", "HOLD", "REDIRECT", "AVOID", "NONE"}
 _ALLOWED_TRUST = {"NO_PRODUCTION_AUTHORITY_CLAIM", "IN_PROCESS_UNROOTED_NON_QUALIFYING"}
+_ALLOWED_EVENT_TYPES = {"ORGASM_EVENT", "RESOLUTION", "RECOVERY"}
+_ALLOWED_TRIGGER_CLASSES = {"ORGANIC_THRESHOLD_CROSSING", "ADMIN_FORCED_TEST", "SELF_QUALIFICATION_TEST"}
 _CONTROL_VECTOR_KEYS = {
     "approach_gain",
     "salience_gain",
@@ -80,6 +82,13 @@ class AffectiveModulationApplication:
     proposed_action_tendency: str
 
 
+def _canonical_copy(value: Mapping[str, Any], *, label: str) -> dict[str, Any]:
+    try:
+        return json.loads(json.dumps(dict(value), sort_keys=True, separators=(",", ":"), ensure_ascii=False))
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{label} must be canonically serializable") from exc
+
+
 def _canonical_digest(value: Mapping[str, Any]) -> str:
     payload = json.dumps(dict(value), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
@@ -110,7 +119,7 @@ def _validate_signal(
     expected_runtime_instance_id: str,
     expected_runtime_implementation_cut: Mapping[str, Any],
     minimum_logical_time_seconds: float,
-    consumed_signal_digests: Collection[str],
+    consumed_signal_digests: set[str],
 ) -> tuple[str, float, tuple[str, ...], str, dict[str, float], str | None]:
     if signal.get("schema") != _SIGNAL_SCHEMA:
         raise ValueError("unsupported affective modulation signal schema")
@@ -142,6 +151,8 @@ def _validate_signal(
         raise ValueError("affective modulation signal phase is invalid")
     if signal.get("presence") != "ALWAYS_PRESENT_NORMALLY_QUIESCENT":
         raise ValueError("affective modulation signal presence is invalid")
+    if not isinstance(signal.get("context_eligible"), bool):
+        raise ValueError("affective modulation signal context_eligible must be boolean")
     action_tendency = signal.get("action_tendency")
     if action_tendency not in _ALLOWED_ACTION_TENDENCIES:
         raise ValueError("affective modulation signal action tendency is invalid")
@@ -159,8 +170,8 @@ def _validate_signal(
         _bounded_number(value, label=f"control_vector.{key}")
 
     strengths = signal.get("target_modulation_strength")
-    if not isinstance(strengths, Mapping) or not set(strengths).issubset(_ALLOWED_NUMERIC_TARGETS):
-        raise ValueError("affective modulation signal target set is broadened")
+    if not isinstance(strengths, Mapping) or set(strengths) != _ALLOWED_NUMERIC_TARGETS:
+        raise ValueError("affective modulation signal target set is incomplete or broadened")
     normalized_strengths = {
         str(target): _bounded_number(value, label=f"target_modulation_strength.{target}")
         for target, value in strengths.items()
@@ -177,9 +188,7 @@ def _validate_signal(
     logical_time = float(logical_time)
     if not math.isfinite(logical_time) or logical_time < 0.0:
         raise ValueError("affective modulation signal logical_time_seconds must be finite and nonnegative")
-    if isinstance(minimum_logical_time_seconds, bool) or not isinstance(minimum_logical_time_seconds, (int, float)):
-        raise ValueError("minimum_logical_time_seconds must be numeric")
-    if logical_time < float(minimum_logical_time_seconds):
+    if logical_time < minimum_logical_time_seconds:
         raise ValueError("affective modulation signal is older than the receiving integration frontier")
     persistence_ms = temporal.get("persistence_window_ms")
     if isinstance(persistence_ms, bool) or not isinstance(persistence_ms, int) or persistence_ms < 0:
@@ -209,9 +218,20 @@ def _validate_signal(
     if event_lineage is not None:
         if not isinstance(event_lineage, Mapping):
             raise ValueError("affective modulation signal event lineage must be structured or null")
-        candidate_digest = event_lineage.get("event_digest")
-        if candidate_digest is not None:
-            event_digest = _require_hex(candidate_digest, length=64, label="event_lineage.event_digest")
+        receipt_id = event_lineage.get("receipt_id")
+        if not isinstance(receipt_id, str) or not receipt_id:
+            raise ValueError("affective modulation signal event lineage requires receipt_id")
+        event_digest = _require_hex(
+            event_lineage.get("event_digest"),
+            length=64,
+            label="event_lineage.event_digest",
+        )
+        if event_lineage.get("event_type") not in _ALLOWED_EVENT_TYPES:
+            raise ValueError("affective modulation signal event lineage event_type is invalid")
+        if event_lineage.get("trigger_class") not in _ALLOWED_TRIGGER_CLASSES:
+            raise ValueError("affective modulation signal event lineage trigger_class is invalid")
+        if not isinstance(event_lineage.get("organic"), bool):
+            raise ValueError("affective modulation signal event lineage organic must be boolean")
         lineage_trust = event_lineage.get("authority_composition_trust")
         if lineage_trust is not None and lineage_trust not in _ALLOWED_TRUST:
             raise ValueError("affective modulation signal event lineage carries unsupported trust")
@@ -221,79 +241,103 @@ def _validate_signal(
     return digest, logical_time, tuple(systems), str(action_tendency), normalized_strengths, event_digest
 
 
-def apply_affective_modulation_signal(
-    planning_state: Mapping[str, Any],
-    signal: Mapping[str, Any],
-    *,
-    expected_runtime_instance_id: str,
-    expected_runtime_implementation_cut: Mapping[str, Any],
-    minimum_logical_time_seconds: float,
-    consumed_signal_digests: Collection[str],
-) -> AffectiveModulationApplication:
-    """Apply one OV affective proposal at the Cohesion-owned arbitration boundary.
+class AffectiveModulationArbiter:
+    """Cohesion-owned in-process application frontier for OV affective signals.
 
-    Only the explicit numeric affective target allowlist can change. Every other
-    planning key is copied through untouched. Signal metadata is not evidence,
-    authorization, autobiographical admission, identity, relationship state or
-    phenomenology. Per-target ancestry is returned for every material mutation.
+    Replay history and the logical-time floor are runtime-owned state of this
+    arbiter. Callers cannot supply or reset those values per invocation. The
+    frontier is process-local: it does not establish provider currentness,
+    durability, cross-process continuity, authority, evidence strength, memory
+    admission, identity, relationship state, or phenomenology.
     """
-    if not isinstance(planning_state, Mapping):
-        raise TypeError("planning_state must be a mapping")
-    if not isinstance(signal, Mapping):
-        raise TypeError("signal must be a mapping")
-    if not isinstance(expected_runtime_instance_id, str) or not expected_runtime_instance_id:
-        raise ValueError("expected_runtime_instance_id is required")
-    if not isinstance(expected_runtime_implementation_cut, Mapping):
-        raise ValueError("expected_runtime_implementation_cut must be a mapping")
 
-    digest, logical_time, systems, action_tendency, strengths, event_digest = _validate_signal(
-        signal,
-        expected_runtime_instance_id=expected_runtime_instance_id,
-        expected_runtime_implementation_cut=expected_runtime_implementation_cut,
-        minimum_logical_time_seconds=minimum_logical_time_seconds,
-        consumed_signal_digests=consumed_signal_digests,
-    )
+    def __init__(
+        self,
+        *,
+        runtime_instance_id: str,
+        runtime_implementation_cut: Mapping[str, Any],
+    ) -> None:
+        if not isinstance(runtime_instance_id, str) or not runtime_instance_id:
+            raise ValueError("runtime_instance_id is required")
+        if not isinstance(runtime_implementation_cut, Mapping):
+            raise ValueError("runtime_implementation_cut must be a mapping")
+        self._runtime_instance_id = runtime_instance_id
+        self._runtime_implementation_cut = _canonical_copy(
+            runtime_implementation_cut,
+            label="runtime_implementation_cut",
+        )
+        self._minimum_logical_time_seconds = 0.0
+        self._consumed_signal_digests: set[str] = set()
 
-    result = dict(planning_state)
-    ancestry: list[AffectiveModulationAncestry] = []
-    phase = str(signal["phase"])
-    for target, strength in strengths.items():
-        if strength <= 0.0:
-            continue
-        prior = result.get(target)
-        if isinstance(prior, bool) or not isinstance(prior, (int, float)):
-            continue
-        prior_value = float(prior)
-        if not math.isfinite(prior_value) or not 0.0 <= prior_value <= 1.0:
-            raise ValueError(f"planning target {target} must be finite and within [0,1]")
-        resulting_value = min(1.0, max(0.0, prior_value + (1.0 - prior_value) * strength))
-        result[target] = resulting_value
-        ancestry.append(
-            AffectiveModulationAncestry(
-                target=target,
-                prior_value=prior_value,
-                strength=strength,
-                resulting_value=resulting_value,
-                signal_digest=digest,
-                runtime_instance_id=expected_runtime_instance_id,
-                phase=phase,
-                event_digest=event_digest,
-            )
+    @property
+    def runtime_instance_id(self) -> str:
+        return self._runtime_instance_id
+
+    @property
+    def minimum_logical_time_seconds(self) -> float:
+        return self._minimum_logical_time_seconds
+
+    def apply(
+        self,
+        planning_state: Mapping[str, Any],
+        signal: Mapping[str, Any],
+    ) -> AffectiveModulationApplication:
+        if not isinstance(planning_state, Mapping):
+            raise TypeError("planning_state must be a mapping")
+        if not isinstance(signal, Mapping):
+            raise TypeError("signal must be a mapping")
+
+        digest, logical_time, systems, action_tendency, strengths, event_digest = _validate_signal(
+            signal,
+            expected_runtime_instance_id=self._runtime_instance_id,
+            expected_runtime_implementation_cut=self._runtime_implementation_cut,
+            minimum_logical_time_seconds=self._minimum_logical_time_seconds,
+            consumed_signal_digests=self._consumed_signal_digests,
         )
 
-    return AffectiveModulationApplication(
-        planning_state=result,
-        ancestry=tuple(ancestry),
-        signal_digest=digest,
-        runtime_instance_id=expected_runtime_instance_id,
-        logical_time_seconds=logical_time,
-        participating_systems=systems,
-        proposed_action_tendency=action_tendency,
-    )
+        result = dict(planning_state)
+        ancestry: list[AffectiveModulationAncestry] = []
+        phase = str(signal["phase"])
+        for target, strength in strengths.items():
+            if strength <= 0.0:
+                continue
+            prior = result.get(target)
+            if isinstance(prior, bool) or not isinstance(prior, (int, float)):
+                continue
+            prior_value = float(prior)
+            if not math.isfinite(prior_value) or not 0.0 <= prior_value <= 1.0:
+                raise ValueError(f"planning target {target} must be finite and within [0,1]")
+            resulting_value = min(1.0, max(0.0, prior_value + (1.0 - prior_value) * strength))
+            result[target] = resulting_value
+            ancestry.append(
+                AffectiveModulationAncestry(
+                    target=target,
+                    prior_value=prior_value,
+                    strength=strength,
+                    resulting_value=resulting_value,
+                    signal_digest=digest,
+                    runtime_instance_id=self._runtime_instance_id,
+                    phase=phase,
+                    event_digest=event_digest,
+                )
+            )
+
+        application = AffectiveModulationApplication(
+            planning_state=result,
+            ancestry=tuple(ancestry),
+            signal_digest=digest,
+            runtime_instance_id=self._runtime_instance_id,
+            logical_time_seconds=logical_time,
+            participating_systems=systems,
+            proposed_action_tendency=action_tendency,
+        )
+        self._consumed_signal_digests.add(digest)
+        self._minimum_logical_time_seconds = max(self._minimum_logical_time_seconds, logical_time)
+        return application
 
 
 __all__ = [
     "AffectiveModulationAncestry",
     "AffectiveModulationApplication",
-    "apply_affective_modulation_signal",
+    "AffectiveModulationArbiter",
 ]
