@@ -27,6 +27,7 @@ _NONCLIMAX_GAINS = {
     "expression": 0.12,
     "memory_strength_candidate_weighting": 0.10,
 }
+_NUMERIC_TARGETS = tuple(_ACTIVE_GAINS)
 
 
 def _clamp(value: float) -> float:
@@ -39,8 +40,8 @@ def _digest(value: Mapping[str, Any]) -> str:
 
 
 def _target_strengths(host: VeraAffectiveRuntimeHost, frame: Mapping[str, Any]) -> dict[str, float]:
-    allowed = tuple(host.runtime.contract["hard_firewalls"]["may_influence"])
-    strengths = {target: 0.0 for target in allowed}
+    allowed = set(host.runtime.contract["hard_firewalls"]["may_influence"])
+    strengths = {target: 0.0 for target in _NUMERIC_TARGETS if target in allowed}
 
     if frame["active_orgasm_event"]:
         intensity = _clamp(
