@@ -7,7 +7,9 @@ from pathlib import Path
 import subprocess
 from typing import Any, Mapping
 
+from .affect_host import VeraAffectiveRuntimeHost, validate_runtime_implementation_cut
 from .affect_integration import AffectiveModulationApplication, AffectiveModulationArbiter
+from .affect_signal import build_affective_modulation_signal
 
 
 _INTEGRATION_CUT_SCHEMA = "VERA_COHESION_AFFECTIVE_INTEGRATION_CUT_V1"
@@ -118,34 +120,38 @@ class IntegratedAffectivePlanningResult:
 
 
 class CohesionAffectiveIntegrationPort:
-    """Supported Vera boundary from OV signal proposal to generic planning state.
+    """Supported Vera boundary from an exact-bound OV host to generic planning.
 
-    The port binds the OV affective core cut expected in every signal and a
-    distinct CV-owned integration cut for application/arbitration code. Replay
-    history remains owned by the internal stateful arbiter. Neither cut, nor the
-    fact that modulation occurred, establishes provider currentness, durable
-    continuity, evidence strength, authorization, memory admission, identity,
-    relationship state, behavioral qualification, or phenomenology.
+    The port binds one actual ``VeraAffectiveRuntimeHost`` rather than accepting
+    caller-selected affective provenance. Each supplied signal must equal a fresh
+    signal regenerated from that exact host at application time. The CV-owned
+    integration cut is separately Git/live-byte verified. Replay history remains
+    owned by the internal stateful arbiter.
+
+    This is still an in-process composition boundary, not hostile-process
+    isolation or provider qualification. Neither the host, signal, cuts, nor a
+    modulation application establish provider currentness, durable continuity,
+    evidence strength, authorization, memory admission, identity, relationship
+    state, behavioral qualification, or phenomenology.
     """
 
     def __init__(
         self,
         *,
-        runtime_instance_id: str,
-        affective_runtime_implementation_cut: Mapping[str, Any],
+        host: VeraAffectiveRuntimeHost,
         cohesion_integration_cut: Mapping[str, Any],
     ) -> None:
-        if not isinstance(affective_runtime_implementation_cut, Mapping):
-            raise ValueError("affective_runtime_implementation_cut must be a mapping")
-        self._affective_runtime_cut = _canonical_copy(
-            affective_runtime_implementation_cut,
-            label="affective_runtime_implementation_cut",
+        if not isinstance(host, VeraAffectiveRuntimeHost):
+            raise TypeError("Cohesion affective integration requires an exact-bound Vera affective host")
+        self._host = host
+        self._affective_runtime_cut = validate_runtime_implementation_cut(
+            host.runtime_implementation_cut
         )
         self._cohesion_integration_cut = validate_cohesion_affective_integration_cut(
             cohesion_integration_cut
         )
         self._arbiter = AffectiveModulationArbiter(
-            runtime_instance_id=runtime_instance_id,
+            runtime_instance_id=host.runtime.runtime_instance_id,
             runtime_implementation_cut=self._affective_runtime_cut,
         )
 
@@ -162,6 +168,13 @@ class CohesionAffectiveIntegrationPort:
         planning_state: Mapping[str, Any],
         signal: Mapping[str, Any],
     ) -> IntegratedAffectivePlanningResult:
+        if not isinstance(signal, Mapping):
+            raise TypeError("signal must be a mapping")
+        expected_signal = build_affective_modulation_signal(self._host)
+        if dict(signal) != expected_signal:
+            raise ValueError(
+                "affective modulation signal does not match the currently bound exact host state"
+            )
         application = self._arbiter.apply(planning_state, signal)
         runtime_commit = _require_git_sha(
             self._affective_runtime_cut.get("commit"),
