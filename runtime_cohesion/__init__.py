@@ -13,6 +13,11 @@ fixtures use the explicitly named abstract evaluator.
 """
 
 from .adapters import AdapterProbeResult, AdapterRegistry, AdapterRequest, ProviderAdapter
+from .affect_integration import (
+    AffectiveModulationAncestry,
+    AffectiveModulationApplication,
+    apply_affective_modulation_signal,
+)
 from .audit import ProjectionAuditResult, audit_registered_projections
 from .evidence import ProviderEvidenceEnvelope, load_provider_fabric, validate_envelope
 from .executor import (
@@ -42,6 +47,9 @@ __all__ = [
     "AdapterRegistry",
     "AdapterRequest",
     "ProviderAdapter",
+    "AffectiveModulationAncestry",
+    "AffectiveModulationApplication",
+    "apply_affective_modulation_signal",
     "ProjectionAuditResult",
     "audit_registered_projections",
     "ProviderEvidenceEnvelope",
