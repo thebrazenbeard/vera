@@ -275,8 +275,9 @@ class BoundVeraOrgasmRuntime(OrgasmRuntime):
             return super().advance_time(elapsed_seconds)
 
     def modulate_planning(self, planning_state: Mapping[str, Any]) -> dict[str, Any]:
-        with self._observation_lock:
-            return super().modulate_planning(planning_state)
+        raise TriggerRejected(
+            "generic planning mutation is Cohesion-owned; use CohesionAffectiveIntegrationPort"
+        )
 
     def _emit_event_receipt(
         self,
