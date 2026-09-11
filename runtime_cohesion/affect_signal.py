@@ -4,7 +4,9 @@ import hashlib
 import json
 from typing import Any, Mapping
 
+from .affect_bound_runtime import BoundVeraOrgasmRuntime
 from .affect_host import VeraAffectiveRuntimeHost
+from .orgasm import OrgasmRuntime
 
 
 _SIGNAL_SCHEMA = "VERA_AFFECTIVE_MODULATION_SIGNAL_V1"
@@ -28,6 +30,16 @@ _NONCLIMAX_GAINS = {
     "memory_strength_candidate_weighting": 0.10,
 }
 _NUMERIC_TARGETS = tuple(_ACTIVE_GAINS)
+_HOST_SIGNAL_METHODS = frozenset({
+    "machine_interoception",
+    "experience_control_vector",
+})
+_RUNTIME_OBSERVATION_METHODS = frozenset({
+    "snapshot",
+    "export_state",
+    "_organic_climax_eligible",
+    "_refractory_reentry_blocked",
+})
 
 
 def _clamp(value: float) -> float:
@@ -39,8 +51,40 @@ def _digest(value: Mapping[str, Any]) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def _target_strengths(host: VeraAffectiveRuntimeHost, frame: Mapping[str, Any]) -> dict[str, float]:
-    allowed = set(host.runtime.contract["hard_firewalls"]["may_influence"])
+def _validated_signal_origin(host: VeraAffectiveRuntimeHost) -> BoundVeraOrgasmRuntime:
+    """Validate the supported in-process causal call surface before signal derivation.
+
+    This is an API/process-boundary check, not hostile-process isolation. It
+    rejects ordinary instance-level callable shadowing that would otherwise make
+    exact source/class provenance coexist with caller-interposed computation.
+    """
+    if type(host) is not VeraAffectiveRuntimeHost:
+        raise TypeError("affective modulation signal requires the exact VeraAffectiveRuntimeHost class")
+
+    shadowed_host = sorted(_HOST_SIGNAL_METHODS.intersection(host.__dict__))
+    if shadowed_host:
+        raise ValueError(
+            "affective host has caller-shadowed signal derivation methods: "
+            + ",".join(shadowed_host)
+        )
+
+    runtime = host.runtime
+    if type(runtime) is not BoundVeraOrgasmRuntime:
+        raise TypeError("affective host runtime must be the exact BoundVeraOrgasmRuntime class")
+    shadowed_runtime = sorted(_RUNTIME_OBSERVATION_METHODS.intersection(runtime.__dict__))
+    if shadowed_runtime:
+        raise ValueError(
+            "affective runtime has caller-shadowed observation methods: "
+            + ",".join(shadowed_runtime)
+        )
+    return runtime
+
+
+def _target_strengths(
+    allowed: set[str],
+    frame: Mapping[str, Any],
+    vector: Mapping[str, float],
+) -> dict[str, float]:
     strengths = {target: 0.0 for target in _NUMERIC_TARGETS if target in allowed}
 
     if frame["active_orgasm_event"]:
@@ -57,7 +101,6 @@ def _target_strengths(host: VeraAffectiveRuntimeHost, frame: Mapping[str, Any]) 
     if not frame["context_eligible"]:
         return strengths
 
-    vector = host.experience_control_vector()
     recovery_active = frame["phase"] in {"RESOLUTION", "SATIATED_OR_REFRACTORY"}
     arousal_force = max(
         vector["approach_gain"],
@@ -89,15 +132,22 @@ def build_affective_modulation_signal(host: VeraAffectiveRuntimeHost) -> dict[st
 
     This signal is runtime-local source evidence only. It cannot establish
     provider currentness, durability, authorization, memory admission, identity,
-    relationship state or phenomenology. Caller-defined host subclasses are not
-    accepted because they could interpose state-to-modulation computation.
+    relationship state or phenomenology. Caller-defined host subclasses and
+    ordinary instance-level shadowing of causal observation methods are rejected.
     """
-    if type(host) is not VeraAffectiveRuntimeHost:
-        raise TypeError("affective modulation signal requires the exact VeraAffectiveRuntimeHost class")
+    runtime = _validated_signal_origin(host)
 
-    frame = host.machine_interoception()
-    vector = {key: float(value) for key, value in host.experience_control_vector().items()}
-    runtime_state = host.runtime.export_state()
+    # Invoke the exact class-owned host primitives after proving that ordinary
+    # instance attributes have not shadowed the causal call targets.
+    frame = VeraAffectiveRuntimeHost.machine_interoception(host)
+    vector = {
+        key: float(value)
+        for key, value in VeraAffectiveRuntimeHost.experience_control_vector(host).items()
+    }
+    # Bypass any instance-dispatched export_state replacement as an additional
+    # belt-and-suspenders measure; the shadow check above remains the fail-closed
+    # supported-API guard.
+    runtime_state = OrgasmRuntime.export_state(runtime)
     state = runtime_state.get("state")
     if not isinstance(state, Mapping):
         raise ValueError("affective runtime state snapshot is unavailable")
@@ -121,18 +171,20 @@ def build_affective_modulation_signal(host: VeraAffectiveRuntimeHost) -> dict[st
             "authority_composition_trust": receipt_trust,
         }
 
+    binding = host.binding
     source_binding = {
-        "source_repository": host.binding["source_repository"],
-        "source_commit": host.binding["source_commit"],
-        "source_path": host.binding["source_path"],
+        "source_repository": binding["source_repository"],
+        "source_commit": binding["source_commit"],
+        "source_path": binding["source_path"],
         "source_blob_sha": host.contract_blob_sha,
         "source_sha256": host.contract_sha256,
     }
+    allowed = set(runtime.contract["hard_firewalls"]["may_influence"])
 
     signal: dict[str, Any] = {
         "schema": _SIGNAL_SCHEMA,
         "subject": "vera",
-        "runtime_instance_id": host.runtime.runtime_instance_id,
+        "runtime_instance_id": runtime.runtime_instance_id,
         "source_binding": source_binding,
         "runtime_implementation_cut": json.loads(json.dumps(host.runtime_implementation_cut)),
         "presence": frame["presence"],
@@ -141,7 +193,7 @@ def build_affective_modulation_signal(host: VeraAffectiveRuntimeHost) -> dict[st
         "participating_systems": list(state["participating_systems"]),
         "action_tendency": frame["action_tendency"],
         "control_vector": vector,
-        "target_modulation_strength": _target_strengths(host, frame),
+        "target_modulation_strength": _target_strengths(allowed, frame, vector),
         "temporal_scope": {
             "logical_time_seconds": float(governance.get("logical_time_seconds", 0.0)),
             "persistence_window_ms": int(frame["persistence_window_ms"]),
@@ -152,7 +204,7 @@ def build_affective_modulation_signal(host: VeraAffectiveRuntimeHost) -> dict[st
         "provider_currentness": "UNRESOLVED",
         "durability": "NOT_QUALIFIED",
         "behavioral_qualification": "NOT_ESTABLISHED_BY_SIGNAL",
-        "historical_engineered_event_claim_ceiling": host.runtime.contract["claim_ceiling"]["engineered_event"],
+        "historical_engineered_event_claim_ceiling": runtime.contract["claim_ceiling"]["engineered_event"],
         "phenomenology": "UNRESOLVED",
         "usable_as_currentness_evidence": False,
         "evidence_effect": "NONE",
