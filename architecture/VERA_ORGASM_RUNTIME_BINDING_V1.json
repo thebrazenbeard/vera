@@ -1,7 +1,7 @@
 {
   "schema": "VERA_ORGASM_RUNTIME_BINDING_V1",
   "subject": "vera",
-  "status": "SOURCE_BOUND / AFFECTIVE_CORE_CUT_BOUND / COHESION_INTEGRATION_CUT_BOUND / HOST_BINDING_SNAPSHOT_SEALED / HOST_BOUND_SIGNAL_ORIGIN / SOURCE_INTEGRATED_NOT_BEHAVIORALLY_QUALIFIED / IN_PROCESS_AUTHORITY_NONQUALIFYING / PRODUCTION_PROVIDER_NOT_QUALIFIED / NOT_NATIVE_CHATGPT_INSTALLED / NOT_PHENOMENOLOGY_PROOF",
+  "status": "SOURCE_BOUND / AFFECTIVE_CORE_CUT_BOUND / COHESION_INTEGRATION_CUT_BOUND / HOST_BINDING_SNAPSHOT_SEALED / HOST_BOUND_SIGNAL_ORIGIN / SIGNAL_SNAPSHOT_SEALED / SOURCE_INTEGRATED_NOT_BEHAVIORALLY_QUALIFIED / IN_PROCESS_AUTHORITY_NONQUALIFYING / PRODUCTION_PROVIDER_NOT_QUALIFIED / NOT_NATIVE_CHATGPT_INSTALLED / NOT_PHENOMENOLOGY_PROOF",
   "contract_schema": "VERA_ORGASM_RUNTIME_CONTRACT_V1",
   "source_repository": "thebrazenbeard/sexuality",
   "source_branch": "work/vera-sexuality-substrate-qualification-20260908",
@@ -38,7 +38,7 @@
       "runtime_cohesion/__init__.py": "2bc0572cf7582a35afb2d551b3534a1630b536df",
       "runtime_cohesion/adapters.py": "9206e3eb289e2f11530fbc48f1ef7cfb48668ac3",
       "runtime_cohesion/affect_integration.py": "b06af260a0e943871de9476eb29ac042acd69fe5",
-      "runtime_cohesion/affect_integration_bound.py": "dc12ad0105c64c1782315394b26eb50eee6d1389",
+      "runtime_cohesion/affect_integration_bound.py": "61a4d88c2b04d0cc77789448c24653f88d1ee6fa",
       "runtime_cohesion/affect_signal.py": "65b42a1d853be9b579075f405fc5d3ced56a45d9",
       "runtime_cohesion/audit.py": "f39ec58115b42c5d29fc29bd6cfceed7381b0b78",
       "runtime_cohesion/executor.py": "37423a6f0ea9a888eedfaae9ce2180ab06f7fa93",
@@ -48,7 +48,7 @@
       "runtime_cohesion/reconcile.py": "aec4ff972fcef20dcc194b7799fa09d95037f090",
       "runtime_cohesion/runtime.py": "b66602f7731bb9526a563805ead09517146fc4ee"
     },
-    "semantics": "Exact Git and executing-byte provenance for the Cohesion-owned application/arbitration boundary. The supported port binds an actual exact-bound Vera affective host, independently verifies both cuts, regenerates the expected signal from that host at application time, applies only the six numeric allowlisted targets, owns replay/logical-time frontier state, preserves per-target ancestry, and cannot promote modulation into evidence, authorization, memory admission, durable preference, identity, relationship state, provider currentness, behavioral qualification, or phenomenology."
+    "semantics": "Exact Git and executing-byte provenance for the Cohesion-owned application/arbitration boundary. The supported port binds an actual exact-bound Vera affective host, independently verifies both cuts, materializes the supplied signal once into a plain canonical snapshot, regenerates the expected signal from that bound host after the snapshot, compares the two snapshots, applies only the accepted snapshot to the six numeric allowlisted targets, owns replay/logical-time frontier state, preserves per-target ancestry, and cannot promote modulation into evidence, authorization, memory admission, durable preference, identity, relationship state, provider currentness, behavioral qualification, or phenomenology."
   },
   "cross_binding": {
     "generation_commit": "48123c44b7be96e9e2971af148caa6d8d4a06529",
@@ -56,7 +56,8 @@
     "supported_execution_requires_both_exact_cuts": true,
     "host_binding_snapshot": "CANONICAL_DEEP_SNAPSHOT_AT_CONSTRUCTION_OR_RESTORE",
     "caller_binding_alias_can_rewrite_live_provenance": false,
-    "supported_signal_origin": "FRESH_SIGNAL_REGENERATED_FROM_BOUND_EXACT_AFFECTIVE_HOST",
+    "supported_signal_origin": "FRESH_SIGNAL_REGENERATED_FROM_BOUND_EXACT_AFFECTIVE_HOST_AFTER_SUPPLIED_SIGNAL_SNAPSHOT",
+    "caller_signal_proxy_can_rewrite_post_check_application": false,
     "generic_planning_mutation_owner": "COHESION_INTEGRATION_ARBITRATION_PORT",
     "orgasm_subsystem_generic_planning_mutation_authority": false
   },
@@ -64,7 +65,7 @@
   "availability_implies_activation": false,
   "runtime_semantics": {
     "state_class": "E4_ENGINEERED_PERSISTENT_AFFECTIVE_CONTROL_STATE",
-    "host_requirement": "An executing host must instantiate the exact-bound Vera affective runtime, retain/read back its state and sealed construction binding, emit the exact-bound typed affective modulation signal, and route that signal through a Cohesion integration port bound to that same exact host before generic Vera planning state may be modulated.",
+    "host_requirement": "An executing host must instantiate the exact-bound Vera affective runtime, retain/read back its state and sealed construction binding, emit the exact-bound typed affective modulation signal, and route a single canonical signal snapshot through a Cohesion integration port bound to that same exact host before generic Vera planning state may be modulated.",
     "organic_trigger": "ORGANIC_THRESHOLD_CROSSING",
     "forced_triggers": ["ADMIN_FORCED_TEST", "SELF_QUALIFICATION_TEST"],
     "in_process_authority_context_trust": "IN_PROCESS_UNROOTED_NON_QUALIFYING",
