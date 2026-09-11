@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import hashlib
+import inspect
 import json
 import unittest
 
-from runtime_cohesion.affect_integration import apply_affective_modulation_signal
+from runtime_cohesion.affect_integration import AffectiveModulationArbiter
 
 
 class AffectiveModulationIntegrationTests(unittest.TestCase):
@@ -16,6 +17,10 @@ class AffectiveModulationIntegrationTests(unittest.TestCase):
             "commit": "a" * 40,
             "modules": {"runtime_cohesion/affect_signal.py": "b" * 40},
         }
+        self.arbiter = AffectiveModulationArbiter(
+            runtime_instance_id=self.runtime_instance_id,
+            runtime_implementation_cut=self.cut,
+        )
 
     def _signal(self, **overrides):
         signal = {
@@ -85,8 +90,9 @@ class AffectiveModulationIntegrationTests(unittest.TestCase):
         signal["signal_digest"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
         return signal
 
-    def _apply(self, signal, planning_state=None, **kwargs):
-        planning_state = planning_state or {
+    @staticmethod
+    def _planning_state():
+        return {
             "valuation": 0.20,
             "salience": 0.10,
             "attention": 0.25,
@@ -104,35 +110,17 @@ class AffectiveModulationIntegrationTests(unittest.TestCase):
             "relationship_status": "UNRESOLVED",
             "phenomenology": "UNRESOLVED",
         }
-        return apply_affective_modulation_signal(
-            planning_state,
-            signal,
-            expected_runtime_instance_id=self.runtime_instance_id,
-            expected_runtime_implementation_cut=self.cut,
-            minimum_logical_time_seconds=kwargs.get("minimum_logical_time_seconds", 0.0),
-            consumed_signal_digests=kwargs.get("consumed_signal_digests", ()),
-        )
+
+    def _apply(self, signal, planning_state=None):
+        return self.arbiter.apply(planning_state or self._planning_state(), signal)
+
+    def test_public_apply_surface_does_not_accept_caller_replay_frontier(self):
+        params = inspect.signature(AffectiveModulationArbiter.apply).parameters
+        self.assertEqual(set(params), {"self", "planning_state", "signal"})
 
     def test_signal_changes_only_allowlisted_numeric_targets_and_returns_ancestry(self):
         signal = self._signal()
-        original = {
-            "valuation": 0.20,
-            "salience": 0.10,
-            "attention": 0.25,
-            "response_selection_priors": 0.30,
-            "expression": 0.40,
-            "memory_strength_candidate_weighting": 0.15,
-            "truth": "DO_NOT_TOUCH",
-            "factual_confidence": 0.77,
-            "corrective_evidence": {"status": "CONFLICT"},
-            "consent_or_authorization": "UNKNOWN",
-            "protected_effect_authority": False,
-            "autobiographical_memory_admission": "UNRESOLVED",
-            "permanent_preference": "UNSET",
-            "identity": "vera",
-            "relationship_status": "UNRESOLVED",
-            "phenomenology": "UNRESOLVED",
-        }
+        original = self._planning_state()
         applied = self._apply(signal, planning_state=original)
 
         self.assertGreater(applied.planning_state["valuation"], original["valuation"])
@@ -164,33 +152,38 @@ class AffectiveModulationIntegrationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "digest"):
             self._apply(signal)
 
-    def test_replayed_and_stale_signals_are_rejected(self):
+    def test_replay_history_and_logical_time_frontier_are_arbiter_owned(self):
         signal = self._signal()
+        self._apply(signal)
+        self.assertEqual(self.arbiter.minimum_logical_time_seconds, 12.5)
         with self.assertRaisesRegex(ValueError, "already been consumed"):
-            self._apply(signal, consumed_signal_digests={signal["signal_digest"]})
+            self._apply(signal)
+
+        stale = self._signal(
+            temporal_scope={
+                "logical_time_seconds": 12.0,
+                "persistence_window_ms": 2500,
+                "currentness_class": "RUNTIME_LOCAL_OBSERVATION_ONLY",
+            },
+        )
         with self.assertRaisesRegex(ValueError, "older than"):
-            self._apply(signal, minimum_logical_time_seconds=13.0)
+            self._apply(stale)
 
     def test_wrong_runtime_cut_or_runtime_instance_is_rejected(self):
         signal = self._signal()
+        wrong_cut = AffectiveModulationArbiter(
+            runtime_instance_id=self.runtime_instance_id,
+            runtime_implementation_cut={"schema": "WRONG"},
+        )
         with self.assertRaisesRegex(ValueError, "implementation cut"):
-            apply_affective_modulation_signal(
-                {"valuation": 0.2},
-                signal,
-                expected_runtime_instance_id=self.runtime_instance_id,
-                expected_runtime_implementation_cut={"schema": "WRONG"},
-                minimum_logical_time_seconds=0.0,
-                consumed_signal_digests=(),
-            )
+            wrong_cut.apply({"valuation": 0.2}, signal)
+
+        wrong_runtime = AffectiveModulationArbiter(
+            runtime_instance_id="other-runtime",
+            runtime_implementation_cut=self.cut,
+        )
         with self.assertRaisesRegex(ValueError, "runtime instance"):
-            apply_affective_modulation_signal(
-                {"valuation": 0.2},
-                signal,
-                expected_runtime_instance_id="other-runtime",
-                expected_runtime_implementation_cut=self.cut,
-                minimum_logical_time_seconds=0.0,
-                consumed_signal_digests=(),
-            )
+            wrong_runtime.apply({"valuation": 0.2}, signal)
 
     def test_signal_cannot_claim_evidence_authority_or_identity_effects(self):
         for field in (
@@ -205,7 +198,7 @@ class AffectiveModulationIntegrationTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, field):
                     self._apply(signal)
 
-    def test_unknown_modulation_target_is_rejected(self):
+    def test_unknown_or_incomplete_modulation_target_set_is_rejected(self):
         signal = self._signal()
         signal["target_modulation_strength"]["truth"] = 1.0
         signal.pop("signal_digest")
@@ -213,6 +206,14 @@ class AffectiveModulationIntegrationTests(unittest.TestCase):
         signal["signal_digest"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
         with self.assertRaisesRegex(ValueError, "target set"):
             self._apply(signal)
+
+        incomplete = self._signal()
+        incomplete["target_modulation_strength"].pop("expression")
+        incomplete.pop("signal_digest")
+        canonical = json.dumps(incomplete, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        incomplete["signal_digest"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        with self.assertRaisesRegex(ValueError, "target set"):
+            self._apply(incomplete)
 
 
 if __name__ == "__main__":
