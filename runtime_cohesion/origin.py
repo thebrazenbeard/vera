@@ -14,6 +14,7 @@ SEMANTIC_CURRENTNESS_DOMAIN = "SEMANTICS_PROVENANCE_CURRENTNESS"
 SEMANTIC_CURRENTNESS_PROPOSITION = "SEMANTIC_PROVENANCE_CURRENTNESS_STATUS"
 SEMANTIC_CURRENTNESS_REFERENT_SCOPE = "EXACT_PROPOSITION_REFERENT_SOURCE_BINDING"
 SEMANTIC_DECISIVE_CLASSES = frozenset({"control_source", "live_observation"})
+SEMANTIC_ORIGIN_COMPOSITION_TRUST = "IN_PROCESS_UNROOTED_NON_QUALIFYING"
 
 _HEX40 = re.compile(r"^[0-9a-f]{40}$")
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
@@ -21,13 +22,15 @@ _HEX64 = re.compile(r"^[0-9a-f]{64}$")
 
 @dataclass(frozen=True)
 class ProviderOriginProof:
-    """Independent exact-object origin result for semantic currentness.
+    """Exact-object origin result produced by an origin verifier.
 
-    This is operational provenance evidence, not semantic authority and not a
-    cryptographic authenticity primitive. Ordinary retrieval adapters cannot
-    supply or register this proof. It becomes admission-relevant only after a
-    separately installed runtime-owned verifier validates the exact envelope
-    against the frozen R10 control object and owner binding.
+    The proof describes what a verifier claims to have observed. It is not, by
+    itself, proof that the verifier was independently rooted. In particular,
+    the in-process composition hook below is deliberately nonqualifying: code
+    that can install a first writer can also manufacture a perfectly shaped
+    proof. Qualifying provider/currentness admission therefore requires an
+    independently rooted host/provider boundary that this source-only module
+    does not pretend to provide.
     """
 
     issuer_provider: str
@@ -111,6 +114,12 @@ _REGISTRY_LOCK = RLock()
 _VALIDATED_ORIGINS: dict[int, tuple[weakref.ReferenceType[Any], ValidatedProviderOrigin]] = {}
 
 
+def semantic_origin_composition_trust() -> str:
+    """Return the evidence ceiling of the source-only verifier composition."""
+
+    return SEMANTIC_ORIGIN_COMPOSITION_TRUST
+
+
 def _policy_for(contract: Mapping[str, Any]) -> Mapping[str, Any] | None:
     registry = contract.get("provider_origin_validation")
     if not isinstance(registry, Mapping):
@@ -153,13 +162,14 @@ def _expected_origin(contract: Mapping[str, Any]) -> dict[str, str] | None:
 
 
 def _install_semantic_origin_verifiers(verifiers: Mapping[str, SemanticOriginVerifier]) -> None:
-    """Install one runtime-owned origin-verifier composition.
+    """Install one source/mechanics origin-verifier composition.
 
-    This private composition is intentionally separate from AdapterRegistry. The
-    public admission/executor surfaces receive ordinary evidence/adapters but
-    expose no parameter through which a claimant can substitute semantic-origin
-    verifiers. This is a supported-API/process trust boundary, not cryptographic
-    isolation from arbitrary hostile code already executing inside the process.
+    This private composition is intentionally separate from AdapterRegistry and
+    remains useful for deterministic mechanics and hostile source tests. It is
+    *not* an authentication root: a same-process first writer can implement both
+    the verifier and the proof it returns. Consequently this hook is permanently
+    classified ``IN_PROCESS_UNROOTED_NON_QUALIFYING`` and cannot, by itself,
+    register semantic-currentness provenance for provider-strict admission.
     """
 
     if not isinstance(verifiers, Mapping) or not verifiers:
@@ -201,32 +211,31 @@ def _runtime_origin_verifier(provider: str) -> SemanticOriginVerifier | None:
         return None if verifiers is None else verifiers.get(provider)
 
 
-def validate_and_register_semantic_origin(
+def _validate_unrooted_origin_proof(
     envelope: Any,
     contract: Mapping[str, Any],
-) -> bool:
-    """Independently validate one decisive envelope and bind that validation.
+) -> ProviderOriginProof | None:
+    """Validate proof *shape and cross-binding* without promoting its trust.
 
-    Claimant-authored envelope fields and any similarly shaped method on the
-    ordinary retrieval adapter are deliberately irrelevant here. Only the
-    separately composed verifier can produce the origin proof used by this
-    boundary.
+    A successful result means only that the in-process verifier produced a
+    structurally coherent proof for the exact envelope. It does not authenticate
+    the verifier itself and therefore cannot satisfy provider-strict currentness.
     """
 
     evidence_class = getattr(envelope, "evidence_class", None)
     referent = getattr(envelope, "referent", None)
     if evidence_class not in SEMANTIC_DECISIVE_CLASSES or referent != SEMANTIC_CURRENTNESS_DOMAIN:
-        return False
+        return None
 
     expected = _expected_origin(contract)
     policy = _policy_for(contract)
     relational = _relational_binding(contract)
     if expected is None or policy is None or relational is None:
-        return False
+        return None
     if policy.get("required_for_provider_admission") is not True:
-        return False
+        return None
     if policy.get("claimant_metadata_is_not_origin_proof") is not True:
-        return False
+        return None
     expected_policy_fields = [
         "source_repository",
         "source_commit",
@@ -238,58 +247,58 @@ def validate_and_register_semantic_origin(
         "owner_git_blob",
     ]
     if policy.get("exact_control_root_fields") != expected_policy_fields:
-        return False
+        return None
 
     provider_rules = policy.get("provider_methods")
     if not isinstance(provider_rules, Mapping):
-        return False
+        return None
     rule = provider_rules.get(evidence_class)
     if not isinstance(rule, Mapping):
-        return False
+        return None
     expected_provider = rule.get("provider")
     expected_method = rule.get("validation_method")
     if not isinstance(expected_provider, str) or not isinstance(expected_method, str):
-        return False
+        return None
     if getattr(envelope, "provider", None) != expected_provider:
-        return False
+        return None
 
     verifier = _runtime_origin_verifier(expected_provider)
     if verifier is None:
-        return False
+        return None
     try:
         proof = verifier.verify(envelope)
     except Exception:
-        return False
+        return None
     if not isinstance(proof, ProviderOriginProof):
-        return False
+        return None
     if proof.issuer_provider != expected_provider or proof.validation_method != expected_method:
-        return False
+        return None
 
     required_currentness = relational.get("required_currentness_state")
     required_supersession = relational.get("required_supersession_state")
     required_source_identity = relational.get("required_source_identity")
     if not all(isinstance(value, str) and value for value in (required_currentness, required_supersession, required_source_identity)):
-        return False
+        return None
 
     if proof.observed_at != getattr(envelope, "observed_at", None):
-        return False
+        return None
     if any(getattr(proof, field) != value for field, value in expected.items()):
-        return False
+        return None
     if proof.currentness_state != required_currentness:
-        return False
+        return None
     if proof.supersession_state != required_supersession:
-        return False
+        return None
 
     if getattr(envelope, "revision", None) != expected["commit"]:
-        return False
+        return None
     if getattr(envelope, "content_digest", None) != expected["sha256"]:
-        return False
+        return None
     if getattr(envelope, "supersession_state", None) != required_supersession:
-        return False
+        return None
 
     metadata = getattr(envelope, "metadata", None)
     if not isinstance(metadata, Mapping):
-        return False
+        return None
     metadata_expected = {
         "binding_source_identity": required_source_identity,
         "binding_source_revision": expected["commit"],
@@ -297,43 +306,37 @@ def validate_and_register_semantic_origin(
         "binding_supersession_state": required_supersession,
     }
     if any(metadata.get(field) != value for field, value in metadata_expected.items()):
+        return None
+    return proof
+
+
+def validate_and_register_semantic_origin(
+    envelope: Any,
+    contract: Mapping[str, Any],
+) -> bool:
+    """Fail closed unless semantic origin is rooted outside this process hook.
+
+    The current source-only integration exposes no independently rooted provider
+    capability. We still validate the in-process proof for mechanical regression
+    coverage, but a coherent unrooted proof is deliberately *not registered* as
+    a ``ValidatedProviderOrigin``. A future production host must supply an
+    independently rooted capability via a separately governed boundary; adding
+    such a boundary is not simulated here.
+    """
+
+    proof = _validate_unrooted_origin_proof(envelope, contract)
+    if proof is None:
         return False
-
-    validated = ValidatedProviderOrigin(
-        issuer_provider=proof.issuer_provider,
-        repository=proof.repository,
-        commit=proof.commit,
-        path=proof.path,
-        git_blob=proof.git_blob,
-        sha256=proof.sha256,
-        source_logical_id=proof.source_logical_id,
-        owner_logical_id=proof.owner_logical_id,
-        owner_path=proof.owner_path,
-        owner_git_blob=proof.owner_git_blob,
-        currentness_state=proof.currentness_state,
-        supersession_state=proof.supersession_state,
-        validation_method=proof.validation_method,
-    )
-    key = id(envelope)
-
-    def cleanup(ref: weakref.ReferenceType[Any], *, registry_key: int = key) -> None:
-        with _REGISTRY_LOCK:
-            current = _VALIDATED_ORIGINS.get(registry_key)
-            if current is not None and current[0] is ref:
-                _VALIDATED_ORIGINS.pop(registry_key, None)
-
-    with _REGISTRY_LOCK:
-        _VALIDATED_ORIGINS[key] = (weakref.ref(envelope, cleanup), validated)
-    return True
+    return False
 
 
 def validated_semantic_origin(envelope: Any, contract: Mapping[str, Any]) -> ValidatedProviderOrigin | None:
-    """Resolve independently validated origin for this exact live envelope.
+    """Resolve qualifying provider origin for this exact live envelope.
 
-    A cache hit is reused only while it still matches the current contract cut.
-    On a cache miss the provider-strict admission boundary asks the separately
-    installed verifier to validate the envelope; no ordinary adapter assertion
-    is consulted.
+    Source-only in-process verifier composition is explicitly unrooted and can
+    never produce this result. Until an independently rooted host/provider
+    capability is integrated, provider-strict semantic-currentness admission
+    therefore remains fail-closed/UNRESOLVED rather than fabricating CURRENT.
     """
 
     expected = _expected_origin(contract)
@@ -351,12 +354,9 @@ def validated_semantic_origin(envelope: Any, contract: Mapping[str, Any]) -> Val
         validated = entry[1] if entry is not None and entry[0]() is envelope else None
 
     if validated is None:
-        if not validate_and_register_semantic_origin(envelope, contract):
-            return None
-        with _REGISTRY_LOCK:
-            entry = _VALIDATED_ORIGINS.get(key)
-            validated = entry[1] if entry is not None and entry[0]() is envelope else None
-    if validated is None:
+        # Deliberately exercise/validate the unrooted composition, but never
+        # convert it into qualifying provider-currentness provenance.
+        validate_and_register_semantic_origin(envelope, contract)
         return None
     if any(getattr(validated, field) != value for field, value in expected.items()):
         return None
