@@ -1,0 +1,68 @@
+from __future__ import annotations
+
+from copy import deepcopy
+from pathlib import Path
+import unittest
+
+from scripts.validate_cohesion_frontier import (
+    load_json_strict,
+    validate_frontier,
+)
+
+
+ROOT = Path(__file__).resolve().parents[1]
+FRONTIER_PATH = ROOT / "architecture/cohesion/VERA_COHESION_FRONTIER_V0_20260911.json"
+REGISTRY_PATH = ROOT / "architecture/cohesion/VERA_COHESION_SOURCE_REGISTRY_V0_20260911.json"
+
+
+class CohesionFrontierSnapshotTests(unittest.TestCase):
+    def frontier(self) -> dict:
+        return load_json_strict(FRONTIER_PATH)
+
+    def registry(self) -> dict:
+        return load_json_strict(REGISTRY_PATH)
+
+    def test_current_frontier_validates_against_registry_cut(self):
+        validate_frontier(self.frontier(), self.registry())
+
+    def test_mutable_input_ids_are_unique(self):
+        frontier = self.frontier()
+        mutated = deepcopy(frontier)
+        mutated["mutable_inputs"].append(deepcopy(mutated["mutable_inputs"][0]))
+        with self.assertRaisesRegex(ValueError, "duplicate mutable input id"):
+            validate_frontier(mutated, self.registry())
+
+    def test_pr113_registry_drift_must_be_explicitly_superseded(self):
+        frontier = self.frontier()
+        mutated = deepcopy(frontier)
+        pr113 = next(item for item in mutated["mutable_inputs"] if item["id"] == "vera-ov-cv-pr113")
+        pr113["supersedes_registry_head"] = pr113["current_observed_head"]
+        with self.assertRaisesRegex(ValueError, "registry predecessor"):
+            validate_frontier(mutated, self.registry())
+
+    def test_material_drift_requires_reconciliation_before_harvest(self):
+        frontier = self.frontier()
+        mutated = deepcopy(frontier)
+        pr113 = next(item for item in mutated["mutable_inputs"] if item["id"] == "vera-ov-cv-pr113")
+        pr113["material_drift"]["reconciliation_required_before_harvest"] = False
+        with self.assertRaisesRegex(ValueError, "material drift"):
+            validate_frontier(mutated, self.registry())
+
+    def test_runtime_source_drift_cannot_be_classified_as_metadata_only(self):
+        frontier = self.frontier()
+        mutated = deepcopy(frontier)
+        pr113 = next(item for item in mutated["mutable_inputs"] if item["id"] == "vera-ov-cv-pr113")
+        pr113["material_drift"]["classification"] = "METADATA_ONLY"
+        with self.assertRaisesRegex(ValueError, "runtime source"):
+            validate_frontier(mutated, self.registry())
+
+    def test_frontier_cannot_authorize_protected_effects(self):
+        frontier = self.frontier()
+        mutated = deepcopy(frontier)
+        mutated["protected_effects_not_authorized"].remove("MERGE")
+        with self.assertRaisesRegex(ValueError, "protected effect ceiling"):
+            validate_frontier(mutated, self.registry())
+
+
+if __name__ == "__main__":
+    unittest.main()
