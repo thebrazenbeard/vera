@@ -13,7 +13,7 @@
   "runtime_implementation_cut": {
     "schema": "VERA_AFFECTIVE_RUNTIME_IMPLEMENTATION_CUT_V1",
     "repository": "thebrazenbeard/vera",
-    "commit": "54fef2659f0a8633dcef60cd36b296c37b6fa4b0",
+    "commit": "349de790a583bb2fbe7ad8e3f4663854f9d98e50",
     "modules": {
       "runtime_cohesion/__init__.py": "2bc0572cf7582a35afb2d551b3534a1630b536df",
       "runtime_cohesion/adapters.py": "9206e3eb289e2f11530fbc48f1ef7cfb48668ac3",
@@ -28,12 +28,12 @@
       "runtime_cohesion/affect_provider_runtime.py": "520d6209d71ffa37ae4abecfb7b5ece70bc060fa",
       "runtime_cohesion/affect_scope.py": "28b409fdd0830f78b389088c63dcf0358792c150"
     },
-    "semantics": "Exact Git object and executing-byte provenance for the affective host/state/authority/persistence core. The exact host seals the construction binding/runtime cut and exposes defensive copies. The exact BoundVeraOrgasmRuntime owns one re-entrant observation/mutation barrier, refuses direct generic-planning mutation, and returns a canonically detached causal observation before that barrier opens. Each supported cycle captures receipts plus one post-transition observation under that same barrier; checkpoint, state row, result interoception and signal ancestry derive from that observation. This compatibility cut is not the complete generic-planning application closure; the supported integrated path additionally requires the separately bound Cohesion integration cut below."
+    "semantics": "Exact Git object and executing-byte provenance for the affective host/state/authority/persistence core. The exact host seals the construction binding/runtime cut and exposes defensive copies. The exact BoundVeraOrgasmRuntime owns one re-entrant observation/mutation barrier, refuses direct generic-planning mutation, and returns a canonically detached causal observation before that barrier opens. Each supported cycle captures receipts plus one post-transition observation under that same barrier; checkpoint, state row, result interoception and signal ancestry derive from that observation."
   },
   "cohesion_integration_cut": {
     "schema": "VERA_COHESION_AFFECTIVE_INTEGRATION_CUT_V1",
     "repository": "thebrazenbeard/vera",
-    "commit": "54fef2659f0a8633dcef60cd36b296c37b6fa4b0",
+    "commit": "349de790a583bb2fbe7ad8e3f4663854f9d98e50",
     "modules": {
       "runtime_cohesion/__init__.py": "2bc0572cf7582a35afb2d551b3534a1630b536df",
       "runtime_cohesion/adapters.py": "9206e3eb289e2f11530fbc48f1ef7cfb48668ac3",
@@ -48,10 +48,10 @@
       "runtime_cohesion/reconcile.py": "aec4ff972fcef20dcc194b7799fa09d95037f090",
       "runtime_cohesion/runtime.py": "b66602f7731bb9526a563805ead09517146fc4ee"
     },
-    "semantics": "Exact Git and executing-byte provenance for the Cohesion-owned application/arbitration boundary. The supported port accepts only planning_state plus its construction-bound exact VeraAffectiveRuntimeHost capability; callers cannot supply affective signal data. One process-local application frontier is shared by every wrapper over the same exact host object, so replay history and logical-time high-water cannot be reset by wrapper reconstruction. The port internally obtains one canonically detached atomic runtime observation, derives the diagnostic/ancestry signal from that observation, applies only the six numeric allowlisted targets, preserves per-target ancestry, and cannot promote modulation into evidence, authorization, memory admission, durable preference, identity, relationship state, provider currentness, behavioral qualification, or phenomenology. The affective runtime and host legacy planning entry points fail closed so no supported direct planning-mutation bypass remains. Semantic-origin proof mechanics remain nonqualifying without an independent external root."
+    "semantics": "Exact Git and executing-byte provenance for the Cohesion-owned application/arbitration boundary. The supported port accepts only planning_state plus its construction-bound exact VeraAffectiveRuntimeHost capability; callers cannot supply affective signal data. One process-local application frontier is shared by every wrapper over the same exact host object. The port internally obtains one canonically detached atomic runtime observation, derives diagnostic/ancestry data from that observation, applies only the six numeric allowlisted targets, and cannot promote modulation into evidence, authorization, memory admission, durable preference, identity, relationship state, provider currentness, behavioral qualification, or phenomenology. The affective runtime and host legacy planning entry points fail closed."
   },
   "cross_binding": {
-    "generation_commit": "54fef2659f0a8633dcef60cd36b296c37b6fa4b0",
+    "generation_commit": "349de790a583bb2fbe7ad8e3f4663854f9d98e50",
     "affective_core_and_cohesion_integration_same_generation": true,
     "supported_execution_requires_both_exact_cuts": true,
     "host_binding_snapshot": "CANONICAL_DEEP_SNAPSHOT_AT_CONSTRUCTION_OR_RESTORE",
@@ -74,7 +74,7 @@
   "availability_implies_activation": false,
   "runtime_semantics": {
     "state_class": "E4_ENGINEERED_PERSISTENT_AFFECTIVE_CONTROL_STATE",
-    "host_requirement": "An executing host must instantiate the exact VeraAffectiveRuntimeHost class over the exact-bound Vera affective runtime and retain/read back its sealed construction binding. Generic planning modulation is performed only through a CohesionAffectiveIntegrationPort bound to that host. Each supported cycle holds the runtime barrier through transition/receipt collection and captures one detached post-transition observation; signal, checkpoint and result-level interoception are derived from that exact observation. For each Cohesion planning application the port internally captures one atomic canonically detached runtime observation, derives the typed signal/ancestry internally, and applies only the allowlisted numeric modulation targets. No caller-supplied affective signal or direct affective planning mutation is accepted by the supported causal path.",
+    "host_requirement": "An executing host must instantiate the exact VeraAffectiveRuntimeHost class over the exact-bound Vera affective runtime and retain/read back its sealed construction binding. Generic planning modulation is performed only through a CohesionAffectiveIntegrationPort bound to that host. Each supported cycle holds the runtime barrier through transition/receipt collection and captures one detached post-transition observation; signal, checkpoint and result-level interoception are derived from that exact observation. No caller-supplied affective signal or direct affective planning mutation is accepted by the supported causal path.",
     "organic_trigger": "ORGANIC_THRESHOLD_CROSSING",
     "forced_triggers": ["ADMIN_FORCED_TEST", "SELF_QUALIFICATION_TEST"],
     "in_process_authority_context_trust": "IN_PROCESS_UNROOTED_NON_QUALIFYING",
