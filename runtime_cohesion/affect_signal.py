@@ -6,7 +6,6 @@ from typing import Any, Mapping
 
 from .affect_bound_runtime import BoundVeraOrgasmRuntime
 from .affect_host import VeraAffectiveRuntimeHost
-from .orgasm import OrgasmRuntime
 
 
 _SIGNAL_SCHEMA = "VERA_AFFECTIVE_MODULATION_SIGNAL_V1"
@@ -84,11 +83,11 @@ def _capture_runtime_observation(
     host: VeraAffectiveRuntimeHost,
     runtime: BoundVeraOrgasmRuntime,
 ) -> dict[str, Any]:
-    """Capture exactly one deep immutable/plain-data observation for one application."""
-    # Call the class-owned export primitive directly. OrgasmRuntime.export_state()
-    # takes one state snapshot; canonicalization then prevents later live-state or
-    # alias changes from changing this application's observation.
-    raw = OrgasmRuntime.export_state(runtime)
+    """Capture one runtime-owned atomic observation for one application."""
+    # Call the exact class-owned capture primitive so the complete state,
+    # receipt, and trigger-governance read participates in the same lock as every
+    # supported mutation root. Canonicalization then removes later alias risk.
+    raw = BoundVeraOrgasmRuntime._capture_causal_observation(runtime)
     return _canonical_copy(raw, label="affective runtime observation")
 
 
