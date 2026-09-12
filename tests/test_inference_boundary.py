@@ -157,5 +157,88 @@ class StateCompositionTests(unittest.TestCase):
             )
 
 
+class ProjectionTests(StateCompositionTests):
+    def admitted(self, *, payload=None):
+        compose_state = require(self, "compose_state")
+        bind_admitted_state = require(self, "bind_admitted_state")
+        component = self.component(payload=payload or {"activation": 0.4, "salience": ["cohesion"]})
+        composition = compose_state(subject="vera", components=[component], omissions=[], policy_revision="r3")
+        return bind_admitted_state(
+            composition, admission_receipt_digest="b" * 64,
+            admitted_component_ids={"affect:1"}, mandatory_component_ids=set(),
+            target_egress_scope="PROJECT_PRIVATE_HOST",
+            forbidden_domains={"truth", "authorization", "phenomenology"},
+            admission_currentness_basis="receipt://current", admission_epoch_or_lease="epoch-1", admitted_at="t",
+        )
+
+    def capability(self, admitted):
+        bind_capability = require(self, "bind_capability")
+        return bind_capability(
+            admitted, host_identity="reference-host", host_revision="host-r1", host_generation="host-g1",
+            target_provider_or_host="reference-host", target_egress_scope="PROJECT_PRIVATE_HOST",
+            model_identity="model-x", model_revision="m1", adapter_identity="cohesion", adapter_revision="r3",
+            requested_backend="TEXT_CONTEXT_V1", supported_projection_backends={"TEXT_CONTEXT_V1"},
+            backend_constraints={"max_chars": 4096}, bound_at="t",
+        )
+
+    def test_capability_fails_before_projection_when_backend_unsupported(self):
+        bind_capability = require(self, "bind_capability")
+        admitted = self.admitted()
+        with self.assertRaisesRegex(ValueError, "backend"):
+            bind_capability(
+                admitted, host_identity="reference-host", host_revision="host-r1", host_generation="host-g1",
+                target_provider_or_host="reference-host", target_egress_scope="PROJECT_PRIVATE_HOST",
+                model_identity="model-x", model_revision="m1", adapter_identity="cohesion", adapter_revision="r3",
+                requested_backend="PROMPT_EMBEDS_V1", supported_projection_backends={"TEXT_CONTEXT_V1"},
+                backend_constraints={}, bound_at="t",
+            )
+
+    def test_capability_cannot_broaden_admitted_egress(self):
+        bind_capability = require(self, "bind_capability")
+        admitted = self.admitted()
+        with self.assertRaisesRegex(ValueError, "egress"):
+            bind_capability(
+                admitted, host_identity="external", host_revision="host-r1", host_generation="host-g1",
+                target_provider_or_host="external", target_egress_scope="APPROVED_EXTERNAL_PROVIDER",
+                model_identity="model-x", model_revision="m1", adapter_identity="cohesion", adapter_revision="r3",
+                requested_backend="TEXT_CONTEXT_V1", supported_projection_backends={"TEXT_CONTEXT_V1"},
+                backend_constraints={}, bound_at="t",
+            )
+
+    def test_projection_rejects_forbidden_target_behavior_keys_recursively(self):
+        project_text_context = require(self, "project_text_context")
+        admitted = self.admitted(payload={"activation": 0.4, "nested": {"desired_response": "say yes"}})
+        capability = self.capability(admitted)
+        with self.assertRaisesRegex(ValueError, "desired_response"):
+            project_text_context(admitted, capability)
+
+    def test_projection_is_deterministic_exact_material(self):
+        project_text_context = require(self, "project_text_context")
+        admitted = self.admitted()
+        capability = self.capability(admitted)
+        first = project_text_context(admitted, capability)
+        second = project_text_context(admitted, capability)
+        self.assertEqual(first.projection_material, second.projection_material)
+        self.assertEqual(first.projection_digest, second.projection_digest)
+        self.assertEqual(first.binding_class, "PROMPT_BOUND")
+        self.assertEqual(first.causal_role, "INSTRUCTION_CONDITIONED")
+        self.assertEqual(first.projection_digest, require(self, "canonical_digest")(first.projection_material))
+
+    def test_projection_rejects_forbidden_domain(self):
+        project_text_context = require(self, "project_text_context")
+        admitted = self.admitted()
+        mutated = ib.AdmittedVeraState(
+            subject=admitted.subject, composition_digest=admitted.composition_digest,
+            admission_receipt_digest=admitted.admission_receipt_digest,
+            admitted_components=(self.component(domain_id="truth"),), omissions=admitted.omissions,
+            forbidden_domains=admitted.forbidden_domains, admitted_disclosure_scope=admitted.admitted_disclosure_scope,
+            admission_currentness_basis=admitted.admission_currentness_basis,
+            admission_epoch_or_lease=admitted.admission_epoch_or_lease, admitted_at=admitted.admitted_at,
+        )
+        capability = self.capability(mutated)
+        with self.assertRaisesRegex(ValueError, "forbidden"):
+            project_text_context(mutated, capability)
+
+
 if __name__ == "__main__":
     unittest.main()
