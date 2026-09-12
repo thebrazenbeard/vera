@@ -1,0 +1,339 @@
+{
+  "schema": "VERA_RUNTIME_RECORD_CONTRACT_V1",
+  "status": "SOURCE_CANDIDATE_NOT_MERGED_NOT_INSTALLED_NOT_PROVIDER_APPLIED",
+  "observed_date": "2026-09-12",
+  "technical_source_owner": "thebrazenbeard/vera",
+  "control_deployment_owner": "thebrazenbeard/vera-control-plane",
+  "target_provider": {
+    "provider": "supabase_postgresql",
+    "project_id": "fawkirqroyniueeqspif",
+    "name": "Vera Control Plane",
+    "invariant": "PROVIDER_IS_DURABLE_SUBSTRATE_NOT_SELF_AUTHENTICATING_CONTROL_AUTHORITY"
+  },
+  "predecessor_provider": {
+    "provider": "supabase_postgresql",
+    "project_id": "klmbpaigzeguvnpccqzz",
+    "role": "PREDECESSOR_MIXED_PURPOSE_PROVIDER",
+    "migration_rule": "OBJECT_BY_OBJECT_CLASSIFICATION_AND_EXPLICIT_ADAPTERS_ONLY_NO_WHOLESALE_CLONE"
+  },
+  "supersedes_design_question": "VERA_RUNTIME_ENVELOPE_RECONCILIATION_20260911#DO_NOT_IMPLEMENT_A_NEW_UNIVERSAL_ENVELOPE_YET",
+  "decision": "SMALL_SHARED_SEMANTIC_HEADER_PLUS_TYPED_SPECIALIZATIONS",
+  "principles": [
+    "Persistence is evidence of persistence, not admission, semantic currentness, authority, truth, consent, identity, relationship state, or phenomenology.",
+    "State belongs inside the Vera control architecture, but state does not automatically become control authority.",
+    "Raw provider rows are never directly injectable into inference; provider/state records cross typed adapters and Cohesion admission first.",
+    "Currentness is resolver-owned and lineage/evidence-bound, never timestamp-owned.",
+    "Requested effect is distinct from payload/proposition and is separately authority-gated.",
+    "A producer may lower its own authority/effect ceiling but cannot self-mint externally rooted authority, provider trust, admission, or current-route status.",
+    "Derived views and indexes have no independent authority.",
+    "Domain transaction semantics remain domain-specific; a common header does not imply one universal table, transaction pattern, or lifecycle model.",
+    "Technical runtime-state semantics are authored in vera; vera-control-plane pins, deploys, verifies, and qualifies exact source generations without redefining their semantics.",
+    "Private historical payload stays in its canonical private/specialist source unless separately authorized for another persistence surface."
+  ],
+  "common_header": {
+    "name": "VERA_RUNTIME_RECORD_HEADER_V1",
+    "required_fields": [
+      "record_id",
+      "schema",
+      "record_type",
+      "subject",
+      "domain",
+      "logical_key",
+      "producer",
+      "temporal",
+      "provenance",
+      "privacy_class",
+      "authority_effect_ceiling",
+      "payload_digest"
+    ],
+    "optional_fields": [
+      "source_binding",
+      "epistemic_support",
+      "lifecycle",
+      "limitations",
+      "receipt_ref",
+      "requested_effect",
+      "metadata"
+    ],
+    "field_rules": {
+      "record_id": "IMMUTABLE_IDEMPOTENCY_IDENTITY_WITHIN_RECORD_TYPE_SCOPE",
+      "subject": "EXACT_REFERENT_NOT_DISPLAY_LABEL",
+      "domain": "EXACT_DOMAIN_OWNER_KEY",
+      "logical_key": "DOMAIN_DEFINED_STABLE_SEMANTIC_KEY",
+      "producer": "PRODUCER_IDENTITY_AND_GENERATION_WHERE_AVAILABLE",
+      "source_binding": "OPTIONAL_EXACT_SOURCE_OR_IMPLEMENTATION_BINDING; PRESENCE_DOES_NOT_CREATE_AUTHORITY",
+      "temporal": "TYPED_EVENT_OBSERVATION_RECORD_TIME_SEMANTICS; MISSING_DIMENSIONS_REMAIN_MISSING",
+      "provenance": "SOURCE_PROVIDER_LOCATOR_REVISION_OR_RECEIPT_CHAIN_SUFFICIENT_TO_RECONSTRUCT_CLAIM_BASIS",
+      "privacy_class": "CANNOT_BE_BROADENED_BY_DOWNSTREAM_ADAPTER",
+      "authority_effect_ceiling": "RESTRICTIVE_ONLY_NEVER_AUTHORITY_GENERATING",
+      "payload_digest": "DIGEST_OF_CANONICAL_PAYLOAD_REPRESENTATION",
+      "requested_effect": "NEVER_INFERRED_FROM_PAYLOAD_ROUTING_OR_RECORD_TYPE",
+      "metadata": "NON_AUTHORITY_BEARING_UNLESS_AN_EXACT_CONTRACT_FIELD_EXPLICITLY_SAYS_OTHERWISE"
+    }
+  },
+  "temporal_contract": {
+    "fields": [
+      "event_time_or_interval",
+      "observed_at",
+      "recorded_at",
+      "clock_domain",
+      "precision_or_uncertainty"
+    ],
+    "rules": [
+      "Event time, observation time, and record time are distinct dimensions.",
+      "Database-assigned record time cannot retroactively manufacture event-time precision.",
+      "Temporal ordering may support chronology but cannot independently resolve semantic currentness or authority conflict."
+    ]
+  },
+  "lifecycle_contract": {
+    "optional_fields": [
+      "generation",
+      "expected_prior_generation",
+      "predecessor_record_id",
+      "supersedes_record_id",
+      "tombstone_for_record_id",
+      "currentness_basis",
+      "currentness_lease",
+      "supersession_state",
+      "conflict_state",
+      "expiry_or_persistence_rule"
+    ],
+    "rules": [
+      "No newest-wins resolution where explicit lineage/currentness/conflict semantics exist.",
+      "A conflicting credible head is CONFLICT, not a reason to pick the newest timestamp.",
+      "Immutable history may remain stored after it becomes non-effective.",
+      "A restore or PITR event invalidates assumed currentness until revalidation against external/source/frontier evidence completes.",
+      "Domain owners define whether a unique head is required, append-only history is sufficient, or CAS applies."
+    ]
+  },
+  "typed_specializations": {
+    "ProviderEvidenceRecord": {
+      "purpose": "EXTERNAL_OR_PROVIDER_OBSERVATION_FOR_TYPED_ADMISSION",
+      "inherits": "VERA_RUNTIME_RECORD_HEADER_V1",
+      "required_additional_fields": [
+        "provider",
+        "locator",
+        "revision_or_generation",
+        "evidence_class",
+        "referent",
+        "scope",
+        "currentness_basis",
+        "supersession_state",
+        "conflict_state"
+      ],
+      "feeds": "COHESION_PROVIDER_AND_DOMAIN_ADMISSION",
+      "forbidden_promotions": [
+        "PERSISTENCE_TO_CURRENT_SELF_STATE",
+        "PROVIDER_ROW_TO_AUTHORITY",
+        "PROVIDER_ROW_TO_INSTALLATION",
+        "PROVIDER_ROW_TO_BEHAVIORAL_QUALIFICATION"
+      ]
+    },
+    "SubsystemSignalRecord": {
+      "purpose": "INTERNAL_RUNTIME_PROPOSAL_OR_OBSERVATION",
+      "inherits": "VERA_RUNTIME_RECORD_HEADER_V1",
+      "examples": [
+        "affect_modulation",
+        "salience_attention",
+        "conation_candidate",
+        "empathy_inference",
+        "self_appraisal_inference",
+        "temporal_observation"
+      ],
+      "feeds": "COHESION_ARBITRATION_OR_DOMAIN_RESOLVER",
+      "forbidden_promotions": [
+        "INTERNAL_CAUSALITY_TO_PROVIDER_CURRENTNESS",
+        "SALIENCE_TO_TRUTH",
+        "AFFECT_TO_AUTHORITY",
+        "CONATION_CANDIDATE_TO_CURRENT_DESIRE_OR_CONSENT",
+        "EMPATHY_INFERENCE_TO_USER_INTENT"
+      ]
+    },
+    "DurableStateRecord": {
+      "purpose": "DOMAIN_OWNED_STATE_TRANSITION_OR_CHECKPOINT",
+      "inherits": "VERA_RUNTIME_RECORD_HEADER_V1",
+      "required_additional_fields": [
+        "state_generation",
+        "state_semantics"
+      ],
+      "rule": "DOMAIN_PAYLOAD_AND_TRANSACTION_MODEL_REMAIN_DOMAIN_SPECIFIC",
+      "forbidden_promotions": [
+        "DURABLE_OPERATIONAL_STATE_TO_GOVERNED_SELF_STATE",
+        "CHECKPOINT_TO_CURRENTNESS_WITHOUT_REVALIDATION"
+      ]
+    },
+    "EventRecord": {
+      "purpose": "APPEND_ORIENTED_LIFECYCLE_OR_HISTORY_EVENT",
+      "inherits": "VERA_RUNTIME_RECORD_HEADER_V1",
+      "required_additional_fields": [
+        "event_type"
+      ],
+      "recommended_event_types": [
+        "ADD",
+        "REVISE",
+        "CONTRADICT",
+        "REVOKE",
+        "COMPLETE",
+        "REVIEW",
+        "SUPERSEDE",
+        "TOMBSTONE"
+      ],
+      "rule": "EVENT_EXISTENCE_DOES_NOT_ITSELF_IMPLY_CURRENT_STATE"
+    },
+    "AdmissionReceiptRecord": {
+      "purpose": "PROVE_EXACT_ADMISSION_OR_COMPOSITION_DECISION_FOR_BOUND_INPUTS",
+      "inherits": "VERA_RUNTIME_RECORD_HEADER_V1",
+      "required_additional_fields": [
+        "admission_policy_ref",
+        "input_record_refs",
+        "input_digest",
+        "admission_outcome",
+        "admitted_state_digest",
+        "component_generation_vector",
+        "policy_control_root_binding"
+      ],
+      "rule": "RECEIPT_PROVES_ONLY_THE_BOUND_ADMISSION_PREDICATES_AND_CANNOT_SELF_QUALIFY_PROVIDER_OR_ROUTE"
+    },
+    "EffectReceiptRecord": {
+      "purpose": "PROVE_BOUNDED_EFFECT_ATTEMPT_COMMIT_READBACK_OR_UNKNOWN_OUTCOME",
+      "inherits": "VERA_RUNTIME_RECORD_HEADER_V1",
+      "required_additional_fields": [
+        "operation_id",
+        "target",
+        "requested_effect_digest",
+        "effect_status",
+        "readback_binding"
+      ],
+      "allowed_effect_status": [
+        "REQUESTED",
+        "ATTEMPTED",
+        "COMMITTED",
+        "VERIFIED",
+        "ATTEMPTED_UNKNOWN",
+        "CONFLICT",
+        "REJECTED"
+      ],
+      "rule": "EFFECT_RECEIPT_DOES_NOT_PROVE_BROADER_AUTHORITY_OR_UNNAMED_EFFECTS"
+    }
+  },
+  "active_state_composition": {
+    "canonical_object": "ADMITTED_ACTIVE_STATE_SNAPSHOT",
+    "required_bindings": [
+      "admitted_state_digest",
+      "component_generation_vector",
+      "currentness_basis_or_lease",
+      "policy_control_root_binding",
+      "composition_receipt_ref",
+      "inference_generation_binding"
+    ],
+    "mixed_generation_rule": "A composition spanning independently changing domains must record an explicit component-generation vector and receipt; otherwise mixed-generation composition is invalid.",
+    "toctou_rule": "The exact admitted-state digest/currentness lease must remain valid through invocation reservation or the invocation fails closed and re-admits."
+  },
+  "idempotency_and_cas": {
+    "rules": [
+      "Mutation identities are stable and retry-safe where idempotency is promised.",
+      "Mutable semantic heads use expected-prior generation/digest or equivalent CAS when concurrent writes are possible.",
+      "Ambiguous mutation outcome is reconciled against the exact operation ID and target before retry.",
+      "Offline local writes are append-only proposals/outbox entries until upstream provider CAS/readback establishes their durable effect."
+    ]
+  },
+  "replica_and_restore": {
+    "local_runtime": "C:\\Vera",
+    "local_store_role": "CACHE_OUTBOX_WORKING_REPLICA_NOT_INDEPENDENT_CURRENT_STATE_AUTHORITY",
+    "split_brain_rule": "LOCAL_AND_SUPABASE_MUST_NOT_BOTH_LAST_WRITE_WIN_THE_SAME_SEMANTIC_HEAD",
+    "restore_rule": "PROVIDER_RESTORE_OR_PITR_REQUIRES_CROSS_SYSTEM_REVALIDATION_BEFORE_RESTORED_HEADS_CAN_BECOME_ACTIVE"
+  },
+  "logical_provider_planes": {
+    "vera_evidence": {
+      "semantic_owner": "thebrazenbeard/vera",
+      "purpose": "APPEND_ORIENTED_PROVIDER_EVIDENCE_REFERENCES_AND_IMMUTABLE_SOURCE_DIGESTS",
+      "raw_api_exposure": "DENY_BY_DEFAULT"
+    },
+    "vera_state": {
+      "semantic_owner": "thebrazenbeard/vera",
+      "purpose": "TYPED_DOMAIN_STATE_EVENT_HISTORY_AND_DERIVED_HEADS_OR_SNAPSHOTS",
+      "raw_api_exposure": "DENY_BY_DEFAULT"
+    },
+    "vera_receipts": {
+      "semantic_owner": "thebrazenbeard/vera",
+      "purpose": "ADMISSION_COMPOSITION_EFFECT_PROVIDER_AND_INVOCATION_RECEIPTS_WITH_EXACT_CLAIM_CEILINGS",
+      "raw_api_exposure": "DENY_BY_DEFAULT"
+    },
+    "vera_sync": {
+      "semantic_owner": "thebrazenbeard/vera",
+      "purpose": "OUTBOX_IDEMPOTENCY_REPLICA_WATERMARK_AND_LEASE_MECHANICS",
+      "raw_api_exposure": "DENY_BY_DEFAULT"
+    },
+    "vera_control": {
+      "semantic_owner": "thebrazenbeard/vera-control-plane",
+      "purpose": "PROVIDER_BINDINGS_RELEASE_INSTALL_CURRENT_ROUTE_PROVIDER_GENERATION_AND_QUALIFICATION_EVIDENCE",
+      "raw_api_exposure": "DENY_BY_DEFAULT",
+      "dependency_rule": "VERA_RUNTIME_STATE_MEANING_MUST_NOT_DEPEND_ON_CONTROL_PLANE_SOURCE_DEFINITIONS"
+    }
+  },
+  "privilege_model": {
+    "default_posture": "FAIL_CLOSED_LEAST_PRIVILEGE_NO_PUBLIC_DATA_PLANE",
+    "capability_roles": {
+      "runtime_evidence_reader": "READ_ONLY_BOUNDED_EVIDENCE_VIEWS_OR_TYPED_RPC_SURFACES",
+      "runtime_state_proposer": "APPEND_PROPOSAL_EVENT_OR_OUTBOX_ONLY_NO_ADMISSION_OR_HEAD_OVERRIDE",
+      "cohesion_admitter": "EXECUTE_EXACT_ADMISSION_COMPOSITION_FUNCTIONS_AND_WRITE_BOUND_RECEIPTS",
+      "effect_executor": "SEPARATELY_AUTHORIZED_BOUNDED_EFFECT_FUNCTIONS_ONLY",
+      "control_verifier": "READ_PROVIDER_GENERATION_INSTALL_ROUTE_AND_QUALIFICATION_EVIDENCE_WITHOUT_RUNTIME_STATE_MUTATION",
+      "migration_operator": "DDL_AND_ROLE_MANAGEMENT_FOR_EXACT_REVIEWED_MIGRATION_SET_ONLY"
+    },
+    "global_denials": [
+      "anon has no raw Vera plane access",
+      "authenticated has no raw Vera plane access",
+      "ordinary service_role use is not the normal Vera runtime authority path",
+      "normal runtime does not receive blanket migration/operator capability",
+      "RLS is defense in depth and not the sole authority boundary",
+      "SECURITY DEFINER functions require fixed safe search_path and explicit grants",
+      "new tables/functions/sequences do not inherit broad client-role grants",
+      "cross-domain mutation is denied unless an exact function/transaction contract explicitly names every affected domain"
+    ],
+    "api_surface": {
+      "schema": "vera_cp_api",
+      "status": "RESERVED_LOCKED_NO_APPLICATION_RPC_YET",
+      "rule": "EXPOSE_ONLY_EXPLICIT_TYPED_RPC_OR_READ_VIEWS_AFTER_CONTRACT_AND_PRIVILEGE_TESTS; NEVER_RAW_INTERNAL_TABLES_BY_DEFAULT"
+    }
+  },
+  "schema_runtime_binding": {
+    "required": [
+      "runtime_contract_version",
+      "migration_set_digest",
+      "provider_generation",
+      "adapter_generation"
+    ],
+    "rule": "UNSUPPORTED_OR_CONFLICTING_SCHEMA_RUNTIME_COMBINATIONS_FAIL_CLOSED",
+    "deployment_rule": "VERA_CONTROL_PLANE_PROMOTES_EXACT_REVIEWED_VERA_MIGRATION_ARTIFACTS_WITHOUT_REAUTHORING_RUNTIME_STATE_SEMANTICS"
+  },
+  "mandatory_hostile_cases": [
+    "ADMISSION_BYPASS",
+    "INFERENCE_TOCTOU_SUPERSESSION",
+    "OFFLINE_SPLIT_BRAIN",
+    "PITR_ZOMBIE_CURRENTNESS",
+    "SCHEMA_RUNTIME_SKEW",
+    "SELF_QUALIFICATION",
+    "PRIVILEGE_COLLAPSE",
+    "MIXED_GENERATION_ACTIVE_STATE",
+    "ACCIDENTAL_CROSS_DOMAIN_TRANSACTION_COUPLING",
+    "TIMESTAMP_NEWEST_WINS",
+    "DERIVED_VIEW_SELF_AUTHORITY",
+    "PRIVATE_PAYLOAD_EGRESS_BROADENING"
+  ],
+  "provider_application_gate": [
+    "Exact source contract readback from vera branch/candidate.",
+    "Privilege migration source reviewed against this contract.",
+    "No application table is created before schema ownership and role/grant tests exist.",
+    "Control-plane deployment bundle pins exact vera source/migration digests.",
+    "Provider application uses versioned migration tooling and readback verification.",
+    "Any source/provider divergence is reported as SOURCE_AHEAD, PROVIDER_AHEAD, or CONFLICT rather than silently normalized."
+  ],
+  "non_effects": [
+    "This source file does not merge itself.",
+    "This source file does not install or activate a runtime.",
+    "This source file does not mutate either Supabase provider.",
+    "This source file does not establish current-route or behavioral qualification.",
+    "This source file does not establish phenomenology."
+  ]
+}
