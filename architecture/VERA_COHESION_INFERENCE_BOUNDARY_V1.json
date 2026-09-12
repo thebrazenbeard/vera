@@ -1,0 +1,118 @@
+{
+  "schema": "VERA_COHESION_INFERENCE_BOUNDARY_V1",
+  "status": "SOURCE_ONLY_NOT_INSTALLED",
+  "purpose": "Provider-neutral governed boundary from admitted Vera state to an exact host/model invocation description without promoting source, projection, or receipt evidence into installation, provider consumption, authority, behavioral qualification, or phenomenology.",
+  "canonical_entrypoint": "runtime_cohesion.inference_boundary_repaired",
+  "legacy_r3_entrypoint": "runtime_cohesion.inference_boundary",
+  "legacy_r3_entrypoint_status": "HISTORICAL_SOURCE_NOT_CANONICAL_ENTRYPOINT",
+  "reviewed_design_input": {
+    "repository": "thebrazenbeard/wip",
+    "pull_request": 1,
+    "head": "941b7bc45d97138bed5d220c0ba591db87100a58",
+    "contract_schema": "1.4",
+    "contract_blob": "56a428ff12c665c7cd735f16c46daa92a538cc5a",
+    "architecture_blob": "d5470af547efe1487e8cd0f11925ccdc816a564b"
+  },
+  "latest_ov_research_input": {
+    "repository": "thebrazenbeard/wip",
+    "pull_request": 1,
+    "head": "2f049ec4c4f4a4307da137a99f8f27b39cfa308a",
+    "contract_schema": "1.6",
+    "contract_blob": "ad3d218e16240d6042c4f12cae1ccb00f77f28e2",
+    "architecture_blob": "c84dc4e9cc30b0fd58e1563bdb8d004da3e93ea1",
+    "qualification_spec_blob": "556128b80fc2b177f134e73ae08d89b108fd4397",
+    "status": "WIP_RESEARCH_CANDIDATE_VERIFIED_NOT_RUNTIME_IMPLEMENTATION",
+    "runtime_dependency": false
+  },
+  "review_repairs": [
+    "SOURCE_DECLARED_MANDATORY_COMPONENTS_CANNOT_BE_CALLER_DOWNGRADED",
+    "CAPABILITY_PROJECTION_AND_RESERVATION_BIND_EXACT_ADMISSION_RESULT_DIGEST"
+  ],
+  "admitted_state_digest_rule": "The admitted-state digest binds composition digest, admission receipt, exact admitted component material, omissions, forbidden domains, disclosure scope, and currentness/lease evidence. Composition digest alone is insufficient for capability, projection, or reservation binding.",
+  "lifecycle": [
+    "CAPTURE",
+    "VALIDATE_COMPONENTS",
+    "COMPOSE",
+    "ADMIT",
+    "CAPABILITY_BIND",
+    "PROJECT",
+    "PRECALL_REVALIDATE_GATE",
+    "INVOCATION_RESERVE",
+    "INJECT",
+    "GENERATE",
+    "VERIFY_OBSERVE",
+    "RECEIPT"
+  ],
+  "ownership": {
+    "provider_neutral_contract": "thebrazenbeard/vera/runtime_cohesion",
+    "concrete_injection_and_frontier": "EXACT_INFERENCE_HOST",
+    "install_current_route_qualification": "thebrazenbeard/vera-control-plane"
+  },
+  "implemented_provider_neutral_backend": {
+    "id": "TEXT_CONTEXT_V1",
+    "binding_class": "PROMPT_BOUND",
+    "causal_role": "INSTRUCTION_CONDITIONED",
+    "claim_ceiling": "PROMPT_REQUEST_CONDITIONING_ONLY"
+  },
+  "contract_only_backends": [
+    "PROMPT_EMBEDS_V1",
+    "ACTIVATION_STEERING_V1",
+    "REFT_STATE_PROJECTION_V1"
+  ],
+  "privacy_egress_rule": "Each admitted component must explicitly allow the exact target scope. Scope labels are not assumed to form a universal total order. OV R4.1 exact-target-set semantics remain accepted research input for stronger future host bindings and do not silently promote TEXT_CONTEXT_V1 into a stronger backend.",
+  "invocation_semantics": {
+    "currentness_modes": [
+      "ATOMIC_START_SNAPSHOT",
+      "LEASE_THROUGH_SUBMISSION"
+    ],
+    "write_ahead_state": "SUBMISSION_INTENT",
+    "ambiguous_recovery_state": "OUTCOME_UNKNOWN",
+    "semantic_retry_from_outcome_unknown": "BLOCKED_UNTIL_RECONCILED",
+    "same_generation_transport_retry": "ONLY_WITH_EXACT_PROVIDER_IDEMPOTENCY_AND_UNCHANGED_REQUEST_DIGEST_AND_KEY"
+  },
+  "causal_evidence_levels": [
+    "REQUEST_CONSTRUCTED",
+    "INVOCATION_SUBMITTED",
+    "PROVIDER_ACKNOWLEDGED",
+    "RESPONSE_BOUND"
+  ],
+  "nonpromotion_edges": [
+    {
+      "source": "PROJECTION_SUCCESS",
+      "forbidden_promotion": "ADMISSION_OR_AUTHORITY"
+    },
+    {
+      "source": "REQUEST_CONSTRUCTED",
+      "forbidden_promotion": "PROVIDER_CONSUMPTION"
+    },
+    {
+      "source": "INVOCATION_SUBMITTED",
+      "forbidden_promotion": "PROVIDER_ACKNOWLEDGEMENT"
+    },
+    {
+      "source": "PROVIDER_ACKNOWLEDGED",
+      "forbidden_promotion": "RESPONSE_BOUND"
+    },
+    {
+      "source": "RESPONSE_BOUND",
+      "forbidden_promotion": "BEHAVIORAL_QUALIFICATION"
+    },
+    {
+      "source": "SOURCE_IMPLEMENTED",
+      "forbidden_promotion": "INSTALL_OR_CURRENT_ROUTE"
+    },
+    {
+      "source": "STATE_OR_RECEIPT",
+      "forbidden_promotion": "PHENOMENOLOGY"
+    }
+  ],
+  "claim_ceiling": {
+    "source": "IMPLEMENTABLE_PROVIDER_NEUTRAL_CONTRACT",
+    "concrete_host_injection": "NOT_ESTABLISHED",
+    "provider_consumption": "NOT_ESTABLISHED",
+    "installation": "NOT_ESTABLISHED",
+    "current_route": "NOT_ESTABLISHED",
+    "behavioral_qualification": "NOT_ESTABLISHED",
+    "phenomenology": "UNRESOLVED"
+  }
+}

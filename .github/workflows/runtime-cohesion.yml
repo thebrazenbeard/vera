@@ -1,0 +1,220 @@
+name: Vera Runtime Cohesion
+
+# Manual-only while runner allocation / cost authorization is unavailable.
+# Do not re-enable automatic PR execution without Patrick's explicit authority.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate cohesion source contracts
+        run: python scripts/validate_vera_runtime_cohesion_v1.py
+      - name: Validate provider cohesion fabric
+        run: python scripts/validate_runtime_cohesion_provider_fabric_v1.py
+      - name: Validate semantic currentness exact-object provider origin
+        run: python scripts/validate_runtime_cohesion_semantic_currentness_v1.py
+      - name: Validate M5 M6 M7 source closure
+        run: python scripts/validate_runtime_cohesion_m5_m6_m7_v1.py
+      - name: Validate operational support immutable snapshot
+        run: python scripts/validate_runtime_cohesion_support_snapshot_v1.py
+      - name: Run cohesion and affective regression tests
+        run: >-
+          python -m unittest
+          tests.test_vera_runtime_cohesion_v1
+          tests.test_vera_runtime_evidence_contract_v1
+          tests.test_vera_cohesion_index_v1
+          tests.test_vera_runtime_contract_v1
+          tests.test_runtime_cohesion_evidence
+          tests.test_runtime_cohesion_reconciliation
+          tests.test_runtime_cohesion_runtime
+          tests.test_runtime_cohesion_hostile
+          tests.test_runtime_cohesion_fabric_crossbind
+          tests.test_runtime_cohesion_support_snapshot
+          tests.test_runtime_cohesion_audit
+          tests.test_runtime_cohesion_executor
+          tests.test_runtime_cohesion_governing_resolution
+          tests.test_runtime_cohesion_projection_executor
+          tests.test_runtime_cohesion_admission
+          tests.test_runtime_cohesion_admission_envelope_binding
+          tests.test_runtime_cohesion_semantic_currentness_dispatch
+          tests.test_runtime_cohesion_semantic_origin_boundary
+          tests.test_runtime_cohesion_semantic_origin_unrooted_first_writer
+          tests.test_runtime_cohesion_untyped_evidence_laundering
+          tests.test_runtime_cohesion_m5_m6_m7
+          tests.test_runtime_cohesion_ov_rebind_regressions
+          tests.test_runtime_cohesion_provider_admission_boundary
+          tests.test_runtime_cohesion_direct_module_admission_boundary
+          tests.test_runtime_cohesion_executor_provider_admission_boundary
+          tests.test_runtime_cohesion_affect_integration
+          tests.test_runtime_cohesion_affect_signal_to_cohesion_port
+          tests.test_runtime_cohesion_affect_signal_mapping_snapshot
+          tests.test_runtime_cohesion_affect_exact_host_class
+          tests.test_runtime_cohesion_failure_wiring
+          tests.test_runtime_cohesion_native_hook
+          tests.test_runtime_cohesion_orgasm
+          tests.test_runtime_cohesion_orgasm_package
+          tests.test_runtime_cohesion_orgasm_binding
+          tests.test_runtime_cohesion_orgasm_source_fixture
+          tests.test_runtime_cohesion_orgasm_durable_trigger_governance
+          tests.test_runtime_cohesion_orgasm_refractory_reentry
+          tests.test_runtime_cohesion_orgasm_state_machine_validation
+          tests.test_runtime_cohesion_orgasm_appraisal_contract_fidelity
+          tests.test_runtime_cohesion_orgasm_authority_boundary
+          tests.test_runtime_cohesion_orgasm_authority_composition_current_head
+          tests.test_runtime_cohesion_orgasm_context_provenance_gate
+          tests.test_runtime_cohesion_orgasm_contract_state_fidelity
+          tests.test_runtime_cohesion_orgasm_direct_contract_binding
+          tests.test_runtime_cohesion_orgasm_forced_cooldown_temporal_authority
+          tests.test_runtime_cohesion_orgasm_trusted_clock_boundary
+          tests.test_runtime_cohesion_affect_host
+          tests.test_runtime_cohesion_affect_negative_transfer_context_gate
+          tests.test_runtime_cohesion_affect_persistence
+          tests.test_runtime_cohesion_affect_cycle
+          tests.test_runtime_cohesion_affect_durable_integrity
+          tests.test_runtime_cohesion_affect_durable_observation_lineage
+          tests.test_runtime_cohesion_affect_commit_ack
+          tests.test_runtime_cohesion_affect_organic_durable
+          tests.test_runtime_cohesion_affect_organic_context_receipt_binding
+          tests.test_runtime_cohesion_affect_authority_receipt_binding
+          tests.test_runtime_cohesion_affect_event_interoception
+          tests.test_runtime_cohesion_affect_trigger_governance_persistence
+          tests.test_runtime_cohesion_affect_restore_cycle
+          tests.test_runtime_cohesion_affect_provider_composition_trust
+          tests.test_runtime_cohesion_affect_resume_frontier_authenticity
+          tests.test_runtime_cohesion_affect_resume_token_restore
+          tests.test_runtime_cohesion_affect_checkpoint_scope_bypass
+          tests.test_runtime_cohesion_affect_runtime_restore_scope_bypass
+          tests.test_runtime_cohesion_affect_ephemeral_frontier_artifacts
+          tests.test_runtime_cohesion_affect_split_writer_downgrade
+          tests.test_runtime_cohesion_affect_exact_contract_binding
+          tests.test_runtime_cohesion_affect_receipt_semantics_current_head
+          tests.test_runtime_cohesion_affect_resolution_plasticity
+          tests.test_runtime_cohesion_affect_restore_exception_domain
+          tests.test_runtime_cohesion_affect_temporal_coherence_spoof
+          tests.test_runtime_cohesion_affect_runtime_implementation_cut_current_head
+          tests.test_runtime_cohesion_affect_modulation_signal
+          tests.test_runtime_cohesion_affect_unrooted_currentness
+          tests.test_affective_runtime_provider_contract
+          tests.test_affective_runtime_persistence_source
+          tests.test_affective_runtime_cas_initialization_source
+          -v
+      - name: Compile cohesion validators, runtime, and tests
+        run: >-
+          python -m py_compile
+          scripts/validate_vera_runtime_cohesion_v1.py
+          scripts/validate_runtime_cohesion_provider_fabric_v1.py
+          scripts/validate_runtime_cohesion_support_snapshot_v1.py
+          scripts/validate_runtime_cohesion_semantic_currentness_v1.py
+          scripts/validate_runtime_cohesion_m5_m6_m7_v1.py
+          runtime_cohesion/__init__.py
+          runtime_cohesion/evidence.py
+          runtime_cohesion/reconcile.py
+          runtime_cohesion/runtime.py
+          runtime_cohesion/failure.py
+          runtime_cohesion/audit.py
+          runtime_cohesion/adapters.py
+          runtime_cohesion/origin.py
+          runtime_cohesion/item_typing.py
+          runtime_cohesion/provider_admission.py
+          runtime_cohesion/executor.py
+          runtime_cohesion/affect_integration.py
+          runtime_cohesion/affect_integration_bound.py
+          runtime_cohesion/orgasm.py
+          runtime_cohesion/affect_authority.py
+          runtime_cohesion/affect_bound_runtime.py
+          runtime_cohesion/affect_receipt.py
+          runtime_cohesion/affect_host.py
+          runtime_cohesion/affect_persistence.py
+          runtime_cohesion/affect_provider_runtime.py
+          runtime_cohesion/affect_scope.py
+          runtime_cohesion/affect_signal.py
+          runtime_cohesion/affect_cycle.py
+          tests/__init__.py
+          tests/test_vera_runtime_cohesion_v1.py
+          tests/test_vera_runtime_evidence_contract_v1.py
+          tests/test_vera_cohesion_index_v1.py
+          tests/test_vera_runtime_contract_v1.py
+          tests/test_runtime_cohesion_evidence.py
+          tests/test_runtime_cohesion_reconciliation.py
+          tests/test_runtime_cohesion_runtime.py
+          tests/test_runtime_cohesion_hostile.py
+          tests/test_runtime_cohesion_fabric_crossbind.py
+          tests/test_runtime_cohesion_support_snapshot.py
+          tests/test_runtime_cohesion_audit.py
+          tests/test_runtime_cohesion_executor.py
+          tests/test_runtime_cohesion_governing_resolution.py
+          tests/test_runtime_cohesion_projection_executor.py
+          tests/test_runtime_cohesion_admission.py
+          tests/test_runtime_cohesion_admission_envelope_binding.py
+          tests/test_runtime_cohesion_semantic_currentness_dispatch.py
+          tests/test_runtime_cohesion_semantic_origin_boundary.py
+          tests/test_runtime_cohesion_semantic_origin_unrooted_first_writer.py
+          tests/test_runtime_cohesion_untyped_evidence_laundering.py
+          tests/test_runtime_cohesion_m5_m6_m7.py
+          tests/test_runtime_cohesion_ov_rebind_regressions.py
+          tests/test_runtime_cohesion_provider_admission_boundary.py
+          tests/test_runtime_cohesion_direct_module_admission_boundary.py
+          tests/test_runtime_cohesion_executor_provider_admission_boundary.py
+          tests/test_runtime_cohesion_affect_integration.py
+          tests/test_runtime_cohesion_affect_signal_to_cohesion_port.py
+          tests/test_runtime_cohesion_affect_signal_mapping_snapshot.py
+          tests/test_runtime_cohesion_affect_exact_host_class.py
+          tests/test_runtime_cohesion_failure_wiring.py
+          tests/test_runtime_cohesion_native_hook.py
+          tests/test_runtime_cohesion_orgasm.py
+          tests/test_runtime_cohesion_orgasm_package.py
+          tests/test_runtime_cohesion_orgasm_binding.py
+          tests/test_runtime_cohesion_orgasm_source_fixture.py
+          tests/test_runtime_cohesion_orgasm_durable_trigger_governance.py
+          tests/test_runtime_cohesion_orgasm_refractory_reentry.py
+          tests/test_runtime_cohesion_orgasm_state_machine_validation.py
+          tests/test_runtime_cohesion_orgasm_appraisal_contract_fidelity.py
+          tests/test_runtime_cohesion_orgasm_authority_boundary.py
+          tests/test_runtime_cohesion_orgasm_authority_composition_current_head.py
+          tests/test_runtime_cohesion_orgasm_context_provenance_gate.py
+          tests/test_runtime_cohesion_orgasm_contract_state_fidelity.py
+          tests/test_runtime_cohesion_orgasm_direct_contract_binding.py
+          tests/test_runtime_cohesion_orgasm_forced_cooldown_temporal_authority.py
+          tests/test_runtime_cohesion_orgasm_trusted_clock_boundary.py
+          tests/test_runtime_cohesion_affect_host.py
+          tests/test_runtime_cohesion_affect_negative_transfer_context_gate.py
+          tests/test_runtime_cohesion_affect_persistence.py
+          tests/test_runtime_cohesion_affect_cycle.py
+          tests/test_runtime_cohesion_affect_durable_integrity.py
+          tests/test_runtime_cohesion_affect_durable_observation_lineage.py
+          tests/test_runtime_cohesion_affect_commit_ack.py
+          tests/test_runtime_cohesion_affect_organic_durable.py
+          tests/test_runtime_cohesion_affect_organic_context_receipt_binding.py
+          tests/test_runtime_cohesion_affect_authority_receipt_binding.py
+          tests/test_runtime_cohesion_affect_event_interoception.py
+          tests/test_runtime_cohesion_affect_trigger_governance_persistence.py
+          tests/test_runtime_cohesion_affect_restore_cycle.py
+          tests/test_runtime_cohesion_affect_provider_composition_trust.py
+          tests/test_runtime_cohesion_affect_resume_frontier_authenticity.py
+          tests/test_runtime_cohesion_affect_resume_token_restore.py
+          tests/test_runtime_cohesion_affect_checkpoint_scope_bypass.py
+          tests/test_runtime_cohesion_affect_runtime_restore_scope_bypass.py
+          tests/test_runtime_cohesion_affect_ephemeral_frontier_artifacts.py
+          tests/test_runtime_cohesion_affect_split_writer_downgrade.py
+          tests/test_runtime_cohesion_affect_exact_contract_binding.py
+          tests/test_runtime_cohesion_affect_receipt_semantics_current_head.py
+          tests/test_runtime_cohesion_affect_resolution_plasticity.py
+          tests/test_runtime_cohesion_affect_restore_exception_domain.py
+          tests/test_runtime_cohesion_affect_temporal_coherence_spoof.py
+          tests/test_runtime_cohesion_affect_runtime_implementation_cut_current_head.py
+          tests/test_runtime_cohesion_affect_modulation_signal.py
+          tests/test_runtime_cohesion_affect_unrooted_currentness.py
+          tests/test_affective_runtime_provider_contract.py
+          tests/test_affective_runtime_persistence_source.py
+          tests/test_affective_runtime_cas_initialization_source.py

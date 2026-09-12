@@ -1,0 +1,32 @@
+{
+  "schema": "VERA_RUNTIME_COHESION_INFERENCE_HOOK_V1",
+  "status": "SOURCE_ONLY_NOT_INSTALLED",
+  "extends": "VERA_RUNTIME_COHESION_NATIVE_HOOK_V1",
+  "provider_neutral_entrypoint": "runtime_cohesion.inference_boundary_repaired",
+  "legacy_entrypoint": "runtime_cohesion.inference_boundary",
+  "legacy_entrypoint_status": "HISTORICAL_R3_SOURCE_NOT_CANONICAL_ENTRYPOINT",
+  "repair_basis": [
+    "MANDATORY_COMPONENT_POLICY_CALLER_DOWNGRADABLE",
+    "CAPABILITY_BINDING_UNDERBINDS_ADMISSION_RESULT"
+  ],
+  "contract_ref": "VERA_COHESION_INFERENCE_BOUNDARY_V1",
+  "operations": [
+    "VALIDATE_COMPONENTS",
+    "COMPOSE",
+    "BIND_ADMITTED_STATE",
+    "CAPABILITY_BIND",
+    "PROJECT_TEXT_CONTEXT",
+    "PRECALL_REVALIDATE_AND_RESERVE",
+    "WRITE_AHEAD_SUBMISSION_INTENT",
+    "BUILD_CAUSAL_RECEIPT"
+  ],
+  "concrete_host_injection": "EXTERNAL_EXACT_HOST_REQUIRED",
+  "host_contract": "Exact host owns concrete request injection, shared host-generation invocation frontier persistence, external send, provider acknowledgement/readback, and transient-hook cleanup.",
+  "effect_claims": {
+    "provider_consumption": false,
+    "installation": false,
+    "current_route": false,
+    "behavioral_qualification": false,
+    "phenomenology": false
+  }
+}

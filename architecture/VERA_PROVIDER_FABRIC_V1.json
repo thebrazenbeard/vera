@@ -1,0 +1,198 @@
+{
+  "schema": "VERA_PROVIDER_FABRIC_V1",
+  "workstream": "VERA_RUNTIME_COHESION_V1",
+  "status": "SOURCE_DESIGN / NOT_INSTALLED / NOT_RUNTIME_QUALIFIED",
+  "normative_status": "NON_NORMATIVE_OPERATIONAL_SUPPORT",
+  "normative_pair_refs": [
+    "VERA_COHESION_INDEX_V1",
+    "VERA_RUNTIME_CONTRACT_V1"
+  ],
+  "providers": {
+    "github": {
+      "role": "SOURCE_PROVENANCE_AND_COORDINATION_PROVIDER",
+      "locator_family": "github:*",
+      "evidence_capability_refs": [
+        "source_provenance",
+        "control_source",
+        "coordination_record",
+        "semantic_research",
+        "general_mechanism_research",
+        "representation",
+        "historical_autobiographical",
+        "historical_conation",
+        "external_training_evaluation",
+        "predecessor_source"
+      ],
+      "route_refs": [
+        "route:vera",
+        "route:vera-control-plane",
+        "route:empathy",
+        "route:selfimage",
+        "route:chat-bus",
+        "route:personification",
+        "route:deepmemory",
+        "route:sexuality",
+        "route:conations",
+        "route:semanticatlas",
+        "route:vera-r9a0",
+        "route:training"
+      ],
+      "promotion_guard": "Repository/source/commit/review existence does not establish installation, runtime consumption, provider effect, current self-state, consent, or behavioral qualification."
+    },
+    "google_drive": {
+      "role": "DURABLE_PRIVATE_DOCUMENT_AND_ARCHIVE_PROVIDER",
+      "locator_family": "drive:*",
+      "evidence_capability_refs": ["persisted_provider_record"],
+      "route_refs": ["route:google-drive"],
+      "promotion_guard": "Durable Drive persistence/readback establishes only the exact observed object/revision; it does not establish present truth, native admission, current Vera self-state, consent, preference, authority, or phenomenology."
+    },
+    "supabase": {
+      "role": "STRUCTURED_OPERATIONAL_AND_MATERIALIZED_PROVIDER",
+      "locator_family": "supabase:*",
+      "evidence_capability_refs": ["persisted_provider_record", "coordination_record"],
+      "route_refs": ["route:supabase"],
+      "promotion_guard": "Supabase persistence/materialization/readback establishes only the exact observed provider object/effect; it does not establish present endorsement, native admission, current Vera self-state, consent, preference, authority, runtime consumption, or phenomenology."
+    },
+    "temporal": {
+      "role": "CHRONOLOGY_ONLY_PROVIDER",
+      "locator_family": "temporal:*",
+      "evidence_capability_refs": ["persisted_provider_record"],
+      "route_refs": ["route:temporal"],
+      "promotion_guard": "Temporal establishes recorded chronology and elapsed-time relationships only; timestamps do not establish semantic truth, currentness, authority, memory admission, identity, self-state, consent, preference, or phenomenology."
+    },
+    "live_conversation": {
+      "role": "CURRENT_LIVE_SURFACE",
+      "locator_family": "runtime:current-conversation",
+      "evidence_capability_refs": [
+        "current_user_authority",
+        "current_user_report",
+        "vera_current_self_report",
+        "live_observation"
+      ],
+      "route_refs": ["route:live-conversation"],
+      "promotion_guard": "Live statements remain typed by actor, referent, proposition, scope, and evidence class; observation does not create broader permission or protected-effect authority."
+    }
+  },
+  "comparison_modes": {
+    "EXACT_REVISION": "Source and target expose an exact revision/generation identity that must agree for the compared projection subject.",
+    "EXACT_RECEIPT": "A target receipt must independently bind the exact configured receipt schema/type, source/target subjects, source object locator/revision/digest, exact projection event, and exact receipt object/digest. Receipt proof is not target revision equality and proves only the provider effect/object named by the validated receipt.",
+    "SEMANTIC_COMPANION": "Target is a human-readable or derived companion rather than a byte-identical replica; source movement can make the companion stale only inside its registered projection scope, and companion recency never creates source authority."
+  },
+  "projections": [
+    {
+      "id": "projection:semanticatlas-github-to-supabase",
+      "source_provider": "github",
+      "target_provider": "supabase",
+      "source_subject": "github:thebrazenbeard/semanticatlas",
+      "target_subject": "supabase:klmbpaigzeguvnpccqzz/semantic_atlas.runtime_snapshots",
+      "source_route_ref": "route:semanticatlas",
+      "target_route_ref": "route:supabase",
+      "source_evidence_class": "source_provenance",
+      "target_evidence_class": "persisted_provider_record",
+      "privacy_class": "GOVERNED",
+      "source_ref_pattern": "refs/heads/research/**",
+      "source_path_pattern": "ledger/**|evidence/**|state/**|runtime-manifest/**",
+      "target_event_selector": {
+        "git_ref": "$source_ref",
+        "git_commit_sha": "$source_revision"
+      },
+      "comparison_mode": "EXACT_REVISION",
+      "source_revision_field": "git_commit_sha",
+      "target_revision_field": "git_commit_sha",
+      "claim_ceiling": "Exact Git commit and materialized Supabase snapshot binding only; snapshot state does not create semantic authority."
+    },
+    {
+      "id": "projection:chat-bus-github-to-supabase-radar",
+      "source_provider": "github",
+      "target_provider": "supabase",
+      "source_subject": "github:thebrazenbeard/chat-communication-bus",
+      "target_subject": "supabase:klmbpaigzeguvnpccqzz/radar.messages",
+      "source_route_ref": "route:chat-bus",
+      "target_route_ref": "route:supabase",
+      "source_evidence_class": "coordination_record",
+      "target_evidence_class": "coordination_record",
+      "privacy_class": "WORKING_PROJECT",
+      "source_ref_pattern": "refs/heads/bus/**",
+      "source_path_pattern": "messages/**",
+      "projection_trigger_ref": "github:thebrazenbeard/chat-communication-bus/.github/workflows/radar-bus-projection.yml",
+      "target_event_selector": {
+        "payload.source_ref": "$source_ref",
+        "payload.source_path": "$source_path"
+      },
+      "comparison_mode": "EXACT_REVISION",
+      "source_revision_field": "source_commit",
+      "target_revision_field": "source_commit",
+      "claim_ceiling": "Operational message projection/delivery evidence only; only registered bus/** + messages/** source events are projection candidates, and projection does not establish identity, memory, native routing qualification, or task acceptance."
+    },
+    {
+      "id": "projection:r9b0-drive-supabase-provider-receipt",
+      "source_provider": "google_drive",
+      "target_provider": "supabase",
+      "source_subject": "drive:r9b0-memory-epoch-object",
+      "target_subject": "supabase:klmbpaigzeguvnpccqzz/vera_memory_epoch_provider_receipts_v1",
+      "source_route_ref": "route:google-drive",
+      "target_route_ref": "route:supabase",
+      "source_evidence_class": "persisted_provider_record",
+      "target_evidence_class": "persisted_provider_record",
+      "privacy_class": "PRIVATE_AUTOBIOGRAPHICAL",
+      "source_ref_pattern": "logical-memory:R9B0",
+      "source_path_pattern": "memory-epoch-object",
+      "target_event_selector": {
+        "provider_class": "GOOGLE_DRIVE_DURABLE",
+        "provider_revision_or_version": "$source_revision",
+        "epoch_id": "R9B0"
+      },
+      "comparison_mode": "EXACT_RECEIPT",
+      "source_revision_field": "provider_revision_or_version",
+      "target_revision_field": "provider_revision_or_version",
+      "receipt_binding": {
+        "target_scope": "PROVIDER_RECEIPT",
+        "metadata_field": "receipt_binding",
+        "receipt_schema": "VERA_MEMORY_EPOCH_PROVIDER_RECEIPT_V1",
+        "receipt_type": "GOOGLE_DRIVE_DURABLE",
+        "digest_algorithm": "SHA256_CANONICAL_JSON_EXCLUDING_RECEIPT_DIGEST",
+        "required_fields": [
+          "receipt_schema",
+          "receipt_type",
+          "source_subject",
+          "target_subject",
+          "source_locator",
+          "source_revision",
+          "source_content_digest",
+          "event_ref",
+          "event_path",
+          "receipt_ref",
+          "receipt_digest"
+        ]
+      },
+      "claim_ceiling": "Exact durable provider write/readback evidence for the bound memory-epoch object only; custody/admission/currentness remain separately governed."
+    },
+    {
+      "id": "projection:cohesion-github-to-drive-readable-companion",
+      "source_provider": "github",
+      "target_provider": "google_drive",
+      "source_subject": "github:thebrazenbeard/vera/architecture/VERA_COHESION_INDEX_V1.json",
+      "target_subject": "drive:VERA Runtime Cohesion - System Inventory V1",
+      "source_route_ref": "route:vera",
+      "target_route_ref": "route:google-drive",
+      "source_evidence_class": "source_provenance",
+      "target_evidence_class": "persisted_provider_record",
+      "privacy_class": "WORKING_PROJECT",
+      "source_ref_pattern": "refs/heads/work/vera-runtime-cohesion-v1-20260908",
+      "source_path_pattern": "architecture/VERA_COHESION_INDEX_V1.json|architecture/VERA_RUNTIME_CONTRACT_V1.json",
+      "comparison_mode": "SEMANTIC_COMPANION",
+      "source_revision_field": "git_commit_sha",
+      "target_revision_field": "source_revision_ref",
+      "claim_ceiling": "Readable companion freshness only; if the companion lacks a bound source revision, automated exact freshness is UNRESOLVED rather than guessed, and Drive companion content cannot override the normative GitHub source pair."
+    }
+  ],
+  "global_rules": {
+    "projection_scope": "A source change is eligible for stale-projection evaluation only when it matches the registered projection source provider, subject, ref scope, and path scope. Out-of-scope source activity is NOT_APPLICABLE, not stale evidence.",
+    "event_instance_binding": "For an in-scope projection event, the exact caller source ref/path must cross the adapter boundary and both returned observations must independently bind that event identity (or an exact provider-native equivalent). Collection targets must receive a provider-native event selector. Matching revisions/digests for a different event never qualify as VERIFIED_EXACT; absent binding is UNRESOLVED and demonstrably different binding is CONFLICT. Public supplied-observation audit is advisory only and cannot mint VERIFIED_EXACT because it does not establish this executor event binding.",
+    "newest_timestamp": "Observation time may describe chronology or lag but never resolves revision/digest conflict and never grants current authority.",
+    "returned_item_typing": "Each returned item must be independently typed/currentness-validated by a runtime-owned verifier from its own provider/object/receipt provenance before the derived class is compared with both the envelope claim and target capability ceiling; provider capability and ordinary adapter assertion are not item type.",
+    "missing_observation": "Missing, unavailable, or ambiguous provider evidence remains bounded as such; do not infer a successful projection or current state.",
+    "conflict": "Incompatible exact revisions/digests for the same claimed object fail closed as conflict until separately reconciled. EXACT_RECEIPT additionally fails closed on malformed, wrong-schema/type, wrong-event, wrong-subject, wrong-object, or receipt-digest/locator mismatch even when revisions happen to match.",
+    "temporal": "Temporal may attach event IDs/timestamps and calculate elapsed time but cannot resolve semantic, authority, identity, admission, or currentness conflicts."
+  }
+}
