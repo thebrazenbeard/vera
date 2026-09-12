@@ -9,6 +9,7 @@
     "Integration does not mean copying every repository. One canonical owner is chosen per decision class; private/history/provenance/specialist repositories remain external when that preserves semantics and privacy.",
     "Mutable heads are evidence cuts only and must be refreshed before migration, cutover, or qualification.",
     "Brigit-specific identity, sexuality, personification, consent, preference, or state never transfers to Vera without an exact Vera binding.",
+    "Patrick-specific autobiographical or relational material never becomes Vera self-state, portable/training material, or technical source merely because it is reachable in a repository.",
     "Provider persistence is evidence. A database row or provider project does not self-authorize control or become admitted Vera state merely by existing."
   ],
   "canonical_owners": {
@@ -188,9 +189,10 @@
       "repository": "thebrazenbeard/self",
       "observed_ref": "main",
       "observed_head": "93fffa90ea8850d71717d4d3390f176c168c22bd",
-      "role": "PARALLEL_GENERIC_HC_ARCHITECTURE_PLUS_SELF_TRUTHS_RESEARCH",
-      "disposition": "REFERENCE_ONLY_PENDING_EXACT_SELF_TRUTHS_OVERLAP_AUDIT",
-      "notes": "README declares an identity-neutral reusable Hyperconnectome brain template overlapping hc-brain, while SELF-TRUTHS.md is identity-relevant material. Do not wholesale migrate either surface."
+      "role": "PARALLEL_GENERIC_HC_ARCHITECTURE_PLUS_PATRICK_SPECIFIC_AUTOBIOGRAPHICAL_MATERIAL",
+      "disposition": "REFERENCE_GENERIC_ARCHITECTURE_ONLY_DO_NOT_MIGRATE_PATRICK_SELF_STATE",
+      "nonpromotion": "PATRICK_SELF_REPORT_AUTOBIOGRAPHY_RELATIONSHIP_OR_CAPABILITY_CLAIMS_NOT_VERA_SELF_STATE",
+      "notes": "README declares an identity-neutral reusable Hyperconnectome brain template overlapping hc-brain. SELF-TRUTHS.md is Patrick-specific autobiographical/relational evidence and is explicitly outside Vera technical-source harvest and portability/training publication absent separate exact authorization."
     },
     {
       "id": "conditioning",
@@ -244,13 +246,13 @@
     "Do not make specialist repository history a runtime dependency merely because it exists.",
     "Do not collapse private historical archives into current-memory authority.",
     "Do not copy Brigit-specific personification or sexuality state into Vera.",
+    "Do not promote Patrick-specific autobiographical/self/relationship material into Vera self-state or technical source.",
     "Do not make hc-brain or self generic architecture a named-Vera runtime owner.",
     "Do not treat old Supabase as canonical simply because it contains the existing data.",
     "Do not treat the new Supabase provider as control authority merely because it is named Vera Control Plane."
   ],
   "next_frontier": [
-    "Audit self/SELF-TRUTHS.md against current vera self-appraisal and runtime-cohesion contracts; harvest only unique supported propositions/mechanisms.",
-    "Compare empathy, temporal, semanticatlas and conations executable mechanisms against current vera/main and create an exact missing-mechanism harvest list.",
+    "Compare empathy, temporal, semanticatlas and conations mechanisms against current vera/main and create an exact missing-mechanism harvest list without copying private payload.",
     "Freeze the provider-neutral state/admission/receipt contract and privilege model before creating application tables in fawkirqroyniueeqspif.",
     "Classify every relevant klmbpaigzeguvnpccqzz object as MIGRATE, REBUILD_FROM_SOURCE, REFERENCE_ONLY, ARCHIVE, or RETIRE_CANDIDATE."
   ]
