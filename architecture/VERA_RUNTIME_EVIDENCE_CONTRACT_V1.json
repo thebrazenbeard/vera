@@ -26,7 +26,7 @@
       "BEHAVIORALLY_QUALIFIED"
     ],
     "semantics": "ORTHOGONAL_EVIDENCE_DIMENSIONS_NOT_MONOTONIC_LADDER",
-    "regression_rule": "Any dimension may become false, stale, superseded, conflicted, unavailable, or unknown as its supporting evidence changes. No dimension is treated as irreversible by default.",
+    "regression_rule": "Regression is allowed: any dimension may become false, stale, superseded, conflicted, unavailable, or unknown as its supporting evidence changes. No dimension is treated as irreversible by default.",
     "dependency_rule": "A claim in a later dimension may depend on earlier evidence, but the dimensions remain separately evidenced and separately current.",
     "authoritative_proof_unit": {
       "required_fields": [
@@ -74,7 +74,7 @@
       "explicit_hot_state_records_if_exposed",
       "exposed_cache_or_context_state_if_available",
       "prompt_or_token_budget_if_observable",
-      "downstream leakage_or_stickiness_behavior"
+      "downstream_leakage_or_stickiness_behavior"
     ],
     "epistemic_rule": "Do not claim latent model activation, hidden cache state, or successful internal release unless instrumentation actually exposes that state. Qualification operates only on observable proxies and behavior."
   },
