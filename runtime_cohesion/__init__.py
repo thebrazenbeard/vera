@@ -40,7 +40,8 @@ from .executor import (
     execute_projection_cycle,
 )
 from .failure import FailureEvaluationResult, evaluate_failure_signature, validate_failure_wiring
-from .inference_boundary import (
+from . import inference_boundary_repaired as inference_boundary
+from .inference_boundary_repaired import (
     AdmittedVeraState,
     CapabilityBinding,
     CausalGenerationReceipt,
@@ -111,6 +112,7 @@ __all__ = [
     "FailureEvaluationResult",
     "evaluate_failure_signature",
     "validate_failure_wiring",
+    "inference_boundary",
     "StateComponentRef",
     "OmissionRecord",
     "VeraStateComposition",
