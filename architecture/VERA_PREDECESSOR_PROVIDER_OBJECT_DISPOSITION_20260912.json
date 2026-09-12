@@ -1,0 +1,142 @@
+{
+  "schema": "VERA_PREDECESSOR_PROVIDER_OBJECT_DISPOSITION_20260912",
+  "status": "LIVE_INVENTORY_CLASSIFIED_SOURCE_ONLY_NOT_MIGRATED_NOT_RETIRED",
+  "observed_date": "2026-09-12",
+  "source_provider": "klmbpaigzeguvnpccqzz",
+  "target_provider": "fawkirqroyniueeqspif",
+  "scope": {
+    "custom_application_schemas": [
+      "public",
+      "radar",
+      "build_team_2",
+      "bug_ops",
+      "redworm",
+      "semantic_atlas"
+    ],
+    "included_object_classes": [
+      "relation",
+      "function",
+      "trigger"
+    ],
+    "platform_managed_schemas_excluded": [
+      "auth",
+      "cron",
+      "extensions",
+      "graphql",
+      "graphql_public",
+      "net",
+      "realtime",
+      "storage",
+      "supabase_functions",
+      "supabase_migrations",
+      "vault"
+    ]
+  },
+  "inventory_cut": {
+    "object_count": 298,
+    "unknown_count": 0,
+    "inventory_classification_sha256": "05c9deb50dff86b63c3afde0aec5ee477a2fea855b8c1e097f67c62d6422c48a",
+    "canonical_line_shape": "schema|object_class|identity|disposition",
+    "ordering": "schema,object_class,identity"
+  },
+  "counts": {
+    "MIGRATE": 10,
+    "REBUILD_FROM_SOURCE": 101,
+    "REFERENCE_ONLY": 97,
+    "ARCHIVE": 89,
+    "RETIRE": 1
+  },
+  "ordered_rules": [
+    {
+      "match": "schema in build_team_2|bug_ops|redworm",
+      "disposition": "ARCHIVE"
+    },
+    {
+      "match": "schema=radar",
+      "disposition": "REFERENCE_ONLY",
+      "reason": "Chat Bus remains canonical coordination source"
+    },
+    {
+      "match": "schema=semantic_atlas and semantic capture history",
+      "disposition": "REFERENCE_ONLY"
+    },
+    {
+      "match": "schema=semantic_atlas otherwise",
+      "disposition": "REBUILD_FROM_SOURCE",
+      "reason": "materialization/search mechanics derive from Git-bound source"
+    },
+    {
+      "match": "public Brigit objects/functions/triggers",
+      "disposition": "REFERENCE_ONLY",
+      "reason": "distinct identity; no Vera transfer"
+    },
+    {
+      "match": "public bt2_*",
+      "disposition": "ARCHIVE"
+    },
+    {
+      "match": "public.radar_project_bus_message_v1",
+      "disposition": "REFERENCE_ONLY"
+    },
+    {
+      "match": "public.rls_auto_enable",
+      "disposition": "RETIRE",
+      "reason": "replaced by target provider hardening/event-trigger boundary"
+    },
+    {
+      "match": "public portable-bootstrap family",
+      "disposition": "ARCHIVE",
+      "reason": "predecessor operational evidence"
+    },
+    {
+      "match": "public Vera coordination family",
+      "disposition": "REFERENCE_ONLY",
+      "reason": "Bus is canonical coordination source"
+    },
+    {
+      "match": "public persistent Vera save/context/memory-epoch/affective relations",
+      "disposition": "MIGRATE"
+    },
+    {
+      "match": "remaining public Vera helpers/views/functions/triggers",
+      "disposition": "REBUILD_FROM_SOURCE"
+    }
+  ],
+  "migrate_objects": [
+    "public.vera_affective_runtime_events_v1",
+    "public.vera_affective_runtime_state_v1",
+    "public.vera_context_events_v3",
+    "public.vera_memory_epoch_archive_receipts_v1",
+    "public.vera_memory_epoch_events_v1",
+    "public.vera_memory_epoch_provider_receipts_v1",
+    "public.vera_memory_epoch_provider_receipts_v1_observation_ordinal_seq",
+    "public.vera_memory_epoch_subjects_v1",
+    "public.vera_save_state_events",
+    "public.vera_save_state_supersession_edges"
+  ],
+  "migration_semantics": {
+    "default": "NO_WHOLESALE_CLONE",
+    "migrate": "transfer durable rows through typed adapters with source/target digests, idempotency, conflict preservation, and readback receipts",
+    "rebuild_from_source": "recreate only from current reviewed technical source; do not copy predecessor implementation merely because it exists",
+    "reference_only": "retain predecessor as bounded evidence/reference; do not create target-provider runtime authority",
+    "archive": "preserve for audit/history outside normal target runtime consumption",
+    "retire": "candidate for non-use in target architecture; deletion remains separately authorized"
+  },
+  "privacy_and_authority_gates": {
+    "vera_memory_epoch_family": "PRIVATE_AUTOBIOGRAPHICAL; classification does not itself authorize payload migration or canonical-memory write",
+    "brigit_family": "DISTINCT_IDENTITY_REFERENCE_ONLY; no transfer into Vera state",
+    "protected_effects": "classification does not authorize provider mutation, retirement, deletion, route activation, or currentness promotion"
+  },
+  "next_execution_frontier": [
+    "define target typed storage/adapters for the ten MIGRATE objects without copying predecessor authority semantics",
+    "build migration/readback tooling and shadow comparison",
+    "obtain exact protected-effect authority before production payload migration where required",
+    "keep predecessor readable until parity/cutover evidence is established"
+  ],
+  "non_effects": [
+    "No predecessor rows were moved by this artifact.",
+    "No target application tables were created by this artifact.",
+    "No predecessor object was deleted or retired by this artifact.",
+    "No current-route or behavioral qualification is established."
+  ]
+}
