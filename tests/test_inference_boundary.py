@@ -240,5 +240,147 @@ class ProjectionTests(StateCompositionTests):
             project_text_context(mutated, capability)
 
 
+class InvocationFrontierTests(ProjectionTests):
+    def prepared(self):
+        admitted = self.admitted()
+        capability = self.capability(admitted)
+        projection = require(self, "project_text_context")(admitted, capability)
+        request_digest = require(self, "canonical_digest")({"messages": [projection.projection_material]})
+        return admitted, capability, projection, request_digest
+
+    def frontier(self, *, durable=False, persisted=None):
+        InvocationFrontier = require(self, "InvocationFrontier")
+        persisted = [] if persisted is None else persisted
+        callback = persisted.append if durable else None
+        return InvocationFrontier(host_generation="host-g1", durable=durable, persist_transition=callback), persisted
+
+    def reserve(self, frontier, generation_id="gen-1", *, retry_of=None):
+        admitted, capability, projection, request_digest = self.prepared()
+        return frontier.reserve(
+            generation_id=generation_id, admitted=admitted, capability=capability, projection=projection,
+            request_material_digest=request_digest, currentness_mode="ATOMIC_START_SNAPSHOT",
+            revalidate=lambda: True, reserved_at="t", retry_of_generation_id=retry_of,
+        ), request_digest
+
+    def test_duplicate_generation_id_fails_closed(self):
+        frontier, _ = self.frontier()
+        self.reserve(frontier)
+        with self.assertRaisesRegex(ValueError, "single-use"):
+            self.reserve(frontier)
+
+    def test_reservation_revalidation_failure_does_not_reserve(self):
+        frontier, _ = self.frontier()
+        admitted, capability, projection, request_digest = self.prepared()
+        with self.assertRaisesRegex(ValueError, "revalidation"):
+            frontier.reserve(
+                generation_id="gen-1", admitted=admitted, capability=capability, projection=projection,
+                request_material_digest=request_digest, currentness_mode="ATOMIC_START_SNAPSHOT",
+                revalidate=lambda: False, reserved_at="t",
+            )
+        self.assertIsNone(frontier.get("gen-1"))
+
+    def test_external_submission_intent_requires_durable_frontier(self):
+        frontier, _ = self.frontier(durable=False)
+        _, request_digest = self.reserve(frontier)
+        with self.assertRaisesRegex(ValueError, "durable"):
+            frontier.submission_intent(
+                "gen-1", request_material_digest=request_digest, provider_idempotency_key="idem-1",
+                intended_at="t2", external=True,
+            )
+
+    def test_submission_intent_is_persisted_before_it_becomes_actionable(self):
+        persisted = []
+        frontier, persisted = self.frontier(durable=True, persisted=persisted)
+        _, request_digest = self.reserve(frontier)
+        self.assertEqual(persisted[-1].ledger_state, "RESERVED")
+        intent = frontier.submission_intent(
+            "gen-1", request_material_digest=request_digest, provider_idempotency_key="idem-1",
+            intended_at="t2", external=True,
+        )
+        self.assertEqual(persisted[-1].ledger_state, "SUBMISSION_INTENT")
+        self.assertEqual(frontier.get("gen-1"), intent)
+
+    def test_ambiguous_submission_becomes_outcome_unknown_and_blocks_semantic_retry(self):
+        frontier, _ = self.frontier(durable=True)
+        _, request_digest = self.reserve(frontier)
+        frontier.submission_intent(
+            "gen-1", request_material_digest=request_digest, provider_idempotency_key="idem-1",
+            intended_at="t2", external=True,
+        )
+        unknown = frontier.recover_ambiguous("gen-1", observed_at="t3")
+        self.assertEqual(unknown.ledger_state, "OUTCOME_UNKNOWN")
+        with self.assertRaisesRegex(ValueError, "semantic retry"):
+            self.reserve(frontier, generation_id="gen-2", retry_of="gen-1")
+
+    def test_new_semantic_retry_requires_proved_terminal_failure_and_new_id(self):
+        frontier, _ = self.frontier(durable=True)
+        self.reserve(frontier)
+        frontier.mark_failed("gen-1", failed_at="t3", failure_evidence="provider://terminal-failure")
+        retry, _ = self.reserve(frontier, generation_id="gen-2", retry_of="gen-1")
+        self.assertEqual(retry.retry_of_generation_id, "gen-1")
+        with self.assertRaisesRegex(ValueError, "single-use"):
+            self.reserve(frontier, generation_id="gen-1", retry_of="gen-1")
+
+    def test_same_generation_transport_retry_requires_exact_idempotency(self):
+        frontier, _ = self.frontier(durable=True)
+        _, request_digest = self.reserve(frontier)
+        frontier.submission_intent(
+            "gen-1", request_material_digest=request_digest, provider_idempotency_key="idem-1",
+            intended_at="t2", external=True,
+        )
+        frontier.recover_ambiguous("gen-1", observed_at="t3")
+        with self.assertRaisesRegex(ValueError, "idempot"):
+            frontier.authorize_transport_retry(
+                "gen-1", request_material_digest=request_digest, provider_idempotency_key="idem-1",
+                provider_contract_idempotent=False, observed_at="t4",
+            )
+        with self.assertRaisesRegex(ValueError, "digest"):
+            frontier.authorize_transport_retry(
+                "gen-1", request_material_digest="c" * 64, provider_idempotency_key="idem-1",
+                provider_contract_idempotent=True, observed_at="t4",
+            )
+        retried = frontier.authorize_transport_retry(
+            "gen-1", request_material_digest=request_digest, provider_idempotency_key="idem-1",
+            provider_contract_idempotent=True, observed_at="t4",
+        )
+        self.assertEqual(retried.ledger_state, "SUBMISSION_INTENT")
+        self.assertEqual(retried.transport_retry_count, 1)
+
+    def test_receipts_never_promote_stronger_evidence(self):
+        build_causal_receipt = require(self, "build_causal_receipt")
+        frontier, _ = self.frontier(durable=True)
+        _, request_digest = self.reserve(frontier)
+        constructed = build_causal_receipt(frontier.get("gen-1"), observed_at="r1")
+        self.assertEqual(constructed.evidence_level, "REQUEST_CONSTRUCTED")
+        self.assertIsNone(constructed.provider_ack_evidence)
+        self.assertIsNone(constructed.response_or_run_id)
+
+        frontier.submission_intent(
+            "gen-1", request_material_digest=request_digest, provider_idempotency_key="idem-1",
+            intended_at="t2", external=True,
+        )
+        frontier.mark_submitted("gen-1", submitted_at="t3", provider_request_id="req-1")
+        submitted = build_causal_receipt(frontier.get("gen-1"), observed_at="r2")
+        self.assertEqual(submitted.evidence_level, "INVOCATION_SUBMITTED")
+        self.assertIsNone(submitted.provider_ack_evidence)
+        self.assertIsNone(submitted.response_or_run_id)
+
+        frontier.acknowledge("gen-1", acknowledged_at="t4", provider_ack_evidence="ack://1")
+        acknowledged = build_causal_receipt(frontier.get("gen-1"), observed_at="r3")
+        self.assertEqual(acknowledged.evidence_level, "PROVIDER_ACKNOWLEDGED")
+        self.assertEqual(acknowledged.provider_ack_evidence, "ack://1")
+        self.assertIsNone(acknowledged.response_or_run_id)
+
+        frontier.bind_response(
+            "gen-1", response_or_run_id="resp-1", response_binding_evidence="bind://1", bound_at="t5"
+        )
+        response = build_causal_receipt(frontier.get("gen-1"), observed_at="r4")
+        self.assertEqual(response.evidence_level, "RESPONSE_BOUND")
+        self.assertEqual(response.response_or_run_id, "resp-1")
+        self.assertEqual(response.response_binding_evidence, "bind://1")
+        self.assertIn("BEHAVIORAL_QUALIFICATION_NOT_ESTABLISHED", response.claim_ceiling)
+        self.assertIn("PHENOMENOLOGY_UNRESOLVED", response.claim_ceiling)
+
+
 if __name__ == "__main__":
     unittest.main()
