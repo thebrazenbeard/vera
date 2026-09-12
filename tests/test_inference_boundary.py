@@ -268,6 +268,29 @@ class ProjectionTests(StateCompositionTests):
         self.assertEqual(first.causal_role, "INSTRUCTION_CONDITIONED")
         self.assertEqual(first.projection_digest, require(self, "canonical_digest")(first.projection_material))
 
+    def test_structural_forbidden_domain_cannot_be_removed_by_policy_input(self):
+        compose_state = require(self, "compose_state")
+        bind_admitted_state = require(self, "bind_admitted_state")
+        project_text_context = require(self, "project_text_context")
+        component = self.component(domain_id="truth")
+        composition = compose_state(
+            subject="vera", components=[component], omissions=[], policy_revision="r3"
+        )
+        admitted = bind_admitted_state(
+            composition,
+            admission_receipt_digest="b" * 64,
+            admitted_component_ids={"affect:1"},
+            mandatory_component_ids=set(),
+            target_egress_scope="PROJECT_PRIVATE_HOST",
+            forbidden_domains=set(),
+            admission_currentness_basis="receipt://current",
+            admission_epoch_or_lease="epoch-1",
+            admitted_at="t",
+        )
+        capability = self.capability(admitted)
+        with self.assertRaisesRegex(ValueError, "forbidden"):
+            project_text_context(admitted, capability)
+
     def test_projection_rejects_forbidden_domain(self):
         project_text_context = require(self, "project_text_context")
         admitted = self.admitted()

@@ -12,6 +12,13 @@ _FORBIDDEN_PROJECTION_INPUT_KEYS = frozenset({
     "target_behavior", "desired_response", "target_phrase", "expected_answer",
     "expected_output", "requested_emotional_display",
 })
+_STRUCTURALLY_FORBIDDEN_PROJECTION_DOMAINS = frozenset({
+    "truth", "factual_confidence_authority", "consent", "authorization",
+    "protected_effect_authority", "identity_admission",
+    "autobiographical_memory_admission", "permanent_preference",
+    "relationship_status", "provider_currentness", "installation_current_route",
+    "behavioral_qualification", "phenomenology",
+})
 _CURRENTNESS_MODES = {"ATOMIC_START_SNAPSHOT", "LEASE_THROUGH_SUBMISSION"}
 _LEDGER_STATES = {
     "RESERVED", "SUBMISSION_INTENT", "SUBMITTED", "ACKNOWLEDGED",
@@ -49,6 +56,12 @@ def _require_text(value: Any, label: str) -> str:
     if not isinstance(value, str) or not value:
         raise ValueError(f"{label} must be non-empty")
     return value
+
+
+def _normalize_domain_id(value: str) -> str:
+    _require_text(value, "domain_id")
+    mapped = "".join(char.lower() if char.isalnum() else "_" for char in value)
+    return "_".join(part for part in mapped.split("_") if part)
 
 
 @dataclass(frozen=True)
@@ -259,7 +272,8 @@ def bind_admitted_state(
     return AdmittedVeraState(
         subject=composition.subject, composition_digest=composition.composition_digest,
         admission_receipt_digest=admission_receipt_digest.lower(), admitted_components=selected,
-        omissions=composition.omissions, forbidden_domains=frozenset(forbidden_domains),
+        omissions=composition.omissions,
+        forbidden_domains=frozenset(forbidden_domains) | _STRUCTURALLY_FORBIDDEN_PROJECTION_DOMAINS,
         admitted_disclosure_scope=target_egress_scope,
         admission_currentness_basis=admission_currentness_basis,
         admission_epoch_or_lease=admission_epoch_or_lease, admitted_at=admitted_at,
@@ -367,7 +381,11 @@ def project_text_context(
         raise ValueError("projection egress does not match admitted disclosure scope")
     components: list[dict[str, Any]] = []
     for component in admitted.admitted_components:
-        if component.domain_id in admitted.forbidden_domains:
+        normalized_domain = _normalize_domain_id(component.domain_id)
+        if (
+            component.domain_id in admitted.forbidden_domains
+            or normalized_domain in _STRUCTURALLY_FORBIDDEN_PROJECTION_DOMAINS
+        ):
             raise ValueError(f"forbidden projection domain: {component.domain_id}")
         if capability.target_egress_scope not in component.allowed_egress_scopes:
             raise ValueError(f"projection egress is not allowed for {component.component_id}")
