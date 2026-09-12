@@ -223,6 +223,25 @@ def bind_admitted_state(
     omitted = {item.component_id: item for item in composition.omissions}
     admitted_ids = set(admitted_component_ids)
     mandatory_ids = set(mandatory_component_ids)
+    declared_mandatory_ids = {
+        item.component_id for item in composition.components
+        if item.requirement_class == "MANDATORY"
+    }
+    downgraded_mandatory = declared_mandatory_ids - mandatory_ids
+    if downgraded_mandatory:
+        raise ValueError(
+            "mandatory component requirement_class is missing from admission policy: "
+            f"{sorted(downgraded_mandatory)!r}"
+        )
+    upgraded_optional = {
+        component_id for component_id in mandatory_ids & set(included)
+        if included[component_id].requirement_class != "MANDATORY"
+    }
+    if upgraded_optional:
+        raise ValueError(
+            "optional component requirement_class cannot be upgraded by admission policy: "
+            f"{sorted(upgraded_optional)!r}"
+        )
     unknown = admitted_ids - set(included)
     if unknown:
         raise ValueError(f"admitted component ids are not in composition: {sorted(unknown)!r}")

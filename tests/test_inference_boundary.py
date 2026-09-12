@@ -133,6 +133,50 @@ class StateCompositionTests(unittest.TestCase):
                 admitted_at="t",
             )
 
+    def test_declared_mandatory_component_cannot_be_downgraded_by_policy_input(self):
+        compose_state = require(self, "compose_state")
+        bind_admitted_state = require(self, "bind_admitted_state")
+        composition = compose_state(
+            subject="vera",
+            components=[self.component(requirement_class="MANDATORY")],
+            omissions=[],
+            policy_revision="r3",
+        )
+        with self.assertRaisesRegex(ValueError, "mandatory|requirement"):
+            bind_admitted_state(
+                composition,
+                admission_receipt_digest="b" * 64,
+                admitted_component_ids=set(),
+                mandatory_component_ids=set(),
+                target_egress_scope="LOCAL_PROCESS_ONLY",
+                forbidden_domains={"truth", "authorization"},
+                admission_currentness_basis="receipt://current",
+                admission_epoch_or_lease="epoch-1",
+                admitted_at="t",
+            )
+
+    def test_declared_optional_component_cannot_be_upgraded_by_policy_input(self):
+        compose_state = require(self, "compose_state")
+        bind_admitted_state = require(self, "bind_admitted_state")
+        composition = compose_state(
+            subject="vera",
+            components=[self.component(requirement_class="OPTIONAL")],
+            omissions=[],
+            policy_revision="r3",
+        )
+        with self.assertRaisesRegex(ValueError, "optional|requirement"):
+            bind_admitted_state(
+                composition,
+                admission_receipt_digest="b" * 64,
+                admitted_component_ids={"affect:1"},
+                mandatory_component_ids={"affect:1"},
+                target_egress_scope="LOCAL_PROCESS_ONLY",
+                forbidden_domains={"truth", "authorization"},
+                admission_currentness_basis="receipt://current",
+                admission_epoch_or_lease="epoch-1",
+                admitted_at="t",
+            )
+
     def test_egress_is_explicit_set_membership_not_scope_ordering(self):
         compose_state = require(self, "compose_state")
         bind_admitted_state = require(self, "bind_admitted_state")
