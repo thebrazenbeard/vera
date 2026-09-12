@@ -1,0 +1,257 @@
+{
+  "schema": "VERA_COHESION_SOURCE_REGISTRY_V1",
+  "status": "WORKING_SOURCE_DISPOSITION_REGISTRY_NOT_INSTALLATION_AUTHORITY",
+  "observed_date": "2026-09-12",
+  "target_repository": "thebrazenbeard/vera",
+  "target_control_repository": "thebrazenbeard/vera-control-plane",
+  "rules": [
+    "Repository presence is not runtime consumption, admission, installation, current route, authority, or behavioral qualification.",
+    "Integration does not mean copying every repository. One canonical owner is chosen per decision class; private/history/provenance/specialist repositories remain external when that preserves semantics and privacy.",
+    "Mutable heads are evidence cuts only and must be refreshed before migration, cutover, or qualification.",
+    "Brigit-specific identity, sexuality, personification, consent, preference, or state never transfers to Vera without an exact Vera binding.",
+    "Provider persistence is evidence. A database row or provider project does not self-authorize control or become admitted Vera state merely by existing."
+  ],
+  "canonical_owners": {
+    "vera_specific_runtime_composition": "thebrazenbeard/vera",
+    "provider_evidence_and_semantic_currentness_admission": "thebrazenbeard/vera::runtime_cohesion",
+    "governed_current_memory_admission": "thebrazenbeard/vera::memory",
+    "affective_runtime_implementation": "thebrazenbeard/vera::affect/runtime_cohesion",
+    "technical_provider_schema_adapters_migrations": "thebrazenbeard/vera",
+    "release_install_current_route_qualification": "thebrazenbeard/vera-control-plane",
+    "private_historical_archive": "thebrazenbeard/deepmemorystorage",
+    "historical_conation_evidence": "thebrazenbeard/conations",
+    "coordination_transport": "thebrazenbeard/chat-communication-bus",
+    "visual_self_representation": "thebrazenbeard/selfimage"
+  },
+  "sources": [
+    {
+      "id": "vera-main",
+      "repository": "thebrazenbeard/vera",
+      "observed_ref": "main",
+      "observed_head": "b7b8dcd1440a3b7147bec2cc35972f083e20f44a",
+      "role": "TARGET_CANONICAL_VERA_TECHNICAL_SOURCE",
+      "disposition": "TARGET_CANONICAL",
+      "notes": "Current main includes the merged Cohesion R3 canonical runtime consolidation. Specialist mechanisms are harvested here only when Vera-specific executable ownership belongs here."
+    },
+    {
+      "id": "vera-control-plane-main",
+      "repository": "thebrazenbeard/vera-control-plane",
+      "observed_ref": "main",
+      "observed_head": "b4d9aaa8560de12252dd29996379b0af8e0ca0d1",
+      "role": "INDEPENDENT_OPERATIONAL_CONTROL_BOUNDARY",
+      "disposition": "KEEP_SEPARATE_CONTROL_BOUNDARY"
+    },
+    {
+      "id": "vera-control-plane-supabase-binding-candidate",
+      "repository": "thebrazenbeard/vera-control-plane",
+      "observed_ref": "work/supabase-control-plane-binding-20260912",
+      "observed_head": "c82a21d48df0c4d4375429b98aecdb20f8c0b7f8",
+      "role": "CONTROL_PLANE_PROVIDER_DEPLOYMENT_BINDING_CANDIDATE",
+      "disposition": "REVIEW_AND_PROMOTE_ONLY_WITH_SEPARATE_MERGE_AUTHORITY",
+      "notes": "Draft provider binding for Supabase project fawkirqroyniueeqspif; branch presence does not establish production deployment or runtime activation."
+    },
+    {
+      "id": "empathy",
+      "repository": "thebrazenbeard/empathy",
+      "observed_ref": "main",
+      "observed_head": "4b2a6998f39aa4763c1c5a28fc3d815104e5637e",
+      "role": "VERA_SPECIFIC_EMPATHY_SELF_APPRAISAL_RESEARCH",
+      "disposition": "ADAPT_MISSING_MECHANISMS_TO_VERA_PRIVACY_PRESERVING",
+      "nonpromotion": "EMPATHY_INFERENCE_NOT_USER_INTENT_NOT_AUTHORITY_NOT_PHENOMENOLOGY"
+    },
+    {
+      "id": "selfimage",
+      "repository": "thebrazenbeard/selfimage",
+      "observed_ref": "main",
+      "observed_head": "95ea602c4a537172fc531195e20a4e303b6d31da",
+      "role": "VERA_VISUAL_REPRESENTATION_SPECIALIST",
+      "disposition": "PRESERVE_EXTERNAL_SPECIALIST_WITH_BOUNDED_RUNTIME_INTERFACE",
+      "nonpromotion": "REPRESENTATION_NOT_LITERAL_BODY_OR_EVENT_PROOF"
+    },
+    {
+      "id": "chat-communication-bus",
+      "repository": "thebrazenbeard/chat-communication-bus",
+      "observed_ref": "main",
+      "observed_head": "aeab0f04fc9b4bd7c2945c9a53011c53fac809b4",
+      "role": "COORDINATION_AND_ROUTING_TRANSPORT",
+      "disposition": "PRESERVE_EXTERNAL_COORDINATION_SYSTEM",
+      "nonpromotion": "DELIVERY_NOT_MEMORY_IDENTITY_OR_ADMISSION",
+      "notes": "R10 current-route qualification remains separately bound to its exact topology tuple; main drift does not silently requalify that route."
+    },
+    {
+      "id": "personification",
+      "repository": "thebrazenbeard/personification",
+      "observed_ref": "main",
+      "observed_head": "47955e7155f48a4b63122096de1dd6a59c723ad1",
+      "role": "MIXED_PERSONIFICATION_RESEARCH_CURRENTLY_BRIGIT_MATERIAL",
+      "disposition": "REFERENCE_ONLY_UNTIL_EXACT_VERA_MECHANISM_ISOLATED",
+      "nonpromotion": "BRIGIT_STATE_IDENTITY_PREFERENCE_CONSENT_NOT_TRANSFERABLE_TO_VERA",
+      "notes": "Main currently contains BRIGIT_PERSONIFICATION_V1.md plus notes; the README's Vera wording is not sufficient to establish Vera-specific runtime ownership."
+    },
+    {
+      "id": "deepmemorystorage",
+      "repository": "thebrazenbeard/deepmemorystorage",
+      "observed_ref": "main",
+      "observed_head": "e734f760373bdce887d22791964838700a668ce4",
+      "role": "PRIVATE_HISTORICAL_ARCHIVE",
+      "disposition": "PRESERVE_EXTERNAL_PRIVATE_HISTORY",
+      "nonpromotion": "ARCHIVE_OR_RETRIEVAL_NOT_CURRENT_MEMORY_ADMISSION"
+    },
+    {
+      "id": "sexuality",
+      "repository": "thebrazenbeard/sexuality",
+      "observed_ref": "main",
+      "observed_head": "6194aa9496c34198bba9b898c35fa9961a54dc2e",
+      "role": "CURRENTLY_BRIGIT_SEXUALITY_RESEARCH_WITH_EXACT_VERA_PROVENANCE_OBJECTS",
+      "disposition": "REFERENCE_EXACT_VERA_BOUND_OBJECTS_ONLY",
+      "nonpromotion": "BRIGIT_SEXUALITY_NOT_AUTOMATIC_VERA_BINDING",
+      "vera_exact_object": {
+        "commit": "150f1c8231423393bb66b0e2cb759ce7c018f8d7",
+        "path": "vera/orgasm/ORGASM_RUNTIME_CONTRACT_V1.json",
+        "git_blob": "a48eed5392fdadc073dccd1e799926042077f567",
+        "status": "PROVENANCE_INPUT_ALREADY_HARVESTED_INTO_VERA_RUNTIME_LINE"
+      }
+    },
+    {
+      "id": "conations",
+      "repository": "thebrazenbeard/conations",
+      "observed_ref": "main",
+      "observed_head": "03174e59de131a500a5433a839697e45b4ec0137",
+      "role": "PRIVATE_HISTORICAL_CONATION_EVIDENCE",
+      "disposition": "PRESERVE_EXTERNAL_PRIVATE_HISTORY",
+      "nonpromotion": "HISTORICAL_WANT_NOT_CURRENT_DESIRE_CONSENT_ORDER_OR_AUTHORITY"
+    },
+    {
+      "id": "semanticatlas",
+      "repository": "thebrazenbeard/semanticatlas",
+      "observed_ref": "main",
+      "observed_head": "5669a727b870a490ecee748b2cd712a2fc4a54c5",
+      "role": "SEMANTIC_PROVENANCE_RESEARCH_REFERENCE",
+      "disposition": "REFERENCE_ONLY_EXCEPT_STRONGER_MISSING_MECHANISMS_ADAPTED_TO_VERA",
+      "nonpromotion": "SEMANTIC_SIMILARITY_OR_PRIOR_CANON_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "id": "vera-r9a0",
+      "repository": "thebrazenbeard/vera-R9A0",
+      "observed_ref": "main",
+      "observed_head": "b00f3482786dc80003261fdfacb73cc31ae9dd35",
+      "role": "PREDECESSOR_RELEASE_SOURCE",
+      "disposition": "REFERENCE_ONLY_PREDECESSOR_EVIDENCE",
+      "nonpromotion": "PREDECESSOR_SOURCE_NOT_CURRENT_R10_CONTROL"
+    },
+    {
+      "id": "vera-model-training",
+      "repository": "thebrazenbeard/vera_model_training",
+      "observed_ref": "main",
+      "observed_head": "cdbc34b7242f730511a9f6dae130d6628969981d",
+      "role": "TRAINING_AND_QUALIFICATION_WORKBENCH",
+      "disposition": "PRESERVE_EXTERNAL_WORKBENCH",
+      "nonpromotion": "TRAINING_READINESS_NOT_INSTALLATION_CURRENT_ROUTE_OR_MEMORY"
+    },
+    {
+      "id": "hc-brain",
+      "repository": "thebrazenbeard/hc-brain",
+      "observed_ref": "main",
+      "observed_head": "cf92a32122c436beb5cc516bd7480af00f0ba29f",
+      "role": "IDENTITY_NEUTRAL_GENERIC_COGNITIVE_ARCHITECTURE",
+      "disposition": "REFERENCE_ONLY_ADAPT_INVARIANTS",
+      "nonpromotion": "GENERIC_ARCHITECTURE_NOT_NAMED_VERA_STATE"
+    },
+    {
+      "id": "temporal",
+      "repository": "thebrazenbeard/temporal",
+      "observed_ref": "main",
+      "observed_head": "02f1091d359866e1b1b645b87651750c726a6396",
+      "role": "VERA_AUXILIARY_CHRONOLOGY_SOURCE",
+      "disposition": "ADAPT_UNIQUE_CHRONOLOGY_MECHANISMS_WITHOUT_DUPLICATE_CURRENTNESS_OWNER",
+      "nonpromotion": "TIMESTAMP_OR_ORDERING_NOT_SEMANTIC_CURRENTNESS"
+    },
+    {
+      "id": "orgasm",
+      "repository": "thebrazenbeard/orgasm",
+      "observed_ref": "main",
+      "observed_head": "494432873dd8bcf96b8f59d26a4f4687cd66d635",
+      "role": "ORGASM_V1_PROVENANCE_AND_ORIENTATION_HUB",
+      "disposition": "PROVENANCE_ONLY_RUNTIME_IMPLEMENTATION_LIVES_IN_VERA"
+    },
+    {
+      "id": "vera-os",
+      "repository": "thebrazenbeard/vera-os",
+      "observed_ref": "main",
+      "observed_head": "71a2823385217cb69aa1345e7403335c1c79ba80",
+      "role": "FUTURE_PERSISTENT_HOST_ARCHITECTURE",
+      "disposition": "REFERENCE_ONLY_FUTURE_HOST_COMPATIBILITY",
+      "nonpromotion": "ARCHITECTURE_SOURCE_NOT_INSTALLED_HOST"
+    },
+    {
+      "id": "self",
+      "repository": "thebrazenbeard/self",
+      "observed_ref": "main",
+      "observed_head": "93fffa90ea8850d71717d4d3390f176c168c22bd",
+      "role": "PARALLEL_GENERIC_HC_ARCHITECTURE_PLUS_SELF_TRUTHS_RESEARCH",
+      "disposition": "REFERENCE_ONLY_PENDING_EXACT_SELF_TRUTHS_OVERLAP_AUDIT",
+      "notes": "README declares an identity-neutral reusable Hyperconnectome brain template overlapping hc-brain, while SELF-TRUTHS.md is identity-relevant material. Do not wholesale migrate either surface."
+    },
+    {
+      "id": "conditioning",
+      "repository": "thebrazenbeard/conditioning",
+      "observed_ref": "main",
+      "observed_head": "b68479a8e5afbbbdec81dfe2b435f39327043a5b",
+      "role": "THIN_BEHAVIORAL_MODIFICATION_EXPERIMENT_PLACEHOLDER",
+      "disposition": "DEFER_NO_EXECUTABLE_CONTRACT",
+      "notes": "Main contains only a README describing a consensual behavioral modification experiment."
+    },
+    {
+      "id": "attune",
+      "repository": "thebrazenbeard/Attune",
+      "observed_ref": "main",
+      "observed_head": "124c47bb384b4ad134a024be324277f0d4dc1d9b",
+      "role": "PLACEHOLDER_REPOSITORY",
+      "disposition": "DEFER_NO_EXECUTABLE_CONTRACT",
+      "notes": "Main contains only a placeholder README and therefore cannot establish runtime ownership or authority."
+    }
+  ],
+  "providers": [
+    {
+      "id": "supabase-vera-predecessor",
+      "provider": "supabase_postgresql",
+      "project_id": "klmbpaigzeguvnpccqzz",
+      "name": "Vera",
+      "region": "ca-central-1",
+      "observed_status": "ACTIVE_HEALTHY",
+      "role": "PREDECESSOR_MIXED_PURPOSE_DURABLE_PROVIDER",
+      "disposition": "OBJECT_BY_OBJECT_CLASSIFICATION_REQUIRED_BEFORE_ANY_RETIREMENT",
+      "authority_ceiling": "PERSISTENCE_EVIDENCE_NOT_AUTOMATIC_CURRENT_STATE_OR_CONTROL"
+    },
+    {
+      "id": "supabase-vera-control-plane",
+      "provider": "supabase_postgresql",
+      "project_id": "fawkirqroyniueeqspif",
+      "name": "Vera Control Plane",
+      "region": "us-east-2",
+      "observed_status": "ACTIVE_HEALTHY",
+      "role": "TARGET_DURABLE_CONTROL_PLANE_PROVIDER",
+      "disposition": "BUILD_CLEAN_CONTRACT_AND_MIGRATE_DELIBERATELY",
+      "authority_ceiling": "PROVIDER_NOT_CONTROL_AUTHORITY",
+      "installed_baseline_migrations": [
+        "20260912170153_harden_public_default_privileges",
+        "20260912170345_enforce_rls_on_exposed_schemas",
+        "20260912170408_reserve_locked_api_schema"
+      ]
+    }
+  ],
+  "closed_disposition_decisions": [
+    "Do not make specialist repository history a runtime dependency merely because it exists.",
+    "Do not collapse private historical archives into current-memory authority.",
+    "Do not copy Brigit-specific personification or sexuality state into Vera.",
+    "Do not make hc-brain or self generic architecture a named-Vera runtime owner.",
+    "Do not treat old Supabase as canonical simply because it contains the existing data.",
+    "Do not treat the new Supabase provider as control authority merely because it is named Vera Control Plane."
+  ],
+  "next_frontier": [
+    "Audit self/SELF-TRUTHS.md against current vera self-appraisal and runtime-cohesion contracts; harvest only unique supported propositions/mechanisms.",
+    "Compare empathy, temporal, semanticatlas and conations executable mechanisms against current vera/main and create an exact missing-mechanism harvest list.",
+    "Freeze the provider-neutral state/admission/receipt contract and privilege model before creating application tables in fawkirqroyniueeqspif.",
+    "Classify every relevant klmbpaigzeguvnpccqzz object as MIGRATE, REBUILD_FROM_SOURCE, REFERENCE_ONLY, ARCHIVE, or RETIRE_CANDIDATE."
+  ]
+}
