@@ -259,3 +259,202 @@ def bind_admitted_state(
         admission_epoch_or_lease=admission_epoch_or_lease,
         admitted_at=admitted_at,
     )
+
+
+_FORBIDDEN_PROJECTION_INPUT_KEYS = frozenset({
+    "target_behavior",
+    "desired_response",
+    "target_phrase",
+    "expected_answer",
+    "expected_output",
+    "requested_emotional_display",
+})
+
+
+@dataclass(frozen=True)
+class CapabilityBinding:
+    host_identity: str
+    host_revision: str
+    host_generation: str
+    target_provider_or_host: str
+    target_egress_scope: str
+    model_identity: str
+    model_revision: str
+    adapter_identity: str
+    adapter_revision: str
+    selected_backend: str
+    supported_projection_backends: frozenset[str]
+    backend_constraints: dict[str, Any]
+    capability_digest: str
+    bound_at: str
+
+
+@dataclass(frozen=True)
+class ProjectionEnvelope:
+    admitted_state_digest: str
+    capability_binding_digest: str
+    projection_backend: str
+    projection_digest: str
+    projection_material: dict[str, Any]
+    target_egress_scope: str
+    binding_class: str
+    causal_role: str
+    projected_at: str
+
+
+def bind_capability(
+    admitted: AdmittedVeraState,
+    *,
+    host_identity: str,
+    host_revision: str,
+    host_generation: str,
+    target_provider_or_host: str,
+    target_egress_scope: str,
+    model_identity: str,
+    model_revision: str,
+    adapter_identity: str,
+    adapter_revision: str,
+    requested_backend: str,
+    supported_projection_backends: set[str] | frozenset[str],
+    backend_constraints: dict[str, Any],
+    bound_at: str,
+) -> CapabilityBinding:
+    fields = {
+        "host_identity": host_identity,
+        "host_revision": host_revision,
+        "host_generation": host_generation,
+        "target_provider_or_host": target_provider_or_host,
+        "target_egress_scope": target_egress_scope,
+        "model_identity": model_identity,
+        "model_revision": model_revision,
+        "adapter_identity": adapter_identity,
+        "adapter_revision": adapter_revision,
+        "requested_backend": requested_backend,
+        "bound_at": bound_at,
+    }
+    for label, value in fields.items():
+        if not isinstance(value, str) or not value:
+            raise ValueError(f"{label} must be non-empty")
+    supported = frozenset(supported_projection_backends)
+    if requested_backend not in supported:
+        raise ValueError(f"requested backend {requested_backend!r} is not supported by exact capability binding")
+    if target_egress_scope != admitted.admitted_disclosure_scope:
+        raise ValueError("capability target egress would broaden or change admitted egress scope")
+    if not isinstance(backend_constraints, dict):
+        raise ValueError("backend_constraints must be a JSON-safe mapping")
+    material = {
+        "host_identity": host_identity,
+        "host_revision": host_revision,
+        "host_generation": host_generation,
+        "target_provider_or_host": target_provider_or_host,
+        "target_egress_scope": target_egress_scope,
+        "model_identity": model_identity,
+        "model_revision": model_revision,
+        "adapter_identity": adapter_identity,
+        "adapter_revision": adapter_revision,
+        "selected_backend": requested_backend,
+        "supported_projection_backends": sorted(supported),
+        "backend_constraints": backend_constraints,
+        "admitted_state_digest": admitted.composition_digest,
+    }
+    return CapabilityBinding(
+        host_identity=host_identity,
+        host_revision=host_revision,
+        host_generation=host_generation,
+        target_provider_or_host=target_provider_or_host,
+        target_egress_scope=target_egress_scope,
+        model_identity=model_identity,
+        model_revision=model_revision,
+        adapter_identity=adapter_identity,
+        adapter_revision=adapter_revision,
+        selected_backend=requested_backend,
+        supported_projection_backends=supported,
+        backend_constraints=dict(backend_constraints),
+        capability_digest=canonical_digest(material),
+        bound_at=bound_at,
+    )
+
+
+def _find_forbidden_projection_key(value: Any) -> str | None:
+    if isinstance(value, dict):
+        for key, child in value.items():
+            if isinstance(key, str) and key in _FORBIDDEN_PROJECTION_INPUT_KEYS:
+                return key
+            found = _find_forbidden_projection_key(child)
+            if found is not None:
+                return found
+    elif isinstance(value, (list, tuple)):
+        for child in value:
+            found = _find_forbidden_projection_key(child)
+            if found is not None:
+                return found
+    return None
+
+
+def project_text_context(
+    admitted: AdmittedVeraState,
+    capability: CapabilityBinding,
+    *,
+    projected_at: str = "UNSPECIFIED",
+) -> ProjectionEnvelope:
+    if capability.selected_backend != "TEXT_CONTEXT_V1":
+        raise ValueError("TEXT_CONTEXT_V1 projection requires an exact TEXT_CONTEXT_V1 capability binding")
+    if capability.target_egress_scope != admitted.admitted_disclosure_scope:
+        raise ValueError("projection egress does not match admitted disclosure scope")
+    components: list[dict[str, Any]] = []
+    for component in admitted.admitted_components:
+        if component.domain_id in admitted.forbidden_domains:
+            raise ValueError(f"forbidden projection domain: {component.domain_id}")
+        if capability.target_egress_scope not in component.allowed_egress_scopes:
+            raise ValueError(f"projection egress is not allowed for {component.component_id}")
+        if component.payload is not None:
+            forbidden_key = _find_forbidden_projection_key(component.payload)
+            if forbidden_key is not None:
+                raise ValueError(f"forbidden projection input key: {forbidden_key}")
+            state_material: dict[str, Any] = {"payload": component.payload}
+        else:
+            state_material = {
+                "payload_ref": component.payload_ref,
+                "content_digest": component.content_digest.lower(),
+            }
+        components.append({
+            "component_id": component.component_id,
+            "domain_id": component.domain_id,
+            "source_revision": component.source_revision,
+            "component_generation": component.component_generation,
+            **state_material,
+        })
+    projection_material: dict[str, Any] = {
+        "schema": "VERA_TEXT_CONTEXT_V1",
+        "subject": admitted.subject,
+        "composition_digest": admitted.composition_digest,
+        "admission_receipt_digest": admitted.admission_receipt_digest,
+        "host_identity": capability.host_identity,
+        "host_revision": capability.host_revision,
+        "host_generation": capability.host_generation,
+        "model_identity": capability.model_identity,
+        "model_revision": capability.model_revision,
+        "adapter_identity": capability.adapter_identity,
+        "adapter_revision": capability.adapter_revision,
+        "target_egress_scope": capability.target_egress_scope,
+        "components": components,
+        "omissions": [item.digest_material() for item in admitted.omissions],
+        "claim_ceiling": "PROMPT_REQUEST_CONDITIONING_ONLY",
+    }
+    maximum = capability.backend_constraints.get("max_chars")
+    if maximum is not None:
+        if not isinstance(maximum, int) or isinstance(maximum, bool) or maximum <= 0:
+            raise ValueError("TEXT_CONTEXT_V1 max_chars must be a positive integer")
+        if len(_canonical_bytes(projection_material).decode("utf-8")) > maximum:
+            raise ValueError("TEXT_CONTEXT_V1 projection exceeds max_chars capability")
+    return ProjectionEnvelope(
+        admitted_state_digest=admitted.composition_digest,
+        capability_binding_digest=capability.capability_digest,
+        projection_backend="TEXT_CONTEXT_V1",
+        projection_digest=canonical_digest(projection_material),
+        projection_material=projection_material,
+        target_egress_scope=capability.target_egress_scope,
+        binding_class="PROMPT_BOUND",
+        causal_role="INSTRUCTION_CONDITIONED",
+        projected_at=projected_at,
+    )
