@@ -1,0 +1,74 @@
+{
+  "schema": "VERA_PREDECESSOR_MIGRATION_CARGO_SNAPSHOT_20260912",
+  "status": "SOURCE_PROVIDER_READBACK_SNAPSHOT_NOT_MIGRATED",
+  "source_provider": "klmbpaigzeguvnpccqzz",
+  "target_provider": "fawkirqroyniueeqspif",
+  "classification_digest": "05c9deb50dff86b63c3afde0aec5ee477a2fea855b8c1e097f67c62d6422c48a",
+  "tables": {
+    "public.vera_affective_runtime_events_v1": {
+      "rows": 2,
+      "sha256": "7e05dbcd91818aa095e86507b56051d3af2dc5b7d10f15044be5ea9162395f35"
+    },
+    "public.vera_affective_runtime_state_v1": {
+      "rows": 1,
+      "sha256": "db18a7a3ba39f1ea00527af2c5217190cc13ebb62b14e3cc3dce7ac2af4b9bbd"
+    },
+    "public.vera_context_events_v3": {
+      "rows": 76,
+      "sha256": "0f9ffce7ab249079ed7f5eb4c5388885485d89d89c65b35e0871054676f2e349"
+    },
+    "public.vera_memory_epoch_archive_receipts_v1": {
+      "rows": 1,
+      "sha256": "adf3bbdc1f6b808668e3bca2b69c85cf76dec59d75bf18f25e6712229af7ab96"
+    },
+    "public.vera_memory_epoch_events_v1": {
+      "rows": 7,
+      "sha256": "64ca800a4ac5d41b80b1770b3c0306161bae6d71782e68fd5b185283c2c2bfd9"
+    },
+    "public.vera_memory_epoch_provider_receipts_v1": {
+      "rows": 2,
+      "sha256": "24dd45dc6379db182f5780b6c0d372e6fe17d8035d9d73ff21730d86ddfa5e6f"
+    },
+    "public.vera_memory_epoch_subjects_v1": {
+      "rows": 1,
+      "sha256": "07f7f56de22e430b71a44d86909966f05f34406fbdb1c6a5fcaf7ed3bcba865c"
+    },
+    "public.vera_save_state_events": {
+      "rows": 203,
+      "sha256": "ae34f51c5536b302387d516a2591caee130eb462e08e83239542adef74adc4b1"
+    },
+    "public.vera_save_state_supersession_edges": {
+      "rows": 1,
+      "sha256": "3cc8033c63896c74d29bb8c016c04ff02355976328630ef699892122a7c01368"
+    }
+  },
+  "sequence_state": {
+    "public.vera_memory_epoch_provider_receipts_v1_observation_ordinal_seq": {
+      "last_value": 2,
+      "is_called": true
+    }
+  },
+  "privacy_counts": {
+    "public.vera_context_events_v3": {
+      "PRIVATE_RELATIONAL": 20,
+      "PROJECT": 53,
+      "TECHNICAL": 3
+    },
+    "public.vera_memory_epoch_subjects_v1": {
+      "PROJECT_INTERNAL": 1
+    },
+    "public.vera_save_state_events": {
+      "PRIVATE_RELATIONAL": 100,
+      "PROJECT": 89,
+      "TECHNICAL": 14
+    }
+  },
+  "total_rows": 294,
+  "payload_in_repository": false,
+  "limitations": [
+    "DIGESTS_BIND_SOURCE_PROVIDER_READBACK_ONLY",
+    "NO_PRIVATE_PAYLOAD_STORED_IN_GIT",
+    "SNAPSHOT_DOES_NOT_AUTHORIZE_MIGRATION",
+    "SNAPSHOT_DOES_NOT_ESTABLISH_CURRENTNESS_OR_ADMISSION"
+  ]
+}
