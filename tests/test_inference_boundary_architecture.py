@@ -33,6 +33,16 @@ class InferenceBoundaryArchitectureTests(unittest.TestCase):
         self.assertEqual(reviewed["contract_blob"], "56a428ff12c665c7cd735f16c46daa92a538cc5a")
         self.assertEqual(reviewed["architecture_blob"], "d5470af547efe1487e8cd0f11925ccdc816a564b")
 
+    def test_contract_records_ov_final_research_without_runtime_promotion(self):
+        contract = self.load(CONTRACT)
+        ov = contract["latest_ov_research_input"]
+        self.assertEqual(ov["head"], "2f049ec4c4f4a4307da137a99f8f27b39cfa308a")
+        self.assertEqual(ov["contract_schema"], "1.6")
+        self.assertEqual(ov["contract_blob"], "ad3d218e16240d6042c4f12cae1ccb00f77f28e2")
+        self.assertEqual(ov["architecture_blob"], "c84dc4e9cc30b0fd58e1563bdb8d004da3e93ea1")
+        self.assertEqual(ov["qualification_spec_blob"], "556128b80fc2b177f134e73ae08d89b108fd4397")
+        self.assertFalse(ov["runtime_dependency"])
+
     def test_lifecycle_preserves_distinct_validation_admission_and_effect_stages(self):
         contract = self.load(CONTRACT)
         self.assertEqual(contract["lifecycle"], [
@@ -70,14 +80,16 @@ class InferenceBoundaryArchitectureTests(unittest.TestCase):
         hook = self.load(HOOK)
         self.assertEqual(hook["status"], "SOURCE_ONLY_NOT_INSTALLED")
         self.assertEqual(hook["extends"], "VERA_RUNTIME_COHESION_NATIVE_HOOK_V1")
-        self.assertEqual(hook["provider_neutral_entrypoint"], "runtime_cohesion.inference_boundary")
+        self.assertEqual(hook["provider_neutral_entrypoint"], "runtime_cohesion.inference_boundary_repaired")
+        self.assertEqual(hook["legacy_entrypoint_status"], "HISTORICAL_R3_SOURCE_NOT_CANONICAL_ENTRYPOINT")
         self.assertEqual(hook["concrete_host_injection"], "EXTERNAL_EXACT_HOST_REQUIRED")
         self.assertFalse(hook["effect_claims"]["provider_consumption"])
         self.assertFalse(hook["effect_claims"]["installation"])
         self.assertFalse(hook["effect_claims"]["behavioral_qualification"])
 
-    def test_package_init_exports_inference_boundary_api_without_replacing_admission_alias(self):
+    def test_package_init_exports_repaired_inference_boundary_without_replacing_admission_alias(self):
         text = PACKAGE_INIT.read_text(encoding="utf-8")
+        self.assertIn("from . import inference_boundary_repaired as inference_boundary", text)
         for symbol in (
             "StateComponentRef", "VeraStateComposition", "AdmittedVeraState",
             "CapabilityBinding", "ProjectionEnvelope", "InvocationFrontier",
