@@ -259,14 +259,20 @@ BEGIN
       WHEN 'vera_save_state_supersession_edges' THEN 'edge_id'
       ELSE NULL END;
     IF v_pk_field IS NULL THEN RAISE EXCEPTION 'unsupported source table'; END IF;
-    IF NOT (p_source_payload ? v_pk_field) OR p_source_payload -> v_pk_field IS NULL THEN
+    IF NOT (p_source_payload ? v_pk_field)
+       OR p_source_payload -> v_pk_field IS NULL
+       OR jsonb_typeof(p_source_payload -> v_pk_field) = 'null'
+       OR (
+         jsonb_typeof(p_source_payload -> v_pk_field) = 'string'
+         AND p_source_payload ->> v_pk_field = ''
+       ) THEN
         RAISE EXCEPTION 'source payload missing primary key %', v_pk_field;
+    END IF;
+    IF p_source_row_jsonb_text IS NULL OR p_source_payload::text <> p_source_row_jsonb_text THEN
+        RAISE EXCEPTION 'source jsonb text does not match payload';
     END IF;
     IF p_source_pk <> jsonb_build_object(v_pk_field, p_source_payload -> v_pk_field) THEN
         RAISE EXCEPTION 'source primary key does not match payload';
-    END IF;
-    IF p_source_payload::text <> p_source_row_jsonb_text THEN
-        RAISE EXCEPTION 'source jsonb text does not match payload';
     END IF;
 
     v_privacy := CASE
