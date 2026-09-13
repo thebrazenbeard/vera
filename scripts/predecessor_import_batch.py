@@ -137,11 +137,22 @@ def stage_batch(records: list[dict[str, Any]], manifest: dict[str, Any], operati
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Validate one exact predecessor source cut and emit locked import-staging records."
+        description=(
+            "Offline predecessor-import preflight. A manifest override is non-authoritative; "
+            "only the database-owned source cut plus terminal verifier can establish VERIFIED_EXACT."
+        )
     )
     parser.add_argument("--input", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
+    parser.add_argument(
+        "--manifest",
+        type=Path,
+        default=DEFAULT_MANIFEST,
+        help=(
+            "Preflight manifest path (default: committed cargo snapshot). Caller-selected overrides "
+            "are test/offline evidence only and do not establish the authoritative frozen source cut."
+        ),
+    )
     parser.add_argument("--operation-id", required=True)
     args = parser.parse_args()
     if not args.operation_id.strip():
