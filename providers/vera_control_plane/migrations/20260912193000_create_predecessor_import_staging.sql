@@ -204,3 +204,85 @@ FOR INSERT TO vera_runtime_schema_owner WITH CHECK (true);
 
 GRANT USAGE ON SCHEMA extensions TO vera_runtime_schema_owner;
 GRANT EXECUTE ON FUNCTION extensions.digest(bytea,text) TO vera_runtime_schema_owner;
+
+CREATE FUNCTION vera_evidence.stage_predecessor_import_row_v1(
+    p_operation_id text,
+    p_source_provider text,
+    p_source_schema text,
+    p_source_table text,
+    p_source_ordinal bigint,
+    p_source_pk jsonb,
+    p_source_row_jsonb_text text,
+    p_source_payload jsonb,
+    p_privacy_class text
+) RETURNS uuid
+LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = pg_catalog
+AS $$
+DECLARE
+    cut vera_evidence.predecessor_source_cuts_v1%ROWTYPE;
+    v_pk_field text;
+    v_privacy text;
+    v_import_id uuid;
+BEGIN
+    SELECT * INTO STRICT cut
+      FROM vera_evidence.predecessor_source_cuts_v1
+     WHERE source_provider=p_source_provider AND source_schema=p_source_schema AND source_table=p_source_table;
+
+    v_pk_field := CASE p_source_table
+      WHEN 'vera_affective_runtime_events_v1' THEN 'event_id'
+      WHEN 'vera_affective_runtime_state_v1' THEN 'runtime_instance_id'
+      WHEN 'vera_context_events_v3' THEN 'record_id'      WHEN 'vera_memory_epoch_archive_receipts_v1' THEN 'archive_receipt_id'
+      WHEN 'vera_memory_epoch_events_v1' THEN 'event_id'
+      WHEN 'vera_memory_epoch_provider_receipts_v1' THEN 'receipt_id'
+      WHEN 'vera_memory_epoch_subjects_v1' THEN 'subject_id'
+      WHEN 'vera_save_state_events' THEN 'record_id'
+      WHEN 'vera_save_state_supersession_edges' THEN 'edge_id'
+      ELSE NULL END;
+    IF v_pk_field IS NULL THEN RAISE EXCEPTION 'unsupported source table'; END IF;
+    IF NOT (p_source_payload ? v_pk_field) OR p_source_payload -> v_pk_field IS NULL THEN
+        RAISE EXCEPTION 'source payload missing primary key %', v_pk_field;
+    END IF;
+    IF p_source_pk <> jsonb_build_object(v_pk_field, p_source_payload -> v_pk_field) THEN
+        RAISE EXCEPTION 'source primary key does not match payload';
+    END IF;
+    IF p_source_payload::text <> p_source_row_jsonb_text THEN
+        RAISE EXCEPTION 'source jsonb text does not match payload';
+    END IF;
+
+    v_privacy := CASE
+      WHEN p_source_table LIKE 'vera_memory_epoch_%' THEN 'PRIVATE_AUTOBIOGRAPHICAL'
+      WHEN p_source_payload ? 'privacy_scope' THEN p_source_payload ->> 'privacy_scope'
+      ELSE p_privacy_class END;
+    IF p_privacy_class IS DISTINCT FROM v_privacy THEN
+        RAISE EXCEPTION 'privacy class violates source policy';
+    END IF;
+    INSERT INTO vera_evidence.predecessor_import_rows_v1(
+      operation_id, source_provider, source_schema, source_table, source_ordinal,
+      source_pk, source_row_sha256, source_snapshot_sha256,
+      source_row_jsonb_text, source_payload, privacy_class
+    ) VALUES (
+      p_operation_id, p_source_provider, p_source_schema, p_source_table, p_source_ordinal,
+      p_source_pk,
+      encode(extensions.digest(convert_to(p_source_row_jsonb_text,'UTF8'),'sha256'),'hex'),
+      cut.source_snapshot_sha256,
+      p_source_row_jsonb_text, p_source_payload, v_privacy
+    ) RETURNING import_id INTO v_import_id;
+
+    RETURN v_import_id;
+END
+$$;
+
+ALTER FUNCTION vera_evidence.stage_predecessor_import_row_v1(text,text,text,text,bigint,jsonb,text,jsonb,text)
+OWNER TO vera_runtime_schema_owner;
+
+CREATE POLICY predecessor_import_rows_v1_owner_insert
+ON vera_evidence.predecessor_import_rows_v1
+FOR INSERT TO vera_runtime_schema_owner WITH CHECK (true);
+
+DROP POLICY predecessor_import_rows_v1_migration_insert
+ON vera_evidence.predecessor_import_rows_v1;
+
+REVOKE INSERT ON vera_evidence.predecessor_import_rows_v1 FROM vera_migration_operator;
+GRANT EXECUTE ON FUNCTION vera_evidence.stage_predecessor_import_row_v1(text,text,text,text,bigint,jsonb,text,jsonb,text)
+TO vera_migration_operator;

@@ -99,39 +99,37 @@ def test_migration_operator_cannot_fabricate_receipts(db: str) -> None:
     assert denied.returncode != 0
 
 
-def test_unknown_source_cut_is_rejected(db: str) -> None:
+def test_unknown_source_cut_and_raw_insert_are_rejected(db: str) -> None:
+    assert scalar(db, "select has_table_privilege('vera_migration_operator','vera_evidence.predecessor_import_rows_v1','INSERT');") == "f"
     denied = psql(db, """
       set role vera_migration_operator;
-      insert into vera_evidence.predecessor_import_rows_v1(
-        operation_id, source_provider, source_schema, source_table, source_ordinal,
-        source_pk, source_row_sha256, source_snapshot_sha256,
-        source_row_jsonb_text, source_payload, privacy_class
-      ) values ('unknown','klmbpaigzeguvnpccqzz','public','nope',1,'{"id":1}',repeat('a',64),
-        repeat('b',64),'{"id": 1}','{"id": 1}','TECHNICAL');
+      select vera_evidence.stage_predecessor_import_row_v1(
+        'unknown','klmbpaigzeguvnpccqzz','public','nope',1,'{"id":1}',
+        '{"id": 1}','{"id": 1}','TECHNICAL');
     """, ok=False)
     assert denied.returncode != 0
 
 
 def test_database_verifier_derives_exact_receipt(db: str) -> None:
-    digest = scalar(db, "select encode(extensions.digest(convert_to(jsonb_build_array('{\"id\": 1}'::jsonb)::text,'UTF8'),'sha256'),'hex');")
+    payload = '{"privacy_scope": "TECHNICAL", "record_id": "00000000-0000-0000-0000-000000000001", "statement": "x"}'
+    digest = scalar(db, f"select encode(extensions.digest(convert_to(jsonb_build_array('{payload}'::jsonb)::text,'UTF8'),'sha256'),'hex');")
     psql(db, f"""
       insert into vera_evidence.predecessor_source_cuts_v1(
         source_provider,source_schema,source_table,source_row_count,source_snapshot_sha256,canonicalization,captured_at)
-      values ('synthetic','public','one_row',1,'{digest}','test-jsonb-array',clock_timestamp());
+      values ('synthetic','public','vera_save_state_events',1,'{digest}','test-jsonb-array',clock_timestamp());
       set role vera_migration_operator;
-      insert into vera_evidence.predecessor_import_rows_v1(
-        operation_id,source_provider,source_schema,source_table,source_ordinal,source_pk,
-        source_row_sha256,source_snapshot_sha256,source_row_jsonb_text,source_payload,privacy_class)
-      values ('op-exact','synthetic','public','one_row',1,'{{\"id\":1}}',repeat('a',64),
-        '{digest}','{{\"id\": 1}}','{{\"id\": 1}}','TECHNICAL');
-      select vera_receipts.verify_predecessor_import_v1('op-exact','synthetic','public','one_row');
+      with p as (select '{payload}'::jsonb as j)
+      select vera_evidence.stage_predecessor_import_row_v1(
+        'op-exact','synthetic','public','vera_save_state_events',1,
+        jsonb_build_object('record_id',j->'record_id'),j::text,j,'TECHNICAL') from p;
+      select vera_receipts.verify_predecessor_import_v1('op-exact','synthetic','public','vera_save_state_events');
       reset role;
     """)
     assert scalar(db, "select status from vera_receipts.predecessor_import_receipts_v1 where operation_id='op-exact';") == "VERIFIED_EXACT"
 
 
 def test_database_verifier_is_idempotent(db: str) -> None:
-    first = scalar(db, "select vera_receipts.verify_predecessor_import_v1('op-exact','synthetic','public','one_row');")
-    second = scalar(db, "select vera_receipts.verify_predecessor_import_v1('op-exact','synthetic','public','one_row');")
+    first = scalar(db, "select vera_receipts.verify_predecessor_import_v1('op-exact','synthetic','public','vera_save_state_events');")
+    second = scalar(db, "select vera_receipts.verify_predecessor_import_v1('op-exact','synthetic','public','vera_save_state_events');")
     assert first == second
     assert scalar(db, "select count(*) from vera_receipts.predecessor_import_receipts_v1 where operation_id='op-exact';") == "1"
