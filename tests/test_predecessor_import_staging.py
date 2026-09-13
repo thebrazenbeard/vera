@@ -134,6 +134,32 @@ def test_database_staging_enforces_project_internal_floor(db: str) -> None:
     assert "privacy class violates source policy" in denied.stderr
 
 
+def test_database_staging_rejects_null_or_empty_primary_keys(db: str) -> None:
+    for operation_id, value_sql in (
+        ("op-null-pk", "NULL::text"),
+        ("op-empty-pk", "''::text"),
+    ):
+        denied = psql(db, f"""\
+          set role vera_migration_operator;
+          with p as (
+            select jsonb_build_object('event_id', {value_sql}) as j
+          )
+          select vera_evidence.stage_predecessor_import_row_v1(
+            '{operation_id}',
+            'klmbpaigzeguvnpccqzz',
+            'public',
+            'vera_affective_runtime_events_v1',
+            1,
+            jsonb_build_object('event_id', j->'event_id'),
+            j::text,
+            j,
+            'PROJECT_INTERNAL'
+          ) from p;
+        """, ok=False)
+        assert denied.returncode != 0
+        assert "source payload missing primary key" in denied.stderr
+
+
 def test_database_verifier_rejects_noncontiguous_ordinals(db: str) -> None:
     psql(db, """
       with p as (
