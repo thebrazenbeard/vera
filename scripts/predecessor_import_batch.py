@@ -29,6 +29,10 @@ TABLES: dict[str, tuple[str, str | None]] = {
 }
 
 
+def reject_nonstandard_json_constant(value: str) -> None:
+    raise ValueError(f"non-standard JSON constant is not allowed: {value}")
+
+
 def canonical(value: Any) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
