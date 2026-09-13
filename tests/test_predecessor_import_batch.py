@@ -116,3 +116,10 @@ def test_malformed_source_jsonb_text_is_rejected(tmp_path: Path) -> None:
     bad = '{"record_id":'
     result, _ = run_batch(tmp_path, [envelope(TABLE, 1, bad)], TABLE, [bad])
     assert result.returncode != 0 and "json" in result.stderr.lower()
+
+
+
+def test_nonstandard_json_constants_are_rejected(tmp_path: Path) -> None:
+    bad = '{"privacy_scope":"PRIVATE_RELATIONAL","record_id":"00000000-0000-0000-0000-000000000001","statement":NaN}'
+    result, _ = run_batch(tmp_path, [envelope(TABLE, 1, bad)], TABLE, [bad])
+    assert result.returncode != 0 and "non-standard" in result.stderr.lower()

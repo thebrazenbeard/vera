@@ -61,7 +61,7 @@ def parse_record(record: dict[str, Any]) -> tuple[str, int, str, dict[str, Any]]
     if not isinstance(row_text, str) or not row_text:
         raise ValueError("source_row_jsonb_text must be non-empty text")
     try:
-        row = json.loads(row_text)
+        row = json.loads(row_text, parse_constant=reject_nonstandard_json_constant)
     except json.JSONDecodeError as exc:
         raise ValueError(f"source_row_jsonb_text is not valid JSON: {exc.msg}") from exc
     if not isinstance(row, dict):
@@ -157,7 +157,7 @@ def main() -> int:
                 if not raw.strip():
                     continue
                 try:
-                    record = json.loads(raw)
+                    record = json.loads(raw, parse_constant=reject_nonstandard_json_constant)
                 except json.JSONDecodeError as exc:
                     raise ValueError(f"line {line_number}: invalid envelope JSON: {exc.msg}") from exc
                 if not isinstance(record, dict):
