@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MIGRATIONS_DIR = ROOT / "providers" / "vera_control_plane" / "migrations"
 BOOTSTRAP = MIGRATIONS_DIR / "20260912183000_initialize_runtime_planes.sql"
 BASE_MIGRATION = MIGRATIONS_DIR / "20260912193000_create_predecessor_import_staging.sql"
+SEAL_MIGRATION = MIGRATIONS_DIR / "20260913232000_seal_predecessor_import_receipts.sql"
 
 
 def docker(*args: str, input_text: str | None = None) -> subprocess.CompletedProcess[str]:
@@ -71,8 +72,7 @@ def db() -> str:
         psql(container, "CREATE SCHEMA extensions; CREATE EXTENSION pgcrypto WITH SCHEMA extensions;")
         psql(container, BOOTSTRAP.read_text(encoding="utf-8"))
         psql(container, BASE_MIGRATION.read_text(encoding="utf-8"))
-        for migration in sorted(MIGRATIONS_DIR.glob("*predecessor_import_seal*.sql")):
-            psql(container, migration.read_text(encoding="utf-8"))
+        psql(container, SEAL_MIGRATION.read_text(encoding="utf-8"))
         yield container
     finally:
         docker("rm", "-f", container)
