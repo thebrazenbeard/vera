@@ -138,5 +138,17 @@
     "No target application tables were created by this artifact.",
     "No predecessor object was deleted or retired by this artifact.",
     "No current-route or behavioral qualification is established."
-  ]
+  ],
+  "classification_reproducibility": {
+    "procedure_path": "scripts/predecessor_classification_preimage.sql",
+    "procedure_git_blob": "5fdf4283a3f979584951ee6dd4184666af2ad2d5",
+    "procedure_sha256": "8bdbaa8ca8cc7b6b678f1579ffe379baceef85e4cacd536c5a2de850e7a141e7",
+    "procedure_byte_length": 3866,
+    "verified_provider": "klmbpaigzeguvnpccqzz",
+    "verified_object_count": 298,
+    "verified_unknown_count": 0,
+    "verified_preimage_sha256": "05c9deb50dff86b63c3afde0aec5ee477a2fea855b8c1e097f67c62d6422c48a",
+    "verification_result": "LIVE_READBACK_MATCH",
+    "procedure_contract": "Deterministically emits the full canonical classification preimage and recomputes its SHA-256 digest."
+  }
 }
