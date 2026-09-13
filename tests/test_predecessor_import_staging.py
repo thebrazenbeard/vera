@@ -110,6 +110,97 @@ def test_unknown_source_cut_and_raw_insert_are_rejected(db: str) -> None:
     assert denied.returncode != 0
 
 
+def test_database_staging_enforces_project_internal_floor(db: str) -> None:
+    denied = psql(db, """
+      set role vera_migration_operator;
+      with p as (
+        select jsonb_build_object(
+          'event_id', '00000000-0000-0000-0000-000000000099'
+        ) as j
+      )
+      select vera_evidence.stage_predecessor_import_row_v1(
+        'op-privacy-floor',
+        'klmbpaigzeguvnpccqzz',
+        'public',
+        'vera_affective_runtime_events_v1',
+        1,
+        jsonb_build_object('event_id', j->'event_id'),
+        j::text,
+        j,
+        'PUBLIC'
+      ) from p;
+    """, ok=False)
+    assert denied.returncode != 0
+    assert "privacy class violates source policy" in denied.stderr
+
+
+def test_database_verifier_rejects_noncontiguous_ordinals(db: str) -> None:
+    psql(db, """
+      with p as (
+        select jsonb_build_array(
+          jsonb_build_object('record_id', '00000000-0000-0000-0000-000000000101'),
+          jsonb_build_object('record_id', '00000000-0000-0000-0000-000000000102')
+        )::text as text_value
+      )
+      insert into vera_evidence.predecessor_source_cuts_v1(
+        source_provider, source_schema, source_table, source_row_count,
+        source_snapshot_sha256, canonicalization, captured_at
+      )
+      select
+        'synthetic-ordinal-test', 'public', 'vera_save_state_events', 2,
+        encode(extensions.digest(convert_to(text_value, 'UTF8'), 'sha256'), 'hex'),
+        'test-jsonb-array', clock_timestamp()
+      from p;
+    """)
+    psql(db, """
+      set role vera_migration_operator;
+      with first_row as (
+        select jsonb_build_object(
+          'record_id', '00000000-0000-0000-0000-000000000101'
+        ) as j
+      )
+      select vera_evidence.stage_predecessor_import_row_v1(
+        'op-ordinal-gap',
+        'synthetic-ordinal-test',
+        'public',
+        'vera_save_state_events',
+        10,
+        jsonb_build_object('record_id', j->'record_id'),
+        j::text,
+        j,
+        'TECHNICAL'
+      ) from first_row;
+      with second_row as (
+        select jsonb_build_object(
+          'record_id', '00000000-0000-0000-0000-000000000102'
+        ) as j
+      )
+      select vera_evidence.stage_predecessor_import_row_v1(
+        'op-ordinal-gap',
+        'synthetic-ordinal-test',
+        'public',
+        'vera_save_state_events',
+        20,
+        jsonb_build_object('record_id', j->'record_id'),
+        j::text,
+        j,
+        'TECHNICAL'
+      ) from second_row;
+      select vera_receipts.verify_predecessor_import_v1(
+        'op-ordinal-gap',
+        'synthetic-ordinal-test',
+        'public',
+        'vera_save_state_events'
+      );
+      reset role;
+    """)
+    assert scalar(
+        db,
+        "select status from vera_receipts.predecessor_import_receipts_v1 "
+        "where operation_id='op-ordinal-gap';",
+    ) == "MISMATCH"
+
+
 def test_database_verifier_derives_exact_receipt(db: str) -> None:
     payload = '{"privacy_scope": "TECHNICAL", "record_id": "00000000-0000-0000-0000-000000000001", "statement": "x"}'
     digest = scalar(db, f"select encode(extensions.digest(convert_to(jsonb_build_array('{payload}'::jsonb)::text,'UTF8'),'sha256'),'hex');")
