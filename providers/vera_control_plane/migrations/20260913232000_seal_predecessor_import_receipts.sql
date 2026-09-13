@@ -20,12 +20,25 @@ DECLARE
     v_status text;
     v_receipt uuid;
 BEGIN
+    -- Serialize verification and staging on the exact operation/source tuple without
+    -- weakening the forced-RLS/read-only source-cut table with an UPDATE policy.
+    PERFORM pg_advisory_xact_lock(
+        hashtextextended(
+            jsonb_build_array(
+                p_operation_id,
+                p_source_provider,
+                p_source_schema,
+                p_source_table
+            )::text,
+            0
+        )
+    );
+
     SELECT * INTO STRICT cut
       FROM vera_evidence.predecessor_source_cuts_v1
      WHERE source_provider=p_source_provider
        AND source_schema=p_source_schema
-       AND source_table=p_source_table
-     FOR UPDATE;
+       AND source_table=p_source_table;
 
     SELECT count(*),
            min(source_ordinal),
@@ -88,12 +101,26 @@ LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = pg_catalog
 AS $$
 BEGIN
+    -- Same lock key as the verifier.  A concurrent stage either commits before
+    -- verification reads the set, or waits until the terminal receipt commits and
+    -- is then rejected; it cannot race between aggregate read and seal creation.
+    PERFORM pg_advisory_xact_lock(
+        hashtextextended(
+            jsonb_build_array(
+                NEW.operation_id,
+                NEW.source_provider,
+                NEW.source_schema,
+                NEW.source_table
+            )::text,
+            0
+        )
+    );
+
     PERFORM 1
       FROM vera_evidence.predecessor_source_cuts_v1
      WHERE source_provider=NEW.source_provider
        AND source_schema=NEW.source_schema
-       AND source_table=NEW.source_table
-     FOR UPDATE;
+       AND source_table=NEW.source_table;
 
     IF NOT FOUND THEN
         RAISE EXCEPTION 'predecessor source cut missing';
