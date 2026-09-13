@@ -33,9 +33,13 @@ jobs:
           tests/test_predecessor_import_batch.py
           tests/test_predecessor_import_staging.py
           tests/test_predecessor_import_seal.py
-      - name: Run predecessor importer tests
+          tests/test_predecessor_classification_binding.py
+          tests/test_control_plane_provider_bootstrap.py
+      - name: Run predecessor importer/readback tests
         run: >-
           python -m pytest -q
           tests/test_predecessor_import_batch.py
           tests/test_predecessor_import_staging.py
           tests/test_predecessor_import_seal.py
+          tests/test_predecessor_classification_binding.py
+          tests/test_control_plane_provider_bootstrap.py
