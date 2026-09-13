@@ -250,3 +250,20 @@ def test_database_verifier_is_idempotent(db: str) -> None:
     second = scalar(db, "select vera_receipts.verify_predecessor_import_v1('op-exact','synthetic','public','vera_save_state_events');")
     assert first == second
     assert scalar(db, "select count(*) from vera_receipts.predecessor_import_receipts_v1 where operation_id='op-exact';") == "1"
+
+
+
+def test_client_roles_cannot_execute_staging_function(db: str) -> None:
+    signature = (
+        "vera_evidence.stage_predecessor_import_row_v1("
+        "text,text,text,text,bigint,jsonb,text,jsonb,text)"
+    )
+    for role in CLIENT_ROLES:
+        assert scalar(
+            db,
+            f"select has_function_privilege('{role}', '{signature}', 'EXECUTE');",
+        ) == "f"
+    assert scalar(
+        db,
+        f"select has_function_privilege('vera_migration_operator', '{signature}', 'EXECUTE');",
+    ) == "t"

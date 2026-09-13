@@ -314,5 +314,7 @@ DROP POLICY predecessor_import_rows_v1_migration_insert
 ON vera_evidence.predecessor_import_rows_v1;
 
 REVOKE INSERT ON vera_evidence.predecessor_import_rows_v1 FROM vera_migration_operator;
+REVOKE ALL ON FUNCTION vera_evidence.stage_predecessor_import_row_v1(text,text,text,text,bigint,jsonb,text,jsonb,text)
+FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION vera_evidence.stage_predecessor_import_row_v1(text,text,text,text,bigint,jsonb,text,jsonb,text)
 TO vera_migration_operator;
