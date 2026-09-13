@@ -25,8 +25,27 @@ def psql(container: str, sql: str, *, ok: bool = True) -> subprocess.CompletedPr
     return result
 
 
+def psql_async(container: str, sql: str, app_name: str) -> subprocess.Popen[str]:
+    return subprocess.Popen(
+        ["docker", "exec", "-e", f"PGAPPNAME={app_name}", container,
+         "psql", "-v", "ON_ERROR_STOP=1", "-At", "-U", "postgres", "-d", "postgres", "-c", sql],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+
 def scalar(container: str, sql: str) -> str:
     return psql(container, sql).stdout.strip()
+
+
+def wait_for_application_name(container: str, app_name: str, timeout: float = 5.0) -> None:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if scalar(container, f"select count(*) from pg_stat_activity where application_name='{app_name}';") == "1":
+            return
+        time.sleep(0.05)
+    raise AssertionError(f"session never reached application_name={app_name!r}")
 
 
 @pytest.fixture(scope="module")
@@ -59,19 +78,40 @@ def db() -> str:
         docker("rm", "-f", container)
 
 
-def test_verified_operation_rejects_late_staging(db: str) -> None:
-    payload = '{"privacy_scope": "TECHNICAL", "record_id": "00000000-0000-0000-0000-000000000201", "statement": "x"}'
-    digest = scalar(db, f"select encode(extensions.digest(convert_to(jsonb_build_array('{payload}'::jsonb)::text,'UTF8'),'sha256'),'hex');")
+def create_exact_operation(db: str, provider: str, operation: str, record_id: str) -> None:
+    payload = (
+        '{"privacy_scope": "TECHNICAL", "record_id": "'
+        + record_id
+        + '", "statement": "x"}'
+    )
+    digest = scalar(
+        db,
+        f"select encode(extensions.digest(convert_to(jsonb_build_array('{payload}'::jsonb)::text,'UTF8'),'sha256'),'hex');",
+    )
     psql(db, f"""
       insert into vera_evidence.predecessor_source_cuts_v1(
         source_provider,source_schema,source_table,source_row_count,source_snapshot_sha256,canonicalization,captured_at)
-      values ('synthetic-seal','public','vera_save_state_events',1,'{digest}','test-jsonb-array',clock_timestamp());
+      values ('{provider}','public','vera_save_state_events',1,'{digest}','test-jsonb-array',clock_timestamp());
       set role vera_migration_operator;
       with p as (select '{payload}'::jsonb as j)
       select vera_evidence.stage_predecessor_import_row_v1(
-        'op-seal','synthetic-seal','public','vera_save_state_events',1,
+        '{operation}','{provider}','public','vera_save_state_events',1,
         jsonb_build_object('record_id',j->'record_id'),j::text,j,'TECHNICAL') from p;
-      select vera_receipts.verify_predecessor_import_v1('op-seal','synthetic-seal','public','vera_save_state_events');
+      reset role;
+    """)
+
+
+def test_verified_operation_rejects_late_staging(db: str) -> None:
+    create_exact_operation(
+        db,
+        provider="synthetic-seal",
+        operation="op-seal",
+        record_id="00000000-0000-0000-0000-000000000201",
+    )
+    psql(db, """
+      set role vera_migration_operator;
+      select vera_receipts.verify_predecessor_import_v1(
+        'op-seal','synthetic-seal','public','vera_save_state_events');
       reset role;
     """)
 
@@ -89,3 +129,42 @@ def test_verified_operation_rejects_late_staging(db: str) -> None:
     assert "sealed" in late.stderr.lower()
     assert scalar(db, "select count(*) from vera_evidence.predecessor_import_rows_v1 where operation_id='op-seal';") == "1"
     assert scalar(db, "select status from vera_receipts.predecessor_import_receipts_v1 where operation_id='op-seal';") == "VERIFIED_EXACT"
+
+
+def test_staging_cannot_race_past_uncommitted_verification_seal(db: str) -> None:
+    create_exact_operation(
+        db,
+        provider="synthetic-seal-race",
+        operation="op-seal-race",
+        record_id="00000000-0000-0000-0000-000000000301",
+    )
+
+    verifier = psql_async(db, """
+      begin;
+      set role vera_migration_operator;
+      select vera_receipts.verify_predecessor_import_v1(
+        'op-seal-race','synthetic-seal-race','public','vera_save_state_events');
+      set application_name = 'vera-seal-verifier-locked';
+      select pg_sleep(1.5);
+      commit;
+    """, app_name="vera-seal-verifier-start")
+    try:
+        wait_for_application_name(db, "vera-seal-verifier-locked")
+        late = psql(db, """
+          set role vera_migration_operator;
+          with p as (select jsonb_build_object(
+            'privacy_scope','TECHNICAL',
+            'record_id','00000000-0000-0000-0000-000000000302',
+            'statement','racing-late') as j)
+          select vera_evidence.stage_predecessor_import_row_v1(
+            'op-seal-race','synthetic-seal-race','public','vera_save_state_events',2,
+            jsonb_build_object('record_id',j->'record_id'),j::text,j,'TECHNICAL') from p;
+        """, ok=False)
+        assert late.returncode != 0
+        assert "sealed" in late.stderr.lower()
+    finally:
+        stdout, stderr = verifier.communicate(timeout=5)
+        assert verifier.returncode == 0, f"verifier failed:\n{stdout}\n{stderr}"
+
+    assert scalar(db, "select count(*) from vera_evidence.predecessor_import_rows_v1 where operation_id='op-seal-race';") == "1"
+    assert scalar(db, "select status from vera_receipts.predecessor_import_receipts_v1 where operation_id='op-seal-race';") == "VERIFIED_EXACT"
