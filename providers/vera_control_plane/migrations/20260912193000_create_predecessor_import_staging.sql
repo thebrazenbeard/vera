@@ -76,6 +76,9 @@ AS $$
 DECLARE
     cut vera_evidence.predecessor_source_cuts_v1%ROWTYPE;
     v_count bigint;
+    v_min_ordinal bigint;
+    v_max_ordinal bigint;
+    v_distinct_ordinals bigint;
     v_digest text;
     v_status text;
     v_receipt uuid;
@@ -85,15 +88,31 @@ BEGIN
      WHERE source_provider=p_source_provider AND source_schema=p_source_schema AND source_table=p_source_table;
 
     SELECT count(*),
+           min(source_ordinal),
+           max(source_ordinal),
+           count(DISTINCT source_ordinal),
            encode(extensions.digest(convert_to(coalesce(jsonb_agg(source_payload ORDER BY source_ordinal)::text,'[]'),'UTF8'),'sha256'),'hex')
-      INTO v_count, v_digest
+      INTO v_count, v_min_ordinal, v_max_ordinal, v_distinct_ordinals, v_digest
       FROM vera_evidence.predecessor_import_rows_v1
      WHERE operation_id=p_operation_id AND source_provider=p_source_provider
        AND source_schema=p_source_schema AND source_table=p_source_table
        AND source_snapshot_sha256=cut.source_snapshot_sha256;
 
-    v_status := CASE WHEN v_count=cut.source_row_count AND v_digest=cut.source_snapshot_sha256
-                     THEN 'VERIFIED_EXACT' ELSE 'MISMATCH' END;    INSERT INTO vera_receipts.predecessor_import_receipts_v1(
+    v_status := CASE
+      WHEN v_count = cut.source_row_count
+       AND (
+         (cut.source_row_count = 0
+          AND v_min_ordinal IS NULL
+          AND v_max_ordinal IS NULL
+          AND v_distinct_ordinals = 0)
+         OR
+         (cut.source_row_count > 0
+          AND v_min_ordinal = 1
+          AND v_max_ordinal = v_count
+          AND v_distinct_ordinals = v_count)
+       )
+       AND v_digest = cut.source_snapshot_sha256
+      THEN 'VERIFIED_EXACT' ELSE 'MISMATCH' END;    INSERT INTO vera_receipts.predecessor_import_receipts_v1(
         operation_id, source_provider, source_schema, source_table,
         source_row_count, source_snapshot_sha256,
         target_row_count, target_snapshot_sha256,
@@ -102,7 +121,7 @@ BEGIN
         p_operation_id, p_source_provider, p_source_schema, p_source_table,
         cut.source_row_count, cut.source_snapshot_sha256,
         v_count, v_digest,
-        v_status, 'vera_receipts.verify_predecessor_import_v1@v1', cut.canonicalization
+        v_status, 'vera_receipts.verify_predecessor_import_v1@v2', cut.canonicalization
     ) ON CONFLICT (operation_id, source_provider, source_schema, source_table)
       DO NOTHING
       RETURNING receipt_id INTO v_receipt;
@@ -252,6 +271,11 @@ BEGIN
 
     v_privacy := CASE
       WHEN p_source_table LIKE 'vera_memory_epoch_%' THEN 'PRIVATE_AUTOBIOGRAPHICAL'
+      WHEN p_source_table IN (
+        'vera_affective_runtime_events_v1',
+        'vera_affective_runtime_state_v1',
+        'vera_save_state_supersession_edges'
+      ) THEN 'PROJECT_INTERNAL'
       WHEN p_source_payload ? 'privacy_scope' THEN p_source_payload ->> 'privacy_scope'
       ELSE p_privacy_class END;
     IF p_privacy_class IS DISTINCT FROM v_privacy THEN
