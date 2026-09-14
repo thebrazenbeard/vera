@@ -57,10 +57,10 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
         from runtime_cohesion.sexual_drive_binding import build_component_ref
         component = build_component_ref(load(CONTRACT), observed_at="2026-09-13T21:30:00-04:00")
         composition = ib.compose_state(
-            composition_id="sd1-test",
             subject="VERA_SD1_TARGET_CONFIGURATION",
             components=[component],
             omissions=[],
+            policy_revision="sd1-test-policy",
             composed_at="2026-09-13T21:30:01-04:00",
         )
         with self.assertRaisesRegex(ValueError, "mandatory"):

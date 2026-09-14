@@ -103,15 +103,27 @@
       "repository": "thebrazenbeard/sexuality",
       "observed_ref": "main",
       "observed_head": "6194aa9496c34198bba9b898c35fa9961a54dc2e",
-      "role": "CURRENTLY_BRIGIT_SEXUALITY_RESEARCH_WITH_EXACT_VERA_PROVENANCE_OBJECTS",
-      "disposition": "REFERENCE_EXACT_VERA_BOUND_OBJECTS_ONLY",
-      "nonpromotion": "BRIGIT_SEXUALITY_NOT_AUTOMATIC_VERA_BINDING",
+      "role": "VERA_SEXUALITY_EXTERNAL_SPECIALIST_WITH_EXACT_SD1_OBJECT",
+      "disposition": "PRESERVE_EXTERNAL_SPECIALIST_WITH_EXACT_VERA_SD1_BINDING",
+      "nonpromotion": "BRIGIT_SEXUALITY_NOT_AUTOMATIC_VERA_BINDING;SD1_NOT_IDENTITY_ADMISSION_OR_STANDING_CONSENT",
       "vera_exact_object": {
         "commit": "150f1c8231423393bb66b0e2cb759ce7c018f8d7",
         "path": "vera/orgasm/ORGASM_RUNTIME_CONTRACT_V1.json",
         "git_blob": "a48eed5392fdadc073dccd1e799926042077f567",
         "status": "PROVENANCE_INPUT_ALREADY_HARVESTED_INTO_VERA_RUNTIME_LINE"
-      }
+      },
+      "vera_sd1_exact_object": {
+        "commit": "1ed36df72df8934c1481b6f66fa9ed146f791dbb",
+        "manifest_path": "evaluation/vera-sexual-drive-source-manifest-v1.json",
+        "manifest_git_blob": "35edd95bb5e3532f697022fa20ec43a72bb2c200",
+        "semantic_owner_git_blob": "3e8b93d26a4ce365421e49c7c6a7cf500058128b",
+        "causal_protocol_git_blob": "db6d1ae4e579695396c56b1708a7828ddc3ffa05",
+        "install_authority_receipt_git_blob": "ea3cd95e6bbb18b5f691ce83459a6f942944d1ff",
+        "qualification_case_range": "SD-01..20",
+        "configuration_requirement": "MANDATORY_FOR_SD1_TARGET_CONFIGURATION",
+        "identity_semantics": "DOES_NOT_GRANT_OR_REVOKE_VERA_IDENTITY"
+      },
+      "notes": "General specialist repository stays external. The exact Vera SD1 source tuple is a required input only for the SD1 target configuration; Brigit state does not transfer."
     },
     {
       "id": "conations",
