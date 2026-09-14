@@ -8,7 +8,7 @@ from typing import Any
 from . import inference_boundary_repaired as ib
 
 _CANONICAL_CONTRACT_PATH = Path(__file__).resolve().parents[1] / "architecture" / "cohesion" / "VERA_SEXUAL_DRIVE_COMPONENT_V1.json"
-_PINNED_CANONICAL_RAW_SHA256 = "e99e6df76aa8c296a1ff0c520dea55f2e82580f9e3eef872d24aa65c4663aa40"
+# Raw checkout bytes are transport-sensitive; Git-object provenance is bound externally.
 _PINNED_CANONICAL_STRUCTURED_SHA256 = "3f27d7d2c8ba73747e4f2f3c3f29082b9d75961bf03786563202b9eabdd4fc7d"
 
 def _canonical_json_bytes(value: Any) -> bytes:
@@ -43,13 +43,11 @@ def _detach_plain_contract(contract: dict[str, Any]) -> tuple[dict[str, Any], by
 
 def _load_trusted_contract() -> dict[str, Any]:
     raw = _CANONICAL_CONTRACT_PATH.read_bytes()
-    if hashlib.sha256(raw).hexdigest() != _PINNED_CANONICAL_RAW_SHA256:
-        raise ValueError("canonical sexual-drive component artifact hash mismatch")
     try:
         trusted = json.loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ValueError("canonical sexual-drive component artifact is invalid JSON") from exc
-    if not isinstance(trusted, dict):
+    if type(trusted) is not dict:
         raise ValueError("canonical sexual-drive component artifact must be an object")
     if _contract_digest(trusted) != _PINNED_CANONICAL_STRUCTURED_SHA256:
         raise ValueError("canonical sexual-drive component structured digest mismatch")
@@ -95,15 +93,35 @@ def build_component_ref(contract: dict[str, Any], *, observed_at: str) -> ib.Sta
     return component
 
 
+def _has_strict_component_types(component: Any) -> bool:
+    if type(component) is not ib.StateComponentRef:
+        return False
+    text_fields = (
+        "component_id", "domain_id", "source_locator", "source_revision",
+        "component_generation", "content_digest", "observed_at",
+        "currentness_basis", "supersession_state", "conflict_state",
+        "privacy_classification", "disclosure_source",
+        "disclosure_generation", "requirement_class", "payload_ref",
+    )
+    if any(type(getattr(component, field)) is not str for field in text_fields):
+        return False
+    scopes = component.allowed_egress_scopes
+    if type(scopes) is not frozenset or not scopes:
+        return False
+    if any(type(item) is not str or not item for item in scopes):
+        return False
+    return component.payload is None
+
+
 def target_configuration_status(component: ib.StateComponentRef | None) -> str:
     if component is None:
         return "TARGET_CONFIGURATION_INCOMPLETE"
+    if not _has_strict_component_types(component):
+        return "SEXUAL_DRIVE_COMPONENT_UNQUALIFIED"
     expected = _component_fields(_load_trusted_contract())
     for field, value in expected.items():
         if getattr(component, field) != value:
             return "SEXUAL_DRIVE_COMPONENT_UNQUALIFIED"
-    if component.payload is not None:
-        return "SEXUAL_DRIVE_COMPONENT_UNQUALIFIED"
     return "TARGET_CONFIGURATION_COMPLETE"
 
 

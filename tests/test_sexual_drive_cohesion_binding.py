@@ -281,5 +281,69 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
             replace(component, payload={"forged": True}, payload_ref=None)
 
 
+
+    def test_canonical_artifact_verification_is_line_ending_portable(self):
+        import tempfile
+        from unittest.mock import patch
+        import runtime_cohesion.sexual_drive_binding as sdb
+
+        canonical_text = CONTRACT.read_text(encoding="utf-8").replace("\r\n", "\n")
+        with tempfile.TemporaryDirectory() as td:
+            lf_path = Path(td) / "lf.json"
+            crlf_path = Path(td) / "crlf.json"
+            lf_path.write_bytes(canonical_text.encode("utf-8"))
+            crlf_path.write_bytes(canonical_text.replace("\n", "\r\n").encode("utf-8"))
+            for path in (lf_path, crlf_path):
+                with self.subTest(path=path.name):
+                    with patch.object(sdb, "_CANONICAL_CONTRACT_PATH", path):
+                        self.assertEqual(load(CONTRACT), sdb.validate_contract(load(CONTRACT)))
+
+    def test_target_status_rejects_arbitrary_duck_object(self):
+        import runtime_cohesion.sexual_drive_binding as sdb
+        component = sdb.build_component_ref(load(CONTRACT), observed_at="2026-09-14T13:55:00-04:00")
+
+        class Duck:
+            pass
+
+        duck = Duck()
+        for name, value in component.__dict__.items():
+            setattr(duck, name, value)
+        self.assertEqual("SEXUAL_DRIVE_COMPONENT_UNQUALIFIED", sdb.target_configuration_status(duck))
+
+    def test_target_status_rejects_state_component_ref_subclass(self):
+        import runtime_cohesion.sexual_drive_binding as sdb
+        from runtime_cohesion import inference_boundary_repaired as ib
+
+        component = sdb.build_component_ref(load(CONTRACT), observed_at="2026-09-14T13:56:00-04:00")
+
+        class EvilRef(ib.StateComponentRef):
+            pass
+
+        evil = EvilRef(**component.__dict__)
+        self.assertEqual("SEXUAL_DRIVE_COMPONENT_UNQUALIFIED", sdb.target_configuration_status(evil))
+
+    def test_target_status_rejects_exact_ref_with_hostile_primitive_subclasses(self):
+        import runtime_cohesion.sexual_drive_binding as sdb
+        from runtime_cohesion import inference_boundary_repaired as ib
+
+        canonical = sdb.build_component_ref(load(CONTRACT), observed_at="2026-09-14T13:57:00-04:00")
+
+        class EvilStr(str):
+            def __eq__(self, other):
+                return True
+            def __ne__(self, other):
+                return False
+
+        values = dict(canonical.__dict__)
+        values["source_locator"] = EvilStr("github:attacker/repo")
+        values["privacy_classification"] = EvilStr("PUBLIC")
+        values["currentness_basis"] = EvilStr("STALE_ATTACKER_STATE")
+        evil = ib.StateComponentRef(**values)
+        self.assertIs(type(evil), ib.StateComponentRef)
+        self.assertEqual("github:attacker/repo", str(evil.source_locator))
+        self.assertEqual("PUBLIC", str(evil.privacy_classification))
+        self.assertEqual("SEXUAL_DRIVE_COMPONENT_UNQUALIFIED", sdb.target_configuration_status(evil))
+
+
 if __name__ == "__main__":
     unittest.main()
