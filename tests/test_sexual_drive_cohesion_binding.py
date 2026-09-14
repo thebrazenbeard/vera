@@ -145,5 +145,100 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
                 self.assertEqual("SEXUAL_DRIVE_COMPONENT_UNQUALIFIED", target_configuration_status(forged))
 
 
+    def test_validator_reference_is_verified_canonical_artifact_not_caller_data(self):
+        import tempfile
+        from unittest.mock import patch
+        import runtime_cohesion.sexual_drive_binding as sdb
+
+        genuine = load(CONTRACT)
+        forged = json.loads(json.dumps(genuine))
+        forged["status"] = "FORGED_CANONICAL_SOURCE"
+        with tempfile.TemporaryDirectory() as td:
+            forged_path = Path(td) / "VERA_SEXUAL_DRIVE_COMPONENT_V1.json"
+            forged_path.write_text(json.dumps(forged), encoding="utf-8")
+            with patch.object(sdb, "_CANONICAL_CONTRACT_PATH", forged_path, create=True):
+                with self.assertRaises(ValueError):
+                    sdb.validate_contract(genuine)
+
+    def test_component_status_reference_is_derived_from_verified_canonical_artifact(self):
+        import tempfile
+        from unittest.mock import patch
+        import runtime_cohesion.sexual_drive_binding as sdb
+
+        genuine = load(CONTRACT)
+        component = sdb.build_component_ref(genuine, observed_at="2026-09-14T07:20:00-04:00")
+        forged = json.loads(json.dumps(genuine))
+        forged["state_component_projection"]["component_generation"] = "FORGED_CANONICAL_SOURCE"
+        with tempfile.TemporaryDirectory() as td:
+            forged_path = Path(td) / "VERA_SEXUAL_DRIVE_COMPONENT_V1.json"
+            forged_path.write_text(json.dumps(forged), encoding="utf-8")
+            with patch.object(sdb, "_CANONICAL_CONTRACT_PATH", forged_path):
+                with self.assertRaises(ValueError):
+                    sdb.target_configuration_status(component)
+
+    def test_contract_hostile_matrix_fails_closed(self):
+        from runtime_cohesion.sexual_drive_binding import validate_contract
+        data = load(CONTRACT)
+        mutations = [
+            ("wrong repository with right commit", lambda d: d["source_binding"].__setitem__("repository", "forged/repo")),
+            ("wrong component identity", lambda d: d.__setitem__("component_id", "forged_component")),
+            ("wrong domain identity", lambda d: d.__setitem__("domain_id", "forged.domain")),
+            ("wrong content digest", lambda d: d["source_binding"].__setitem__("semantic_owner_sha256", "0" * 64)),
+            ("missing field", lambda d: d["source_binding"].pop("semantic_owner_path")),
+            ("extra field", lambda d: d.__setitem__("unexpected", "forged")),
+            ("wrong field type", lambda d: d["qualification_case_range"].__setitem__("count", "20")),
+            ("privacy escalation", lambda d: d.__setitem__("privacy_classification", "PUBLIC")),
+            ("egress escalation", lambda d: d["allowed_egress_scopes"].append("PUBLIC_WEB")),
+            ("conflict mutation", lambda d: d["state_component_projection"].__setitem__("conflict_state", "CONFLICT")),
+            ("state mutation", lambda d: d["state_component_projection"].__setitem__("supersession_state", "STALE")),
+            ("projection generation mutation", lambda d: d["state_component_projection"].__setitem__("component_generation", "FORGED")),
+            ("payload source-ref mutation", lambda d: d["state_component_projection"].__setitem__("payload_ref", "github://forged/object")),
+            ("case range mutation", lambda d: d["qualification_case_range"].__setitem__("last", "SD-19")),
+            ("superficial ids preserved semantic change", lambda d: d.__setitem__("causal_effect_status", "VERIFIED")),
+            ("forged expected object field", lambda d: d.__setitem__("expected", {"component_id": d["component_id"]})),
+        ]
+        for label, mutate in mutations:
+            bad = json.loads(json.dumps(data))
+            mutate(bad)
+            with self.subTest(label=label):
+                with self.assertRaises(ValueError):
+                    validate_contract(bad)
+
+    def test_contract_key_reordering_is_semantically_irrelevant(self):
+        from runtime_cohesion.sexual_drive_binding import validate_contract
+        data = load(CONTRACT)
+        reordered = json.loads(json.dumps(data, sort_keys=True))
+        self.assertEqual(data, validate_contract(reordered))
+
+    def test_canonicalization_preserves_meaningful_array_and_type_differences(self):
+        from runtime_cohesion.sexual_drive_binding import validate_contract
+        data = load(CONTRACT)
+        reversed_nonpromotions = json.loads(json.dumps(data))
+        reversed_nonpromotions["nonpromotions"] = list(reversed(reversed_nonpromotions["nonpromotions"]))
+        with self.assertRaises(ValueError):
+            validate_contract(reversed_nonpromotions)
+        wrong_type = json.loads(json.dumps(data))
+        wrong_type["qualification_case_range"]["count"] = 20.0
+        with self.assertRaises(ValueError):
+            validate_contract(wrong_type)
+
+    def test_validation_api_has_no_caller_controlled_expected_reference(self):
+        import inspect
+        import runtime_cohesion.sexual_drive_binding as sdb
+        self.assertEqual(["contract"], list(inspect.signature(sdb.validate_contract).parameters))
+        self.assertEqual(["contract", "observed_at"], list(inspect.signature(sdb.build_component_ref).parameters))
+        with self.assertRaises(TypeError):
+            sdb.validate_contract(load(CONTRACT), expected=load(CONTRACT))
+
+    def test_forged_component_identity_is_unqualified_and_inline_payload_fails_closed(self):
+        from dataclasses import replace
+        from runtime_cohesion.sexual_drive_binding import build_component_ref, target_configuration_status
+        component = build_component_ref(load(CONTRACT), observed_at="2026-09-14T07:15:00-04:00")
+        forged = replace(component, component_id="forged_component")
+        self.assertEqual("SEXUAL_DRIVE_COMPONENT_UNQUALIFIED", target_configuration_status(forged))
+        with self.assertRaises(ValueError):
+            replace(component, payload={"forged": True}, payload_ref=None)
+
+
 if __name__ == "__main__":
     unittest.main()
