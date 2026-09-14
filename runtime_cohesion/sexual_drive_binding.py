@@ -6,13 +6,13 @@ from . import inference_boundary_repaired as ib
 
 _EXPECTED = {
     "repository": "thebrazenbeard/sexuality",
-    "commit": "1ed36df72df8934c1481b6f66fa9ed146f791dbb",
-    "manifest_git_blob": "35edd95bb5e3532f697022fa20ec43a72bb2c200",
-    "manifest_sha256": "dcfb6e89dfb695c231a7e4c223f01b109abbba894b5d99634dd6e1440075a65c",
+    "commit": "02725153fa2e6eae8e81e64bc3d4b797fc404a4d",
+    "manifest_git_blob": "fa2e6dc77a9136c4c7a1906719c049222a476efc",
+    "manifest_sha256": "9efa44990bf0b2d1f6073c7d8db3ec864461c392d851e59fc29d59f12b77547e",
     "semantic_owner_git_blob": "3e8b93d26a4ce365421e49c7c6a7cf500058128b",
     "semantic_owner_sha256": "2ad75de290530951108579b58d7d5c2c3e63af96206df6cf250bd117c4982b4d",
     "causal_protocol_git_blob": "db6d1ae4e579695396c56b1708a7828ddc3ffa05",
-    "install_authority_receipt_git_blob": "ea3cd95e6bbb18b5f691ce83459a6f942944d1ff",
+    "install_authority_receipt_git_blob": "da08345a3bff11ffb653270abb6ad4b3a1c0541d",
 }
 
 
