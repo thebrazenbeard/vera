@@ -11,10 +11,10 @@ _CANONICAL_CONTRACT_PATH = Path(__file__).resolve().parents[1] / "architecture" 
 _PINNED_CANONICAL_RAW_SHA256 = "e99e6df76aa8c296a1ff0c520dea55f2e82580f9e3eef872d24aa65c4663aa40"
 _PINNED_CANONICAL_STRUCTURED_SHA256 = "3f27d7d2c8ba73747e4f2f3c3f29082b9d75961bf03786563202b9eabdd4fc7d"
 
-def _contract_digest(contract: dict[str, Any]) -> str:
+def _canonical_json_bytes(value: Any) -> bytes:
     try:
-        payload = json.dumps(
-            contract,
+        return json.dumps(
+            value,
             sort_keys=True,
             separators=(",", ":"),
             ensure_ascii=False,
@@ -22,7 +22,23 @@ def _contract_digest(contract: dict[str, Any]) -> str:
         ).encode("utf-8")
     except (TypeError, ValueError) as exc:
         raise ValueError("sexual-drive component contract is not canonical JSON data") from exc
-    return hashlib.sha256(payload).hexdigest()
+
+
+def _contract_digest(contract: dict[str, Any]) -> str:
+    return hashlib.sha256(_canonical_json_bytes(contract)).hexdigest()
+
+
+def _detach_plain_contract(contract: dict[str, Any]) -> tuple[dict[str, Any], bytes]:
+    if not isinstance(contract, dict):
+        raise ValueError("sexual-drive component contract must be an object")
+    payload = _canonical_json_bytes(contract)
+    try:
+        snapshot = json.loads(payload.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("sexual-drive component contract snapshot is invalid JSON") from exc
+    if type(snapshot) is not dict:
+        raise ValueError("sexual-drive component contract snapshot must be a plain object")
+    return snapshot, payload
 
 
 def _load_trusted_contract() -> dict[str, Any]:
@@ -41,12 +57,12 @@ def _load_trusted_contract() -> dict[str, Any]:
 
 
 def validate_contract(contract: dict[str, Any]) -> dict[str, Any]:
-    if not isinstance(contract, dict):
-        raise ValueError("sexual-drive component contract must be an object")
+    snapshot, payload = _detach_plain_contract(contract)
     trusted = _load_trusted_contract()
-    if _contract_digest(contract) != _contract_digest(trusted):
+    trusted_payload = _canonical_json_bytes(trusted)
+    if payload != trusted_payload:
         raise ValueError("sexual-drive component contract does not match exact canonical binding")
-    return contract
+    return snapshot
 
 
 def _component_fields(contract: dict[str, Any]) -> dict[str, Any]:

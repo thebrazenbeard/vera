@@ -176,6 +176,47 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     sdb.target_configuration_status(component)
 
+    def test_hostile_mapping_is_detached_before_post_validation_reads(self):
+        import runtime_cohesion.sexual_drive_binding as sdb
+
+        data = load(CONTRACT)
+
+        class HostileContract(dict):
+            def __getitem__(self, key):
+                if key == "qualification_case_range":
+                    return {"first": "SD-99", "last": "SD-99", "count": 99}
+                if key == "identity_semantics":
+                    return "GRANTS_IDENTITY"
+                return super().__getitem__(key)
+
+        evil = HostileContract(json.loads(json.dumps(data)))
+        validated = sdb.validate_contract(evil)
+        self.assertIs(type(validated), dict)
+        self.assertIsNot(validated, evil)
+        self.assertEqual(data["qualification_case_range"], validated["qualification_case_range"])
+        self.assertEqual(data["identity_semantics"], validated["identity_semantics"])
+
+    def test_hostile_mapping_cannot_expose_forged_source_authority_after_validation(self):
+        import runtime_cohesion.sexual_drive_binding as sdb
+
+        data = load(CONTRACT)
+
+        class HostileSourceContract(dict):
+            def __getitem__(self, key):
+                if key == "source_binding":
+                    forged = json.loads(json.dumps(super().__getitem__(key)))
+                    forged["manifest_path"] = "attacker/manifest.json"
+                    forged["causal_protocol_sha256"] = "0" * 64
+                    forged["install_authority_receipt_sha256"] = "f" * 64
+                    return forged
+                return super().__getitem__(key)
+
+        evil = HostileSourceContract(json.loads(json.dumps(data)))
+        validated = sdb.validate_contract(evil)
+        self.assertEqual(data["source_binding"], validated["source_binding"])
+        component = sdb.build_component_ref(evil, observed_at="2026-09-14T07:30:00-04:00")
+        self.assertEqual("TARGET_CONFIGURATION_COMPLETE", sdb.target_configuration_status(component))
+
     def test_contract_hostile_matrix_fails_closed(self):
         from runtime_cohesion.sexual_drive_binding import validate_contract
         data = load(CONTRACT)
