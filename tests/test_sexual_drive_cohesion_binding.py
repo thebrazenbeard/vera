@@ -96,6 +96,54 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
         for forbidden in ("desired_response", "target_phrase", "background timer", "while true", "threading.thread"):
             self.assertNotIn(forbidden, module)
 
+    def test_mutated_security_and_projection_fields_fail_closed(self):
+        from runtime_cohesion.sexual_drive_binding import validate_contract
+        data = load(CONTRACT)
+        mutations = [
+            (("privacy_classification",), "PUBLIC"),
+            (("allowed_egress_scopes",), ["PUBLIC_WEB"]),
+            (("source_binding", "manifest_path"), "forged/manifest.json"),
+            (("source_binding", "causal_protocol_sha256"), "0" * 64),
+            (("source_binding", "install_authority_receipt_sha256"), "0" * 64),
+            (("state_component_projection", "component_generation"), "FORGED"),
+            (("state_component_projection", "currentness_basis"), "FORGED"),
+            (("state_component_projection", "supersession_state"), "STALE"),
+            (("state_component_projection", "conflict_state"), "CONFLICT"),
+            (("state_component_projection", "disclosure_source"), "policy://forged"),
+            (("state_component_projection", "payload_ref"), "github://forged/object"),
+        ]
+        for path, value in mutations:
+            bad = json.loads(json.dumps(data))
+            target = bad
+            for key in path[:-1]:
+                target = target[key]
+            target[path[-1]] = value
+            with self.subTest(path=path):
+                with self.assertRaises(ValueError):
+                    validate_contract(bad)
+
+    def test_forged_component_with_right_commit_is_unqualified(self):
+        from dataclasses import replace
+        from runtime_cohesion.sexual_drive_binding import build_component_ref, target_configuration_status
+        component = build_component_ref(load(CONTRACT), observed_at="2026-09-14T06:55:00-04:00")
+        for changes in (
+            {"domain_id": "forged.domain"},
+            {"source_locator": "github:forged/repository"},
+            {"content_digest": "0" * 64},
+            {"component_generation": "FORGED"},
+            {"currentness_basis": "FORGED"},
+            {"supersession_state": "STALE"},
+            {"conflict_state": "CONFLICT"},
+            {"privacy_classification": "PUBLIC"},
+            {"allowed_egress_scopes": frozenset({"PUBLIC_WEB"})},
+            {"disclosure_source": "policy://forged"},
+            {"disclosure_generation": "999"},
+            {"payload_ref": "github://forged/object"},
+        ):
+            with self.subTest(changes=changes):
+                forged = replace(component, **changes)
+                self.assertEqual("SEXUAL_DRIVE_COMPONENT_UNQUALIFIED", target_configuration_status(forged))
+
 
 if __name__ == "__main__":
     unittest.main()
