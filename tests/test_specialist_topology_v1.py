@@ -1,13 +1,15 @@
 import hashlib
 import json
 from pathlib import Path
+import subprocess
 import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
 TOPOLOGY_PATH = ROOT / "architecture" / "VERA_SPECIALIST_TOPOLOGY_V1.json"
-TEMPORAL_PATH = ROOT / "provenance" / "temporal" / "2026-09-08.ndjson"
+TEMPORAL_GIT_PATH = "provenance/temporal/2026-09-08.ndjson"
 TEMPORAL_SHA256 = "2c8330b56201883071646b1142db0120e883b45227ba6ed1f11900c8d4452b3e"
+TEMPORAL_BLOB = "260a43c86f42239516d897f84ada0948ea49ed2f"
 
 
 class SpecialistTopologyV1Tests(unittest.TestCase):
@@ -49,8 +51,14 @@ class SpecialistTopologyV1Tests(unittest.TestCase):
         self.assertEqual(repos["thebrazenbeard/orgasm"]["successor_control_owner"], "thebrazenbeard/vera-control-plane")
         self.assertEqual(repos["thebrazenbeard/temporal"]["runtime_owner"], "thebrazenbeard/vera")
 
-    def test_temporal_unique_event_provenance_is_preserved_byte_exactly(self):
-        payload = TEMPORAL_PATH.read_bytes()
+    def test_temporal_unique_event_provenance_is_preserved_as_exact_git_object(self):
+        payload = subprocess.check_output(
+            ["git", "show", f"HEAD:{TEMPORAL_GIT_PATH}"], cwd=ROOT
+        )
+        blob = subprocess.check_output(
+            ["git", "rev-parse", f"HEAD:{TEMPORAL_GIT_PATH}"], cwd=ROOT, text=True
+        ).strip()
+        self.assertEqual(blob, TEMPORAL_BLOB)
         self.assertEqual(hashlib.sha256(payload).hexdigest(), TEMPORAL_SHA256)
         ids = [json.loads(line)["id"] for line in payload.decode("utf-8").splitlines() if line]
         self.assertEqual(ids, [
