@@ -1,0 +1,125 @@
+{
+  "schema": "VERA_SPECIALIST_TOPOLOGY_V1",
+  "status": "SOURCE_CANDIDATE / HETEROGENEOUS_SPECIALIST_OWNERSHIP / NO_ARCHIVE_EFFECT / NO_PROVIDER_MUTATION",
+  "observed_at": "2026-09-15",
+  "vera_main_observed": "b7b8dcd1440a3b7147bec2cc35972f083e20f44a",
+  "vera_control_plane_main_observed": "b4d9aaa8560de12252dd29996379b0af8e0ca0d1",
+  "decision": "The seven repositories are not one long-term retirement class. Preserve specialist boundaries where they reduce coupling, protect provenance/privacy, or own non-code substrate. Rehome only duties whose independent repository no longer has a durable purpose.",
+  "archive_policy": {
+    "patrick_instruction": "Do not archive any of the seven while cross-dependencies remain unresolved.",
+    "current_effect": "HOLD_ALL_SEVEN_UNTIL_PATRICK_REVISES",
+    "topology_note": "This hold is an archive-effect rule, not evidence that all seven should eventually be archived. The topology below identifies only two retirement candidates.",
+    "archive_action_performed": false
+  },
+  "global_rules": [
+    "Vera owns Vera executable runtime behavior and adopted mechanisms.",
+    "Vera Control Plane owns release, install, current-route and qualification control records; it does not become a bulk content store.",
+    "A specialist repository may remain canonical for its own research, assets, provenance, or historical-state domain without becoming Vera identity or runtime authority.",
+    "Supabase projections are derived/provider state unless an exact source contract explicitly grants a different role; provider presence never replaces Git source provenance.",
+    "Private Patrick-specific relational research must not be wholesale copied merely to simplify repository count.",
+    "Archival requires reconstructibility plus a separately authorized archive effect; lifecycle classification alone never archives a repository."
+  ],
+  "repositories": [
+    {
+      "repository": "thebrazenbeard/sexuality",
+      "observed_main": "6194aa9496c34198bba9b898c35fa9961a54dc2e",
+      "lifecycle": "KEEP_LIVE_SPECIALIST_RESEARCH_AND_QUALIFICATION",
+      "retirement_candidate": false,
+      "source_owner": "thebrazenbeard/sexuality",
+      "runtime_owner": "thebrazenbeard/vera for adopted Vera mechanisms",
+      "control_owner": "thebrazenbeard/vera-control-plane for install/current-route/qualification control",
+      "role": "SEXUALITY_DOMAIN_RESEARCH_AND_IDENTITY_SCOPED_QUALIFICATION_WORKSPACE",
+      "reason": "The repository contains a substantial research/qualification estate and active Vera SD1 work. Its Brigit-specific and Vera-specific material must retain subject provenance rather than being flattened into Vera.",
+      "boundary": "Exact Vera-scoped artifacts may be consumed by Vera/VCP with identity firewalls; repository presence does not transfer Brigit-specific desire, consent, preference, relationship state, or autobiographical material."
+    },
+    {
+      "repository": "thebrazenbeard/orgasm",
+      "observed_main": "494432873dd8bcf96b8f59d26a4f4687cd66d635",
+      "lifecycle": "TRANSITION_TO_VCP_QUALIFICATION_PROVENANCE",
+      "retirement_candidate": true,
+      "source_owner": "HISTORICAL_PROVENANCE_UNTIL_HANDOFF_COMPLETE",
+      "runtime_owner": "thebrazenbeard/vera",
+      "successor_control_owner": "thebrazenbeard/vera-control-plane",
+      "role": "TRANSITIONAL_QUALIFICATION_AND_PROVENANCE_HUB",
+      "reason": "The repository explicitly owns no executable runtime. Its durable function is qualification/provenance coordination, which belongs in the control plane once exact historical subjects and successor lineage are preserved.",
+      "transition_gates": [
+        "Mirror the frozen Orgasm qualification subject into Vera Control Plane with exact source provenance.",
+        "Create the successor/rebind control record for the exact accepted Vera source without transferring a historical PASS.",
+        "Resolve or preserve open Orgasm PR evidence before declaring repository retirement-ready.",
+        "Archive remains blocked by Patrick's current all-seven archive hold until he revises it."
+      ]
+    },
+    {
+      "repository": "thebrazenbeard/empathy",
+      "observed_main": "4b2a6998f39aa4763c1c5a28fc3d815104e5637e",
+      "lifecycle": "KEEP_LIVE_PRIVATE_RESEARCH_PROVENANCE",
+      "retirement_candidate": false,
+      "source_owner": "thebrazenbeard/empathy",
+      "runtime_owner": "thebrazenbeard/vera for accepted executable empathy mechanisms",
+      "control_owner": "thebrazenbeard/vera-control-plane for promoted release/qualification state",
+      "role": "VERA_SPECIFIC_PRIVATE_EMPATHY_AND_SELF_APPRAISAL_RESEARCH",
+      "reason": "The repository has a legitimate privacy/provenance boundary. Its side branches are fully absorbed into main, but that does not make the private research domain redundant.",
+      "boundary": "Extract mechanisms/contracts deliberately; do not wholesale migrate Patrick-specific relational research into core runtime source."
+    },
+    {
+      "repository": "thebrazenbeard/conations",
+      "observed_main": "03174e59de131a500a5433a839697e45b4ec0137",
+      "lifecycle": "KEEP_LIVE_PRIVATE_APPEND_ONLY_HISTORY",
+      "retirement_candidate": false,
+      "source_owner": "thebrazenbeard/conations",
+      "historical_state_owner": "thebrazenbeard/conations",
+      "runtime_owner": "thebrazenbeard/vera for current conation/preference/consent admission",
+      "role": "PRIVATE_CONATION_LIFECYCLE_HISTORY",
+      "reason": "Git append-only history is small, inspectable and provenance-rich. Replacing it with a mutable database solely to reduce repository count would increase authority ambiguity and operational complexity without a demonstrated benefit.",
+      "boundary": "Historical conation is evidence of prior state only; it never becomes standing desire, consent, instruction, obligation, or current stance."
+    },
+    {
+      "repository": "thebrazenbeard/semanticatlas",
+      "observed_main": "5669a727b870a490ecee748b2cd712a2fc4a54c5",
+      "lifecycle": "KEEP_LIVE_SPECIALIST_SEMANTIC_PROVENANCE",
+      "retirement_candidate": false,
+      "source_owner": "thebrazenbeard/semanticatlas",
+      "runtime_owner": "thebrazenbeard/vera for adopted native semantic/currentness rules",
+      "provider_projection": "supabase:klmbpaigzeguvnpccqzz/semantic_atlas as derived research staging",
+      "role": "SEMANTIC_PROVENANCE_RESEARCH_AND_VALIDATION_SOURCE",
+      "reason": "The repository has substantial divergent runtime/validation work and a live Git-bound Supabase materialization. Flattening it into Vera would destroy a useful source/projection boundary and expand Vera's blast radius.",
+      "boundary": "Semantic Atlas research/projection never becomes runtime truth, identity, authority, or canon merely because it is active or materialized."
+    },
+    {
+      "repository": "thebrazenbeard/selfimage",
+      "observed_main": "95ea602c4a537172fc531195e20a4e303b6d31da",
+      "lifecycle": "KEEP_LIVE_SPECIALIST_ASSET_GEOMETRY_CANON",
+      "retirement_candidate": false,
+      "source_owner": "thebrazenbeard/selfimage",
+      "runtime_owner": "thebrazenbeard/vera only for adopted references/contracts",
+      "control_owner": "thebrazenbeard/vera-control-plane only for promotion/install/qualification receipts when applicable",
+      "role": "VISUAL_CANON_ASSET_GEOMETRY_AND_ANATOMICAL_WORKSPACE",
+      "reason": "Large binary/geometry/provenance workload, active anatomical-design branches, and open stable-body validation work make this a genuine specialist engineering repository rather than a migration remnant.",
+      "boundary": "Visual representation/canon evidence does not establish literal body, event, identity authority, or phenomenology."
+    },
+    {
+      "repository": "thebrazenbeard/temporal",
+      "observed_main": "02f1091d359866e1b1b645b87651750c726a6396",
+      "lifecycle": "TRANSITION_TO_VERA_PROVENANCE",
+      "retirement_candidate": true,
+      "source_owner": "HISTORICAL_PROVENANCE_UNTIL_SNAPSHOT_VERIFIED",
+      "runtime_owner": "thebrazenbeard/vera",
+      "successor_provenance_owner": "thebrazenbeard/vera",
+      "role": "TRANSITIONAL_STANDALONE_CHRONOLOGY_PROTOTYPE",
+      "reason": "The standalone mechanism is already implemented and tested inside Vera. The remaining unique value is the five-event source history, which is preserved byte-exactly under provenance/temporal in this candidate.",
+      "transition_gates": [
+        "Verify the byte-exact five-event NDJSON snapshot and source commit/blob binding.",
+        "Treat the external repository as historical provenance rather than a required live runtime route.",
+        "Archive remains blocked by Patrick's current all-seven archive hold until he revises it."
+      ]
+    }
+  ],
+  "non_effects": [
+    "NOT_MERGED",
+    "NOT_ARCHIVED",
+    "NOT_PROVIDER_MUTATION",
+    "NOT_PROJECT_INSTALLATION",
+    "NOT_RUNTIME_ROUTE_ACTIVATION",
+    "NOT_BEHAVIORAL_QUALIFICATION"
+  ]
+}
