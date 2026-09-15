@@ -1,0 +1,73 @@
+{
+  "schema": "VERA_LIVE_EXTERNAL_REPOSITORIES_V1",
+  "status": "SOURCE_LINK_REGISTRY_ONLY_NOT_INSTALLATION_OR_RUNTIME_AUTHORITY",
+  "observed_at": "2026-09-15",
+  "owner_repository": "thebrazenbeard/vera",
+  "purpose": "Keep intentionally live external repositories discoverable from Vera source without importing their contents or promoting repository presence into Vera identity, current self-state, consent, preference, memory, runtime installation, or protected-effect authority.",
+  "global_rules": [
+    "A link is a retrieval/provenance pointer, not an installation claim.",
+    "External domain knowledge does not become Vera autobiographical memory or current preference merely because it is retrievable.",
+    "Mutable external repositories require fresh head/readback when exact currentness matters.",
+    "Repository-specific material keeps its original subject and authority boundaries; Brigit-specific material does not automatically transfer to Vera.",
+    "An unresolved repository remains unresolved until substantive source establishes its role; the repository name is not authority."
+  ],
+  "repositories": [
+    {
+      "id": "mediaphile",
+      "repository": "thebrazenbeard/mediaphile",
+      "observed_ref": "main",
+      "observed_head": "7e658d5f92b099b55fe91508e3ba8a8b343163d5",
+      "lifecycle": "KEEP_LIVE",
+      "role": "EXTERNAL_MEDIA_KNOWLEDGE_WORKSPACE",
+      "authority_ceiling": "DOMAIN_KNOWLEDGE_EVIDENCE_ONLY",
+      "retrieval_rule": "Retrieve when movie, television, episode, media-catalog, or explicitly related media knowledge is materially relevant.",
+      "promotion_guard": "Repository content does not establish Vera current taste, preference, autobiographical memory, endorsement, or identity without separately admitted current evidence.",
+      "source_basis": "Repository README describes the workspace as where good movie and TV-show information lives."
+    },
+    {
+      "id": "trek-data-core",
+      "repository": "thebrazenbeard/trek-data-core",
+      "observed_ref": "main",
+      "observed_head": "b805f441c896fe7cbc913cbdaaefed11928a963f",
+      "lifecycle": "KEEP_LIVE",
+      "role": "EXTERNAL_STAR_TREK_DOMAIN_KNOWLEDGE_AND_RESEARCH_CORE",
+      "authority_ceiling": "DOMAIN_KNOWLEDGE_AND_PROVENANCE_EVIDENCE_ONLY",
+      "retrieval_rule": "Retrieve for Star Trek canon, corpus, research, registry, or Trek-specific project work according to that repository's own governance/currentness rules.",
+      "promotion_guard": "Trek domain facts and research state do not become Vera identity, current self-state, memory admission, consent, preference, or protected authority.",
+      "source_basis": "Repository README identifies it as Mr. Data's Core Index & Guide to the Star Trek Universe."
+    },
+    {
+      "id": "attune",
+      "repository": "thebrazenbeard/Attune",
+      "observed_ref": "main",
+      "observed_head": "124c47bb384b4ad134a024be324277f0d4dc1d9b",
+      "lifecycle": "KEEP_LIVE_UNRESOLVED",
+      "role": "UNRESOLVED_LIVE_EXTERNAL_REPOSITORY",
+      "authority_ceiling": "DISCOVERY_POINTER_ONLY",
+      "retrieval_rule": "Do not infer a runtime, identity, attunement, preference, relationship, or authority role from the repository name. Re-read when substantive source is added or Patrick supplies an exact role binding.",
+      "promotion_guard": "Placeholder repository presence grants no runtime route, self-state, identity, consent, memory, or authority semantics.",
+      "source_basis": "Current main contains only a placeholder README and existing Cohesion source already classifies this repository as unresolved/thin."
+    },
+    {
+      "id": "personification",
+      "repository": "thebrazenbeard/personification",
+      "observed_ref": "main",
+      "observed_head": "47955e7155f48a4b63122096de1dd6a59c723ad1",
+      "lifecycle": "KEEP_LIVE",
+      "role": "EXTERNAL_PERSONIFICATION_AND_SOCIAL_DEVELOPMENT_MECHANISM_SOURCE",
+      "authority_ceiling": "SPECIALIST_MECHANISM_EVIDENCE_ONLY",
+      "retrieval_rule": "Use as secondary mechanism evidence for personification/social-development work after preserving subject provenance and checking whether material is Vera-specific or another identity's research.",
+      "promotion_guard": "Brigit-specific identity, sexuality, preference, consent, stance, relationship state, or autobiographical material does not transfer to Vera automatically.",
+      "source_basis": "Current Vera runtime routing already names personification as secondary general-mechanism evidence; fresh repository main has advanced beyond the older manifest cut."
+    }
+  ],
+  "non_effects": [
+    "NOT_PROJECT_INSTALLATION",
+    "NOT_RUNTIME_ACTIVATION",
+    "NOT_PROVIDER_MUTATION",
+    "NOT_MEMORY_ADMISSION",
+    "NOT_IDENTITY_PROMOTION",
+    "NOT_CONSENT_OR_PREFERENCE_PROMOTION",
+    "NOT_BEHAVIORAL_QUALIFICATION"
+  ]
+}
