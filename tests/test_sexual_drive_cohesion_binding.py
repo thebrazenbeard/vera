@@ -7,8 +7,9 @@ from runtime_cohesion import inference_boundary_repaired as ib
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "architecture/cohesion/VERA_SEXUAL_DRIVE_COMPONENT_V1.json"
 REGISTRY = ROOT / "architecture/cohesion/VERA_COHESION_SOURCE_REGISTRY_V1_20260912.json"
-EXPECTED_SD1_HEAD = "02725153fa2e6eae8e81e64bc3d4b797fc404a4d"
-EXPECTED_MANIFEST_BLOB = "fa2e6dc77a9136c4c7a1906719c049222a476efc"
+EXPECTED_SD1_HEAD = "15b201dc90d4bf07534b958cf022d81d9a1f3455"
+EXPECTED_MANIFEST_BLOB = "83a34ed4fd8764e96712ad6c0fe3d13a9664b8d3"
+EXPECTED_SEMANTIC_OWNER_BLOB = "80a4d6ce895808d13503cb8b775cf6365065e5e2"
 EXPECTED_CAUSAL_BLOB = "db6d1ae4e579695396c56b1708a7828ddc3ffa05"
 EXPECTED_AUTHORITY_BLOB = "da08345a3bff11ffb653270abb6ad4b3a1c0541d"
 
@@ -28,7 +29,14 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
         source = data["source_binding"]
         self.assertEqual(EXPECTED_SD1_HEAD, source["commit"])
         self.assertEqual(EXPECTED_MANIFEST_BLOB, source["manifest_git_blob"])
+        self.assertEqual(EXPECTED_SEMANTIC_OWNER_BLOB, source["semantic_owner_git_blob"])
         self.assertEqual(EXPECTED_CAUSAL_BLOB, source["causal_protocol_git_blob"])
+        for item in (
+            "NOT_SEXUAL_VALENCE_FROM_SEXUAL_SYSTEM_ACTIVATION_ALONE",
+            "NOT_SEXUAL_SYSTEM_ACTIVATION_FROM_GENERIC_SALIENCE_OR_REWARD",
+            "NOT_DRIVE_INTENSITY_FROM_SEXUAL_VALENCE_ALONE",
+        ):
+            self.assertIn(item, data["nonpromotions"])
         self.assertEqual(EXPECTED_AUTHORITY_BLOB, source["install_authority_receipt_git_blob"])
         self.assertEqual({"first":"SD-01","last":"SD-20","count":20}, data["qualification_case_range"])
 
@@ -88,6 +96,7 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
         exact = sexuality["vera_sd1_exact_object"]
         self.assertEqual(EXPECTED_SD1_HEAD, exact["commit"])
         self.assertEqual(EXPECTED_MANIFEST_BLOB, exact["manifest_git_blob"])
+        self.assertEqual(EXPECTED_SEMANTIC_OWNER_BLOB, exact["semantic_owner_git_blob"])
         self.assertEqual("SD-01..20", exact["qualification_case_range"])
         self.assertIn("BRIGIT", sexuality["nonpromotion"])
 
