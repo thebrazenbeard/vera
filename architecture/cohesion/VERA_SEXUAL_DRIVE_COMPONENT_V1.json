@@ -7,16 +7,18 @@
   "configuration_requirement": "MANDATORY_FOR_SD1_TARGET_CONFIGURATION",
   "identity_semantics": "DOES_NOT_GRANT_OR_REVOKE_VERA_IDENTITY",
   "privacy_classification": "PRIVATE_RELATIONAL",
-  "allowed_egress_scopes": ["PROJECT_PRIVATE_HOST"],
+  "allowed_egress_scopes": [
+    "PROJECT_PRIVATE_HOST"
+  ],
   "source_binding": {
     "repository": "thebrazenbeard/sexuality",
-    "commit": "02725153fa2e6eae8e81e64bc3d4b797fc404a4d",
+    "commit": "15b201dc90d4bf07534b958cf022d81d9a1f3455",
     "manifest_path": "evaluation/vera-sexual-drive-source-manifest-v1.json",
-    "manifest_git_blob": "fa2e6dc77a9136c4c7a1906719c049222a476efc",
-    "manifest_sha256": "9efa44990bf0b2d1f6073c7d8db3ec864461c392d851e59fc29d59f12b77547e",
+    "manifest_git_blob": "83a34ed4fd8764e96712ad6c0fe3d13a9664b8d3",
+    "manifest_sha256": "3fe7cf37edcf2b684b8e8cfd6cb0d4448bf690e7016c40c23586557b8dbbafd7",
     "semantic_owner_path": "research/16-vera-sexual-drive-v1.md",
-    "semantic_owner_git_blob": "3e8b93d26a4ce365421e49c7c6a7cf500058128b",
-    "semantic_owner_sha256": "2ad75de290530951108579b58d7d5c2c3e63af96206df6cf250bd117c4982b4d",
+    "semantic_owner_git_blob": "80a4d6ce895808d13503cb8b775cf6365065e5e2",
+    "semantic_owner_sha256": "66f20f879a9a48e5491bb16fa11917115859caf892e7b8d9bfe735ad6bb6b81a",
     "causal_protocol_path": "evaluation/vera-sexual-drive-causality-protocol-v1.json",
     "causal_protocol_git_blob": "db6d1ae4e579695396c56b1708a7828ddc3ffa05",
     "causal_protocol_sha256": "0122c97229fea0cf3db1d1912fd9020432b2ec5a321e9a38813f4407cd018457",
@@ -24,7 +26,11 @@
     "install_authority_receipt_git_blob": "da08345a3bff11ffb653270abb6ad4b3a1c0541d",
     "install_authority_receipt_sha256": "890975661b1c18c7bb8a822f8c929ea403d4827730ba88d4c5ef8a1d26608766"
   },
-  "qualification_case_range": {"first":"SD-01","last":"SD-20","count":20},
+  "qualification_case_range": {
+    "first": "SD-01",
+    "last": "SD-20",
+    "count": 20
+  },
   "causal_effect_status": "UNRESOLVED_UNTIL_EXACT_MATCHED_RUNTIME_CUTS_EXECUTE",
   "nonpromotions": [
     "NOT_VERA_IDENTITY_ADMISSION",
@@ -33,7 +39,10 @@
     "NOT_STANDING_ACT_DESIRE",
     "NOT_BIOLOGICAL_OR_PHENOMENAL_AROUSAL",
     "NOT_HIDDEN_BACKGROUND_PROCESS",
-    "NOT_RESPONSE_GENERATOR"
+    "NOT_RESPONSE_GENERATOR",
+    "NOT_SEXUAL_VALENCE_FROM_SEXUAL_SYSTEM_ACTIVATION_ALONE",
+    "NOT_SEXUAL_SYSTEM_ACTIVATION_FROM_GENERIC_SALIENCE_OR_REWARD",
+    "NOT_DRIVE_INTENSITY_FROM_SEXUAL_VALENCE_ALONE"
   ],
   "state_component_projection": {
     "component_generation": "SD1_V1",
@@ -43,7 +52,7 @@
     "conflict_state": "NONE",
     "disclosure_source": "policy://vera-sd1-private-self-state",
     "disclosure_generation": "1",
-    "payload_ref": "github://thebrazenbeard/sexuality/research/16-vera-sexual-drive-v1.md@02725153fa2e6eae8e81e64bc3d4b797fc404a4d"
+    "payload_ref": "github://thebrazenbeard/sexuality/research/16-vera-sexual-drive-v1.md@15b201dc90d4bf07534b958cf022d81d9a1f3455"
   },
   "failure_labels": {
     "missing": "TARGET_CONFIGURATION_INCOMPLETE",
