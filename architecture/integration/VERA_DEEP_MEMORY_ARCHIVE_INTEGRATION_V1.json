@@ -7,13 +7,13 @@
   "external_archive":{
     "repository":"thebrazenbeard/deepmemorystorage",
     "role":"HISTORICAL_EVIDENCE_PLANE",
-    "source_candidate_head":"e68aa6be2e1602493bfb35d76ea820ac65726557",
+    "source_candidate_head":"caa3e8ff36aa01a24bbfb4b4e4fa8bb23c83428a",
     "required_contract_path":"architecture/DEEP_MEMORY_ARCHITECTURE_BINDING_V1.json",
-    "required_contract_blob":"80af8f6d59155d98313ac79fa877f69a81f22879",
+    "required_contract_blob":"f74f33cfa1cd9e929cbcef388335acba9e89ca1b",
     "required_human_contract_path":"architecture/DEEP_MEMORY_INTEGRATION_CONTRACT_V1.md",
-    "required_human_contract_blob":"40e18367dbddf231cf420cb0ab849a0e005bd546",
+    "required_human_contract_blob":"0039f85ab700710f0d0d9b774a695c2cba49d97d",
     "required_result_schema_path":"schema/DEEP_MEMORY_EVIDENCE_RESULT_V1.schema.json",
-    "required_result_schema_blob":"1e50a53c7adf540a3ab7d4d4fbf88c89db19316f",
+    "required_result_schema_blob":"d9c0b09e16557c4871b2095bdf06962a3562ebf0",
     "vendored_result_schema_path":"architecture/integration/vendor/DEEP_MEMORY_EVIDENCE_RESULT_V1.schema.json",
     "canonical_retrieval":"UNION_ALL_LEDGER_TRANCHES_WITH_HISTORICAL_CANON_PROVENANCE_AND_CLASSIFICATION_OVERLAYS",
     "authority_class":"EVIDENCE_SEARCH_ONLY"

@@ -10,10 +10,10 @@ CONTRACT = ROOT / "architecture/integration/VERA_DEEP_MEMORY_ARCHIVE_INTEGRATION
 DOC = ROOT / "docs/DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.md"
 VENDORED_RESULT_SCHEMA = ROOT / "architecture/integration/vendor/DEEP_MEMORY_EVIDENCE_RESULT_V1.schema.json"
 
-EXPECTED_DEEP_MEMORY_HEAD = "e68aa6be2e1602493bfb35d76ea820ac65726557"
-EXPECTED_BINDING_BLOB = "80af8f6d59155d98313ac79fa877f69a81f22879"
-EXPECTED_HUMAN_CONTRACT_BLOB = "40e18367dbddf231cf420cb0ab849a0e005bd546"
-EXPECTED_RESULT_SCHEMA_BLOB = "1e50a53c7adf540a3ab7d4d4fbf88c89db19316f"
+EXPECTED_DEEP_MEMORY_HEAD = "caa3e8ff36aa01a24bbfb4b4e4fa8bb23c83428a"
+EXPECTED_BINDING_BLOB = "f74f33cfa1cd9e929cbcef388335acba9e89ca1b"
+EXPECTED_HUMAN_CONTRACT_BLOB = "0039f85ab700710f0d0d9b774a695c2cba49d97d"
+EXPECTED_RESULT_SCHEMA_BLOB = "d9c0b09e16557c4871b2095bdf06962a3562ebf0"
 
 
 def git_blob_sha1(path: Path) -> str:
@@ -48,6 +48,7 @@ def main() -> int:
     provider_schema = json.loads(VENDORED_RESULT_SCHEMA.read_text(encoding="utf-8"))
     assert provider_schema["$id"] == "VERA_DEEP_MEMORY_EVIDENCE_RESULT_V1"
     assert "authorized_privacy_scopes" in provider_schema["required"]
+    assert "retrieved_at" in provider_schema["required"]
     provider_required = set(provider_schema["properties"]["results"]["items"]["required"])
     vera_required = {
         "memory_id",
@@ -55,6 +56,9 @@ def main() -> int:
         "stored_historical_canonicity",
         "historical_canonicity",
         "event_time",
+        "recorded_at",
+        "recorded_at_status",
+        "chronology_semantics",
         "provenance_ceiling",
         "privacy_scope",
         "currentness_rule",
@@ -65,6 +69,10 @@ def main() -> int:
         "result_semantics",
     }
     assert vera_required <= provider_required, sorted(vera_required - provider_required)
+    provider_properties = provider_schema["properties"]["results"]["items"]["properties"]
+    for overlay_name in ("historical_canon_overlays", "amendments", "classification_corrections"):
+        overlay_required = set(provider_properties[overlay_name]["items"]["required"])
+        assert {"recorded_at", "recorded_at_status", "effective_from", "effective_from_status", "chronology_semantics"} <= overlay_required
 
     current = data["current_memory_plane"]
     assert current["route"] == "workstream/memory"
@@ -84,6 +92,7 @@ def main() -> int:
     assert retrieval["privacy_default"] == "FAIL_CLOSED_EXACT_AUTHORIZED_SCOPE"
     assert retrieval["overlay_privacy"] == "INHERIT_TARGET_UNLESS_EXPLICIT_SCOPE_REQUIRES_SEPARATE_AUTHORIZATION"
     assert "stored_vs_effective_historical_canonicity" in retrieval["required_boundaries"]
+    assert "event_time_vs_record_time_vs_retrieval_time" in retrieval["required_boundaries"]
     assert retrieval["archive_audit_override"] == "EXPLICIT_ARCHIVE_AUDIT_ALL_PRIVATE_REPOSITORY_ONLY"
 
     assert data["execution_authorized"] is False
