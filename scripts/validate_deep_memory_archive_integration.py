@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import hashlib
 import json
+import re
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -17,9 +18,18 @@ EXPECTED_RESULT_SCHEMA_BLOB = "d9c0b09e16557c4871b2095bdf06962a3562ebf0"
 
 
 def git_blob_sha1(path: Path) -> str:
-    payload = path.read_bytes()
-    header = f"blob {len(payload)}\0".encode("ascii")
-    return hashlib.sha1(header + payload).hexdigest()
+    relative = path.relative_to(ROOT).as_posix()
+    completed = subprocess.run(
+        ["git", "hash-object", f"--path={relative}", str(path)],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    digest = completed.stdout.strip()
+    assert re.fullmatch(r"[0-9a-f]{40}", digest), digest
+    return digest
 
 
 def main() -> int:
