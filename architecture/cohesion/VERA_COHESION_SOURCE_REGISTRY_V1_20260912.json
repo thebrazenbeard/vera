@@ -113,11 +113,11 @@
         "status": "PROVENANCE_INPUT_ALREADY_HARVESTED_INTO_VERA_RUNTIME_LINE"
       },
       "vera_sd1_exact_object": {
-        "commit": "84222cd37408d073735a79c293669a3192848fcc",
+        "commit": "47771b7b21d7f2fe86a9c70c0dcb62e74a54cbea",
         "manifest_path": "evaluation/vera-sexual-drive-source-manifest-v1.json",
-        "manifest_git_blob": "56e4c576739e22725eff6c73d357a146888025cc",
-        "semantic_owner_git_blob": "3dda8ef6d430646c862cb72b26774e937621c711",
-        "causal_protocol_git_blob": "12c48c29733da46c04de414a269a428520198a53",
+        "manifest_git_blob": "f903a93b3db92fa8255b027b19373f6ad5a09817",
+        "semantic_owner_git_blob": "74c202ab5ddc05f95aa5343c531e69c19b5d4a27",
+        "causal_protocol_git_blob": "5963486d50a6c76e548226391aa0cb3292c920c6",
         "install_authority_receipt_git_blob": "da08345a3bff11ffb653270abb6ad4b3a1c0541d",
         "qualification_case_range": "SD-01..20",
         "configuration_requirement": "MANDATORY_FOR_SD1_TARGET_CONFIGURATION",
