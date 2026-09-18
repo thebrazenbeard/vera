@@ -100,6 +100,56 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
         self.assertEqual("SD-01..20", exact["qualification_case_range"])
         self.assertIn("BRIGIT", sexuality["nonpromotion"])
 
+    def test_frozen_component_does_not_claim_provider_currentness(self):
+        data = load(CONTRACT)
+        projection = data["state_component_projection"]
+        self.assertEqual("FROZEN_INPUT_IDENTITY_ONLY", projection["currentness_basis"])
+        self.assertEqual("CURRENT_OBSERVATION", projection["supersession_state"])
+        policy = data["producer_currentness_policy"]
+        self.assertEqual("thebrazenbeard/sexuality", policy["provider"])
+        self.assertEqual("PRODUCER_OWNED", policy["provider_currentness_authority"])
+        self.assertEqual(
+            "CONSUMER_LOCAL_COMPOSITION_OBSERVATION_NOT_PROVIDER_CURRENTNESS",
+            policy["state_component_supersession_semantics"],
+        )
+        self.assertTrue(policy["consumer_cannot_redefine_provider_currentness"])
+
+    def test_producer_currentness_is_separate_from_frozen_component_integrity(self):
+        from runtime_cohesion.sexual_drive_binding import (
+            build_component_ref,
+            producer_currentness_evidence,
+            target_configuration_status,
+        )
+        component = build_component_ref(load(CONTRACT), observed_at="2026-09-18T22:30:00Z")
+        self.assertEqual("TARGET_CONFIGURATION_COMPLETE", target_configuration_status(component))
+
+        evidence = producer_currentness_evidence(
+            observed_head="4e4f70a3433e267f3b769b2c1a676babf5cd4000",
+            observed_at="2026-09-18T22:30:01Z",
+        )
+        self.assertEqual("thebrazenbeard/sexuality", evidence["provider"])
+        self.assertEqual(EXPECTED_SD1_HEAD, evidence["frozen_input_commit"])
+        self.assertEqual("FROZEN_INPUT_VALID", evidence["frozen_input_status"])
+        self.assertEqual("4e4f70a3433e267f3b769b2c1a676babf5cd4000", evidence["observed_head"])
+        self.assertEqual("SUPERSEDED", evidence["status"])
+        self.assertTrue(evidence["consumer_cannot_redefine_provider_currentness"])
+        self.assertEqual("TARGET_CONFIGURATION_COMPLETE", target_configuration_status(component))
+
+    def test_producer_currentness_unknown_does_not_corrupt_frozen_binding(self):
+        from runtime_cohesion.sexual_drive_binding import (
+            build_component_ref,
+            producer_currentness_evidence,
+            target_configuration_status,
+        )
+        component = build_component_ref(load(CONTRACT), observed_at="2026-09-18T22:31:00Z")
+        evidence = producer_currentness_evidence(
+            observed_head=None,
+            observed_at="2026-09-18T22:31:01Z",
+        )
+        self.assertEqual("UNKNOWN", evidence["status"])
+        self.assertEqual("FROZEN_INPUT_VALID", evidence["frozen_input_status"])
+        self.assertEqual("TARGET_CONFIGURATION_COMPLETE", target_configuration_status(component))
+
     def test_binding_surface_contains_no_response_generator_or_background_loop(self):
         module = (ROOT / "runtime_cohesion/sexual_drive_binding.py").read_text(encoding="utf-8").lower()
         for forbidden in ("desired_response", "target_phrase", "background timer", "while true", "threading.thread"):

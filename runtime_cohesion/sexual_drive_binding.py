@@ -9,7 +9,7 @@ from . import inference_boundary_repaired as ib
 
 _CANONICAL_CONTRACT_PATH = Path(__file__).resolve().parents[1] / "architecture" / "cohesion" / "VERA_SEXUAL_DRIVE_COMPONENT_V1.json"
 # Raw checkout bytes are transport-sensitive; Git-object provenance is bound externally.
-_PINNED_CANONICAL_STRUCTURED_SHA256 = "2e0a69789a233388c9ce7e200bb25f93865e8bfc1538fce56dadd84ea84fca57"
+_PINNED_CANONICAL_STRUCTURED_SHA256 = "93b0fa99dd3f48abdb3d35bf4c3ef2c8f97c21c89c6641f966a747a2626857aa"
 
 def _canonical_json_bytes(value: Any) -> bytes:
     try:
@@ -125,4 +125,47 @@ def target_configuration_status(component: ib.StateComponentRef | None) -> str:
     return "TARGET_CONFIGURATION_COMPLETE"
 
 
-__all__ = ["build_component_ref", "target_configuration_status", "validate_contract"]
+def producer_currentness_evidence(*, observed_head: str | None, observed_at: str) -> dict[str, Any]:
+    if type(observed_at) is not str or not observed_at:
+        raise ValueError("observed_at must be a non-empty string")
+    if observed_head is not None:
+        if type(observed_head) is not str or len(observed_head) != 40:
+            raise ValueError("observed_head must be a 40-character Git commit id or None")
+        try:
+            int(observed_head, 16)
+        except ValueError as exc:
+            raise ValueError("observed_head must be hexadecimal") from exc
+        observed_head = observed_head.lower()
+
+    trusted = _load_trusted_contract()
+    source = trusted["source_binding"]
+    policy = trusted["producer_currentness_policy"]
+    frozen_input_commit = source["commit"]
+
+    if observed_head is None:
+        status = "UNKNOWN"
+    elif observed_head == frozen_input_commit:
+        status = "CURRENT"
+    else:
+        status = "SUPERSEDED"
+
+    return {
+        "provider": policy["provider"],
+        "frozen_input_commit": frozen_input_commit,
+        "frozen_input_status": policy["frozen_input_status"],
+        "observed_head": observed_head,
+        "observed_at": observed_at,
+        "status": status,
+        "provider_currentness_authority": policy["provider_currentness_authority"],
+        "consumer_cannot_redefine_provider_currentness": policy[
+            "consumer_cannot_redefine_provider_currentness"
+        ],
+    }
+
+
+__all__ = [
+    "build_component_ref",
+    "producer_currentness_evidence",
+    "target_configuration_status",
+    "validate_contract",
+]

@@ -26,6 +26,13 @@
     "install_authority_receipt_git_blob": "da08345a3bff11ffb653270abb6ad4b3a1c0541d",
     "install_authority_receipt_sha256": "890975661b1c18c7bb8a822f8c929ea403d4827730ba88d4c5ef8a1d26608766"
   },
+  "producer_currentness_policy": {
+    "provider": "thebrazenbeard/sexuality",
+    "provider_currentness_authority": "PRODUCER_OWNED",
+    "frozen_input_status": "FROZEN_INPUT_VALID",
+    "state_component_supersession_semantics": "CONSUMER_LOCAL_COMPOSITION_OBSERVATION_NOT_PROVIDER_CURRENTNESS",
+    "consumer_cannot_redefine_provider_currentness": true
+  },
   "qualification_case_range": {
     "first": "SD-01",
     "last": "SD-20",
@@ -47,7 +54,7 @@
   "state_component_projection": {
     "component_generation": "SD1_V1",
     "content_digest_source": "source_binding.semantic_owner_sha256",
-    "currentness_basis": "EXACT_FROZEN_SOURCE_BINDING",
+    "currentness_basis": "FROZEN_INPUT_IDENTITY_ONLY",
     "supersession_state": "CURRENT_OBSERVATION",
     "conflict_state": "NONE",
     "disclosure_source": "policy://vera-sd1-private-self-state",
