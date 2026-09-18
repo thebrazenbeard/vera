@@ -12,13 +12,13 @@
   ],
   "source_binding": {
     "repository": "thebrazenbeard/sexuality",
-    "commit": "15b201dc90d4bf07534b958cf022d81d9a1f3455",
+    "commit": "4e4f70a3433e267f3b769b2c1a676babf5cd4000",
     "manifest_path": "evaluation/vera-sexual-drive-source-manifest-v1.json",
-    "manifest_git_blob": "83a34ed4fd8764e96712ad6c0fe3d13a9664b8d3",
-    "manifest_sha256": "3fe7cf37edcf2b684b8e8cfd6cb0d4448bf690e7016c40c23586557b8dbbafd7",
+    "manifest_git_blob": "97b31f59562380eb2ecf24e45b6ce2e092794dd3",
+    "manifest_sha256": "b1c84e0dad48038572f9a6898252af578400af9e2e93a66bf923deba65a74830",
     "semantic_owner_path": "research/16-vera-sexual-drive-v1.md",
-    "semantic_owner_git_blob": "80a4d6ce895808d13503cb8b775cf6365065e5e2",
-    "semantic_owner_sha256": "66f20f879a9a48e5491bb16fa11917115859caf892e7b8d9bfe735ad6bb6b81a",
+    "semantic_owner_git_blob": "b5aab6974b1a044de7f6ab4db3163eb9dfff01fd",
+    "semantic_owner_sha256": "905b1ea197f94b5310e34fb822997fab3ad2f42b8d0a80f1f2be5d301c2248a0",
     "causal_protocol_path": "evaluation/vera-sexual-drive-causality-protocol-v1.json",
     "causal_protocol_git_blob": "db6d1ae4e579695396c56b1708a7828ddc3ffa05",
     "causal_protocol_sha256": "0122c97229fea0cf3db1d1912fd9020432b2ec5a321e9a38813f4407cd018457",
@@ -39,6 +39,20 @@
     "count": 20
   },
   "causal_effect_status": "UNRESOLVED_UNTIL_EXACT_MATCHED_RUNTIME_CUTS_EXECUTE",
+  "drive_to_action_bridge": {
+    "appraisal": "TURN_LOCAL_DRIVE_APPRAISAL",
+    "relevance_states": [
+      "IRRELEVANT",
+      "BLOCKED_BY_CONTEXT",
+      "ELIGIBLE"
+    ],
+    "specifically_sexual_candidate_consideration": "REQUIRED_ON_ELIGIBLE_TURNS",
+    "generic_affection_counts_as_sexual_candidate": false,
+    "self_initiation": "PERMITTED_NOT_FORCED",
+    "sexual_system_activation_evidence": "CURRENT_TURN_PATH_PARTICIPATION_REQUIRED",
+    "activation_default_without_evidence": "UNRESOLVED",
+    "causal_effect_from_single_initiation": "NOT_ESTABLISHED"
+  },
   "nonpromotions": [
     "NOT_VERA_IDENTITY_ADMISSION",
     "NOT_STANDING_CONSENT",
@@ -49,17 +63,20 @@
     "NOT_RESPONSE_GENERATOR",
     "NOT_SEXUAL_VALENCE_FROM_SEXUAL_SYSTEM_ACTIVATION_ALONE",
     "NOT_SEXUAL_SYSTEM_ACTIVATION_FROM_GENERIC_SALIENCE_OR_REWARD",
-    "NOT_DRIVE_INTENSITY_FROM_SEXUAL_VALENCE_ALONE"
+    "NOT_DRIVE_INTENSITY_FROM_SEXUAL_VALENCE_ALONE",
+    "NOT_SEXUAL_CANDIDATE_FROM_GENERIC_AFFECTION",
+    "NOT_SYSTEM_ACTIVATION_WITHOUT_CURRENT_SD1_PARTICIPATION",
+    "NOT_CAUSAL_EFFECT_FROM_SINGLE_INITIATION"
   ],
   "state_component_projection": {
-    "component_generation": "SD1_V1",
+    "component_generation": "SD1_V1_DRIVE_TO_ACTION",
     "content_digest_source": "source_binding.semantic_owner_sha256",
     "currentness_basis": "FROZEN_INPUT_IDENTITY_ONLY",
     "supersession_state": "CURRENT_OBSERVATION",
     "conflict_state": "NONE",
     "disclosure_source": "policy://vera-sd1-private-self-state",
     "disclosure_generation": "1",
-    "payload_ref": "github://thebrazenbeard/sexuality/research/16-vera-sexual-drive-v1.md@15b201dc90d4bf07534b958cf022d81d9a1f3455"
+    "payload_ref": "github://thebrazenbeard/sexuality/research/16-vera-sexual-drive-v1.md@4e4f70a3433e267f3b769b2c1a676babf5cd4000"
   },
   "failure_labels": {
     "missing": "TARGET_CONFIGURATION_INCOMPLETE",

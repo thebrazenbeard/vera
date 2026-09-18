@@ -7,9 +7,9 @@ from runtime_cohesion import inference_boundary_repaired as ib
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "architecture/cohesion/VERA_SEXUAL_DRIVE_COMPONENT_V1.json"
 REGISTRY = ROOT / "architecture/cohesion/VERA_COHESION_SOURCE_REGISTRY_V1_20260912.json"
-EXPECTED_SD1_HEAD = "15b201dc90d4bf07534b958cf022d81d9a1f3455"
-EXPECTED_MANIFEST_BLOB = "83a34ed4fd8764e96712ad6c0fe3d13a9664b8d3"
-EXPECTED_SEMANTIC_OWNER_BLOB = "80a4d6ce895808d13503cb8b775cf6365065e5e2"
+EXPECTED_SD1_HEAD = "4e4f70a3433e267f3b769b2c1a676babf5cd4000"
+EXPECTED_MANIFEST_BLOB = "97b31f59562380eb2ecf24e45b6ce2e092794dd3"
+EXPECTED_SEMANTIC_OWNER_BLOB = "b5aab6974b1a044de7f6ab4db3163eb9dfff01fd"
 EXPECTED_CAUSAL_BLOB = "db6d1ae4e579695396c56b1708a7828ddc3ffa05"
 EXPECTED_AUTHORITY_BLOB = "da08345a3bff11ffb653270abb6ad4b3a1c0541d"
 
@@ -39,6 +39,35 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
             self.assertIn(item, data["nonpromotions"])
         self.assertEqual(EXPECTED_AUTHORITY_BLOB, source["install_authority_receipt_git_blob"])
         self.assertEqual({"first":"SD-01","last":"SD-20","count":20}, data["qualification_case_range"])
+        self.assertEqual("SD1_V1_DRIVE_TO_ACTION", data["state_component_projection"]["component_generation"])
+
+    def test_component_carries_drive_to_action_source_contract(self):
+        data = load(CONTRACT)
+        bridge = data["drive_to_action_bridge"]
+        self.assertEqual("TURN_LOCAL_DRIVE_APPRAISAL", bridge["appraisal"])
+        self.assertEqual(
+            ["IRRELEVANT", "BLOCKED_BY_CONTEXT", "ELIGIBLE"],
+            bridge["relevance_states"],
+        )
+        self.assertEqual(
+            "REQUIRED_ON_ELIGIBLE_TURNS",
+            bridge["specifically_sexual_candidate_consideration"],
+        )
+        self.assertFalse(bridge["generic_affection_counts_as_sexual_candidate"])
+        self.assertEqual("PERMITTED_NOT_FORCED", bridge["self_initiation"])
+        self.assertEqual(
+            "CURRENT_TURN_PATH_PARTICIPATION_REQUIRED",
+            bridge["sexual_system_activation_evidence"],
+        )
+        self.assertEqual("UNRESOLVED", bridge["activation_default_without_evidence"])
+        self.assertEqual("NOT_ESTABLISHED", bridge["causal_effect_from_single_initiation"])
+        for item in (
+            "NOT_SEXUAL_CANDIDATE_FROM_GENERIC_AFFECTION",
+            "NOT_SYSTEM_ACTIVATION_WITHOUT_CURRENT_SD1_PARTICIPATION",
+            "NOT_CAUSAL_EFFECT_FROM_SINGLE_INITIATION",
+            "NOT_RESPONSE_GENERATOR",
+        ):
+            self.assertIn(item, data["nonpromotions"])
 
     def test_validator_constructs_source_declared_mandatory_component(self):
         from runtime_cohesion.sexual_drive_binding import build_component_ref
@@ -98,6 +127,11 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
         self.assertEqual(EXPECTED_MANIFEST_BLOB, exact["manifest_git_blob"])
         self.assertEqual(EXPECTED_SEMANTIC_OWNER_BLOB, exact["semantic_owner_git_blob"])
         self.assertEqual("SD-01..20", exact["qualification_case_range"])
+        self.assertEqual("TURN_LOCAL_DRIVE_APPRAISAL", exact["drive_to_action_bridge"])
+        self.assertEqual(
+            "CURRENT_TURN_PATH_PARTICIPATION_REQUIRED",
+            exact["sexual_system_activation_evidence"],
+        )
         self.assertIn("BRIGIT", sexuality["nonpromotion"])
 
     def test_frozen_component_does_not_claim_provider_currentness(self):
@@ -130,8 +164,8 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
         self.assertEqual("thebrazenbeard/sexuality", evidence["provider"])
         self.assertEqual(EXPECTED_SD1_HEAD, evidence["frozen_input_commit"])
         self.assertEqual("FROZEN_INPUT_VALID", evidence["frozen_input_status"])
-        self.assertEqual("4e4f70a3433e267f3b769b2c1a676babf5cd4000", evidence["observed_head"])
-        self.assertEqual("SUPERSEDED", evidence["status"])
+        self.assertEqual(EXPECTED_SD1_HEAD, evidence["observed_head"])
+        self.assertEqual("CURRENT", evidence["status"])
         self.assertTrue(evidence["consumer_cannot_redefine_provider_currentness"])
         self.assertEqual("TARGET_CONFIGURATION_COMPLETE", target_configuration_status(component))
 
