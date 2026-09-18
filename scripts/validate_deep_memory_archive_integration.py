@@ -1,17 +1,25 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "architecture/integration/VERA_DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.json"
 DOC = ROOT / "docs/DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.md"
+VENDORED_RESULT_SCHEMA = ROOT / "architecture/integration/vendor/DEEP_MEMORY_EVIDENCE_RESULT_V1.schema.json"
 
-EXPECTED_DEEP_MEMORY_HEAD = "ce4972b4070975ae44f013cea96bf5bd6722947d"
+EXPECTED_DEEP_MEMORY_HEAD = "e68aa6be2e1602493bfb35d76ea820ac65726557"
 EXPECTED_BINDING_BLOB = "80af8f6d59155d98313ac79fa877f69a81f22879"
 EXPECTED_HUMAN_CONTRACT_BLOB = "40e18367dbddf231cf420cb0ab849a0e005bd546"
-EXPECTED_RESULT_SCHEMA_BLOB = "d7a3d5847ffa65dceaa2914514144c755ef1c556"
+EXPECTED_RESULT_SCHEMA_BLOB = "1e50a53c7adf540a3ab7d4d4fbf88c89db19316f"
+
+
+def git_blob_sha1(path: Path) -> str:
+    payload = path.read_bytes()
+    header = f"blob {len(payload)}\0".encode("ascii")
+    return hashlib.sha1(header + payload).hexdigest()
 
 
 def main() -> int:
@@ -34,6 +42,29 @@ def main() -> int:
     assert archive["required_human_contract_blob"] == EXPECTED_HUMAN_CONTRACT_BLOB
     assert archive["required_result_schema_path"] == "schema/DEEP_MEMORY_EVIDENCE_RESULT_V1.schema.json"
     assert archive["required_result_schema_blob"] == EXPECTED_RESULT_SCHEMA_BLOB
+    assert archive["vendored_result_schema_path"] == "architecture/integration/vendor/DEEP_MEMORY_EVIDENCE_RESULT_V1.schema.json"
+    assert VENDORED_RESULT_SCHEMA.is_file()
+    assert git_blob_sha1(VENDORED_RESULT_SCHEMA) == EXPECTED_RESULT_SCHEMA_BLOB
+    provider_schema = json.loads(VENDORED_RESULT_SCHEMA.read_text(encoding="utf-8"))
+    assert provider_schema["$id"] == "VERA_DEEP_MEMORY_EVIDENCE_RESULT_V1"
+    assert "authorized_privacy_scopes" in provider_schema["required"]
+    provider_required = set(provider_schema["properties"]["results"]["items"]["required"])
+    vera_required = {
+        "memory_id",
+        "memory_class",
+        "stored_historical_canonicity",
+        "historical_canonicity",
+        "event_time",
+        "provenance_ceiling",
+        "privacy_scope",
+        "currentness_rule",
+        "governed_memory_admission",
+        "source_ids",
+        "ledger_path",
+        "overlay_privacy_semantics",
+        "result_semantics",
+    }
+    assert vera_required <= provider_required, sorted(vera_required - provider_required)
 
     current = data["current_memory_plane"]
     assert current["route"] == "workstream/memory"
