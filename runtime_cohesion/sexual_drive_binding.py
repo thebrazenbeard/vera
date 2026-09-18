@@ -9,7 +9,7 @@ from . import inference_boundary_repaired as ib
 
 _CANONICAL_CONTRACT_PATH = Path(__file__).resolve().parents[1] / "architecture" / "cohesion" / "VERA_SEXUAL_DRIVE_COMPONENT_V1.json"
 # Raw checkout bytes are transport-sensitive; Git-object provenance is bound externally.
-_PINNED_CANONICAL_STRUCTURED_SHA256 = "05f97eb7e6cd91728638b43f10be4b56211ed2c94fba63e4f03817b97a9a00e5"
+_PINNED_CANONICAL_STRUCTURED_SHA256 = "92720d45659c7b35108dd3309b69e6e75adbb5fc45792ffce90d2725bb59327f"
 
 def _canonical_json_bytes(value: Any) -> bytes:
     try:
