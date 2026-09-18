@@ -15,6 +15,8 @@
     "required_result_schema_path":"schema/DEEP_MEMORY_EVIDENCE_RESULT_V1.schema.json",
     "required_result_schema_blob":"d9c0b09e16557c4871b2095bdf06962a3562ebf0",
     "vendored_result_schema_path":"architecture/integration/vendor/DEEP_MEMORY_EVIDENCE_RESULT_V1.schema.json",
+    "vendored_contract_path":"architecture/integration/vendor/DEEP_MEMORY_ARCHITECTURE_BINDING_V1.json",
+    "vendored_human_contract_path":"architecture/integration/vendor/DEEP_MEMORY_INTEGRATION_CONTRACT_V1.md",
     "canonical_retrieval":"UNION_ALL_LEDGER_TRANCHES_WITH_HISTORICAL_CANON_PROVENANCE_AND_CLASSIFICATION_OVERLAYS",
     "authority_class":"EVIDENCE_SEARCH_ONLY"
   },

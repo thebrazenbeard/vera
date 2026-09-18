@@ -10,6 +10,8 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "architecture/integration/VERA_DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.json"
 DOC = ROOT / "docs/DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.md"
 VENDORED_RESULT_SCHEMA = ROOT / "architecture/integration/vendor/DEEP_MEMORY_EVIDENCE_RESULT_V1.schema.json"
+VENDORED_BINDING = ROOT / "architecture/integration/vendor/DEEP_MEMORY_ARCHITECTURE_BINDING_V1.json"
+VENDORED_HUMAN_CONTRACT = ROOT / "architecture/integration/vendor/DEEP_MEMORY_INTEGRATION_CONTRACT_V1.md"
 
 EXPECTED_DEEP_MEMORY_HEAD = "8c58821d902fb0eb8967b894c1e4e488805f20c5"
 EXPECTED_BINDING_BLOB = "a951cbfad09e2dcc3685a04e47680df16a6edfc9"
@@ -53,8 +55,35 @@ def main() -> int:
     assert archive["required_result_schema_path"] == "schema/DEEP_MEMORY_EVIDENCE_RESULT_V1.schema.json"
     assert archive["required_result_schema_blob"] == EXPECTED_RESULT_SCHEMA_BLOB
     assert archive["vendored_result_schema_path"] == "architecture/integration/vendor/DEEP_MEMORY_EVIDENCE_RESULT_V1.schema.json"
+    assert archive["vendored_contract_path"] == "architecture/integration/vendor/DEEP_MEMORY_ARCHITECTURE_BINDING_V1.json"
+    assert archive["vendored_human_contract_path"] == "architecture/integration/vendor/DEEP_MEMORY_INTEGRATION_CONTRACT_V1.md"
     assert VENDORED_RESULT_SCHEMA.is_file()
+    assert VENDORED_BINDING.is_file()
+    assert VENDORED_HUMAN_CONTRACT.is_file()
     assert git_blob_sha1(VENDORED_RESULT_SCHEMA) == EXPECTED_RESULT_SCHEMA_BLOB
+    assert git_blob_sha1(VENDORED_BINDING) == EXPECTED_BINDING_BLOB
+    assert git_blob_sha1(VENDORED_HUMAN_CONTRACT) == EXPECTED_HUMAN_CONTRACT_BLOB
+    provider_binding = json.loads(VENDORED_BINDING.read_text(encoding="utf-8"))
+    assert provider_binding["schema"] == "VERA_DEEP_MEMORY_ARCHITECTURE_BINDING_V1"
+    assert provider_binding["role"] == "HISTORICAL_EVIDENCE_PLANE"
+    assert provider_binding["authority_class"] == "EVIDENCE_SEARCH_ONLY"
+    assert provider_binding["current_authority"] is False
+    assert provider_binding["automatic_runtime_consumption"] is False
+    provider_validation = provider_binding["validation"]
+    assert provider_validation["latest_receipt_exact_lineage_requires_corpus_subject_digest"] is True
+    assert provider_validation["latest_receipt_row_count_match_is_not_exact_lineage"] is True
+    assert provider_validation["receipt_continues_policy"] == "IMMEDIATE_NUMERIC_PREDECESSOR_ONLY"
+    assert provider_validation["receipt_path_identity"] == "FILENAME_STEM_MUST_EQUAL_PASS_ID"
+    assert provider_validation["workflow_external_actions"] == "IMMUTABLE_COMMIT_SHA_ONLY"
+    assert provider_validation["workflow_external_action_ref_scan"] == "ALL_EXTERNAL_USES_REFS_MUST_MATCH_PIN_REGISTRY"
+    human_contract = VENDORED_HUMAN_CONTRACT.read_text(encoding="utf-8").casefold()
+    for phrase in (
+        "immediately preceding numeric pass",
+        "every external github action",
+        "row-count agreement alone",
+        "historical evidence plane",
+    ):
+        assert phrase in human_contract, phrase
     provider_schema = json.loads(VENDORED_RESULT_SCHEMA.read_text(encoding="utf-8"))
     assert provider_schema["$id"] == "VERA_DEEP_MEMORY_EVIDENCE_RESULT_V1"
     assert "authorized_privacy_scopes" in provider_schema["required"]
