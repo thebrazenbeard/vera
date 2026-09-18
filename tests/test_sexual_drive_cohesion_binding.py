@@ -7,10 +7,10 @@ from runtime_cohesion import inference_boundary_repaired as ib
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "architecture/cohesion/VERA_SEXUAL_DRIVE_COMPONENT_V1.json"
 REGISTRY = ROOT / "architecture/cohesion/VERA_COHESION_SOURCE_REGISTRY_V1_20260912.json"
-EXPECTED_SD1_HEAD = "4e4f70a3433e267f3b769b2c1a676babf5cd4000"
-EXPECTED_MANIFEST_BLOB = "97b31f59562380eb2ecf24e45b6ce2e092794dd3"
-EXPECTED_SEMANTIC_OWNER_BLOB = "b5aab6974b1a044de7f6ab4db3163eb9dfff01fd"
-EXPECTED_CAUSAL_BLOB = "db6d1ae4e579695396c56b1708a7828ddc3ffa05"
+EXPECTED_SD1_HEAD = "84222cd37408d073735a79c293669a3192848fcc"
+EXPECTED_MANIFEST_BLOB = "56e4c576739e22725eff6c73d357a146888025cc"
+EXPECTED_SEMANTIC_OWNER_BLOB = "3dda8ef6d430646c862cb72b26774e937621c711"
+EXPECTED_CAUSAL_BLOB = "12c48c29733da46c04de414a269a428520198a53"
 EXPECTED_AUTHORITY_BLOB = "da08345a3bff11ffb653270abb6ad4b3a1c0541d"
 
 
@@ -158,7 +158,7 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
         self.assertEqual("TARGET_CONFIGURATION_COMPLETE", target_configuration_status(component))
 
         evidence = producer_currentness_evidence(
-            observed_head="4e4f70a3433e267f3b769b2c1a676babf5cd4000",
+            observed_head=EXPECTED_SD1_HEAD,
             observed_at="2026-09-18T22:30:01Z",
         )
         self.assertEqual("thebrazenbeard/sexuality", evidence["provider"])

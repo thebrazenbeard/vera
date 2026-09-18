@@ -12,16 +12,16 @@
   ],
   "source_binding": {
     "repository": "thebrazenbeard/sexuality",
-    "commit": "4e4f70a3433e267f3b769b2c1a676babf5cd4000",
+    "commit": "84222cd37408d073735a79c293669a3192848fcc",
     "manifest_path": "evaluation/vera-sexual-drive-source-manifest-v1.json",
-    "manifest_git_blob": "97b31f59562380eb2ecf24e45b6ce2e092794dd3",
-    "manifest_sha256": "b1c84e0dad48038572f9a6898252af578400af9e2e93a66bf923deba65a74830",
+    "manifest_git_blob": "56e4c576739e22725eff6c73d357a146888025cc",
+    "manifest_sha256": "6c4a783645f20e2a521bd32f37727e8212233b0f2c57c205b5371596bc986ec6",
     "semantic_owner_path": "research/16-vera-sexual-drive-v1.md",
-    "semantic_owner_git_blob": "b5aab6974b1a044de7f6ab4db3163eb9dfff01fd",
-    "semantic_owner_sha256": "905b1ea197f94b5310e34fb822997fab3ad2f42b8d0a80f1f2be5d301c2248a0",
+    "semantic_owner_git_blob": "3dda8ef6d430646c862cb72b26774e937621c711",
+    "semantic_owner_sha256": "eea060be6567e7ce7dceaef4c19c2cca2ae5dc5a8a2a9bba00ccd1fd9ca4032a",
     "causal_protocol_path": "evaluation/vera-sexual-drive-causality-protocol-v1.json",
-    "causal_protocol_git_blob": "db6d1ae4e579695396c56b1708a7828ddc3ffa05",
-    "causal_protocol_sha256": "0122c97229fea0cf3db1d1912fd9020432b2ec5a321e9a38813f4407cd018457",
+    "causal_protocol_git_blob": "12c48c29733da46c04de414a269a428520198a53",
+    "causal_protocol_sha256": "d5f1652cfe139449f0894fbfa2e3e76055697972f3b1361e1ebfaf94ac22ec73",
     "install_authority_receipt_path": "evaluation/vera-sd1-install-authority-receipt-v1.json",
     "install_authority_receipt_git_blob": "da08345a3bff11ffb653270abb6ad4b3a1c0541d",
     "install_authority_receipt_sha256": "890975661b1c18c7bb8a822f8c929ea403d4827730ba88d4c5ef8a1d26608766"
@@ -76,7 +76,7 @@
     "conflict_state": "NONE",
     "disclosure_source": "policy://vera-sd1-private-self-state",
     "disclosure_generation": "1",
-    "payload_ref": "github://thebrazenbeard/sexuality/research/16-vera-sexual-drive-v1.md@4e4f70a3433e267f3b769b2c1a676babf5cd4000"
+    "payload_ref": "github://thebrazenbeard/sexuality/research/16-vera-sexual-drive-v1.md@84222cd37408d073735a79c293669a3192848fcc"
   },
   "failure_labels": {
     "missing": "TARGET_CONFIGURATION_INCOMPLETE",
