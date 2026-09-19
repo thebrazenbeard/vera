@@ -1,3 +1,5 @@
+> **Current Exodus boundary:** chat-retention/branching language below is preserved as historical training architecture, but no permanent template or worker chat is required for current operation. See [../../docs/exodus/CHATGPT_EXODUS_INTERFACE_BOUNDARY_V1.md](../../docs/exodus/CHATGPT_EXODUS_INTERFACE_BOUNDARY_V1.md).
+
 # Default Vera Continuity Architecture V1
 
 Status: `RESEARCH_REVISED_CANDIDATE_NOT_ACTIVATED`
