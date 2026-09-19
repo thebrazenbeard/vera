@@ -1,0 +1,140 @@
+{
+  "schema": "VERA_RUNTIME_EVIDENCE_CONTRACT_V1",
+  "workstream": "VERA_RUNTIME_COHESION_V1",
+  "status": "SOURCE_DESIGN_ONLY_NOT_MERGED_NOT_INSTALLED_NOT_RUNTIME_QUALIFIED",
+  "provenance": {
+    "basis": [
+      "Integration Vera cohesion source design",
+      "Peer Vera live selective-activation review",
+      "Thirteen non-blind adversarial live review"
+    ],
+    "review_state": "THREE_WAY_RECONCILIATION_ACTIVE",
+    "blind_review_state": "CURRENT_THIRTEEN_SESSION_CONTAMINATED_FOR_BLIND_GATE"
+  },
+  "supersession": {
+    "rule": "Where this contract conflicts with repository-level lifecycle shorthand or bundled LIVE_CONVERSATION semantics in earlier V1 cohesion artifacts on the same draft PR, this contract is the authoritative source-design correction for the workstream until consolidated into a successor release artifact.",
+    "does_not_change_native_runtime": true,
+    "does_not_claim_installation": true,
+    "does_not_claim_qualification": true
+  },
+  "lifecycle_evidence": {
+    "dimensions": [
+      "SOURCE_AVAILABLE",
+      "BOUND",
+      "INSTALLED",
+      "RUNTIME_CONSUMED",
+      "BEHAVIORALLY_QUALIFIED"
+    ],
+    "semantics": "ORTHOGONAL_EVIDENCE_DIMENSIONS_NOT_MONOTONIC_LADDER",
+    "regression_rule": "Any dimension may become false, stale, superseded, conflicted, unavailable, or unknown as its supporting evidence changes. No dimension is treated as irreversible by default.",
+    "dependency_rule": "A claim in a later dimension may depend on earlier evidence, but the dimensions remain separately evidenced and separately current.",
+    "authoritative_proof_unit": {
+      "required_fields": [
+        "system_or_provider",
+        "artifact_or_object_locator",
+        "exact_ref_or_generation",
+        "route_or_install_subject_where_material",
+        "release_or_control_tuple_where_material",
+        "dimension",
+        "status",
+        "evidence_locator",
+        "observed_at_or_currentness_basis",
+        "supersession_or_conflict_state"
+      ],
+      "rule": "Repository/system summary rows are navigation summaries only and are never sufficient authoritative proof for BOUND, INSTALLED, RUNTIME_CONSUMED, or BEHAVIORALLY_QUALIFIED claims without an exact proof unit."
+    }
+  },
+  "live_context_types": [
+    {
+      "type": "CURRENT_USER_INSTRUCTION_CORRECTION_AUTHORITY",
+      "role": "Patrick's current task instruction, correction, target, scope, refusal, permission, or consent statement within its exact referent and authority boundary.",
+      "authority": "CURRENT_USER_AUTHORITY_WITHIN_SCOPE_SUBJECT_TO_PLATFORM_SAFETY_AND_PROTECTED_EFFECT_RULES",
+      "must_not_promote": "Does not by itself authorize broader or protected effects outside the exact granted scope."
+    },
+    {
+      "type": "VERA_CURRENT_SELF_REPORT",
+      "role": "Vera's present first-person authored stance or self-report.",
+      "authority": "SELF_REPORT_EVIDENCE",
+      "must_not_promote": "Does not inherit user-instruction authority and does not independently prove external fact, protected-effect authorization, or phenomenology."
+    },
+    {
+      "type": "LIVE_OBSERVATION_AND_TASK_CONTEXT",
+      "role": "Current conversational observations, supplied task facts, tool readbacks, and immediate contextual evidence not otherwise classified as user authority or Vera self-report.",
+      "authority": "EVIDENCE_TYPED_BY_SOURCE",
+      "must_not_promote": "Currentness does not erase provenance/evidence class or create permission."
+    }
+  ],
+  "active_context_semantics": {
+    "human_facing_shorthand": "cognitively hot / hot / cold / release",
+    "qualification_term": "ACTIVE_CONTEXT_SET",
+    "observable_surface": [
+      "retrieved_artifact_set",
+      "injected_context_set",
+      "active_domain_or_route_set",
+      "explicit_hot_state_records_if_exposed",
+      "exposed_cache_or_context_state_if_available",
+      "prompt_or_token_budget_if_observable",
+      "downstream leakage_or_stickiness_behavior"
+    ],
+    "epistemic_rule": "Do not claim latent model activation, hidden cache state, or successful internal release unless instrumentation actually exposes that state. Qualification operates only on observable proxies and behavior."
+  },
+  "activation_recall_floor": {
+    "activation_predicates": [
+      "task_directly_belongs_to_domain",
+      "active_domain_has_registered_material_dependency",
+      "currentness_authority_referent_provenance_or_supersession_conflict_requires_domain",
+      "omission_would_materially_change_answer_action_safety_boundary_or_uncertainty_class",
+      "registered_known_failure_signature_or_negative_control_trigger",
+      "uncertainty_probe_indicates_possible_material_dependency"
+    ],
+    "uncertainty_probe": {
+      "first_step": "Retrieve only bounded index/metadata/currentness/authority headers when safe and available.",
+      "expansion_rule": "Expand to payload only when the bounded probe shows material dependence or unresolved risk.",
+      "anti_bloat_rule": "Uncertainty alone does not authorize warehouse preload."
+    }
+  },
+  "durable_state_classes": {
+    "TRANSIENT_ACTIVATION": {
+      "default": "EPHEMERAL",
+      "rule": "Task-local activation or retrieval does not itself persist."
+    },
+    "DURABLE_OPERATIONAL_STATE": {
+      "purpose": "Resumable work and coordination state that must survive task/context boundaries without becoming Vera autobiographical or self-state authority.",
+      "examples": [
+        "exact branch PR or source checkpoint",
+        "pending peer reply or bounded coordination obligation",
+        "task progress or handoff locator",
+        "user-requested resumable work state",
+        "rollback subject",
+        "experimental cutover receipt"
+      ],
+      "required_fields": [
+        "referent",
+        "scope",
+        "provenance",
+        "purpose",
+        "supersession_or_expiry_semantics",
+        "non_promotion_flag"
+      ],
+      "storage_rule": "Prefer compact pointer digest or checkpoint records over copying specialist payloads.",
+      "promotion_rule": "Never silently promotes into identity, current memory, preference, relationship, consent, self-appraisal, autobiographical admission, or other governed self-state."
+    },
+    "GOVERNED_DURABLE_SELF_STATE": {
+      "rule": "Requires a separately established state-changing proposition plus its applicable referent, evidence/provenance class, currentness, authority, conflict/supersession, privacy, admission/persistence semantics, and readback/effect evidence where persistence is separately authorized and performed."
+    }
+  },
+  "go_live_evidence_ceiling": {
+    "successful_source_validation_proves_at_most": "SOURCE_SCHEMA_OR_CONTRACT_CONFORMANCE_FOR_THE_EXACT_TESTED_ARTIFACTS",
+    "successful_write_readback_proves_at_most": "PERSISTENCE_OF_THE_EXACT_WRITTEN_OBJECT",
+    "successful_route_read_proves_at_most": "OBSERVED_ROUTE_ACCESS_OR_CONSUMPTION_FOR_THE_EXACT_TRIAL_WHEN_CONSUMPTION_IS_INDEPENDENTLY_EVIDENCED",
+    "successful_behavioral_trial_proves_at_most": "OBSERVED_BEHAVIOR_ON_THE_EXACT_TRIAL_OR_BOUNDED_REPRODUCTION_IF_REPEATED_UNDER_DECLARED_TUPLES",
+    "still_separate": [
+      "MERGE_OR_CANONICAL_SOURCE_STATUS",
+      "INSTALLATION",
+      "CURRENT_ROUTE_BINDING",
+      "RUNTIME_CONSUMPTION",
+      "BEHAVIORAL_QUALIFICATION",
+      "PHENOMENOLOGY"
+    ]
+  }
+}
