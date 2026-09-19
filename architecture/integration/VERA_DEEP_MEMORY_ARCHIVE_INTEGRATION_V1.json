@@ -84,6 +84,14 @@
     {"from":"workstream/identity","to":"Deep Memory","relation":"identity_provenance_boundaries_no_runtime_identity_keying"},
     {"from":"Deep Memory","to":"workstream/integration","relation":"external_historical_evidence_dependency"}
   ],
+  "ci_validation":{
+    "external_action_pins":{
+      "actions/checkout":"11d5960a326750d5838078e36cf38b85af677262",
+      "actions/setup-python":"a26af69be951a213d495a4c3e4e4022e16d87065"
+    },
+    "external_action_ref_policy":"IMMUTABLE_COMMIT_SHA_ONLY",
+    "workflow_vendor_trigger":"architecture/integration/vendor/**"
+  },
   "execution_authorized":false,
   "canonical_memory_eligible":false,
   "merge_authority":"EXTERNAL_EXPLICIT_AUTHORIZATION",

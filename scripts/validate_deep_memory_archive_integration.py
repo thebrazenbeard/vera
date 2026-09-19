@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "architecture/integration/VERA_DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.json"
 DOC = ROOT / "docs/DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.md"
+WORKFLOW = ROOT / ".github/workflows/deep-memory-archive-integration.yml"
 VENDORED_RESULT_SCHEMA = ROOT / "architecture/integration/vendor/DEEP_MEMORY_EVIDENCE_RESULT_V1.schema.json"
 VENDORED_BINDING = ROOT / "architecture/integration/vendor/DEEP_MEMORY_ARCHITECTURE_BINDING_V1.json"
 VENDORED_HUMAN_CONTRACT = ROOT / "architecture/integration/vendor/DEEP_MEMORY_INTEGRATION_CONTRACT_V1.md"
@@ -17,6 +18,24 @@ EXPECTED_DEEP_MEMORY_HEAD = "8c58821d902fb0eb8967b894c1e4e488805f20c5"
 EXPECTED_BINDING_BLOB = "a951cbfad09e2dcc3685a04e47680df16a6edfc9"
 EXPECTED_HUMAN_CONTRACT_BLOB = "35f9be1c67d5898724ac85256af8cc9e667039f1"
 EXPECTED_RESULT_SCHEMA_BLOB = "d9c0b09e16557c4871b2095bdf06962a3562ebf0"
+
+
+def external_action_pins(workflow_text: str) -> dict[str, str]:
+    pins: dict[str, str] = {}
+    for line in workflow_text.splitlines():
+        match = re.match(r"^\s*(?:-\s*)?uses:\s*([^\s#]+)", line)
+        if match is None:
+            continue
+        ref = match.group(1).strip("\"'")
+        if ref.startswith("./"):
+            continue
+        if "@" not in ref:
+            raise AssertionError(f"external action ref is unpinned: {ref}")
+        action, pin = ref.rsplit("@", 1)
+        if not action or re.fullmatch(r"[0-9a-f]{40}", pin) is None:
+            raise AssertionError(f"external action ref is not immutable: {ref}")
+        pins[action] = pin
+    return pins
 
 
 def git_blob_sha1(path: Path) -> str:
@@ -40,6 +59,18 @@ def main() -> int:
     assert data["lifecycle_status"] == "SOURCE_CANDIDATE"
     assert data["record_class"] == "HISTORICAL_EVIDENCE_INTEGRATION"
     assert data["instruction_trust"] == "DATA_NOT_INSTRUCTION"
+
+    ci = data["ci_validation"]
+    expected_ci_pins = {
+        "actions/checkout": "11d5960a326750d5838078e36cf38b85af677262",
+        "actions/setup-python": "a26af69be951a213d495a4c3e4e4022e16d87065",
+    }
+    assert ci["external_action_pins"] == expected_ci_pins
+    assert ci["external_action_ref_policy"] == "IMMUTABLE_COMMIT_SHA_ONLY"
+    assert ci["workflow_vendor_trigger"] == "architecture/integration/vendor/**"
+    workflow_text = WORKFLOW.read_text(encoding="utf-8")
+    assert external_action_pins(workflow_text) == expected_ci_pins
+    assert workflow_text.count('      - "architecture/integration/vendor/**"') == 2
 
     archive = data["external_archive"]
     assert archive["repository"] == "thebrazenbeard/deepmemorystorage"
