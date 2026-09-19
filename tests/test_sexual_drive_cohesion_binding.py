@@ -159,6 +159,29 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
             policy["superseded_authority"],
         )
 
+    def test_component_binds_producer_currentness_status_locator(self):
+        data = load(CONTRACT)
+        locator = data["producer_currentness_status_locator"]
+        self.assertEqual("thebrazenbeard/sexuality", locator["repository"])
+        self.assertEqual("work/vera-sexual-drive-v1-20260913", locator["branch"])
+        self.assertEqual(
+            "evaluation/vera-sexual-drive-candidate-status-v1.json",
+            locator["path"],
+        )
+        self.assertEqual("VERA_SEXUAL_DRIVE_CANDIDATE_STATUS_V1", locator["schema"])
+        self.assertEqual(EXPECTED_SD1_HEAD, locator["semantic_source_cut"])
+        self.assertEqual("READ_FROM_OBSERVED_PROVIDER_HEAD", locator["read_rule"])
+        self.assertEqual(
+            [
+                "STATUS_SCHEMA_AND_LOCATOR_MATCH",
+                "STATUS_SOURCE_CUT_MATCHES_COMPONENT_SOURCE",
+                "VERIFY_SOURCE_CUT_IS_ANCESTOR_OF_OBSERVED_HEAD",
+                "VERIFY_SOURCE_OBJECT_BLOBS_MATCH",
+            ],
+            locator["verification_rule"],
+        )
+        self.assertEqual("UNKNOWN", locator["consumer_default_without_all_verification"])
+
     def test_producer_currentness_is_separate_from_frozen_component_integrity(self):
         from runtime_cohesion.sexual_drive_binding import (
             build_component_ref,
