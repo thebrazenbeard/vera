@@ -148,6 +148,11 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
         )
         self.assertTrue(policy["consumer_cannot_redefine_provider_currentness"])
         self.assertTrue(policy["superseded_requires_verified_ancestry"])
+        self.assertFalse(policy["consumer_may_mint_superseded"])
+        self.assertEqual(
+            "PRODUCER_OWNED_STATUS_PLUS_VERIFIED_ANCESTRY",
+            policy["superseded_authority"],
+        )
 
     def test_producer_currentness_is_separate_from_frozen_component_integrity(self):
         from runtime_cohesion.sexual_drive_binding import (

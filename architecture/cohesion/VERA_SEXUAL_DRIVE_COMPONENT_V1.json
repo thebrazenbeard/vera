@@ -32,7 +32,9 @@
     "frozen_input_status": "FROZEN_INPUT_VALID",
     "state_component_supersession_semantics": "CONSUMER_LOCAL_COMPOSITION_OBSERVATION_NOT_PROVIDER_CURRENTNESS",
     "consumer_cannot_redefine_provider_currentness": true,
-    "superseded_requires_verified_ancestry": true
+    "superseded_requires_verified_ancestry": true,
+    "consumer_may_mint_superseded": false,
+    "superseded_authority": "PRODUCER_OWNED_STATUS_PLUS_VERIFIED_ANCESTRY"
   },
   "qualification_case_range": {
     "first": "SD-01",
