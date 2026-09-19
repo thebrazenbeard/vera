@@ -192,25 +192,30 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
             observed_at="2026-09-18T22:32:00Z",
         )
         self.assertEqual("UNKNOWN", evidence["status"])
-        self.assertEqual("ANCESTRY_UNVERIFIED", evidence["ancestry_basis"])
+        self.assertEqual("EXTERNAL_ANCESTRY_VERIFICATION_REQUIRED", evidence["ancestry_basis"])
 
-    def test_producer_currentness_superseded_requires_verified_ancestry(self):
+    def test_caller_cannot_self_assert_verified_ancestry(self):
+        import inspect
         from runtime_cohesion.sexual_drive_binding import producer_currentness_evidence
+
+        self.assertEqual(
+            ["observed_head", "observed_at"],
+            list(inspect.signature(producer_currentness_evidence).parameters),
+        )
         evidence = producer_currentness_evidence(
             observed_head="f" * 40,
             observed_at="2026-09-18T22:32:01Z",
-            verified_frozen_input_is_ancestor=True,
         )
-        self.assertEqual("SUPERSEDED", evidence["status"])
+        self.assertEqual("UNKNOWN", evidence["status"])
         self.assertEqual(
-            "VERIFIED_FROZEN_INPUT_ANCESTOR_OF_OBSERVED_HEAD",
+            "EXTERNAL_ANCESTRY_VERIFICATION_REQUIRED",
             evidence["ancestry_basis"],
         )
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             producer_currentness_evidence(
                 observed_head="f" * 40,
                 observed_at="2026-09-18T22:32:02Z",
-                verified_frozen_input_is_ancestor="yes",
+                verified_frozen_input_is_ancestor=True,
             )
 
     def test_binding_surface_contains_no_response_generator_or_background_loop(self):
