@@ -147,6 +147,7 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
             policy["state_component_supersession_semantics"],
         )
         self.assertTrue(policy["consumer_cannot_redefine_provider_currentness"])
+        self.assertTrue(policy["superseded_requires_verified_ancestry"])
 
     def test_producer_currentness_is_separate_from_frozen_component_integrity(self):
         from runtime_cohesion.sexual_drive_binding import (
@@ -183,6 +184,34 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
         self.assertEqual("UNKNOWN", evidence["status"])
         self.assertEqual("FROZEN_INPUT_VALID", evidence["frozen_input_status"])
         self.assertEqual("TARGET_CONFIGURATION_COMPLETE", target_configuration_status(component))
+
+    def test_producer_currentness_mismatch_without_ancestry_proof_is_unknown(self):
+        from runtime_cohesion.sexual_drive_binding import producer_currentness_evidence
+        evidence = producer_currentness_evidence(
+            observed_head="0" * 40,
+            observed_at="2026-09-18T22:32:00Z",
+        )
+        self.assertEqual("UNKNOWN", evidence["status"])
+        self.assertEqual("ANCESTRY_UNVERIFIED", evidence["ancestry_basis"])
+
+    def test_producer_currentness_superseded_requires_verified_ancestry(self):
+        from runtime_cohesion.sexual_drive_binding import producer_currentness_evidence
+        evidence = producer_currentness_evidence(
+            observed_head="f" * 40,
+            observed_at="2026-09-18T22:32:01Z",
+            verified_frozen_input_is_ancestor=True,
+        )
+        self.assertEqual("SUPERSEDED", evidence["status"])
+        self.assertEqual(
+            "VERIFIED_FROZEN_INPUT_ANCESTOR_OF_OBSERVED_HEAD",
+            evidence["ancestry_basis"],
+        )
+        with self.assertRaises(ValueError):
+            producer_currentness_evidence(
+                observed_head="f" * 40,
+                observed_at="2026-09-18T22:32:02Z",
+                verified_frozen_input_is_ancestor="yes",
+            )
 
     def test_binding_surface_contains_no_response_generator_or_background_loop(self):
         module = (ROOT / "runtime_cohesion/sexual_drive_binding.py").read_text(encoding="utf-8").lower()

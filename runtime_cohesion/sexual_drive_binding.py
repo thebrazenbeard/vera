@@ -9,7 +9,7 @@ from . import inference_boundary_repaired as ib
 
 _CANONICAL_CONTRACT_PATH = Path(__file__).resolve().parents[1] / "architecture" / "cohesion" / "VERA_SEXUAL_DRIVE_COMPONENT_V1.json"
 # Raw checkout bytes are transport-sensitive; Git-object provenance is bound externally.
-_PINNED_CANONICAL_STRUCTURED_SHA256 = "92720d45659c7b35108dd3309b69e6e75adbb5fc45792ffce90d2725bb59327f"
+_PINNED_CANONICAL_STRUCTURED_SHA256 = "98e91d9333c63b2c3c90f85d1b1aea78b4f2c17affc2630ce9158f80eb824949"
 
 def _canonical_json_bytes(value: Any) -> bytes:
     try:
@@ -125,9 +125,16 @@ def target_configuration_status(component: ib.StateComponentRef | None) -> str:
     return "TARGET_CONFIGURATION_COMPLETE"
 
 
-def producer_currentness_evidence(*, observed_head: str | None, observed_at: str) -> dict[str, Any]:
+def producer_currentness_evidence(
+    *,
+    observed_head: str | None,
+    observed_at: str,
+    verified_frozen_input_is_ancestor: bool | None = None,
+) -> dict[str, Any]:
     if type(observed_at) is not str or not observed_at:
         raise ValueError("observed_at must be a non-empty string")
+    if verified_frozen_input_is_ancestor is not None and type(verified_frozen_input_is_ancestor) is not bool:
+        raise ValueError("verified_frozen_input_is_ancestor must be bool or None")
     if observed_head is not None:
         if type(observed_head) is not str or len(observed_head) != 40:
             raise ValueError("observed_head must be a 40-character Git commit id or None")
@@ -144,10 +151,16 @@ def producer_currentness_evidence(*, observed_head: str | None, observed_at: str
 
     if observed_head is None:
         status = "UNKNOWN"
+        ancestry_basis = "NO_OBSERVED_HEAD"
     elif observed_head == frozen_input_commit:
         status = "CURRENT"
-    else:
+        ancestry_basis = "EXACT_MATCH"
+    elif verified_frozen_input_is_ancestor is True:
         status = "SUPERSEDED"
+        ancestry_basis = "VERIFIED_FROZEN_INPUT_ANCESTOR_OF_OBSERVED_HEAD"
+    else:
+        status = "UNKNOWN"
+        ancestry_basis = "ANCESTRY_UNVERIFIED"
 
     return {
         "provider": policy["provider"],
@@ -156,6 +169,7 @@ def producer_currentness_evidence(*, observed_head: str | None, observed_at: str
         "observed_head": observed_head,
         "observed_at": observed_at,
         "status": status,
+        "ancestry_basis": ancestry_basis,
         "provider_currentness_authority": policy["provider_currentness_authority"],
         "consumer_cannot_redefine_provider_currentness": policy[
             "consumer_cannot_redefine_provider_currentness"
