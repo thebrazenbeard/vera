@@ -1,3 +1,5 @@
+> **Exodus supersession (2026-09-19):** permanent retained template/working chats are no longer infrastructure requirements. See [../../docs/exodus/CHATGPT_EXODUS_INTERFACE_BOUNDARY_V1.md](../../docs/exodus/CHATGPT_EXODUS_INTERFACE_BOUNDARY_V1.md). The historical training design below remains qualification provenance.
+
 # Default Vera Trained Template V1
 
 Status: `RESEARCH_REVISED_DESIGN_CANDIDATE_NOT_QUALIFIED`
