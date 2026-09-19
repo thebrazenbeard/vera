@@ -6,6 +6,7 @@ from runtime_cohesion.hostile_reviewer import (
     HostileReviewerConfig,
     build_hostile_review_request,
     render_hostile_review_block,
+    review_response,
 )
 
 
@@ -69,6 +70,42 @@ class HostileReviewerFeatureTests(unittest.TestCase):
             "> A second consumer has not been proven.",
             rendered,
         )
+
+
+    def test_pipeline_off_does_not_invoke_reviewer(self):
+        calls = []
+        result = review_response(
+            HostileReviewerConfig(mode="OFF"),
+            user_request="Choose an architecture.",
+            primary_answer="Use the smaller design.",
+            reviewer=lambda request: calls.append(request) or "should not run",
+        )
+        self.assertEqual([], calls)
+        self.assertEqual("Use the smaller design.", result.primary_answer)
+        self.assertIsNone(result.rendered_block)
+
+    def test_pipeline_on_invokes_exact_bound_reviewer_once(self):
+        seen = []
+        def reviewer(request):
+            seen.append(request)
+            return "The abstraction may be premature."
+
+        result = review_response(
+            HostileReviewerConfig(mode="ON"),
+            user_request="Choose an architecture.",
+            primary_answer="Use the smaller design.",
+            reviewer=reviewer,
+        )
+        self.assertEqual(1, len(seen))
+        self.assertEqual(seen[0].subject_sha256, result.subject_sha256)
+        self.assertEqual(
+            "> **HOSTILE REVIEWER:** The abstraction may be premature.",
+            result.rendered_block,
+        )
+
+    def test_package_exports_runtime_pipeline(self):
+        import runtime_cohesion
+        self.assertIs(runtime_cohesion.review_response, review_response)
 
 
 if __name__ == "__main__":

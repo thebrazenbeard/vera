@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from hashlib import sha256
-from typing import Mapping
+from typing import Callable, Mapping
 
 
 VALID_MODES = {"OFF", "ON"}
@@ -70,6 +70,17 @@ class HostileReviewRequest:
     reviewer_instruction: str
 
 
+@dataclass(frozen=True)
+class HostileReviewResult:
+    primary_answer: str
+    subject_sha256: str | None
+    critique: str | None
+    rendered_block: str | None
+
+
+Reviewer = Callable[[HostileReviewRequest], str]
+
+
 def build_hostile_review_request(
     config: HostileReviewerConfig,
     *,
@@ -128,3 +139,44 @@ def render_hostile_review_block(
     rendered = [f"> **{label}:** {lines[0]}"]
     rendered.extend(f"> {line}" if line else ">" for line in lines[1:])
     return "\n".join(rendered)
+
+
+def review_response(
+    config: HostileReviewerConfig,
+    *,
+    user_request: str,
+    primary_answer: str,
+    reviewer: Reviewer,
+    substantive: bool = True,
+) -> HostileReviewResult:
+    """Apply the optional adversarial second pass to one completed response.
+
+    The reviewer callback is deliberately injected: this module defines the
+    governed response-stage contract but does not choose or authorize a model,
+    provider, tool route, or external side effect.
+    """
+
+    request = build_hostile_review_request(
+        config,
+        user_request=user_request,
+        primary_answer=primary_answer,
+        substantive=substantive,
+    )
+    if request is None:
+        return HostileReviewResult(
+            primary_answer=primary_answer,
+            subject_sha256=None,
+            critique=None,
+            rendered_block=None,
+        )
+
+    critique = reviewer(request).strip()
+    if not critique:
+        raise ValueError("reviewer returned an empty critique")
+
+    return HostileReviewResult(
+        primary_answer=primary_answer,
+        subject_sha256=request.subject_sha256,
+        critique=critique,
+        rendered_block=render_hostile_review_block(critique),
+    )

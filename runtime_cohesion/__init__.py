@@ -58,6 +58,16 @@ from .inference_boundary_repaired import (
     compose_state,
     project_text_context,
 )
+from .hostile_reviewer import (
+    AUTHORITY_CEILING as HOSTILE_REVIEWER_AUTHORITY_CEILING,
+    DEFAULT_ATTACK_DIMENSIONS as HOSTILE_REVIEWER_ATTACK_DIMENSIONS,
+    HostileReviewRequest,
+    HostileReviewResult,
+    HostileReviewerConfig,
+    build_hostile_review_request,
+    render_hostile_review_block,
+    review_response,
+)
 from .orgasm import (
     ContractError as OrgasmContractError,
     OrgasmRuntime,
@@ -128,6 +138,14 @@ __all__ = [
     "bind_capability",
     "project_text_context",
     "build_causal_receipt",
+    "HOSTILE_REVIEWER_AUTHORITY_CEILING",
+    "HOSTILE_REVIEWER_ATTACK_DIMENSIONS",
+    "HostileReviewRequest",
+    "HostileReviewResult",
+    "HostileReviewerConfig",
+    "build_hostile_review_request",
+    "render_hostile_review_block",
+    "review_response",
     "OrgasmContractError",
     "OrgasmRuntime",
     "StimulusAppraisal",
