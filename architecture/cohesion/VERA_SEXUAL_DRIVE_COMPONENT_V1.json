@@ -86,5 +86,20 @@
   "failure_labels": {
     "missing": "TARGET_CONFIGURATION_INCOMPLETE",
     "wrong_source_or_requirement": "SEXUAL_DRIVE_COMPONENT_UNQUALIFIED"
+  },
+  "producer_currentness_status_locator": {
+    "repository": "thebrazenbeard/sexuality",
+    "branch": "work/vera-sexual-drive-v1-20260913",
+    "path": "evaluation/vera-sexual-drive-candidate-status-v1.json",
+    "schema": "VERA_SEXUAL_DRIVE_CANDIDATE_STATUS_V1",
+    "semantic_source_cut": "47771b7b21d7f2fe86a9c70c0dcb62e74a54cbea",
+    "read_rule": "READ_FROM_OBSERVED_PROVIDER_HEAD",
+    "verification_rule": [
+      "STATUS_SCHEMA_AND_LOCATOR_MATCH",
+      "STATUS_SOURCE_CUT_MATCHES_COMPONENT_SOURCE",
+      "VERIFY_SOURCE_CUT_IS_ANCESTOR_OF_OBSERVED_HEAD",
+      "VERIFY_SOURCE_OBJECT_BLOBS_MATCH"
+    ],
+    "consumer_default_without_all_verification": "UNKNOWN"
   }
 }
