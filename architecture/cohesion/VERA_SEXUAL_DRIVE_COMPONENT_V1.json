@@ -93,9 +93,16 @@
     "path": "evaluation/vera-sexual-drive-candidate-status-v1.json",
     "schema": "VERA_SEXUAL_DRIVE_CANDIDATE_STATUS_V1",
     "semantic_source_cut": "47771b7b21d7f2fe86a9c70c0dcb62e74a54cbea",
+    "reviewed_status_head": "353a1c516a3477221ed38108188f2e501b10084f",
+    "reviewed_status_git_blob": "848c1071d80bb894e1d926409b2e942168f33de5",
+    "reviewed_status_git_content_sha256": "a08e9ac9fb27858f6db640690529ed4469de39242d0b4adf3e04e5e1c7d9b041",
+    "status_head_binding_rule": "STATUS_PATH_LAST_CHANGE_COMMIT_MUST_EQUAL_OBSERVED_PROVIDER_HEAD",
     "read_rule": "READ_FROM_OBSERVED_PROVIDER_HEAD",
     "verification_rule": [
       "STATUS_SCHEMA_AND_LOCATOR_MATCH",
+      "OBSERVED_PROVIDER_HEAD_EQUALS_REVIEWED_STATUS_HEAD",
+      "STATUS_BLOB_MATCHES_REVIEWED_STATUS_OBJECT",
+      "VERIFY_STATUS_PATH_LAST_CHANGE_EQUALS_OBSERVED_HEAD",
       "STATUS_SOURCE_CUT_MATCHES_COMPONENT_SOURCE",
       "VERIFY_SOURCE_CUT_IS_ANCESTOR_OF_OBSERVED_HEAD",
       "VERIFY_SOURCE_OBJECT_BLOBS_MATCH"

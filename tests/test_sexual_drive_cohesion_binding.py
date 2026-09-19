@@ -12,6 +12,9 @@ EXPECTED_MANIFEST_BLOB = "f903a93b3db92fa8255b027b19373f6ad5a09817"
 EXPECTED_SEMANTIC_OWNER_BLOB = "74c202ab5ddc05f95aa5343c531e69c19b5d4a27"
 EXPECTED_CAUSAL_BLOB = "5963486d50a6c76e548226391aa0cb3292c920c6"
 EXPECTED_AUTHORITY_BLOB = "da08345a3bff11ffb653270abb6ad4b3a1c0541d"
+EXPECTED_PRODUCER_STATUS_HEAD = "353a1c516a3477221ed38108188f2e501b10084f"
+EXPECTED_PRODUCER_STATUS_BLOB = "848c1071d80bb894e1d926409b2e942168f33de5"
+EXPECTED_PRODUCER_STATUS_GIT_CONTENT_SHA256 = "a08e9ac9fb27858f6db640690529ed4469de39242d0b4adf3e04e5e1c7d9b041"
 
 
 def load(path):
@@ -170,10 +173,23 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
         )
         self.assertEqual("VERA_SEXUAL_DRIVE_CANDIDATE_STATUS_V1", locator["schema"])
         self.assertEqual(EXPECTED_SD1_HEAD, locator["semantic_source_cut"])
+        self.assertEqual(EXPECTED_PRODUCER_STATUS_HEAD, locator["reviewed_status_head"])
+        self.assertEqual(EXPECTED_PRODUCER_STATUS_BLOB, locator["reviewed_status_git_blob"])
+        self.assertEqual(
+            EXPECTED_PRODUCER_STATUS_GIT_CONTENT_SHA256,
+            locator["reviewed_status_git_content_sha256"],
+        )
+        self.assertEqual(
+            "STATUS_PATH_LAST_CHANGE_COMMIT_MUST_EQUAL_OBSERVED_PROVIDER_HEAD",
+            locator["status_head_binding_rule"],
+        )
         self.assertEqual("READ_FROM_OBSERVED_PROVIDER_HEAD", locator["read_rule"])
         self.assertEqual(
             [
                 "STATUS_SCHEMA_AND_LOCATOR_MATCH",
+                "OBSERVED_PROVIDER_HEAD_EQUALS_REVIEWED_STATUS_HEAD",
+                "STATUS_BLOB_MATCHES_REVIEWED_STATUS_OBJECT",
+                "VERIFY_STATUS_PATH_LAST_CHANGE_EQUALS_OBSERVED_HEAD",
                 "STATUS_SOURCE_CUT_MATCHES_COMPONENT_SOURCE",
                 "VERIFY_SOURCE_CUT_IS_ANCESTOR_OF_OBSERVED_HEAD",
                 "VERIFY_SOURCE_OBJECT_BLOBS_MATCH",
