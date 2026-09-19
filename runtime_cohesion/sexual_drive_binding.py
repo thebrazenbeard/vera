@@ -129,12 +129,9 @@ def producer_currentness_evidence(
     *,
     observed_head: str | None,
     observed_at: str,
-    verified_frozen_input_is_ancestor: bool | None = None,
 ) -> dict[str, Any]:
     if type(observed_at) is not str or not observed_at:
         raise ValueError("observed_at must be a non-empty string")
-    if verified_frozen_input_is_ancestor is not None and type(verified_frozen_input_is_ancestor) is not bool:
-        raise ValueError("verified_frozen_input_is_ancestor must be bool or None")
     if observed_head is not None:
         if type(observed_head) is not str or len(observed_head) != 40:
             raise ValueError("observed_head must be a 40-character Git commit id or None")
@@ -155,12 +152,9 @@ def producer_currentness_evidence(
     elif observed_head == frozen_input_commit:
         status = "CURRENT"
         ancestry_basis = "EXACT_MATCH"
-    elif verified_frozen_input_is_ancestor is True:
-        status = "SUPERSEDED"
-        ancestry_basis = "VERIFIED_FROZEN_INPUT_ANCESTOR_OF_OBSERVED_HEAD"
     else:
         status = "UNKNOWN"
-        ancestry_basis = "ANCESTRY_UNVERIFIED"
+        ancestry_basis = "EXTERNAL_ANCESTRY_VERIFICATION_REQUIRED"
 
     return {
         "provider": policy["provider"],
