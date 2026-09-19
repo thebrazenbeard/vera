@@ -9,7 +9,7 @@ from . import inference_boundary_repaired as ib
 
 _CANONICAL_CONTRACT_PATH = Path(__file__).resolve().parents[1] / "architecture" / "cohesion" / "VERA_SEXUAL_DRIVE_COMPONENT_V1.json"
 # Raw checkout bytes are transport-sensitive; Git-object provenance is bound externally.
-_PINNED_CANONICAL_STRUCTURED_SHA256 = "a71ebe84e47c6b073fd9210a1ac76d382d88a07578086d5ddf5fc6fdae80942c"
+_PINNED_CANONICAL_STRUCTURED_SHA256 = "2b22399e3a7d52250c636ad9e35267744a9a7687d9fea80938582fad13d536a7"
 
 def _canonical_json_bytes(value: Any) -> bytes:
     try:
@@ -146,20 +146,22 @@ def producer_currentness_evidence(
     policy = trusted["producer_currentness_policy"]
     frozen_input_commit = source["commit"]
 
+    frozen_input_matches_observed_head = observed_head == frozen_input_commit
     if observed_head is None:
         status = "UNKNOWN"
         ancestry_basis = "NO_OBSERVED_HEAD"
-    elif observed_head == frozen_input_commit:
-        status = "CURRENT"
-        ancestry_basis = "EXACT_MATCH"
+    elif frozen_input_matches_observed_head:
+        status = "UNKNOWN"
+        ancestry_basis = "EXACT_FROZEN_INPUT_MATCH_NOT_PROVIDER_CURRENTNESS"
     else:
         status = "UNKNOWN"
-        ancestry_basis = "EXTERNAL_ANCESTRY_VERIFICATION_REQUIRED"
+        ancestry_basis = "EXTERNAL_PRODUCER_CURRENTNESS_VERIFICATION_REQUIRED"
 
     return {
         "provider": policy["provider"],
         "frozen_input_commit": frozen_input_commit,
         "frozen_input_status": policy["frozen_input_status"],
+        "frozen_input_matches_observed_head": frozen_input_matches_observed_head,
         "observed_head": observed_head,
         "observed_at": observed_at,
         "status": status,

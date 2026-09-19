@@ -147,6 +147,11 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
             policy["state_component_supersession_semantics"],
         )
         self.assertTrue(policy["consumer_cannot_redefine_provider_currentness"])
+        self.assertFalse(policy["consumer_may_mint_current"])
+        self.assertEqual(
+            "PRODUCER_OWNED_STATUS_PLUS_PROVIDER_HEAD_READBACK_PLUS_SOURCE_OBJECT_VERIFICATION",
+            policy["current_authority"],
+        )
         self.assertTrue(policy["superseded_requires_verified_ancestry"])
         self.assertFalse(policy["consumer_may_mint_superseded"])
         self.assertEqual(
@@ -171,7 +176,12 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
         self.assertEqual(EXPECTED_SD1_HEAD, evidence["frozen_input_commit"])
         self.assertEqual("FROZEN_INPUT_VALID", evidence["frozen_input_status"])
         self.assertEqual(EXPECTED_SD1_HEAD, evidence["observed_head"])
-        self.assertEqual("CURRENT", evidence["status"])
+        self.assertEqual("UNKNOWN", evidence["status"])
+        self.assertTrue(evidence["frozen_input_matches_observed_head"])
+        self.assertEqual(
+            "EXACT_FROZEN_INPUT_MATCH_NOT_PROVIDER_CURRENTNESS",
+            evidence["ancestry_basis"],
+        )
         self.assertTrue(evidence["consumer_cannot_redefine_provider_currentness"])
         self.assertEqual("TARGET_CONFIGURATION_COMPLETE", target_configuration_status(component))
 
@@ -197,7 +207,11 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
             observed_at="2026-09-18T22:32:00Z",
         )
         self.assertEqual("UNKNOWN", evidence["status"])
-        self.assertEqual("EXTERNAL_ANCESTRY_VERIFICATION_REQUIRED", evidence["ancestry_basis"])
+        self.assertFalse(evidence["frozen_input_matches_observed_head"])
+        self.assertEqual(
+            "EXTERNAL_PRODUCER_CURRENTNESS_VERIFICATION_REQUIRED",
+            evidence["ancestry_basis"],
+        )
 
     def test_caller_cannot_self_assert_verified_ancestry(self):
         import inspect
@@ -213,7 +227,7 @@ class SexualDriveCohesionBindingTests(unittest.TestCase):
         )
         self.assertEqual("UNKNOWN", evidence["status"])
         self.assertEqual(
-            "EXTERNAL_ANCESTRY_VERIFICATION_REQUIRED",
+            "EXTERNAL_PRODUCER_CURRENTNESS_VERIFICATION_REQUIRED",
             evidence["ancestry_basis"],
         )
         with self.assertRaises(TypeError):
