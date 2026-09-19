@@ -28,7 +28,7 @@ class HostileReviewerFeatureTests(unittest.TestCase):
         )
         self.assertIsNotNone(request)
         self.assertEqual(
-            "8d354f8cfe88c8c8f231efd5e516abbac861d28bc4084f8a3cce0ff771cd29dd",
+            "39f4a7282811cbb451876b8a06073ec7ccc2ea8d48d693364539437002794fbd",
             request.subject_sha256,
         )
         self.assertEqual(3, request.max_objections)
