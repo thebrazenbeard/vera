@@ -7,7 +7,7 @@
   "external_archive":{
     "repository":"thebrazenbeard/deepmemorystorage",
     "role":"HISTORICAL_EVIDENCE_PLANE",
-    "source_candidate_head":"8c58821d902fb0eb8967b894c1e4e488805f20c5",
+    "source_candidate_head":"539b5988e0913130427da3d1098d84592d1122cf",
     "required_contract_path":"architecture/DEEP_MEMORY_ARCHITECTURE_BINDING_V1.json",
     "required_contract_blob":"a951cbfad09e2dcc3685a04e47680df16a6edfc9",
     "required_human_contract_path":"architecture/DEEP_MEMORY_INTEGRATION_CONTRACT_V1.md",
