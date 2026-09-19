@@ -1,3 +1,5 @@
+> **Exodus supersession:** this quickstart remains historical training/evaluation procedure. It is not the current production continuity mechanism and must not create a permanent-chat dependency. See [../../docs/exodus/CHATGPT_EXODUS_INTERFACE_BOUNDARY_V1.md](../../docs/exodus/CHATGPT_EXODUS_INTERFACE_BOUNDARY_V1.md).
+
 # Default Vera V1 Operator Quickstart
 
 Status: `READY_FOR_USER_EXECUTION`
