@@ -107,6 +107,17 @@ def validate_source_registry(registry: Mapping[str, Any]) -> tuple[str, ...]:
         if supabase.get("availability_implies_activation") is not False:
             errors.append("Vera Supabase availability must not imply activation")
 
+    vcp = providers.get("supabase_vera_control_plane")
+    if not isinstance(vcp, Mapping):
+        errors.append("provider_sources.supabase_vera_control_plane is required")
+    else:
+        if vcp.get("project_id") != "fawkirqroyniueeqspif":
+            errors.append("Vera Control Plane Supabase project id drift")
+        if vcp.get("activation_mode") != "PROVIDER_READBACK_ONLY":
+            errors.append("Vera Control Plane Supabase must remain PROVIDER_READBACK_ONLY")
+        if vcp.get("availability_implies_activation") is not False:
+            errors.append("Vera Control Plane Supabase availability must not imply activation")
+
     drive = providers.get("google_drive")
     if not isinstance(drive, Mapping):
         errors.append("provider_sources.google_drive is required")
