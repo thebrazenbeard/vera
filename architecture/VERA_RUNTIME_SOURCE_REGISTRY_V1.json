@@ -2,7 +2,7 @@
   "schema": "VERA_RUNTIME_SOURCE_REGISTRY_V1",
   "workstream": "VERA_RUNTIME_COHESION_V1",
   "status": "NON_NORMATIVE_OPERATIONAL_SUPPORT / SOURCE_DESIGN / NOT_INSTALLED / NOT_RUNTIME_QUALIFIED",
-  "observed_at": "2026-09-20T11:19:05Z",
+  "observed_at": "2026-09-20T16:38:00Z",
   "registry_semantics": "OPEN_WORLD_SOURCE_DIRECTORY; registration controls retrieval/classification only and never grants authority, activation, installation, currentness, memory admission, consent, phenomenology, or protected-effect permission.",
   "owner_repository_snapshot": [
     "thebrazenbeard/vera",
@@ -61,7 +61,8 @@
     "thebrazenbeard/mosaic",
     "thebrazenbeard/testament",
     "thebrazenbeard/driftguard",
-    "thebrazenbeard/discovery"
+    "thebrazenbeard/discovery",
+    "thebrazenbeard/god-brain"
   ],
   "repository_sources": [
     {
@@ -481,6 +482,12 @@
       "activation_mode": "NO_AUTO_BIND",
       "reason": "Independent research/manuscript project; no automatic Vera runtime binding.",
       "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/god-brain",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Separate speculative research/cognitive-architecture project. Portfolio synthesis does not automatically bind it into Vera identity, memory, control, provider state, or runtime.",
+      "availability_implies_activation": false
     }
   ],
   "provider_sources": {
@@ -689,15 +696,19 @@
     "all_names_sha256": "43dfda1fa3dd24dec39e2aa345d93ab192dbda777433feae384da632b3d008dd",
     "current_reverification": {
       "observed_date": "2026-09-20",
-      "authenticated_owner_inventory_count": 57,
-      "recomputed_all_names_sha256": "43dfda1fa3dd24dec39e2aa345d93ab192dbda777433feae384da632b3d008dd",
-      "classification": "EXACT_CENSUS_DIGEST_MATCH"
+      "authenticated_owner_inventory_count": 58,
+      "recomputed_all_names_sha256": "c854d8891e87272f7bc1bb6530aedc339581a51a6be6026efb087c6be08e7a2d",
+      "classification": "DRIFT_DETECTED_DISCOVERY_CENSUS_STALE",
+      "missing_from_bound_census": [
+        "thebrazenbeard/god-brain"
+      ]
     },
     "validation": {
       "workflow_run_id": 35475731990,
       "conclusion": "SUCCESS"
     },
     "semantics": "DISCOVERY_IS_PRIVACY_SAFE_DRIFT_AND_REUSE_EVIDENCE_NOT_PORTFOLIO_AUTHORITY",
-    "promotion_guard": "A matching inventory digest establishes exact repository-name census continuity only. Discovery hypotheses, lifecycle labels, reuse candidates, or source validation do not grant Vera control, provider, runtime, merge, install, or adoption authority."
+    "promotion_guard": "A matching inventory digest establishes exact repository-name census continuity only for the compared observation. A historical Discovery census may remain internally valid while live owner inventory has drifted. Discovery hypotheses, lifecycle labels, reuse candidates, or source validation do not grant Vera control, provider, runtime, merge, install, or adoption authority.",
+    "currentness_rule": "The bound Discovery census remains valid historical/source evidence at its exact 57-repository subject. A fresh owner inventory is a separate mutable currentness observation; count/digest drift must not rewrite the historical receipt or be described as an exact current match."
   }
 }

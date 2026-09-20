@@ -7,7 +7,9 @@ from runtime_cohesion.live_sources import (
     classify_memory_epoch_object,
     classify_persisted_runtime_holder,
     classify_semantic_snapshot,
+    evaluate_portfolio_census_currentness,
     evaluate_route_binding,
+    repository_name_census_digest,
     validate_source_registry,
 )
 
@@ -31,11 +33,16 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
         self.assertIn("thebrazenbeard/vera", snapshot)
         self.assertIn("thebrazenbeard/hc-brain", snapshot)
         self.assertIn("thebrazenbeard/brigit", snapshot)
-        self.assertEqual(len(snapshot), 57)
+        self.assertEqual(len(snapshot), 58)
         self.assertIn("thebrazenbeard/project-runner", snapshot)
         self.assertIn("thebrazenbeard/bt2", snapshot)
         self.assertIn("thebrazenbeard/orgasm", snapshot)
         self.assertIn("thebrazenbeard/discovery", snapshot)
+        self.assertIn("thebrazenbeard/god-brain", snapshot)
+        self.assertIn(
+            "thebrazenbeard/god-brain",
+            {row["repository"] for row in self.registry["unbound_repositories"]},
+        )
 
     def test_only_exact_r10_control_source_may_claim_control_role(self):
         control_rows = [row for row in self.registry["repository_sources"] if row["runtime_role"] == "CURRENT_CONTROL_SOURCE"]
@@ -43,23 +50,61 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
         self.assertEqual(control_rows[0]["activation_mode"], "EXACT_R10_CONTROL_LOAD")
         self.assertFalse(control_rows[0]["availability_implies_activation"])
 
-    def test_discovery_census_binding_matches_private_full_inventory(self):
+    def test_discovery_historical_census_is_preserved_but_live_owner_census_has_drifted(self):
         binding = self.registry["portfolio_discovery_binding"]
         self.assertEqual(binding["repository"], "thebrazenbeard/discovery")
         self.assertEqual(binding["exact_head"], "1316094edbed17fa5918b70793c95ffddfcf92ea")
         self.assertEqual(binding["total_count"], 57)
-        self.assertEqual(binding["validation"]["conclusion"], "SUCCESS")
-        names = sorted(repo.split("/", 1)[1] for repo in self.registry["owner_repository_snapshot"])
-        digest = hashlib.sha256(("\\n".join(names) + "\\n").encode("utf-8")).hexdigest()
-        self.assertEqual(digest, binding["all_names_sha256"])
         self.assertEqual(
-            binding["current_reverification"]["recomputed_all_names_sha256"],
             binding["all_names_sha256"],
+            "43dfda1fa3dd24dec39e2aa345d93ab192dbda777433feae384da632b3d008dd",
+        )
+        self.assertEqual(binding["validation"]["conclusion"], "SUCCESS")
+
+        current = binding["current_reverification"]
+        self.assertEqual(current["authenticated_owner_inventory_count"], 58)
+        self.assertEqual(
+            current["recomputed_all_names_sha256"],
+            "c854d8891e87272f7bc1bb6530aedc339581a51a6be6026efb087c6be08e7a2d",
+        )
+        self.assertEqual(current["classification"], "DRIFT_DETECTED_DISCOVERY_CENSUS_STALE")
+        self.assertEqual(current["missing_from_bound_census"], ["thebrazenbeard/god-brain"])
+        self.assertNotEqual(current["recomputed_all_names_sha256"], binding["all_names_sha256"])
+        self.assertEqual(
+            repository_name_census_digest(self.registry["owner_repository_snapshot"]),
+            current["recomputed_all_names_sha256"],
         )
         self.assertEqual(
             binding["semantics"],
             "DISCOVERY_IS_PRIVACY_SAFE_DRIFT_AND_REUSE_EVIDENCE_NOT_PORTFOLIO_AUTHORITY",
         )
+
+    def test_live_census_currentness_is_separate_from_frozen_discovery_validity(self):
+        binding = self.registry["portfolio_discovery_binding"]
+        decision = evaluate_portfolio_census_currentness(
+            binding,
+            self.registry["owner_repository_snapshot"],
+        )
+        self.assertEqual(decision["status"], "DRIFT_DETECTED_DISCOVERY_CENSUS_STALE")
+        self.assertEqual(decision["bound_discovery_count"], 57)
+        self.assertEqual(decision["observed_owner_count"], 58)
+        self.assertFalse(decision["current_census_matches_bound"])
+        self.assertTrue(decision["historical_binding_preserved"])
+        self.assertIn("NOT_CONTROL", decision["authority_ceiling"])
+
+    def test_repository_digest_uses_actual_newline_bytes(self):
+        digest = repository_name_census_digest(self.registry["owner_repository_snapshot"])
+        self.assertEqual(
+            digest,
+            "c854d8891e87272f7bc1bb6530aedc339581a51a6be6026efb087c6be08e7a2d",
+        )
+        literal_backslash_n = hashlib.sha256(
+            ("\\\\n".join(sorted(
+                repo.split("/", 1)[1]
+                for repo in self.registry["owner_repository_snapshot"]
+            )) + "\\\\n").encode("utf-8")
+        ).hexdigest()
+        self.assertNotEqual(digest, literal_backslash_n)
 
     def test_project_runner_is_coordination_source_not_control_source(self):
         rows = {row["repository"]: row for row in self.registry["repository_sources"]}

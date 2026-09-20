@@ -1,9 +1,49 @@
 from __future__ import annotations
 
-from typing import Any, Mapping
+import hashlib
+from typing import Any, Iterable, Mapping
 
 
 ROUTE_BINDING_STATUSES = {"VERIFIED_EXACT", "UNRESOLVED", "CONFLICT"}
+
+
+def repository_name_census_digest(repositories: Iterable[str]) -> str:
+    """Canonical Discovery-compatible digest over repository names.
+
+    This is a source-level canonicalization helper. It does not establish that
+    the supplied inventory is live or complete; callers must bind that
+    separately.
+    """
+    values = list(repositories)
+    if not values or any(type(value) is not str or "/" not in value for value in values):
+        raise ValueError("repository inventory must contain owner/name strings")
+    if len(values) != len(set(values)):
+        raise ValueError("repository inventory contains duplicates")
+    names = sorted(value.split("/", 1)[1] for value in values)
+    payload = ("\n".join(names) + "\n").encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def evaluate_portfolio_census_currentness(
+    binding: Mapping[str, Any],
+    observed_repositories: Iterable[str],
+) -> dict[str, Any]:
+    """Compare an immutable Discovery census to one separately observed inventory."""
+    observed = list(observed_repositories)
+    observed_digest = repository_name_census_digest(observed)
+    bound_count = binding.get("total_count")
+    bound_digest = binding.get("all_names_sha256")
+    exact = bound_count == len(observed) and bound_digest == observed_digest
+    return {
+        "status": "EXACT_CENSUS_DIGEST_MATCH" if exact else "DRIFT_DETECTED_DISCOVERY_CENSUS_STALE",
+        "bound_discovery_count": bound_count,
+        "bound_discovery_digest": bound_digest,
+        "observed_owner_count": len(observed),
+        "observed_owner_digest": observed_digest,
+        "current_census_matches_bound": exact,
+        "historical_binding_preserved": True,
+        "authority_ceiling": "CENSUS_CURRENTNESS_EVIDENCE_ONLY_NOT_CONTROL_OR_RUNTIME_AUTHORITY",
+    }
 
 
 def validate_source_registry(registry: Mapping[str, Any]) -> tuple[str, ...]:
@@ -78,6 +118,43 @@ def validate_source_registry(registry: Mapping[str, Any]) -> tuple[str, ...]:
         missing = sorted(snapshot - classified)
         extra = sorted(classified - snapshot)
         errors.append(f"repository snapshot classification mismatch: missing={missing!r} extra={extra!r}")
+
+    discovery_binding = registry.get("portfolio_discovery_binding")
+    if not isinstance(discovery_binding, Mapping):
+        errors.append("portfolio_discovery_binding must be an object")
+    elif snapshot:
+        try:
+            snapshot_digest = repository_name_census_digest(snapshot_raw)
+        except ValueError as exc:
+            errors.append(f"owner repository snapshot digest invalid: {exc}")
+        else:
+            current = discovery_binding.get("current_reverification")
+            if not isinstance(current, Mapping):
+                errors.append("portfolio_discovery_binding.current_reverification must be an object")
+            else:
+                declared_count = current.get("authenticated_owner_inventory_count")
+                declared_digest = current.get("recomputed_all_names_sha256")
+                if declared_count != len(snapshot):
+                    errors.append(
+                        "portfolio discovery current owner count does not match registry snapshot"
+                    )
+                if declared_digest != snapshot_digest:
+                    errors.append(
+                        "portfolio discovery current owner digest does not match registry snapshot"
+                    )
+                exact = (
+                    discovery_binding.get("total_count") == len(snapshot)
+                    and discovery_binding.get("all_names_sha256") == snapshot_digest
+                )
+                expected_classification = (
+                    "EXACT_CENSUS_DIGEST_MATCH"
+                    if exact
+                    else "DRIFT_DETECTED_DISCOVERY_CENSUS_STALE"
+                )
+                if current.get("classification") != expected_classification:
+                    errors.append(
+                        "portfolio discovery currentness classification disagrees with bound-vs-observed census"
+                    )
 
     control_rows = [
         row for row in source_rows

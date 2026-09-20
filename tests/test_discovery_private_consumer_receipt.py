@@ -12,6 +12,7 @@ RECEIPT = (
     / "discovery_attestations"
     / "PORTFOLIO_CENSUS_CONSUMER_V1.json"
 )
+REGISTRY = ROOT / "architecture" / "VERA_RUNTIME_SOURCE_REGISTRY_V1.json"
 
 
 def canonical(value) -> bytes:
@@ -68,6 +69,17 @@ def test_private_receipt_binds_exact_discovery_census_without_promoting_authorit
     assert core["authority_ceiling"] == (
         "DISCOVERY_CENSUS_DRIFT_INPUT_ONLY_NOT_CONTROL_NOT_RUNTIME_REGISTRY"
     )
+
+
+def test_historical_private_receipt_does_not_claim_live_owner_currentness():
+    receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))
+    registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
+
+    assert receipt["receipt_core"]["verification"]["authenticated_owner_inventory_count"] == 57
+    current = registry["portfolio_discovery_binding"]["current_reverification"]
+    assert current["authenticated_owner_inventory_count"] == 58
+    assert current["classification"] == "DRIFT_DETECTED_DISCOVERY_CENSUS_STALE"
+    assert receipt["receipt_core"]["discovery_census"]["all_names_sha256"] != current["recomputed_all_names_sha256"]
 
 
 def test_public_surface_excludes_private_preimages():

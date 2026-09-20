@@ -6,9 +6,9 @@ This snapshot exists to keep Vera's user-facing/runtime reasoning separate from 
 
 ## GitHub inventory
 
-Authenticated owner inventory observed through the GitHub connector: **57 repositories**.
+Authenticated owner inventory observed through the GitHub connector: **58 repositories**.
 
-The previous `VERA_RUNTIME_SOURCE_REGISTRY_V1` snapshot contained 41 repositories and was observed on 2026-09-09. This update classifies all 57 repositories so discovery cannot silently omit newer projects.
+The previous `VERA_RUNTIME_SOURCE_REGISTRY_V1` snapshot contained 41 repositories and was observed on 2026-09-09. The earlier 2026-09-20 source cut classified 57 repositories. A later authenticated owner readback found one additional repository, `god-brain`; this successor classifies all 58 so the private registry cannot silently preserve a stale census as current.
 
 Newly classified conditional/evidence sources include:
 - `bt2`
@@ -29,6 +29,7 @@ Newly explicit `NO_AUTO_BIND` repositories include:
 - `on-theo`
 - `firesafe`
 - `testament`
+- `god-brain` — separate speculative cognitive-architecture research; portfolio synthesis does not bind it into Vera identity, memory, control, provider state, or runtime
 
 Classification is retrieval/coordination metadata only. It does not activate a repository or transfer identity, memory, preference, consent, authority, or runtime state.
 
@@ -45,7 +46,9 @@ Exact source candidate:
 - all-name digest: `43dfda1fa3dd24dec39e2aa345d93ab192dbda777433feae384da632b3d008dd`
 - exact-head Discovery workflow run `35475731990`: SUCCESS
 
-A fresh authenticated GitHub owner census on 2026-09-20 recomputes the same 57-name digest exactly. Vera can therefore use Discovery's census digest as a drift detector while keeping the full private repository names in Vera's private registry.
+That 57-repository Discovery subject remains valid historical/source evidence at its exact head and blob. It is **not current anymore**: a later authenticated GitHub owner readback on 2026-09-20 found 58 repositories after `god-brain` was created. The live 58-name digest is `c854d8891e87272f7bc1bb6530aedc339581a51a6be6026efb087c6be08e7a2d`, so the old Discovery census is now classified `DRIFT_DETECTED_DISCOVERY_CENSUS_STALE`.
+
+This is the intended use of the census as a drift detector: the old receipt is not rewritten merely because mutable owner inventory changed. Frozen-source validity and live-owner-census currentness are separate propositions.
 
 This does **not** make Discovery the source of Vera identity, control, current self-state, runtime state, provider authority, or adoption decisions. Discovery remains an experimental meta-layer whose own rule is that reuse must earn itself through real consumers and hostile review.
 
