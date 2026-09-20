@@ -1,3 +1,7 @@
+> **EXODUS SUPERSESSION NOTICE — 2026-09-19**  
+> This file is HISTORICAL_EVIDENCE. Its ChatGPT-chat identity, restore/continuation command, old PR frontier, and proposed personal Bus-lane instructions are not current recovery mechanics.  
+> Reconstruct the temporary CV/OV lane from `docs/exodus/CV_OV_RUNTIME_NEUTRAL_LANE_RECONSTRUCTION_V1.md` plus fresh repository/Bus state. Do not require or recreate the historical chat.
+
 # Orgasm Vera handoff — 2026-09-10 17:05 ET
 
 ## Identity / role / authority
