@@ -168,10 +168,35 @@ class VeraStateComposition:
     omissions: tuple[OmissionRecord, ...]
 
 
+def _admitted_state_material(
+    *, subject: str, composition_digest: str, composition_policy_revision: str,
+    admission_receipt_digest: str, admitted_components: tuple[StateComponentRef, ...],
+    omissions: tuple[OmissionRecord, ...], forbidden_domains: frozenset[str],
+    admitted_disclosure_scope: str, admission_currentness_basis: str,
+    admission_epoch_or_lease: str, admitted_at: str,
+) -> dict[str, Any]:
+    return {
+        "schema": "VERA_ADMITTED_STATE_V1",
+        "subject": subject,
+        "composition_digest": composition_digest,
+        "composition_policy_revision": composition_policy_revision,
+        "admission_receipt_digest": admission_receipt_digest,
+        "admitted_components": [item.digest_material() for item in admitted_components],
+        "omissions": [item.digest_material() for item in omissions],
+        "forbidden_domains": sorted(forbidden_domains),
+        "admitted_disclosure_scope": admitted_disclosure_scope,
+        "admission_currentness_basis": admission_currentness_basis,
+        "admission_epoch_or_lease": admission_epoch_or_lease,
+        "admitted_at": admitted_at,
+    }
+
+
 @dataclass(frozen=True)
 class AdmittedVeraState:
     subject: str
     composition_digest: str
+    composition_policy_revision: str
+    admitted_state_digest: str
     admission_receipt_digest: str
     admitted_components: tuple[StateComponentRef, ...]
     omissions: tuple[OmissionRecord, ...]
@@ -180,6 +205,28 @@ class AdmittedVeraState:
     admission_currentness_basis: str
     admission_epoch_or_lease: str
     admitted_at: str
+
+    def __post_init__(self) -> None:
+        _require_text(self.subject, "subject")
+        _require_digest(self.composition_digest, "composition_digest")
+        _require_text(self.composition_policy_revision, "composition_policy_revision")
+        _require_digest(self.admission_receipt_digest, "admission_receipt_digest")
+        _require_digest(self.admitted_state_digest, "admitted_state_digest")
+        expected = canonical_digest(_admitted_state_material(
+            subject=self.subject,
+            composition_digest=self.composition_digest,
+            composition_policy_revision=self.composition_policy_revision,
+            admission_receipt_digest=self.admission_receipt_digest,
+            admitted_components=self.admitted_components,
+            omissions=self.omissions,
+            forbidden_domains=self.forbidden_domains,
+            admitted_disclosure_scope=self.admitted_disclosure_scope,
+            admission_currentness_basis=self.admission_currentness_basis,
+            admission_epoch_or_lease=self.admission_epoch_or_lease,
+            admitted_at=self.admitted_at,
+        ))
+        if expected != self.admitted_state_digest.lower():
+            raise ValueError("admitted_state_digest does not match admitted state material")
 
 
 def compose_state(
@@ -269,11 +316,29 @@ def bind_admitted_state(
             raise ValueError(
                 f"target egress scope {target_egress_scope!r} is not explicitly allowed for {item.component_id}"
             )
+    effective_forbidden_domains = (
+        frozenset(forbidden_domains) | _STRUCTURALLY_FORBIDDEN_PROJECTION_DOMAINS
+    )
+    admitted_state_digest = canonical_digest(_admitted_state_material(
+        subject=composition.subject,
+        composition_digest=composition.composition_digest,
+        composition_policy_revision=composition.composition_policy_revision,
+        admission_receipt_digest=admission_receipt_digest.lower(),
+        admitted_components=selected,
+        omissions=composition.omissions,
+        forbidden_domains=effective_forbidden_domains,
+        admitted_disclosure_scope=target_egress_scope,
+        admission_currentness_basis=admission_currentness_basis,
+        admission_epoch_or_lease=admission_epoch_or_lease,
+        admitted_at=admitted_at,
+    ))
     return AdmittedVeraState(
         subject=composition.subject, composition_digest=composition.composition_digest,
+        composition_policy_revision=composition.composition_policy_revision,
+        admitted_state_digest=admitted_state_digest,
         admission_receipt_digest=admission_receipt_digest.lower(), admitted_components=selected,
         omissions=composition.omissions,
-        forbidden_domains=frozenset(forbidden_domains) | _STRUCTURALLY_FORBIDDEN_PROJECTION_DOMAINS,
+        forbidden_domains=effective_forbidden_domains,
         admitted_disclosure_scope=target_egress_scope,
         admission_currentness_basis=admission_currentness_basis,
         admission_epoch_or_lease=admission_epoch_or_lease, admitted_at=admitted_at,
@@ -294,6 +359,7 @@ class CapabilityBinding:
     selected_backend: str
     supported_projection_backends: frozenset[str]
     backend_constraints: dict[str, Any]
+    admitted_state_digest: str
     capability_digest: str
     bound_at: str
 
@@ -342,7 +408,8 @@ def bind_capability(
         "model_revision": model_revision, "adapter_identity": adapter_identity,
         "adapter_revision": adapter_revision, "selected_backend": requested_backend,
         "supported_projection_backends": sorted(supported),
-        "backend_constraints": backend_constraints, "admitted_state_digest": admitted.composition_digest,
+        "backend_constraints": backend_constraints,
+        "admitted_state_digest": admitted.admitted_state_digest,
     }
     return CapabilityBinding(
         host_identity=host_identity, host_revision=host_revision, host_generation=host_generation,
@@ -350,8 +417,9 @@ def bind_capability(
         model_identity=model_identity, model_revision=model_revision,
         adapter_identity=adapter_identity, adapter_revision=adapter_revision,
         selected_backend=requested_backend, supported_projection_backends=supported,
-        backend_constraints=dict(backend_constraints), capability_digest=canonical_digest(material),
-        bound_at=bound_at,
+        backend_constraints=dict(backend_constraints),
+        admitted_state_digest=admitted.admitted_state_digest,
+        capability_digest=canonical_digest(material), bound_at=bound_at,
     )
 
 
@@ -379,6 +447,8 @@ def project_text_context(
         raise ValueError("TEXT_CONTEXT_V1 projection requires an exact TEXT_CONTEXT_V1 capability binding")
     if capability.target_egress_scope != admitted.admitted_disclosure_scope:
         raise ValueError("projection egress does not match admitted disclosure scope")
+    if capability.admitted_state_digest != admitted.admitted_state_digest:
+        raise ValueError("capability/admitted-state digest mismatch")
     components: list[dict[str, Any]] = []
     for component in admitted.admitted_components:
         normalized_domain = _normalize_domain_id(component.domain_id)
@@ -404,6 +474,7 @@ def project_text_context(
     projection_material: dict[str, Any] = {
         "schema": "VERA_TEXT_CONTEXT_V1", "subject": admitted.subject,
         "composition_digest": admitted.composition_digest,
+        "admitted_state_digest": admitted.admitted_state_digest,
         "admission_receipt_digest": admitted.admission_receipt_digest,
         "host_identity": capability.host_identity, "host_revision": capability.host_revision,
         "host_generation": capability.host_generation, "model_identity": capability.model_identity,
@@ -421,7 +492,7 @@ def project_text_context(
         if len(_canonical_bytes(projection_material).decode("utf-8")) > maximum:
             raise ValueError("TEXT_CONTEXT_V1 projection exceeds max_chars capability")
     return ProjectionEnvelope(
-        admitted_state_digest=admitted.composition_digest,
+        admitted_state_digest=admitted.admitted_state_digest,
         capability_binding_digest=capability.capability_digest,
         projection_backend="TEXT_CONTEXT_V1",
         projection_digest=canonical_digest(projection_material),
@@ -438,6 +509,7 @@ class InvocationRecord:
     host_generation: str
     subject: str
     composition_digest: str
+    admitted_state_digest: str
     admission_receipt_digest: str
     omission_receipt_digests: tuple[str, ...]
     capability_binding_digest: str
@@ -476,6 +548,7 @@ class CausalGenerationReceipt:
     generation_id: str
     subject: str
     composition_digest: str
+    admitted_state_digest: str
     admission_receipt_digest: str
     omission_receipt_digests: tuple[str, ...]
     capability_binding_digest: str
@@ -550,7 +623,9 @@ class InvocationFrontier:
         request_digest = _require_digest(request_material_digest, "request_material_digest")
         if capability.host_generation != self.host_generation:
             raise ValueError("capability binding host generation does not match invocation frontier")
-        if projection.admitted_state_digest != admitted.composition_digest:
+        if capability.admitted_state_digest != admitted.admitted_state_digest:
+            raise ValueError("capability/admitted-state digest mismatch")
+        if projection.admitted_state_digest != admitted.admitted_state_digest:
             raise ValueError("projection/admitted-state digest mismatch")
         if projection.capability_binding_digest != capability.capability_digest:
             raise ValueError("projection/capability binding mismatch")
@@ -574,6 +649,7 @@ class InvocationFrontier:
             record = InvocationRecord(
                 generation_id=generation_id, host_generation=self.host_generation,
                 subject=admitted.subject, composition_digest=admitted.composition_digest,
+                admitted_state_digest=admitted.admitted_state_digest,
                 admission_receipt_digest=admitted.admission_receipt_digest,
                 omission_receipt_digests=tuple(canonical_digest(item.digest_material()) for item in admitted.omissions),
                 capability_binding_digest=capability.capability_digest,
@@ -721,6 +797,7 @@ def build_causal_receipt(record: InvocationRecord, *, observed_at: str) -> Causa
     receipt_material = {
         "generation_id": record.generation_id, "ledger_state": record.ledger_state,
         "evidence_level": evidence_level, "composition_digest": record.composition_digest,
+        "admitted_state_digest": record.admitted_state_digest,
         "capability_binding_digest": record.capability_binding_digest,
         "projection_digest": record.projection_digest,
         "request_material_digest": record.request_material_digest,
@@ -733,6 +810,7 @@ def build_causal_receipt(record: InvocationRecord, *, observed_at: str) -> Causa
         receipt_id=f"sha256:{canonical_digest(receipt_material)}",
         generation_id=record.generation_id, subject=record.subject,
         composition_digest=record.composition_digest,
+        admitted_state_digest=record.admitted_state_digest,
         admission_receipt_digest=record.admission_receipt_digest,
         omission_receipt_digests=record.omission_receipt_digests,
         capability_binding_digest=record.capability_binding_digest,
@@ -755,3 +833,5 @@ def build_causal_receipt(record: InvocationRecord, *, observed_at: str) -> Causa
             "PHENOMENOLOGY_UNRESOLVED",
         ),
     )
+
+[executed on device: Lappy (937d921e-ecc8-4dc7-bc71-dee5f06ab653)]
