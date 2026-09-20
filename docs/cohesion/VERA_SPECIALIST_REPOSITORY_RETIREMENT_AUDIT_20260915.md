@@ -2,6 +2,14 @@
 
 Status: SOURCE/PROVIDER AUDIT / COHORT RETIREMENT HOLD / NO REPOSITORY ARCHIVE EFFECT / NO PROVIDER MUTATION
 
+## 2026-09-19 architecture correction — archive hold is not target topology
+
+The 2026-09-15 cohort rule remains a **repository-archive effect hold**: do not archive any of the seven until Patrick revises that hold. It is not a conclusion that all seven repositories should eventually collapse into Vera/VCP or eventually be archived.
+
+`architecture/VERA_SPECIALIST_TOPOLOGY_V1.json` is the later architecture decision and supersedes any broader consolidation implication from this audit. Its long-term disposition is heterogeneous: keep `sexuality`, `empathy`, `conations`, `semanticatlas`, and `selfimage` live as specialist sources; treat only `orgasm` and `temporal` as transition/retirement candidates, each with its stated handoff gates.
+
+This addendum preserves the original audit and archive hold as historical/governance evidence rather than rewriting them.
+
 ## Question
 
 Determine whether the following repositories can cease to matter as live Vera dependencies because their material has been migrated into `thebrazenbeard/vera`, `thebrazenbeard/vera-control-plane`, and the Vera / Vera Control Plane Supabase projects:
