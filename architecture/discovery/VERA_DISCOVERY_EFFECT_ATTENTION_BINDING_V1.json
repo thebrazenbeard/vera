@@ -1,0 +1,61 @@
+{
+  "schema": "VERA_DISCOVERY_EFFECT_ATTENTION_BINDING_V1",
+  "status": "SOURCE_EXPERIMENT / COORDINATION_OBSERVATION_ONLY / NOT_RUNTIME_ACTIVATED",
+  "vera_base": {
+    "repository": "thebrazenbeard/vera",
+    "pull_request": 136,
+    "exact_head": "18a6b9293082def88d6c71b3e8a6d0822fa1c046"
+  },
+  "discovery_contract": {
+    "repository": "thebrazenbeard/discovery",
+    "pull_request": 12,
+    "exact_head": "bf0fc4fb96e27a65da8d26293c29ebeeffc10b64",
+    "path": "schemas/effect_attempt_envelope_v0.schema.json",
+    "git_blob_sha1": "b5d85ba31a33ad7192fd4a08934628a72e593312",
+    "vendored_path": "architecture/discovery/effect_attempt_envelope_v0.schema.json",
+    "semantics": "EXPERIMENTAL_INTERCHANGE_ONLY_NOT_RUNTIME_AUTHORITY"
+  },
+  "qualified_producers": [
+    {
+      "producer": "project-runner",
+      "repository": "thebrazenbeard/project-runner",
+      "pull_request": 24,
+      "exact_head": "a32dc6987145c826d9ff3afe4b21eb95b1801ba9",
+      "hosted_run_id": 35512057107,
+      "conclusion": "SUCCESS"
+    },
+    {
+      "producer": "wip",
+      "repository": "thebrazenbeard/wip",
+      "pull_request": 2,
+      "exact_head": "b53075e44b35704ff8e20cbcf87888359f8a80ee",
+      "hosted_run_id": 35511962748,
+      "conclusion": "SUCCESS"
+    },
+    {
+      "producer": "driftguard",
+      "repository": "thebrazenbeard/driftguard",
+      "pull_request": 4,
+      "exact_head": "976f50ca391560d16ebcdcfe478df28b1cd1efca",
+      "hosted_run_id": 35510133549,
+      "conclusion": "SUCCESS_UBUNTU_AND_WINDOWS"
+    }
+  ],
+  "observer": {
+    "implementation": "runtime_cohesion.effect_attention.build_effect_attention_view",
+    "operational_role": "READ_ONLY_COORDINATION_ATTENTION_VIEW",
+    "imports_into_runtime_cohesion_init": false,
+    "source_system_branching": "FORBIDDEN",
+    "source_state_interpretation": "FORBIDDEN",
+    "producer_latest_selection": "PRODUCER_OWNED"
+  },
+  "forbidden_promotions": [
+    "ATTENTION_VIEW_TO_EXECUTION_AUTHORITY",
+    "ATTENTION_VIEW_TO_RETRY_AUTHORITY",
+    "ATTENTION_VIEW_TO_CONTROL_AUTHORITY",
+    "ATTENTION_VIEW_TO_RUNTIME_STATE",
+    "DISCOVERY_CONTRACT_TO_VERA_IDENTITY_OR_MEMORY",
+    "PRODUCER_RECEIPT_TO_VERA_SELF_STATE"
+  ],
+  "claim_ceiling": "SECOND_INDEPENDENT_OBSERVER_EXPERIMENT_ONLY_NOT_PROVEN_REUSABLE"
+}
