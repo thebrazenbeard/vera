@@ -8,6 +8,7 @@ import tempfile
 import unittest
 
 from runtime_cohesion.effect_attention import (
+    EffectAttentionContract,
     build_effect_attention_view,
     load_effect_attention_contract,
     validate_effect_envelope,
@@ -75,6 +76,9 @@ class VeraEffectAttentionObserverTests(unittest.TestCase):
             committed_git_blob(SCHEMA),
             "b5d85ba31a33ad7192fd4a08934628a72e593312",
         )
+
+    def test_public_contract_type_has_no_schema_bypass_constructor(self):
+        self.assertFalse(hasattr(EffectAttentionContract, "from_schema"))
 
     def test_loader_accepts_byte_exact_schema_copy(self):
         with tempfile.TemporaryDirectory() as directory:
