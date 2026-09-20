@@ -23,28 +23,29 @@ class EffectAttentionContract:
     receipt_required: frozenset[str]
     receipt_allowed: frozenset[str]
 
-    @classmethod
-    def from_schema(cls, schema: dict[str, Any]) -> "EffectAttentionContract":
-        if schema.get("title") != "Discovery Effect Attempt Envelope V0":
-            raise ValueError("unexpected effect-envelope schema title")
-        props = schema["properties"]
-        target = props["target"]
-        receipt = props["receipts"]["items"]
-        return cls(
-            required_fields=frozenset(schema["required"]),
-            allowed_fields=frozenset(props),
-            phases=frozenset(props["normalized_phase"]["enum"]),
-            retry_dispositions=frozenset(props["retry_disposition"]["enum"]),
-            target_required=frozenset(target["required"]),
-            target_allowed=frozenset(target["properties"]),
-            receipt_required=frozenset(receipt["required"]),
-            receipt_allowed=frozenset(receipt["properties"]),
-        )
-
-
 def _git_blob_sha1(payload: bytes) -> str:
     header = f"blob {len(payload)}\0".encode("ascii")
     return hashlib.sha1(header + payload).hexdigest()
+
+
+def _contract_from_bound_schema(schema: dict[str, Any]) -> EffectAttentionContract:
+    """Derive the value object only after exact schema bytes have been bound."""
+
+    if schema.get("title") != "Discovery Effect Attempt Envelope V0":
+        raise ValueError("unexpected effect-envelope schema title")
+    props = schema["properties"]
+    target = props["target"]
+    receipt = props["receipts"]["items"]
+    return EffectAttentionContract(
+        required_fields=frozenset(schema["required"]),
+        allowed_fields=frozenset(props),
+        phases=frozenset(props["normalized_phase"]["enum"]),
+        retry_dispositions=frozenset(props["retry_disposition"]["enum"]),
+        target_required=frozenset(target["required"]),
+        target_allowed=frozenset(target["properties"]),
+        receipt_required=frozenset(receipt["required"]),
+        receipt_allowed=frozenset(receipt["properties"]),
+    )
 
 
 def load_effect_attention_contract(path: str | Path) -> EffectAttentionContract:
@@ -58,7 +59,7 @@ def load_effect_attention_contract(path: str | Path) -> EffectAttentionContract:
     value = json.loads(raw.decode("utf-8"))
     if type(value) is not dict:
         raise ValueError("effect-envelope schema must be a JSON object")
-    return EffectAttentionContract.from_schema(value)
+    return _contract_from_bound_schema(value)
 
 
 def _exact_keys(
