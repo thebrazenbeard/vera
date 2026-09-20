@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import hashlib
 import json
 from pathlib import Path
+import subprocess
 import unittest
 
 from runtime_cohesion.effect_attention import (
@@ -19,8 +19,14 @@ MODULE = ROOT / "runtime_cohesion" / "effect_attention.py"
 INIT = ROOT / "runtime_cohesion" / "__init__.py"
 
 
-def git_blob_sha1(raw: bytes) -> str:
-    return hashlib.sha1(f"blob {len(raw)}\0".encode("ascii") + raw).hexdigest()
+def committed_git_blob(path: Path) -> str:
+    rel = path.relative_to(ROOT).as_posix()
+    return subprocess.run(
+        ["git", "-C", str(ROOT), "rev-parse", f"HEAD:{rel}"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
 
 
 def envelope(source: str, operation: str, phase: str, retry: str) -> dict:
@@ -49,7 +55,7 @@ class VeraEffectAttentionObserverTests(unittest.TestCase):
 
     def test_vendored_schema_is_exact_discovery_v0_blob(self):
         self.assertEqual(
-            git_blob_sha1(SCHEMA.read_bytes()),
+            committed_git_blob(SCHEMA),
             "b5d85ba31a33ad7192fd4a08934628a72e593312",
         )
 
