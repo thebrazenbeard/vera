@@ -30,12 +30,25 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
         self.assertIn("thebrazenbeard/vera", snapshot)
         self.assertIn("thebrazenbeard/hc-brain", snapshot)
         self.assertIn("thebrazenbeard/brigit", snapshot)
+        self.assertEqual(len(snapshot), 57)
+        self.assertIn("thebrazenbeard/project-runner", snapshot)
+        self.assertIn("thebrazenbeard/bt2", snapshot)
+        self.assertIn("thebrazenbeard/orgasm", snapshot)
+        self.assertIn("thebrazenbeard/discovery", snapshot)
 
     def test_only_exact_r10_control_source_may_claim_control_role(self):
         control_rows = [row for row in self.registry["repository_sources"] if row["runtime_role"] == "CURRENT_CONTROL_SOURCE"]
         self.assertEqual([row["repository"] for row in control_rows], ["thebrazenbeard/vera-control-plane"])
         self.assertEqual(control_rows[0]["activation_mode"], "EXACT_R10_CONTROL_LOAD")
         self.assertFalse(control_rows[0]["availability_implies_activation"])
+
+    def test_project_runner_is_coordination_source_not_control_source(self):
+        rows = {row["repository"]: row for row in self.registry["repository_sources"]}
+        runner = rows["thebrazenbeard/project-runner"]
+        self.assertEqual(runner["runtime_role"], "PORTFOLIO_COORDINATION_SOURCE")
+        self.assertEqual(runner["activation_mode"], "CURRENT_TASK_COORDINATION_ONLY")
+        self.assertNotIn("CONTROL_SOURCE", runner["runtime_role"])
+        self.assertFalse(runner["availability_implies_activation"])
 
     def test_identity_and_generic_template_sources_do_not_auto_bind(self):
         rows = {row["repository"]: row for row in self.registry["unbound_repositories"]}
@@ -71,6 +84,19 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
         self.assertEqual(supabase["activation_mode"], "PROVIDER_READBACK_ONLY")
         self.assertFalse(supabase["availability_implies_activation"])
         self.assertTrue({"public", "radar", "semantic_atlas", "redworm", "build_team_2", "bug_ops"}.issubset(set(supabase["registered_schemas"])))
+
+    def test_vera_control_plane_supabase_is_registered_without_activation(self):
+        vcp = self.registry["provider_sources"]["supabase_vera_control_plane"]
+        self.assertEqual(vcp["project_id"], "fawkirqroyniueeqspif")
+        self.assertEqual(vcp["activation_mode"], "PROVIDER_READBACK_ONLY")
+        self.assertFalse(vcp["availability_implies_activation"])
+        self.assertIn("vera_cp_anchor", vcp["registered_schemas"])
+        self.assertEqual(
+            set(vcp["registered_surfaces"]["vera_cp_anchor"]),
+            {"sd1_causal_frontiers", "sd1_causal_mutation_receipts"},
+        )
+        self.assertEqual(vcp["observed_state"]["sd1_anchor_generation"], 0)
+        self.assertEqual(vcp["observed_state"]["sd1_mutation_receipts"], 0)
 
     def test_registered_supabase_surfaces_match_fresh_provider_readback(self):
         surfaces = self.registry["provider_sources"]["supabase_vera"]["registered_surfaces"]
