@@ -354,10 +354,10 @@
     },
     {
       "repository": "thebrazenbeard/discovery",
-      "runtime_role": "PORTFOLIO_EXPERIMENT_SOURCE",
+      "runtime_role": "PORTFOLIO_DISCOVERY_META_SOURCE",
       "activation_mode": "EVIDENCE_ONLY",
-      "authority_ceiling": "Cross-project discovery/experiment evidence only; discoverability is not coupling, authority, installation, or runtime activation.",
-      "privacy_class": "GOVERNED",
+      "authority_ceiling": "Portfolio census, relationship hypotheses, reuse/deduplication experiments, and drift evidence only; Discovery does not own project semantics, control, runtime activation, or adoption authority.",
+      "privacy_class": "PUBLIC_SAFE_META_EVIDENCE",
       "availability_implies_activation": false
     }
   ],
@@ -676,5 +676,28 @@
     "generic_template_firewall": "Generic architecture templates may inform engineering design but never become Vera identity/current-state evidence by template proximity.",
     "provider_currentness": "Mutable provider claims require fresh exact readback and conflict/supersession resolution; newest timestamp is not a resolver.",
     "actual_item_typing": "Returned provider items are typed from their own content/provenance/receipt/currentness, not from provider capability or file/table name."
+  },
+  "portfolio_discovery_binding": {
+    "repository": "thebrazenbeard/discovery",
+    "pr": 1,
+    "branch": "vera/discovery-shared-substrate-v1",
+    "exact_head": "1316094edbed17fa5918b70793c95ffddfcf92ea",
+    "census_path": "portfolio/PORTFOLIO_CENSUS_V1.json",
+    "census_git_blob": "34cd2ab55d46f5a1ecc2c894f3e8cfdb8afa41df",
+    "observed_date": "2026-09-19",
+    "total_count": 57,
+    "all_names_sha256": "43dfda1fa3dd24dec39e2aa345d93ab192dbda777433feae384da632b3d008dd",
+    "current_reverification": {
+      "observed_date": "2026-09-20",
+      "authenticated_owner_inventory_count": 57,
+      "recomputed_all_names_sha256": "43dfda1fa3dd24dec39e2aa345d93ab192dbda777433feae384da632b3d008dd",
+      "classification": "EXACT_CENSUS_DIGEST_MATCH"
+    },
+    "validation": {
+      "workflow_run_id": 35475731990,
+      "conclusion": "SUCCESS"
+    },
+    "semantics": "DISCOVERY_IS_PRIVACY_SAFE_DRIFT_AND_REUSE_EVIDENCE_NOT_PORTFOLIO_AUTHORITY",
+    "promotion_guard": "A matching inventory digest establishes exact repository-name census continuity only. Discovery hypotheses, lifecycle labels, reuse candidates, or source validation do not grant Vera control, provider, runtime, merge, install, or adoption authority."
   }
 }
