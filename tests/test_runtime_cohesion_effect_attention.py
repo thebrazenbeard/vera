@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import copy
 import json
 from pathlib import Path
 import subprocess
+import tempfile
 import unittest
 
 from runtime_cohesion.effect_attention import (
@@ -53,11 +55,58 @@ class VeraEffectAttentionObserverTests(unittest.TestCase):
     def contract(self):
         return load_effect_attention_contract(SCHEMA)
 
+    def substituted_schema_path(self, mutator) -> Path:
+        value = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        mutator(value)
+        tmp = tempfile.NamedTemporaryFile(
+            "w",
+            encoding="utf-8",
+            suffix=".json",
+            delete=False,
+        )
+        with tmp:
+            json.dump(value, tmp, indent=2, sort_keys=True)
+            tmp.write("\n")
+        self.addCleanup(Path(tmp.name).unlink, missing_ok=True)
+        return Path(tmp.name)
+
     def test_vendored_schema_is_exact_discovery_v0_blob(self):
         self.assertEqual(
             committed_git_blob(SCHEMA),
             "b5d85ba31a33ad7192fd4a08934628a72e593312",
         )
+
+    def test_loader_accepts_byte_exact_schema_copy(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "schema.json"
+            path.write_bytes(SCHEMA.read_bytes())
+            contract = load_effect_attention_contract(path)
+            self.assertIn("OUTCOME_UNKNOWN", contract.phases)
+
+    def test_loader_rejects_same_title_widened_phase_schema(self):
+        path = self.substituted_schema_path(
+            lambda value: value["properties"]["normalized_phase"]["enum"].append(
+                "EVALUATOR_EXPECTS_SUCCESS"
+            )
+        )
+        with self.assertRaisesRegex(ValueError, "exact Discovery V0 Git blob"):
+            load_effect_attention_contract(path)
+
+    def test_loader_rejects_same_title_extra_envelope_field(self):
+        def mutate(value):
+            value["properties"]["target_hint"] = {"type": "string"}
+
+        path = self.substituted_schema_path(mutate)
+        with self.assertRaisesRegex(ValueError, "exact Discovery V0 Git blob"):
+            load_effect_attention_contract(path)
+
+    def test_loader_rejects_same_title_weakened_nested_target_shape(self):
+        def mutate(value):
+            value["properties"]["target"]["additionalProperties"] = True
+
+        path = self.substituted_schema_path(mutate)
+        with self.assertRaisesRegex(ValueError, "exact Discovery V0 Git blob"):
+            load_effect_attention_contract(path)
 
     def test_second_observer_handles_three_producers_without_source_branching(self):
         report = build_effect_attention_view(
@@ -128,7 +177,7 @@ class VeraEffectAttentionObserverTests(unittest.TestCase):
         init_source = INIT.read_text(encoding="utf-8")
         self.assertNotIn("effect_attention", init_source)
 
-    def test_binding_is_observational_and_non_control(self):
+    def test_binding_is_observational_non_control_and_exact_schema_bound(self):
         binding = json.loads(BINDING.read_text(encoding="utf-8"))
         self.assertEqual(
             binding["observer"]["operational_role"],
@@ -140,6 +189,13 @@ class VeraEffectAttentionObserverTests(unittest.TestCase):
             binding["forbidden_promotions"],
         )
         self.assertTrue(binding["claim_ceiling"].endswith("NOT_PROVEN_REUSABLE"))
+        self.assertTrue(
+            binding["discovery_contract"]["loader_exact_git_blob_required"]
+        )
+        self.assertEqual(
+            binding["discovery_contract"]["git_blob_sha1"],
+            "b5d85ba31a33ad7192fd4a08934628a72e593312",
+        )
 
     def test_report_contains_no_execution_directive(self):
         report = build_effect_attention_view(
