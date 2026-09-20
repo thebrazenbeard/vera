@@ -1,0 +1,59 @@
+{
+  "receipt_core": {
+    "schema": "DISCOVERY_PRIVATE_SECOND_OBSERVER_RECEIPT_V1",
+    "commitment_scheme": "SHA256_PRIVATE_NONCE_CANONICAL_V1",
+    "nonce_hex": "33813d156524b780fee92ebf3ee53b295ded23fe28cc14205d32bff263422a6b",
+    "observer_role": "SECOND_INDEPENDENT_EFFECT_ATTENTION_OBSERVER",
+    "subject": {
+      "repository": "thebrazenbeard/vera",
+      "ref": "work/discovery-effect-attention-observer-v1-20260920@ee1724d493d9d7f43b5f811e50d1c1ef31463166",
+      "implementation_path": "runtime_cohesion/effect_attention.py",
+      "implementation_blob_sha1": "c61d74ef611bca271e5f6327fdf098523901c334",
+      "test_path": "tests/test_runtime_cohesion_effect_attention.py",
+      "test_blob_sha1": "7486dd02e5b2b2c0c5465d7d38f25e4b96868e56"
+    },
+    "discovery_contract": {
+      "exact_head": "bf0fc4fb96e27a65da8d26293c29ebeeffc10b64",
+      "schema_blob_sha1": "b5d85ba31a33ad7192fd4a08934628a72e593312"
+    },
+    "verification": {
+      "hosted_ci": "NOT_EXECUTED",
+      "source_behavior_check": "PASS",
+      "source_system_branching": "ABSENT",
+      "unknown_future_source": "SUPPORTED_BY_SOURCE_TEST",
+      "runtime_import_surface": "NOT_EXPORTED"
+    },
+    "authority_ceiling": "OBSERVATIONAL_SOURCE_EXPERIMENT_ONLY_NOT_RUNTIME_NOT_CONTROL_NOT_RETRY_AUTHORITY"
+  },
+  "public_attestation": {
+    "opaque_handle": "PRIVATE_OPAQUE_18f99857cf7f2beb",
+    "schema": "DISCOVERY_PRIVATE_SUBJECT_ATTESTATION_V1",
+    "commitment_scheme": "SHA256_PRIVATE_NONCE_CANONICAL_V1",
+    "consumer_commitment_sha256": "18f99857cf7f2bebcbc94921c741784344d89e944bbcc8a8980a2ab7e7ba82ad",
+    "subject_commitment_sha256": "5ceed353b05144f9a754b747c9e34ff18829ac2de7aaf5b41f7493be10ecf31e",
+    "receipt_sha256": "ed2f5146620dfd5623b1caa805976afc414e2aad34aa7ac25510cee0a50b60e8",
+    "verifier_class": "PRIVATE_OWNER_REGISTRY",
+    "status": "EXACT_PRIVATE_SUBJECT_ATTESTED"
+  },
+  "privacy": {
+    "public_surface_may_publish": [
+      "public_attestation.opaque_handle",
+      "public_attestation.schema",
+      "public_attestation.commitment_scheme",
+      "public_attestation.consumer_commitment_sha256",
+      "public_attestation.subject_commitment_sha256",
+      "public_attestation.receipt_sha256",
+      "public_attestation.verifier_class",
+      "public_attestation.status"
+    ],
+    "public_surface_must_not_publish": [
+      "receipt_core.nonce_hex",
+      "receipt_core.subject.repository",
+      "receipt_core.subject.ref",
+      "receipt_core.subject.implementation_path",
+      "receipt_core.subject.implementation_blob_sha1",
+      "receipt_core.subject.test_path",
+      "receipt_core.subject.test_blob_sha1"
+    ]
+  }
+}
