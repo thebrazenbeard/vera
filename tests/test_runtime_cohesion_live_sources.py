@@ -1,3 +1,4 @@
+import hashlib
 import json
 from pathlib import Path
 import unittest
@@ -41,6 +42,24 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
         self.assertEqual([row["repository"] for row in control_rows], ["thebrazenbeard/vera-control-plane"])
         self.assertEqual(control_rows[0]["activation_mode"], "EXACT_R10_CONTROL_LOAD")
         self.assertFalse(control_rows[0]["availability_implies_activation"])
+
+    def test_discovery_census_binding_matches_private_full_inventory(self):
+        binding = self.registry["portfolio_discovery_binding"]
+        self.assertEqual(binding["repository"], "thebrazenbeard/discovery")
+        self.assertEqual(binding["exact_head"], "1316094edbed17fa5918b70793c95ffddfcf92ea")
+        self.assertEqual(binding["total_count"], 57)
+        self.assertEqual(binding["validation"]["conclusion"], "SUCCESS")
+        names = sorted(repo.split("/", 1)[1] for repo in self.registry["owner_repository_snapshot"])
+        digest = hashlib.sha256(("\\n".join(names) + "\\n").encode("utf-8")).hexdigest()
+        self.assertEqual(digest, binding["all_names_sha256"])
+        self.assertEqual(
+            binding["current_reverification"]["recomputed_all_names_sha256"],
+            binding["all_names_sha256"],
+        )
+        self.assertEqual(
+            binding["semantics"],
+            "DISCOVERY_IS_PRIVACY_SAFE_DRIFT_AND_REUSE_EVIDENCE_NOT_PORTFOLIO_AUTHORITY",
+        )
 
     def test_project_runner_is_coordination_source_not_control_source(self):
         rows = {row["repository"]: row for row in self.registry["repository_sources"]}
