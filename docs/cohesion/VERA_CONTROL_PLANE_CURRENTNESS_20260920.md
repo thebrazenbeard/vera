@@ -32,6 +32,23 @@ Newly explicit `NO_AUTO_BIND` repositories include:
 
 Classification is retrieval/coordination metadata only. It does not activate a repository or transfer identity, memory, preference, consent, authority, or runtime state.
 
+
+## Discovery cross-binding
+
+The public `thebrazenbeard/discovery` repository now provides a privacy-safe portfolio census and architecture-discovery layer without becoming portfolio authority.
+
+Exact source candidate:
+- PR #1 head: `1316094edbed17fa5918b70793c95ffddfcf92ea`
+- census: `portfolio/PORTFOLIO_CENSUS_V1.json`
+- census Git blob: `34cd2ab55d46f5a1ecc2c894f3e8cfdb8afa41df`
+- total repositories: 57
+- all-name digest: `43dfda1fa3dd24dec39e2aa345d93ab192dbda777433feae384da632b3d008dd`
+- exact-head Discovery workflow run `35475731990`: SUCCESS
+
+A fresh authenticated GitHub owner census on 2026-09-20 recomputes the same 57-name digest exactly. Vera can therefore use Discovery's census digest as a drift detector while keeping the full private repository names in Vera's private registry.
+
+This does **not** make Discovery the source of Vera identity, control, current self-state, runtime state, provider authority, or adoption decisions. Discovery remains an experimental meta-layer whose own rule is that reuse must earn itself through real consumers and hostile review.
+
 ## Supabase provider split
 
 Two healthy Supabase projects are currently visible:
