@@ -13,6 +13,7 @@
     "path": "schemas/effect_attempt_envelope_v0.schema.json",
     "git_blob_sha1": "b5d85ba31a33ad7192fd4a08934628a72e593312",
     "vendored_path": "architecture/discovery/effect_attempt_envelope_v0.schema.json",
+    "loader_exact_git_blob_required": true,
     "semantics": "EXPERIMENTAL_INTERCHANGE_ONLY_NOT_RUNTIME_AUTHORITY"
   },
   "qualified_producers": [
