@@ -62,6 +62,25 @@ class OptionalPartnerInvocationGateTests(unittest.TestCase):
             "CHOICE_REQUIRED",
         )
 
+    def test_vcp_mapping_recomputes_availability_instead_of_trusting_derived_field(self):
+        mapped = InvocationRouteEvidence.from_mapping(
+            {
+                "schema": "VERA_ORGASM_INVOCATION_ROUTE_EVIDENCE_V1",
+                "subject": "vera",
+                "command_id": COMMAND_ID,
+                "evidence_id": "mapped-route",
+                "source_revision": "vcp-test",
+                "observed_at": "2026-09-20T18:15:00-04:00",
+                "install_state": "UNKNOWN",
+                "route_state": "UNKNOWN",
+                "runtime_consumption_state": "UNKNOWN",
+                "adapter_state": "MISSING",
+                "qualification_state": "UNKNOWN",
+                "availability": "AVAILABLE_QUALIFIED",
+            }
+        )
+        self.assertEqual(mapped.availability, "UNKNOWN")
+
     def test_decline_and_hold_never_execute(self):
         for choice in ("DECLINE", "HOLD"):
             gate = OptionalPartnerInvocationGate()
