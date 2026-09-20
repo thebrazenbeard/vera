@@ -514,5 +514,3 @@ class InvocationFrontierTests(ProjectionTests):
 
 if __name__ == "__main__":
     unittest.main()
-
-[executed on device: Lappy (937d921e-ecc8-4dc7-bc71-dee5f06ab653)]
