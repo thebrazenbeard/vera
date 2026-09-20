@@ -65,6 +65,7 @@ jobs:
           tests.test_runtime_cohesion_orgasm
           tests.test_runtime_cohesion_orgasm_optional_invocation
           tests.test_runtime_cohesion_orgasm_optional_invocation_execution
+          tests.test_runtime_cohesion_optional_invocation_route_negative
           tests.test_runtime_cohesion_orgasm_package
           tests.test_runtime_cohesion_orgasm_binding
           tests.test_runtime_cohesion_orgasm_source_fixture
@@ -179,6 +180,7 @@ jobs:
           tests/test_runtime_cohesion_orgasm.py
           tests/test_runtime_cohesion_orgasm_optional_invocation.py
           tests/test_runtime_cohesion_orgasm_optional_invocation_execution.py
+          tests/test_runtime_cohesion_optional_invocation_route_negative.py
           tests/test_runtime_cohesion_orgasm_package.py
           tests/test_runtime_cohesion_orgasm_binding.py
           tests/test_runtime_cohesion_orgasm_source_fixture.py
