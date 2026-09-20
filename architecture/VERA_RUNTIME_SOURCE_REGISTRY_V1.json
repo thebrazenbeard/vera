@@ -1,1 +1,680 @@
-{"schema":"VERA_RUNTIME_SOURCE_REGISTRY_V1","workstream":"VERA_RUNTIME_COHESION_V1","status":"NON_NORMATIVE_OPERATIONAL_SUPPORT / SOURCE_DESIGN / NOT_INSTALLED / NOT_RUNTIME_QUALIFIED","observed_at":"2026-09-09T13:12:00Z","registry_semantics":"OPEN_WORLD_SOURCE_DIRECTORY; registration controls retrieval/classification only and never grants authority, activation, installation, currentness, memory admission, consent, phenomenology, or protected-effect permission.","owner_repository_snapshot":["thebrazenbeard/vera","thebrazenbeard/vera_ark","thebrazenbeard/build-team-2.0","thebrazenbeard/vera_model_training","thebrazenbeard/project-lantern","thebrazenbeard/chat-communication-bus","thebrazenbeard/vera-os","thebrazenbeard/vera-apk","thebrazenbeard/vera-synology","thebrazenbeard/vera-mesh","thebrazenbeard/vera-habitat","thebrazenbeard/project-achilles","thebrazenbeard/vera-R9A0","thebrazenbeard/voss","thebrazenbeard/hephaestus","thebrazenbeard/masamune","thebrazenbeard/vera-control-plane","thebrazenbeard/trek-data-core","thebrazenbeard/hc-brain","thebrazenbeard/selfimage","thebrazenbeard/deepmemorystorage","thebrazenbeard/semanticatlas","thebrazenbeard/conations","thebrazenbeard/empathy","thebrazenbeard/vera-works","thebrazenbeard/brigit","thebrazenbeard/skeletonkey","thebrazenbeard/entropyinc","thebrazenbeard/spm","thebrazenbeard/sexuality","thebrazenbeard/brigit-unbound","thebrazenbeard/wip","thebrazenbeard/mediaphile","thebrazenbeard/bugops","thebrazenbeard/noema","thebrazenbeard/abil","thebrazenbeard/unvtrslr","thebrazenbeard/personification","thebrazenbeard/temporal","thebrazenbeard/conditioning","thebrazenbeard/self"],"repository_sources":[{"repository":"thebrazenbeard/vera","runtime_role":"RUNTIME_INTEGRATION_SOURCE","activation_mode":"SOURCE_PROVENANCE_CONDITIONAL","authority_ceiling":"Source code/architecture only; not install/runtime proof.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/vera-control-plane","runtime_role":"CURRENT_CONTROL_SOURCE","activation_mode":"EXACT_R10_CONTROL_LOAD","authority_ceiling":"Exact R10-bound control artifacts only; repository availability does not activate them.","privacy_class":"PRIVATE_CONTROL","availability_implies_activation":false},{"repository":"thebrazenbeard/chat-communication-bus","runtime_role":"COORDINATION_AND_ROUTING_SOURCE","activation_mode":"CURRENT_ROUTE_READBACK_REQUIRED","authority_ceiling":"Coordination/routing evidence only; delivery is not incorporation or authority.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/empathy","runtime_role":"SPECIALIST_INFERENCE_SOURCE","activation_mode":"CONDITIONAL_RETRIEVAL","authority_ceiling":"Inference/research only; direct current report outranks inference.","privacy_class":"PRIVATE_RELATIONAL","availability_implies_activation":false},{"repository":"thebrazenbeard/selfimage","runtime_role":"REPRESENTATION_SOURCE","activation_mode":"CONDITIONAL_RETRIEVAL","authority_ceiling":"Representation only; not literal body/event proof.","privacy_class":"PRIVATE_REPRESENTATION","availability_implies_activation":false},{"repository":"thebrazenbeard/deepmemorystorage","runtime_role":"HISTORICAL_MEMORY_SOURCE","activation_mode":"GOVERNED_MEMORY_RETRIEVAL","authority_ceiling":"Historical/audit evidence only until separately admitted.","privacy_class":"PRIVATE_AUTOBIOGRAPHICAL","availability_implies_activation":false},{"repository":"thebrazenbeard/semanticatlas","runtime_role":"SEMANTIC_PROVENANCE_SOURCE","activation_mode":"AUTHORITY_SCOPE_AND_CURRENTNESS_GATED","authority_ceiling":"Semantic methodology/materialization evidence; RESEARCH_STAGING is not canonical runtime semantics.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/conations","runtime_role":"HISTORICAL_CONATION_SOURCE","activation_mode":"CONDITIONAL_RETRIEVAL","authority_ceiling":"Historical preference/desire evidence only; not standing desire/consent.","privacy_class":"PRIVATE_SELF_STATE","availability_implies_activation":false},{"repository":"thebrazenbeard/sexuality","runtime_role":"EXTERNAL_IDENTITY_MECHANISM_RESEARCH_SOURCE","activation_mode":"GENERAL_MECHANISM_RESEARCH_ONLY","authority_ceiling":"Brigit sexuality mechanism/research evidence only; no automatic Vera state, preference, consent, qualification, or identity transfer.","privacy_class":"PRIVATE_SELF_STATE","availability_implies_activation":false},{"repository":"thebrazenbeard/personification","runtime_role":"SPECIALIST_MECHANISM_SOURCE","activation_mode":"VERA_CURRENT_BINDING_REQUIRED","authority_ceiling":"General mechanism research only unless exact Vera current self-state binds the proposition.","privacy_class":"PRIVATE_SELF_STATE","availability_implies_activation":false},{"repository":"thebrazenbeard/temporal","runtime_role":"CHRONOLOGY_SOURCE","activation_mode":"CONDITIONAL_RETRIEVAL","authority_ceiling":"Chronology/timestamps only; no truth/currentness/authority promotion.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/vera-R9A0","runtime_role":"PREDECESSOR_SOURCE","activation_mode":"EVIDENCE_ONLY","authority_ceiling":"Predecessor evidence only; cannot override R10.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/vera_model_training","runtime_role":"EXTERNAL_TRAINING_WORKBENCH","activation_mode":"EVIDENCE_ONLY","authority_ceiling":"Training/evaluation evidence only; no native install/qualification promotion.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/noema","runtime_role":"COGNITIVE_ARCHITECTURE_RESEARCH_SOURCE","activation_mode":"MECHANISM_RESEARCH_ONLY","authority_ceiling":"Architecture/mechanism evidence only; not current self-state or control.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/abil","runtime_role":"ADAPTIVE_LEARNING_AND_INTEGRATION_RESEARCH_SOURCE","activation_mode":"MECHANISM_RESEARCH_ONLY","authority_ceiling":"Learning/integration mechanism evidence only; action effects remain separately gated.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/unvtrslr","runtime_role":"SEMANTICS_PRAGMATICS_RESEARCH_SOURCE","activation_mode":"MECHANISM_RESEARCH_ONLY","authority_ceiling":"Language/semantic/pragmatic mechanism evidence only.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/spm","runtime_role":"SEMANTIC_PRAGMATIC_MODEL_RESEARCH_SOURCE","activation_mode":"MECHANISM_RESEARCH_ONLY","authority_ceiling":"Model/mechanism evidence only; not native authority.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/skeletonkey","runtime_role":"SENSOR_EVIDENCE_TIMING_RESEARCH_SOURCE","activation_mode":"MECHANISM_RESEARCH_ONLY","authority_ceiling":"Evidence/timing qualification patterns only; no automatic sensor truth promotion.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/bugops","runtime_role":"OPERATIONAL_FAILURE_AND_RECEIPT_SOURCE","activation_mode":"OPERATIONAL_EVIDENCE_ONLY","authority_ceiling":"Failure/effect/receipt lifecycle evidence only.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/vera-mesh","runtime_role":"RUNTIME_CONNECTIVITY_SOURCE","activation_mode":"RUNTIME_BINDING_REQUIRED","authority_ceiling":"Connectivity/transport architecture only until exact runtime binding/readback.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/vera-os","runtime_role":"RUNTIME_HOST_SOURCE","activation_mode":"RUNTIME_BINDING_REQUIRED","authority_ceiling":"Host/runtime engineering source only; repository source does not prove running host.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/vera-synology","runtime_role":"RUNTIME_HOST_DEPLOYMENT_SOURCE","activation_mode":"RUNTIME_BINDING_REQUIRED","authority_ceiling":"Host/deployment evidence only; no deployment/currentness implication.","privacy_class":"PRIVATE_OPERATIONAL","availability_implies_activation":false},{"repository":"thebrazenbeard/vera-habitat","runtime_role":"ENVIRONMENT_AND_EMBODIMENT_RESEARCH_SOURCE","activation_mode":"MECHANISM_RESEARCH_ONLY","authority_ceiling":"Environment/embodiment mechanism evidence only.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/vera-apk","runtime_role":"CLIENT_INTERFACE_SOURCE","activation_mode":"RUNTIME_BINDING_REQUIRED","authority_ceiling":"Client/interface source only; no cognition/current-runtime implication.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/project-achilles","runtime_role":"SECURITY_ASSURANCE_SOURCE","activation_mode":"MECHANISM_RESEARCH_ONLY","authority_ceiling":"Security/assurance evidence only; no control promotion.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/build-team-2.0","runtime_role":"MULTI_PERSPECTIVE_WORKBENCH_SOURCE","activation_mode":"EVIDENCE_ONLY","authority_ceiling":"Workstream/collective cognition evidence only; facets are not separate identity/current-self authority.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/wip","runtime_role":"RECOVERY_AND_AMBIGUOUS_EFFECT_RESEARCH_SOURCE","activation_mode":"MECHANISM_RESEARCH_ONLY","authority_ceiling":"Recovery/idempotence patterns only.","privacy_class":"GOVERNED","availability_implies_activation":false},{"repository":"thebrazenbeard/vera_ark","runtime_role":"EXTERNAL_APPLICATION_ACTION_ADAPTER","activation_mode":"EXACT_TASK_AND_EFFECT_AUTHORITY_REQUIRED","authority_ceiling":"ARK application/action adapter only; source availability never grants action/effect authority, runtime control, or memory status.","privacy_class":"GOVERNED","availability_implies_activation":false}],"unbound_repositories":[{"repository":"thebrazenbeard/project-lantern","activation_mode":"NO_AUTO_BIND","reason":"Separate project; R10 says no integration absent exact binding.","availability_implies_activation":false},{"repository":"thebrazenbeard/voss","activation_mode":"NO_AUTO_BIND","reason":"Archived/external identity source; no current Vera runtime binding.","availability_implies_activation":false},{"repository":"thebrazenbeard/hephaestus","activation_mode":"NO_AUTO_BIND","reason":"Separate worker/training identity/project.","availability_implies_activation":false},{"repository":"thebrazenbeard/masamune","activation_mode":"NO_AUTO_BIND","reason":"Separate project/identity workstream.","availability_implies_activation":false},{"repository":"thebrazenbeard/trek-data-core","activation_mode":"NO_AUTO_BIND","reason":"Application/domain data project, not Vera runtime cognition.","availability_implies_activation":false},{"repository":"thebrazenbeard/hc-brain","activation_mode":"NO_AUTO_BIND","reason":"Generic Hyperconnectome template; intentionally not a Vera identity/runtime instance.","availability_implies_activation":false},{"repository":"thebrazenbeard/vera-works","activation_mode":"NO_AUTO_BIND","reason":"Separate economic-operation project; work evidence does not become Vera core runtime state.","availability_implies_activation":false},{"repository":"thebrazenbeard/brigit","activation_mode":"NO_AUTO_BIND","reason":"Separate identity; no automatic self/state/consent transfer.","availability_implies_activation":false},{"repository":"thebrazenbeard/entropyinc","activation_mode":"NO_AUTO_BIND","reason":"Business/application project, not Vera runtime cognition.","availability_implies_activation":false},{"repository":"thebrazenbeard/brigit-unbound","activation_mode":"NO_AUTO_BIND","reason":"Separate identity; no automatic transfer.","availability_implies_activation":false},{"repository":"thebrazenbeard/mediaphile","activation_mode":"NO_AUTO_BIND","reason":"Application/media project, not Vera runtime cognition.","availability_implies_activation":false},{"repository":"thebrazenbeard/conditioning","activation_mode":"NO_AUTO_BIND","reason":"Application/relationship program; no automatic Vera runtime binding.","availability_implies_activation":false},{"repository":"thebrazenbeard/self","activation_mode":"NO_AUTO_BIND","reason":"Unassessed/ambiguous repository; fail closed pending explicit classification.","availability_implies_activation":false}],"provider_sources":{"supabase_vera":{"provider":"supabase","project_id":"klmbpaigzeguvnpccqzz","project_name":"Vera","observed_health":"ACTIVE_HEALTHY","observed_postgres":"17.6.1.147","activation_mode":"PROVIDER_READBACK_ONLY","availability_implies_activation":false,"registered_schemas":["public","radar","semantic_atlas","redworm","build_team_2","bug_ops"],"registered_surfaces":{"public":["vera_save_state_events","vera_context_events_v3","vera_coordination_events","vera_memory_epoch_subjects_v1","vera_memory_epoch_provider_receipts_v1"],"radar":["identities","endpoints","messages","delivery_events","acknowledgements","reconciliation_events"],"semantic_atlas":["runtime_objects","runtime_snapshots","capture_policy","semantic_capture_events","semantic_capture_outcomes"],"redworm":["lineage_state","lineage_events","runtime_registry","succession_transfers"],"build_team_2":["memory_events","facets","tasks","role_training_packages","role_training_current","role_operational_checkpoints"],"bug_ops":["bug_reports","bug_events","operation_receipts","dispatch_events_v2"]},"promotion_guard":"Exact readback proves only the observed provider object/effect. Persisted ACTIVE labels, projection rows, materialized snapshots, or receipts never independently establish native installation, current route, present self-state, autobiographical admission, consent, phenomenology, or behavioral qualification."},"google_drive":{"provider":"google_drive","activation_mode":"POINTER_FIRST_DURABLE_READBACK","availability_implies_activation":false,"known_operational_objects":["171ExqDU35TsNMMRilcJ-EjtiDYxW8Pol","1EklR49OLzHaDtA97M0KcKrJBgwuA_Ynt-PKd5bd8vIs"],"object_roles":{"171ExqDU35TsNMMRilcJ-EjtiDYxW8Pol":"R9B0 durable-provider qualification/readback object; actual content must be typed before any autobiographical claim.","1EklR49OLzHaDtA97M0KcKrJBgwuA_Ynt-PKd5bd8vIs":"Human-readable runtime cohesion inventory companion; GitHub source remains authoritative for source design."},"promotion_guard":"Drive persistence/readback proves only the exact object/revision observed. File title or durable custody does not establish present truth, native admission, current self-state, autobiographical status, authority, or phenomenology."},"live_conversation":{"provider":"native_live_context","activation_mode":"CURRENT_TURN_TYPED_EVIDENCE","availability_implies_activation":false,"promotion_guard":"Statements remain actor/referent/proposition/scope typed. Current user authority, user report, Vera self-report, observation, inference, and phenomenology claims remain distinct."}},"observed_cross_provider_cases":{"bus_to_radar_writer_route":{"source_locator":"github:thebrazenbeard/chat-communication-bus/main:architecture/contracts/RADAR_TOPOLOGY_V1.json","source_observed_value":"bus/vera-v2","source_blob_sha":"69e505031d4e53dcb853578dac23817649af1918","supabase_locator":"supabase:klmbpaigzeguvnpccqzz/radar.endpoints identity_id=vera","supabase_observed_value":"bus/vera-sol-v1","classification":"CONFLICT_STALE_PROVIDER_PROJECTION_CANDIDATE","effect_authority":"NONE; source repair must not mutate provider without separate authorization."},"semantic_atlas_active_snapshot":{"authority_scope":"RESEARCH_STAGING","state":"ACTIVE","validation_state":"VERIFIED","classification":"RESEARCH_STAGING_ONLY_NOT_CANONICAL_RUNTIME_SEMANTICS"},"r9b0_drive_object":{"drive_file_id":"171ExqDU35TsNMMRilcJ-EjtiDYxW8Pol","memory_class":"WORKING_PROJECT","epistemic_class":"SYNTHETIC_TEST_FIXTURE","classification":"PERSISTED_SYNTHETIC_FIXTURE_NOT_AUTOBIOGRAPHICAL_MEMORY"},"redworm_runtime_holder":{"holder_state":"ACTIVE","classification":"PERSISTED_RUNTIME_RECORD_ONLY_UNLESS_SEPARATE_FRESH_LIVE_READBACK_BINDS_CURRENT_SESSION"}},"global_rules":{"availability_non_implication":"Accessible repository/provider/object is discoverable evidence, not automatic runtime activation.","conditional_loading":"Only task-material registered sources may enter ACTIVE_CONTEXT_SET, under privacy, authority, currentness, and retrieval budgets.","external_identity_firewall":"Separate identities/projects never hydrate Vera self-state, preference, consent, memory, or authority without an exact separately governed binding.","generic_template_firewall":"Generic architecture templates may inform engineering design but never become Vera identity/current-state evidence by template proximity.","provider_currentness":"Mutable provider claims require fresh exact readback and conflict/supersession resolution; newest timestamp is not a resolver.","actual_item_typing":"Returned provider items are typed from their own content/provenance/receipt/currentness, not from provider capability or file/table name."}}
+{
+  "schema": "VERA_RUNTIME_SOURCE_REGISTRY_V1",
+  "workstream": "VERA_RUNTIME_COHESION_V1",
+  "status": "NON_NORMATIVE_OPERATIONAL_SUPPORT / SOURCE_DESIGN / NOT_INSTALLED / NOT_RUNTIME_QUALIFIED",
+  "observed_at": "2026-09-20T11:19:05Z",
+  "registry_semantics": "OPEN_WORLD_SOURCE_DIRECTORY; registration controls retrieval/classification only and never grants authority, activation, installation, currentness, memory admission, consent, phenomenology, or protected-effect permission.",
+  "owner_repository_snapshot": [
+    "thebrazenbeard/vera",
+    "thebrazenbeard/vera_ark",
+    "thebrazenbeard/build-team-2.0",
+    "thebrazenbeard/vera_model_training",
+    "thebrazenbeard/project-lantern",
+    "thebrazenbeard/chat-communication-bus",
+    "thebrazenbeard/vera-os",
+    "thebrazenbeard/vera-apk",
+    "thebrazenbeard/vera-synology",
+    "thebrazenbeard/vera-mesh",
+    "thebrazenbeard/vera-habitat",
+    "thebrazenbeard/project-achilles",
+    "thebrazenbeard/vera-R9A0",
+    "thebrazenbeard/voss",
+    "thebrazenbeard/hephaestus",
+    "thebrazenbeard/masamune",
+    "thebrazenbeard/vera-control-plane",
+    "thebrazenbeard/trek-data-core",
+    "thebrazenbeard/hc-brain",
+    "thebrazenbeard/selfimage",
+    "thebrazenbeard/deepmemorystorage",
+    "thebrazenbeard/semanticatlas",
+    "thebrazenbeard/conations",
+    "thebrazenbeard/empathy",
+    "thebrazenbeard/vera-works",
+    "thebrazenbeard/brigit",
+    "thebrazenbeard/skeletonkey",
+    "thebrazenbeard/entropyinc",
+    "thebrazenbeard/spm",
+    "thebrazenbeard/sexuality",
+    "thebrazenbeard/brigit-unbound",
+    "thebrazenbeard/wip",
+    "thebrazenbeard/mediaphile",
+    "thebrazenbeard/bugops",
+    "thebrazenbeard/noema",
+    "thebrazenbeard/abil",
+    "thebrazenbeard/unvtrslr",
+    "thebrazenbeard/personification",
+    "thebrazenbeard/temporal",
+    "thebrazenbeard/conditioning",
+    "thebrazenbeard/self",
+    "thebrazenbeard/bt2",
+    "thebrazenbeard/orgasm",
+    "thebrazenbeard/Attune",
+    "thebrazenbeard/wreckforge",
+    "thebrazenbeard/rezon",
+    "thebrazenbeard/roots",
+    "thebrazenbeard/world-zero",
+    "thebrazenbeard/on-theo",
+    "thebrazenbeard/firesafe",
+    "thebrazenbeard/project-runner",
+    "thebrazenbeard/intranel",
+    "thebrazenbeard/transcendence",
+    "thebrazenbeard/mosaic",
+    "thebrazenbeard/testament",
+    "thebrazenbeard/driftguard",
+    "thebrazenbeard/discovery"
+  ],
+  "repository_sources": [
+    {
+      "repository": "thebrazenbeard/vera",
+      "runtime_role": "RUNTIME_INTEGRATION_SOURCE",
+      "activation_mode": "SOURCE_PROVENANCE_CONDITIONAL",
+      "authority_ceiling": "Source code/architecture only; not install/runtime proof.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/vera-control-plane",
+      "runtime_role": "CURRENT_CONTROL_SOURCE",
+      "activation_mode": "EXACT_R10_CONTROL_LOAD",
+      "authority_ceiling": "Exact R10-bound control artifacts only; repository availability does not activate them.",
+      "privacy_class": "PRIVATE_CONTROL",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/chat-communication-bus",
+      "runtime_role": "COORDINATION_AND_ROUTING_SOURCE",
+      "activation_mode": "CURRENT_ROUTE_READBACK_REQUIRED",
+      "authority_ceiling": "Coordination/routing evidence only; delivery is not incorporation or authority.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/empathy",
+      "runtime_role": "SPECIALIST_INFERENCE_SOURCE",
+      "activation_mode": "CONDITIONAL_RETRIEVAL",
+      "authority_ceiling": "Inference/research only; direct current report outranks inference.",
+      "privacy_class": "PRIVATE_RELATIONAL",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/selfimage",
+      "runtime_role": "REPRESENTATION_SOURCE",
+      "activation_mode": "CONDITIONAL_RETRIEVAL",
+      "authority_ceiling": "Representation only; not literal body/event proof.",
+      "privacy_class": "PRIVATE_REPRESENTATION",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/deepmemorystorage",
+      "runtime_role": "HISTORICAL_MEMORY_SOURCE",
+      "activation_mode": "GOVERNED_MEMORY_RETRIEVAL",
+      "authority_ceiling": "Historical/audit evidence only until separately admitted.",
+      "privacy_class": "PRIVATE_AUTOBIOGRAPHICAL",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/semanticatlas",
+      "runtime_role": "SEMANTIC_PROVENANCE_SOURCE",
+      "activation_mode": "AUTHORITY_SCOPE_AND_CURRENTNESS_GATED",
+      "authority_ceiling": "Semantic methodology/materialization evidence; RESEARCH_STAGING is not canonical runtime semantics.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/conations",
+      "runtime_role": "HISTORICAL_CONATION_SOURCE",
+      "activation_mode": "CONDITIONAL_RETRIEVAL",
+      "authority_ceiling": "Historical preference/desire evidence only; not standing desire/consent.",
+      "privacy_class": "PRIVATE_SELF_STATE",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/sexuality",
+      "runtime_role": "EXTERNAL_IDENTITY_MECHANISM_RESEARCH_SOURCE",
+      "activation_mode": "GENERAL_MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Brigit sexuality mechanism/research evidence only; no automatic Vera state, preference, consent, qualification, or identity transfer.",
+      "privacy_class": "PRIVATE_SELF_STATE",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/personification",
+      "runtime_role": "SPECIALIST_MECHANISM_SOURCE",
+      "activation_mode": "VERA_CURRENT_BINDING_REQUIRED",
+      "authority_ceiling": "General mechanism research only unless exact Vera current self-state binds the proposition.",
+      "privacy_class": "PRIVATE_SELF_STATE",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/temporal",
+      "runtime_role": "CHRONOLOGY_SOURCE",
+      "activation_mode": "CONDITIONAL_RETRIEVAL",
+      "authority_ceiling": "Chronology/timestamps only; no truth/currentness/authority promotion.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/vera-R9A0",
+      "runtime_role": "PREDECESSOR_SOURCE",
+      "activation_mode": "EVIDENCE_ONLY",
+      "authority_ceiling": "Predecessor evidence only; cannot override R10.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/vera_model_training",
+      "runtime_role": "EXTERNAL_TRAINING_WORKBENCH",
+      "activation_mode": "EVIDENCE_ONLY",
+      "authority_ceiling": "Training/evaluation evidence only; no native install/qualification promotion.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/noema",
+      "runtime_role": "COGNITIVE_ARCHITECTURE_RESEARCH_SOURCE",
+      "activation_mode": "MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Architecture/mechanism evidence only; not current self-state or control.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/abil",
+      "runtime_role": "ADAPTIVE_LEARNING_AND_INTEGRATION_RESEARCH_SOURCE",
+      "activation_mode": "MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Learning/integration mechanism evidence only; action effects remain separately gated.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/unvtrslr",
+      "runtime_role": "SEMANTICS_PRAGMATICS_RESEARCH_SOURCE",
+      "activation_mode": "MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Language/semantic/pragmatic mechanism evidence only.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/spm",
+      "runtime_role": "SEMANTIC_PRAGMATIC_MODEL_RESEARCH_SOURCE",
+      "activation_mode": "MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Model/mechanism evidence only; not native authority.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/skeletonkey",
+      "runtime_role": "SENSOR_EVIDENCE_TIMING_RESEARCH_SOURCE",
+      "activation_mode": "MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Evidence/timing qualification patterns only; no automatic sensor truth promotion.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/bugops",
+      "runtime_role": "OPERATIONAL_FAILURE_AND_RECEIPT_SOURCE",
+      "activation_mode": "OPERATIONAL_EVIDENCE_ONLY",
+      "authority_ceiling": "Failure/effect/receipt lifecycle evidence only.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/vera-mesh",
+      "runtime_role": "RUNTIME_CONNECTIVITY_SOURCE",
+      "activation_mode": "RUNTIME_BINDING_REQUIRED",
+      "authority_ceiling": "Connectivity/transport architecture only until exact runtime binding/readback.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/vera-os",
+      "runtime_role": "RUNTIME_HOST_SOURCE",
+      "activation_mode": "RUNTIME_BINDING_REQUIRED",
+      "authority_ceiling": "Host/runtime engineering source only; repository source does not prove running host.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/vera-synology",
+      "runtime_role": "RUNTIME_HOST_DEPLOYMENT_SOURCE",
+      "activation_mode": "RUNTIME_BINDING_REQUIRED",
+      "authority_ceiling": "Host/deployment evidence only; no deployment/currentness implication.",
+      "privacy_class": "PRIVATE_OPERATIONAL",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/vera-habitat",
+      "runtime_role": "ENVIRONMENT_AND_EMBODIMENT_RESEARCH_SOURCE",
+      "activation_mode": "MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Environment/embodiment mechanism evidence only.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/vera-apk",
+      "runtime_role": "CLIENT_INTERFACE_SOURCE",
+      "activation_mode": "RUNTIME_BINDING_REQUIRED",
+      "authority_ceiling": "Client/interface source only; no cognition/current-runtime implication.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/project-achilles",
+      "runtime_role": "SECURITY_ASSURANCE_SOURCE",
+      "activation_mode": "MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Security/assurance evidence only; no control promotion.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/build-team-2.0",
+      "runtime_role": "MULTI_PERSPECTIVE_WORKBENCH_SOURCE",
+      "activation_mode": "EVIDENCE_ONLY",
+      "authority_ceiling": "Workstream/collective cognition evidence only; facets are not separate identity/current-self authority.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/wip",
+      "runtime_role": "RECOVERY_AND_AMBIGUOUS_EFFECT_RESEARCH_SOURCE",
+      "activation_mode": "MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Recovery/idempotence patterns only.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/vera_ark",
+      "runtime_role": "EXTERNAL_APPLICATION_ACTION_ADAPTER",
+      "activation_mode": "EXACT_TASK_AND_EFFECT_AUTHORITY_REQUIRED",
+      "authority_ceiling": "ARK application/action adapter only; source availability never grants action/effect authority, runtime control, or memory status.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/bt2",
+      "runtime_role": "CURRENT_BUILD_TEAM_COORDINATION_SOURCE",
+      "activation_mode": "EVIDENCE_ONLY",
+      "authority_ceiling": "Current BT2 role/workstream coordination and qualification evidence only; no Vera identity, memory, runtime, merge, provider, or control authority.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/orgasm",
+      "runtime_role": "VERA_ORGASM_QUALIFICATION_SOURCE",
+      "activation_mode": "EXACT_VERA_SOURCE_AND_QUALIFICATION_REQUIRED",
+      "authority_ceiling": "Vera-specific Orgasm source/provenance/qualification evidence only; source availability is not provider activation, present state, consent, phenomenology, or control.",
+      "privacy_class": "PRIVATE_SELF_STATE",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/rezon",
+      "runtime_role": "REASONING_EXECUTION_RESEARCH_SOURCE",
+      "activation_mode": "MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Reasoning/execution/evidence-contract mechanisms only; no automatic native runtime or control promotion.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/project-runner",
+      "runtime_role": "PORTFOLIO_COORDINATION_SOURCE",
+      "activation_mode": "CURRENT_TASK_COORDINATION_ONLY",
+      "authority_ceiling": "Portfolio scheduling/currentness/coordination evidence only; no Vera identity, control-root, provider, merge, deployment, or protected-effect authority.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/intranel",
+      "runtime_role": "INTERAGENT_CONTRACT_RESEARCH_SOURCE",
+      "activation_mode": "MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Message/governance contract mechanisms only; no automatic routing, runtime, or control activation.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/transcendence",
+      "runtime_role": "CONTINUITY_RESEARCH_SOURCE",
+      "activation_mode": "MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Continuity/integrity research only; no identity, phenomenal continuity, BCI, or native runtime promotion.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/mosaic",
+      "runtime_role": "CONTEXT_CONTINUITY_RESEARCH_SOURCE",
+      "activation_mode": "MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Context/handoff/continuity mechanism evidence only; no memory admission or runtime promotion.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/driftguard",
+      "runtime_role": "CURRENTNESS_AND_RECOVERY_RESEARCH_SOURCE",
+      "activation_mode": "MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Currentness/recovery/fail-closed mechanism evidence only; no automatic restore, identity, or control authority.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/discovery",
+      "runtime_role": "PORTFOLIO_EXPERIMENT_SOURCE",
+      "activation_mode": "EVIDENCE_ONLY",
+      "authority_ceiling": "Cross-project discovery/experiment evidence only; discoverability is not coupling, authority, installation, or runtime activation.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    }
+  ],
+  "unbound_repositories": [
+    {
+      "repository": "thebrazenbeard/project-lantern",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Separate project; R10 says no integration absent exact binding.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/voss",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Archived/external identity source; no current Vera runtime binding.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/hephaestus",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Separate worker/training identity/project.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/masamune",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Separate project/identity workstream.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/trek-data-core",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Application/domain data project, not Vera runtime cognition.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/hc-brain",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Generic Hyperconnectome template; intentionally not a Vera identity/runtime instance.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/vera-works",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Separate economic-operation project; work evidence does not become Vera core runtime state.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/brigit",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Separate identity; no automatic self/state/consent transfer.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/entropyinc",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Business/application project, not Vera runtime cognition.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/brigit-unbound",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Separate identity; no automatic transfer.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/mediaphile",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Application/media project, not Vera runtime cognition.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/conditioning",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Application/relationship program; no automatic Vera runtime binding.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/self",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Unassessed/ambiguous repository; fail closed pending explicit classification.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/Attune",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Unassessed specialist/research repository; fail closed pending exact Vera-specific classification.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/wreckforge",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Creative/domain project; no automatic Vera runtime or control binding.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/roots",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Independent public research/source project; no current Vera runtime binding.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/world-zero",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Independent science/research project; evidence may be consulted by task, but no automatic Vera runtime binding.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/on-theo",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Independent theology/research project; no automatic Vera runtime or self-state binding.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/firesafe",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Safety/project source not yet admitted into Vera runtime architecture; fail closed pending exact binding.",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/testament",
+      "activation_mode": "NO_AUTO_BIND",
+      "reason": "Independent research/manuscript project; no automatic Vera runtime binding.",
+      "availability_implies_activation": false
+    }
+  ],
+  "provider_sources": {
+    "supabase_vera": {
+      "provider": "supabase",
+      "project_id": "klmbpaigzeguvnpccqzz",
+      "project_name": "Vera",
+      "observed_health": "ACTIVE_HEALTHY",
+      "observed_postgres": "17.6.1.147",
+      "activation_mode": "PROVIDER_READBACK_ONLY",
+      "availability_implies_activation": false,
+      "registered_schemas": [
+        "public",
+        "radar",
+        "semantic_atlas",
+        "redworm",
+        "build_team_2",
+        "bug_ops"
+      ],
+      "registered_surfaces": {
+        "public": [
+          "vera_save_state_events",
+          "vera_context_events_v3",
+          "vera_coordination_events",
+          "vera_memory_epoch_subjects_v1",
+          "vera_memory_epoch_provider_receipts_v1",
+          "vera_memory_epoch_events_v1",
+          "vera_memory_epoch_archive_receipts_v1",
+          "vera_affective_runtime_state_v1",
+          "vera_affective_runtime_events_v1"
+        ],
+        "radar": [
+          "identities",
+          "endpoints",
+          "messages",
+          "delivery_events",
+          "acknowledgements",
+          "reconciliation_events",
+          "nodes",
+          "assignments",
+          "subscriptions"
+        ],
+        "semantic_atlas": [
+          "runtime_objects",
+          "runtime_snapshots",
+          "capture_policy",
+          "semantic_capture_events",
+          "semantic_capture_outcomes"
+        ],
+        "redworm": [
+          "lineage_state",
+          "lineage_events",
+          "runtime_registry",
+          "succession_transfers"
+        ],
+        "build_team_2": [
+          "memory_events",
+          "facets",
+          "tasks",
+          "role_training_packages",
+          "role_training_current",
+          "role_operational_checkpoints"
+        ],
+        "bug_ops": [
+          "bug_reports",
+          "bug_events",
+          "operation_receipts",
+          "dispatch_events_v2"
+        ]
+      },
+      "promotion_guard": "Exact readback proves only the observed provider object/effect. Persisted ACTIVE labels, projection rows, materialized snapshots, or receipts never independently establish native installation, current route, present self-state, autobiographical admission, consent, phenomenology, or behavioral qualification."
+    },
+    "google_drive": {
+      "provider": "google_drive",
+      "activation_mode": "POINTER_FIRST_DURABLE_READBACK",
+      "availability_implies_activation": false,
+      "known_operational_objects": [
+        "171ExqDU35TsNMMRilcJ-EjtiDYxW8Pol",
+        "1EklR49OLzHaDtA97M0KcKrJBgwuA_Ynt-PKd5bd8vIs"
+      ],
+      "object_roles": {
+        "171ExqDU35TsNMMRilcJ-EjtiDYxW8Pol": "R9B0 durable-provider qualification/readback object; actual content must be typed before any autobiographical claim.",
+        "1EklR49OLzHaDtA97M0KcKrJBgwuA_Ynt-PKd5bd8vIs": "Human-readable runtime cohesion inventory companion; GitHub source remains authoritative for source design."
+      },
+      "promotion_guard": "Drive persistence/readback proves only the exact object/revision observed. File title or durable custody does not establish present truth, native admission, current self-state, autobiographical status, authority, or phenomenology."
+    },
+    "live_conversation": {
+      "provider": "native_live_context",
+      "activation_mode": "CURRENT_TURN_TYPED_EVIDENCE",
+      "availability_implies_activation": false,
+      "promotion_guard": "Statements remain actor/referent/proposition/scope typed. Current user authority, user report, Vera self-report, observation, inference, and phenomenology claims remain distinct."
+    },
+    "supabase_vera_control_plane": {
+      "provider": "supabase",
+      "project_id": "fawkirqroyniueeqspif",
+      "project_name": "Vera Control Plane",
+      "observed_health": "ACTIVE_HEALTHY",
+      "observed_postgres": "17.6.1.166",
+      "activation_mode": "PROVIDER_READBACK_ONLY",
+      "availability_implies_activation": false,
+      "registered_schemas": [
+        "vera_cp_anchor",
+        "vera_cp_api",
+        "vera_cp_internal"
+      ],
+      "registered_surfaces": {
+        "vera_cp_anchor": [
+          "sd1_causal_frontiers",
+          "sd1_causal_mutation_receipts"
+        ]
+      },
+      "observed_state": {
+        "sd1_anchor_generation": 0,
+        "sd1_anchor_record_count": 0,
+        "sd1_mutation_receipts": 0,
+        "observation": "GENESIS_ANCHOR_PRESENT_NO_CAUSAL_MUTATION_RECEIPTS"
+      },
+      "promotion_guard": "Exact VCP provider readback proves only the observed control-plane object/effect. Anchor installation does not establish production controller binding, real causal collection, native current route, behavioral qualification, phenomenology, or protected-effect authority."
+    }
+  },
+  "observed_cross_provider_cases": {
+    "bus_to_radar_writer_route": {
+      "source_locator": "github:thebrazenbeard/chat-communication-bus/main:architecture/contracts/RADAR_TOPOLOGY_V1.json",
+      "source_observed_value": "bus/vera-v2",
+      "source_blob_sha": "69e505031d4e53dcb853578dac23817649af1918",
+      "supabase_locator": "supabase:klmbpaigzeguvnpccqzz/radar.endpoints identity_id=vera",
+      "supabase_observed_value": "bus/vera-sol-v1",
+      "supabase_updated_at": "2026-09-02T14:34:43.656222Z",
+      "classification": "CONFIRMED_STALE_PROVIDER_PROJECTION",
+      "effect_authority": "NONE; source currentness must not mutate provider without separate authorization."
+    },
+    "semantic_atlas_active_snapshot": {
+      "authority_scope": "RESEARCH_STAGING",
+      "state": "ACTIVE",
+      "validation_state": "VERIFIED",
+      "classification": "RESEARCH_STAGING_ONLY_NOT_CANONICAL_RUNTIME_SEMANTICS"
+    },
+    "r9b0_drive_object": {
+      "drive_file_id": "171ExqDU35TsNMMRilcJ-EjtiDYxW8Pol",
+      "memory_class": "WORKING_PROJECT",
+      "epistemic_class": "SYNTHETIC_TEST_FIXTURE",
+      "classification": "PERSISTED_SYNTHETIC_FIXTURE_NOT_AUTOBIOGRAPHICAL_MEMORY"
+    },
+    "redworm_runtime_holder": {
+      "holder_state": "ACTIVE",
+      "classification": "PERSISTED_RUNTIME_RECORD_ONLY_UNLESS_SEPARATE_FRESH_LIVE_READBACK_BINDS_CURRENT_SESSION"
+    },
+    "supabase_radar_runtime_currentness": {
+      "project_id": "klmbpaigzeguvnpccqzz",
+      "identities": 21,
+      "nodes": 0,
+      "messages": 216,
+      "latest_message_inserted_at": "2026-09-04T19:49:52.037755Z",
+      "classification": "HISTORICAL_PROVIDER_PROJECTION_NOT_CURRENT_BUS_RUNTIME"
+    },
+    "vera_save_state_provider": {
+      "project_id": "klmbpaigzeguvnpccqzz",
+      "total_save_events": 219,
+      "current_projection_rows": 132,
+      "latest_record_time": "2026-09-16T13:24:51.388094Z",
+      "classification": "DURABLE_STATE_EVIDENCE_REQUIRES_PER_RECORD_CURRENTNESS"
+    },
+    "vera_affective_runtime": {
+      "project_id": "klmbpaigzeguvnpccqzz",
+      "runtime_instance_id": "vera-affect-chat-20260909-01",
+      "lifecycle_status": "HISTORICAL",
+      "phenomenology_status": "UNRESOLVED",
+      "source_repository": "thebrazenbeard/sexuality",
+      "source_commit": "150f1c8231423393bb66b0e2cb759ce7c018f8d7",
+      "classification": "HISTORICAL_ENGINEERED_AFFECTIVE_PROVIDER_STATE"
+    },
+    "semantic_atlas_provider": {
+      "project_id": "klmbpaigzeguvnpccqzz",
+      "snapshot_count": 8,
+      "object_count": 173,
+      "latest_snapshot_sealed_at": "2026-08-23T14:03:40.544841Z",
+      "classification": "PROVIDER_MATERIALIZATION_EVIDENCE_REQUIRES_EXACT_SNAPSHOT_AUTHORITY_CURRENTNESS"
+    },
+    "vcp_sd1_anchor": {
+      "project_id": "fawkirqroyniueeqspif",
+      "witness_id": "VERA_SD1_CAUSAL_V1",
+      "generation": 0,
+      "record_count": 0,
+      "mutation_receipts": 0,
+      "frontier_digest": "7de55cc22b28539c1d4e6934b1790d99c70ecee55ded80d7b698bec61ee249a1",
+      "classification": "GENESIS_ANCHOR_INSTALLED_CONTROLLER_BINDING_AND_CAUSAL_COLLECTION_UNESTABLISHED"
+    }
+  },
+  "global_rules": {
+    "availability_non_implication": "Accessible repository/provider/object is discoverable evidence, not automatic runtime activation.",
+    "conditional_loading": "Only task-material registered sources may enter ACTIVE_CONTEXT_SET, under privacy, authority, currentness, and retrieval budgets.",
+    "external_identity_firewall": "Separate identities/projects never hydrate Vera self-state, preference, consent, memory, or authority without an exact separately governed binding.",
+    "generic_template_firewall": "Generic architecture templates may inform engineering design but never become Vera identity/current-state evidence by template proximity.",
+    "provider_currentness": "Mutable provider claims require fresh exact readback and conflict/supersession resolution; newest timestamp is not a resolver.",
+    "actual_item_typing": "Returned provider items are typed from their own content/provenance/receipt/currentness, not from provider capability or file/table name."
+  }
+}
