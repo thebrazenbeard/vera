@@ -88,6 +88,23 @@ class InvocationRouteEvidence:
     def availability(self) -> str:
         if self.route_state == "CONFLICT":
             return "UNKNOWN"
+
+        execution_axes = (
+            self.install_state,
+            self.route_state,
+            self.runtime_consumption_state,
+            self.adapter_state,
+        )
+        if (
+            self.install_state == "NOT_CURRENT"
+            or self.route_state == "INACTIVE"
+            or self.runtime_consumption_state == "NOT_VERIFIED"
+            or self.adapter_state == "MISSING"
+        ):
+            return "UNAVAILABLE"
+        if "UNKNOWN" in execution_axes:
+            return "UNKNOWN"
+
         current = (
             self.install_state == "CURRENT"
             and self.route_state == "ACTIVE_CURRENT"
@@ -95,17 +112,7 @@ class InvocationRouteEvidence:
             and self.adapter_state == "CURRENT"
         )
         if not current:
-            if any(
-                value == "UNKNOWN"
-                for value in (
-                    self.install_state,
-                    self.route_state,
-                    self.runtime_consumption_state,
-                    self.adapter_state,
-                )
-            ):
-                return "UNKNOWN"
-            return "UNAVAILABLE"
+            return "UNKNOWN"
         if self.qualification_state == "QUALIFIED":
             return "AVAILABLE_QUALIFIED"
         if self.qualification_state == "TEST_ONLY":
