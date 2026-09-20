@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any, Callable, Mapping
 import uuid
 
 
@@ -56,6 +56,33 @@ class InvocationRouteEvidence:
             raise ValueError("invalid adapter_state")
         if self.qualification_state not in _QUALIFICATION_STATES:
             raise ValueError("invalid qualification_state")
+
+    @classmethod
+    def from_mapping(cls, value: Mapping[str, Any]) -> "InvocationRouteEvidence":
+        """Consume VCP evidence while ignoring only derived/non-normative fields.
+
+        Availability is recomputed from the normative route axes instead of
+        trusting a caller-supplied derived classification.
+        """
+        if not isinstance(value, Mapping):
+            raise ValueError("route evidence must be a mapping")
+        required = (
+            "schema",
+            "subject",
+            "command_id",
+            "evidence_id",
+            "source_revision",
+            "observed_at",
+            "install_state",
+            "route_state",
+            "runtime_consumption_state",
+            "adapter_state",
+            "qualification_state",
+        )
+        missing = [name for name in required if name not in value]
+        if missing:
+            raise ValueError(f"route evidence missing fields: {', '.join(missing)}")
+        return cls(**{name: value[name] for name in required})
 
     @property
     def availability(self) -> str:
