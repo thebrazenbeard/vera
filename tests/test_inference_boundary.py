@@ -292,19 +292,82 @@ class ProjectionTests(StateCompositionTests):
             project_text_context(admitted, capability)
 
     def test_projection_rejects_forbidden_domain(self):
+        compose_state = require(self, "compose_state")
+        bind_admitted_state = require(self, "bind_admitted_state")
         project_text_context = require(self, "project_text_context")
-        admitted = self.admitted()
-        mutated = ib.AdmittedVeraState(
-            subject=admitted.subject, composition_digest=admitted.composition_digest,
-            admission_receipt_digest=admitted.admission_receipt_digest,
-            admitted_components=(self.component(domain_id="truth"),), omissions=admitted.omissions,
-            forbidden_domains=admitted.forbidden_domains, admitted_disclosure_scope=admitted.admitted_disclosure_scope,
-            admission_currentness_basis=admitted.admission_currentness_basis,
-            admission_epoch_or_lease=admitted.admission_epoch_or_lease, admitted_at=admitted.admitted_at,
+        component = self.component(domain_id="truth")
+        composition = compose_state(
+            subject="vera", components=[component], omissions=[], policy_revision="r3"
         )
-        capability = self.capability(mutated)
+        admitted = bind_admitted_state(
+            composition,
+            admission_receipt_digest="b" * 64,
+            admitted_component_ids={"affect:1"},
+            mandatory_component_ids=set(),
+            target_egress_scope="PROJECT_PRIVATE_HOST",
+            forbidden_domains=set(),
+            admission_currentness_basis="receipt://current",
+            admission_epoch_or_lease="epoch-1",
+            admitted_at="t",
+        )
+        capability = self.capability(admitted)
         with self.assertRaisesRegex(ValueError, "forbidden"):
-            project_text_context(mutated, capability)
+            project_text_context(admitted, capability)
+
+    def test_admitted_state_digest_binds_exact_admission_subset(self):
+        compose_state = require(self, "compose_state")
+        bind_admitted_state = require(self, "bind_admitted_state")
+        project_text_context = require(self, "project_text_context")
+        affect = self.component()
+        memory = self.component(
+            component_id="memory:1",
+            domain_id="memory_salience",
+            source_locator="runtime://memory/current",
+            source_revision="rev-m",
+            component_generation="1",
+            payload={"memory": "present"},
+        )
+        composition = compose_state(
+            subject="vera", components=[affect, memory], omissions=[], policy_revision="r3"
+        )
+        common = dict(
+            admission_receipt_digest="b" * 64,
+            mandatory_component_ids=set(),
+            target_egress_scope="PROJECT_PRIVATE_HOST",
+            forbidden_domains={"truth", "authorization", "phenomenology"},
+            admission_currentness_basis="receipt://current",
+            admission_epoch_or_lease="epoch-1",
+            admitted_at="t",
+        )
+        s1 = bind_admitted_state(
+            composition, admitted_component_ids={"affect:1"}, **common
+        )
+        s2 = bind_admitted_state(
+            composition, admitted_component_ids={"affect:1", "memory:1"}, **common
+        )
+        self.assertEqual(s1.composition_digest, s2.composition_digest)
+        self.assertNotEqual(s1.admitted_state_digest, s2.admitted_state_digest)
+        capability_s1 = self.capability(s1)
+        with self.assertRaisesRegex(ValueError, "admitted-state"):
+            project_text_context(s2, capability_s1)
+
+    def test_admitted_state_digest_cannot_be_reused_for_mutated_admission(self):
+        admitted = self.admitted()
+        with self.assertRaisesRegex(ValueError, "admitted_state_digest"):
+            ib.AdmittedVeraState(
+                subject=admitted.subject,
+                composition_digest=admitted.composition_digest,
+                composition_policy_revision=admitted.composition_policy_revision,
+                admitted_state_digest=admitted.admitted_state_digest,
+                admission_receipt_digest=admitted.admission_receipt_digest,
+                admitted_components=admitted.admitted_components,
+                omissions=admitted.omissions,
+                forbidden_domains=admitted.forbidden_domains,
+                admitted_disclosure_scope=admitted.admitted_disclosure_scope,
+                admission_currentness_basis=admitted.admission_currentness_basis,
+                admission_epoch_or_lease="epoch-2",
+                admitted_at=admitted.admitted_at,
+            )
 
 
 class InvocationFrontierTests(ProjectionTests):
@@ -451,3 +514,5 @@ class InvocationFrontierTests(ProjectionTests):
 
 if __name__ == "__main__":
     unittest.main()
+
+[executed on device: Lappy (937d921e-ecc8-4dc7-bc71-dee5f06ab653)]
