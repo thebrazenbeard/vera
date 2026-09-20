@@ -1,0 +1,61 @@
+{
+  "receipt_core": {
+    "schema": "DISCOVERY_PRIVATE_CONSUMER_RECEIPT_V1",
+    "commitment_scheme": "SHA256_PRIVATE_NONCE_CANONICAL_V1",
+    "nonce_hex": "0ce981905a7a5626534bacfe4cec970324b7ed8377ea4a639fea109bad8f2fbd",
+    "consumer": {
+      "repository": "thebrazenbeard/vera",
+      "consumer_id": "VERA_RUNTIME_SOURCE_REGISTRY"
+    },
+    "subject": {
+      "repository": "thebrazenbeard/vera",
+      "ref": "work/vera-control-plane-currentness-20260920@0edf639b14c124bf6be5d40f459764130f544099",
+      "path": "architecture/VERA_RUNTIME_SOURCE_REGISTRY_V1.json",
+      "git_blob_sha1": "9de2f19c28b35f37c346f7eb96e674fd18abb34a"
+    },
+    "discovery_census": {
+      "repository": "thebrazenbeard/discovery",
+      "ref": "vera/discovery-shared-substrate-v1@1316094edbed17fa5918b70793c95ffddfcf92ea",
+      "path": "portfolio/PORTFOLIO_CENSUS_V1.json",
+      "git_blob_sha1": "34cd2ab55d46f5a1ecc2c894f3e8cfdb8afa41df",
+      "total_count": 57,
+      "all_names_sha256": "43dfda1fa3dd24dec39e2aa345d93ab192dbda777433feae384da632b3d008dd"
+    },
+    "verification": {
+      "authenticated_owner_inventory_count": 57,
+      "recomputed_all_names_sha256": "43dfda1fa3dd24dec39e2aa345d93ab192dbda777433feae384da632b3d008dd",
+      "classification": "EXACT_CENSUS_DIGEST_MATCH"
+    },
+    "authority_ceiling": "DISCOVERY_CENSUS_DRIFT_INPUT_ONLY_NOT_CONTROL_NOT_RUNTIME_REGISTRY"
+  },
+  "public_attestation": {
+    "opaque_handle": "PRIVATE_OPAQUE_f306bde2474eb046",
+    "schema": "DISCOVERY_PRIVATE_SUBJECT_ATTESTATION_V1",
+    "commitment_scheme": "SHA256_PRIVATE_NONCE_CANONICAL_V1",
+    "consumer_commitment_sha256": "f306bde2474eb04685b774c84de90b2377706df0a08b0a1c4ab9cb488cada6ef",
+    "subject_commitment_sha256": "08855041acd5674d1b651080f1b971ae80e99e3e7125ae43b68692562e37cbf2",
+    "receipt_sha256": "1be6377f5e125c4fca3da825824a57297dfbb16f8758fddc8bc2d17bc4ff2969",
+    "verifier_class": "PRIVATE_OWNER_REGISTRY",
+    "status": "EXACT_PRIVATE_SUBJECT_ATTESTED"
+  },
+  "privacy": {
+    "public_surface_may_publish": [
+      "public_attestation.opaque_handle",
+      "public_attestation.schema",
+      "public_attestation.commitment_scheme",
+      "public_attestation.consumer_commitment_sha256",
+      "public_attestation.subject_commitment_sha256",
+      "public_attestation.receipt_sha256",
+      "public_attestation.verifier_class",
+      "public_attestation.status"
+    ],
+    "public_surface_must_not_publish": [
+      "receipt_core.nonce_hex",
+      "receipt_core.consumer.repository",
+      "receipt_core.subject.repository",
+      "receipt_core.subject.ref",
+      "receipt_core.subject.path",
+      "receipt_core.subject.git_blob_sha1"
+    ]
+  }
+}
