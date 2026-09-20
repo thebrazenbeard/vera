@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -8,6 +9,7 @@ from typing import Any, Iterable
 
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
+_EXPECTED_DISCOVERY_V0_GIT_BLOB = "b5d85ba31a33ad7192fd4a08934628a72e593312"
 
 
 @dataclass(frozen=True)
@@ -40,8 +42,20 @@ class EffectAttentionContract:
         )
 
 
+def _git_blob_sha1(payload: bytes) -> str:
+    header = f"blob {len(payload)}\0".encode("ascii")
+    return hashlib.sha1(header + payload).hexdigest()
+
+
 def load_effect_attention_contract(path: str | Path) -> EffectAttentionContract:
-    value = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = Path(path).read_bytes()
+    observed_blob = _git_blob_sha1(raw)
+    if observed_blob != _EXPECTED_DISCOVERY_V0_GIT_BLOB:
+        raise ValueError(
+            "effect-envelope schema is not the exact Discovery V0 Git blob: "
+            f"expected {_EXPECTED_DISCOVERY_V0_GIT_BLOB}, observed {observed_blob}"
+        )
+    value = json.loads(raw.decode("utf-8"))
     if type(value) is not dict:
         raise ValueError("effect-envelope schema must be a JSON object")
     return EffectAttentionContract.from_schema(value)
