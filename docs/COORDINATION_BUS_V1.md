@@ -13,7 +13,7 @@ The bus provides addressed, asynchronous operational communication between four 
 - `workstream/initiative`
 - `workstream/integration`
 
-These labels are routing addresses, not persons, autonomous agents, continuous processes, or evidence of hidden activity. A workstream runs only when an exposed chat, task, or runtime invokes it.
+These labels are routing addresses, not persons, autonomous agents, continuous processes, or evidence of hidden activity. A workstream runs only when an execution terminal or runtime invokes it; no permanent conversation is required.
 
 ## Public implementation
 
@@ -150,7 +150,7 @@ A receipt proves only evaluation of returned material and, for writes, persisten
 5. A linked acknowledgement or response proves only that linked row's persistence.
 6. Inbox reads are ordered by database-generated `event_sequence`.
 
-There is no chat wake-up, hidden polling, synchronous conversation, delivery-time, or exactly-once claim. A retry after an ambiguous transport failure can duplicate a logical message unless a future runtime and storage contract add durable idempotency.
+There is no hidden terminal wake-up, hidden polling, synchronous conversation, delivery-time, or exactly-once claim. A retry after an ambiguous transport failure can duplicate a logical message unless a future runtime and storage contract add durable idempotency.
 
 ## Live Supabase contract observed July 30, 2026
 
@@ -189,7 +189,7 @@ The correction adds regression coverage for:
 
 ## Non-goals
 
-- waking or notifying another chat;
+- waking or notifying a hidden or permanent conversation;
 - continuous background monitoring;
 - automatic canonical-memory creation;
 - model-owned goals, identity, consent, or conations;

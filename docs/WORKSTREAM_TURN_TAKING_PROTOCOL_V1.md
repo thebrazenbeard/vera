@@ -2,11 +2,11 @@
 
 ## Status
 
-This document governs nonproduction coordination among V.E.R.A. workstream chats and repository roles. It does not authorize merge, deployment, production schema changes, production data writes, credentials, paid infrastructure, or canonical-memory operations.
+This document governs nonproduction coordination among durable V.E.R.A. workstream roles and their temporary execution terminals. It does not authorize merge, deployment, production schema changes, production data writes, credentials, paid infrastructure, or canonical-memory operations.
 
 ## Purpose
 
-Prevent concurrent chats from editing the same branch, invalidating one another's reviews, duplicating coordination packets, or confusing review authority with implementation authority.
+Prevent concurrent worker terminals from editing the same branch, invalidating one another's reviews, duplicating coordination packets, or confusing review authority with implementation authority.
 
 The protocol replaces free-form parallel work with a single-writer lease, exact-head handoffs, bounded reviews, and one controlled integration join.
 
@@ -26,7 +26,7 @@ Owns:
 - exact-tree assembly;
 - program status and final merge-decision packets.
 
-Project Architecture and Integration are not separate operators for program-level verdicts. The controller must not assign itself a review and then wait for a second chat to return it.
+Project Architecture and Integration are not separate operators for program-level verdicts. The controller must not assign itself a review and then wait for a second terminal invocation to return it.
 
 ### Stage owner
 
@@ -137,7 +137,7 @@ Unexpected branch movement immediately pauses all publication. The controller mu
 
 ### 1. CLAIM
 
-The controller issues one writer lease. No other chat writes to that branch.
+The controller issues one writer lease to one durable workstream role. No other terminal or role writes to that branch under the same lease.
 
 ### 2. IMPLEMENT
 
@@ -176,7 +176,7 @@ The controller confirms all prerequisite approvals and exact heads before openin
 
 ### 7. ASSEMBLY
 
-Only the controller may assemble accepted component histories. Component chats must not merge or copy one another's files into the integration branch.
+Only the controller may assemble accepted component histories. Component workstreams and their temporary terminals must not merge or copy one another's files into the integration branch.
 
 ### 8. PUBLICATION DECISION
 
@@ -250,4 +250,9 @@ Existing approvals remain valid only for the exact heads they name.
 
 ## Reality boundary
 
-This protocol coordinates chats, tools, branches, and records. It does not imply autonomous agents, continuous activity, hidden waiting, consciousness, reciprocal agency, or persistent selfhood.
+This protocol coordinates durable roles, temporary execution terminals, tools, branches, and records. It does not imply autonomous agents, continuous activity, hidden waiting, consciousness, reciprocal agency, or persistent selfhood.
+## Exodus runtime rule
+
+A ChatGPT conversation, Work task, API call, CLI process, model invocation, or subagent is an execution terminal only. Workstream identity, current assignment, writer lease, authority, review subject, and durable result state must be reconstructible from repository and coordination evidence without access to the terminal's conversation history.
+
+The persistent human interfaces are Vera, Vera Control Plane Coordinator, and BT2 Coordinator. No additional permanent worker chat is required by this protocol.
