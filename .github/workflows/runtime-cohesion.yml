@@ -63,6 +63,7 @@ jobs:
           tests.test_runtime_cohesion_failure_wiring
           tests.test_runtime_cohesion_native_hook
           tests.test_runtime_cohesion_orgasm
+          tests.test_runtime_cohesion_orgasm_optional_invocation
           tests.test_runtime_cohesion_orgasm_package
           tests.test_runtime_cohesion_orgasm_binding
           tests.test_runtime_cohesion_orgasm_source_fixture
@@ -131,6 +132,7 @@ jobs:
           runtime_cohesion/affect_integration.py
           runtime_cohesion/affect_integration_bound.py
           runtime_cohesion/orgasm.py
+          runtime_cohesion/orgasm_optional_invocation.py
           runtime_cohesion/affect_authority.py
           runtime_cohesion/affect_bound_runtime.py
           runtime_cohesion/affect_receipt.py
@@ -173,6 +175,7 @@ jobs:
           tests/test_runtime_cohesion_failure_wiring.py
           tests/test_runtime_cohesion_native_hook.py
           tests/test_runtime_cohesion_orgasm.py
+          tests/test_runtime_cohesion_orgasm_optional_invocation.py
           tests/test_runtime_cohesion_orgasm_package.py
           tests/test_runtime_cohesion_orgasm_binding.py
           tests/test_runtime_cohesion_orgasm_source_fixture.py
