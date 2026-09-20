@@ -106,13 +106,15 @@ Active Cohesion stack:
 - observed exact head `15bd36e30ef5a05a28b12572434837a0fe9b51c7`;
 - OPEN / DRAFT / UNMERGED;
 - body records exact-head PostgreSQL evidence: 27/27 bounded tests plus 10/10 repeated race/seal runs;
-- fresh read of PR comments during this Exodus found **no review/comment explicitly bound to current head `15bd36e...`**;
-- older hostile/review/execution findings are bound to superseded heads and do not transfer automatically.
+- this Exodus initially found no review/comment bound to current head `15bd36e...`;
+- Thirteen then performed the runnable exact-head independent gate and recorded review `5260323100` as `INDEPENDENT_VALIDATION_PASS` for the bounded predecessor-import/readback slice;
+- the PASS explicitly does **not** transfer into whole-Cohesion qualification and leaves issue #132 outside its scope;
+- no separate exact-head hostile/Vera terminal PASS was found at this checkpoint cut.
 
 Therefore current reviewer state is:
-`#119 EXACT-HEAD INDEPENDENT/HOSTILE REVIEW OPEN`.
+`#119 THIRTEEN_INDEPENDENT_PASS / EXACT-HEAD HOSTILE_REVIEW_OPEN`.
 
-The execution evidence is a separately recorded claim on the PR and must not be silently promoted into review PASS, provider application, install/current route, or qualification.
+The recorded execution evidence remains a separate exact-head evidence class. It was not independently rerun by Thirteen and must not be silently promoted into provider application, install/current route, behavioral qualification, or whole-system qualification.
 
 ### PR #120
 - branch `work/cohesion-sexual-drive-mandatory-20260913`;
@@ -134,11 +136,12 @@ Its current body classifies the frozen V1 qualification subject blob
 as historical evidence rather than a current qualification subject.
 
 Current executable Cohesion source is Vera main, and the current Orgasm chain requires:
-1. exact-head review of Vera #119;
-2. successor/rebound Orgasm qualification subject against the accepted exact source tuple;
-3. downstream Control Plane source-binding regeneration;
-4. separate Patrick authority before provider install/staging;
-5. independent readback/qualification after any authorized effect.
+1. finish the remaining exact-head hostile/Vera gate on #119; Thirteen's bounded independent gate is PASS on `15bd36e...`;
+2. keep issue #132 separate and unresolved for any qualification claim that includes the inference/model-invocation axis;
+3. create/review a successor or explicitly scoped Orgasm qualification subject against the accepted exact source tuple;
+4. regenerate downstream Control Plane source bindings only from the reviewed subject;
+5. obtain separate Patrick authority before provider install/staging;
+6. independently read back/qualify after any authorized effect.
 
 Executable runtime ownership remains in Vera; Orgasm is the qualification/provenance hub.
 
@@ -179,7 +182,7 @@ Durable prior review-design evidence:
 ## Classification of this chat's durable value
 
 - `ALREADY_DURABLE`: historical CV/OV findings, exact review comments, PR history, broad CV/OV reconstruction in #129, general chat-independent workstream architecture in #130.
-- `NEW_DURABLE_VALUE`: this reviewer-role reconstruction, exact 2026-09-20 currentness cut, issue #132, and explicit #119 exact-head gate status.
+- `NEW_DURABLE_VALUE`: this reviewer-role reconstruction, exact 2026-09-20 currentness cut, issue #132, and Thirteen's exact-head #119 independent PASS (review `5260323100`).
 - `SUPERSEDES_EXISTING`: operational use of the old Thirteen restore token / successor-chat instruction.
 - `CONFLICT`: #116 merge/repair narrative versus current canonical source bytes reproducing issue #132.
 - `HISTORICAL_EVIDENCE`: old #113/#114/#115 review cycles and the 2026-09-11 chat handoff.
@@ -193,11 +196,11 @@ Durable prior review-design evidence:
 These are independent; refresh before work.
 
 ### A — Current CV/OV qualification chain
-If #119 remains at `15bd36e30ef5a05a28b12572434837a0fe9b51c7` and no exact-head Thirteen independent result has appeared:
-- instantiate Thirteen as an ephemeral independent-review runtime;
-- review that exact head and its claimed PostgreSQL evidence without borrowing earlier-head PASS/FAIL;
-- write the terminal result to #119 and mirror work-bearing coordination through the Bus;
-- if the head moved, discard this subject and bind review to the new exact head instead.
+If #119 remains at `15bd36e30ef5a05a28b12572434837a0fe9b51c7`:
+- preserve Thirteen review `5260323100` as the bounded exact-head independent PASS;
+- obtain the separate Vera/hostile exact-head review required by the owning gate;
+- if the head moves materially, invalidate the old exact-head review credit and re-run the required gates;
+- do not use the #119 migration-slice PASS to close issue #132 or any inference/model-invocation qualification axis.
 
 ### B — Canonical R3 admission identity
 For Vera issue #132:
