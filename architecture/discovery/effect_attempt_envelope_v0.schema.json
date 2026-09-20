@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/thebrazenbeard/discovery/schemas/effect_attempt_envelope_v0.schema.json",
+  "title": "Discovery Effect Attempt Envelope V0",
+  "description": "Experimental interchange envelope only; not runtime authority or a shared state machine.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_system",
+    "source_operation_id",
+    "source_state",
+    "source_ref",
+    "action_class",
+    "target",
+    "normalized_phase",
+    "retry_disposition",
+    "receipts"
+  ],
+  "properties": {
+    "schema_version": {"const": "DISCOVERY_EFFECT_ATTEMPT_V0"},
+    "source_system": {"type": "string", "minLength": 1},
+    "source_operation_id": {"type": "string", "minLength": 1},
+    "source_state": {"type": "string", "minLength": 1},
+    "source_ref": {"type": "string", "minLength": 1},
+    "source_payload_sha256": {
+      "type": ["string", "null"],
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "action_class": {"type": "string", "minLength": 1},
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "locator"],
+      "properties": {
+        "kind": {"type": "string", "minLength": 1},
+        "locator": {"type": "string", "minLength": 1},
+        "expected_precondition": {"type": ["string", "null"]}
+      }
+    },
+    "normalized_phase": {
+      "enum": [
+        "PRE_EFFECT",
+        "POST_EFFECT_UNVERIFIED",
+        "POST_EFFECT_VERIFIED",
+        "TERMINAL_FAILURE",
+        "OUTCOME_UNKNOWN",
+        "RECONCILED"
+      ]
+    },
+    "retry_disposition": {
+      "enum": [
+        "DOMAIN_DECIDES",
+        "INSPECT_BEFORE_RETRY",
+        "DO_NOT_RETRY",
+        "MAY_RETRY"
+      ]
+    },
+    "receipts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "value"],
+        "properties": {
+          "kind": {"type": "string", "minLength": 1},
+          "value": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}
