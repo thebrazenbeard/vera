@@ -139,3 +139,9 @@ Instantiate a temporary `Runtime Cohesion Projection Auditor` from this checkpoi
 6. persist material projection state changes into the existing Cohesion provider-audit/checkpoint structure rather than relying on a chat.
 
 No archived conversation is required for this procedure.
+
+## Concurrent Exodus reconciliation
+
+A concurrent Exodus lane independently persisted `docs/exodus/COHESION_RUNTIME_PROJECTION_MONITOR_EXODUS_ADDENDUM_20260920_V1.md` on Vera PR #129 at commit `a70d95f76da44904dff4d27b7df414df65f9b60b`, blob `0479bb45a23e2e88f00dd839e56ff23630d0db50`. It also wrote the Bus handoff `messages/20260920T0659-0400-vera-cohesion-runtime-projection-monitor-exodus.md` on `bus/vera-v2` at commit `7a01b840c1ccf9bd093898a3539b35ce171cd7ad`.
+
+Classification: `ALREADY_DURABLE / CONCURRENT_COMPLEMENT`, not a competing authority. PR #129 carries the broader Cohesion/CV/OV reconstruction and issue #132 frontier; this checkpoint carries the projection-wide four-registration inventory, notification edge semantics, and exact audit reconstruction recipe. Future coordination should reconcile both durable artifacts and avoid creating another permanent chat or duplicate worker identity.
