@@ -833,5 +833,3 @@ def build_causal_receipt(record: InvocationRecord, *, observed_at: str) -> Causa
             "PHENOMENOLOGY_UNRESOLVED",
         ),
     )
-
-[executed on device: Lappy (937d921e-ecc8-4dc7-bc71-dee5f06ab653)]
