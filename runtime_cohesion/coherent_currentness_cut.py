@@ -3,6 +3,10 @@
 This module evaluates supplied readback evidence only. It performs no external read,
 does not grant authority, does not establish Vera identity, and does not authorize
 effects.
+
+Requiredness is not asserted by each readback. One explicit requirement profile binds
+the proposition/scope and declared required/optional surface inventory. Admission of
+that profile from its claimed governance source remains a separate boundary.
 """
 
 from __future__ import annotations
@@ -41,6 +45,23 @@ def _digest(payload: dict[str, Any]) -> str:
     return sha256(raw).hexdigest()
 
 
+def _canonical_surface_ids(
+    value: Any,
+    label: str,
+    *,
+    allow_empty: bool,
+) -> tuple[str, ...]:
+    if type(value) is not tuple:
+        raise ValueError(f"{label} must be an exact tuple")
+    if not value and not allow_empty:
+        raise ValueError(f"{label} must be non-empty")
+    if any(type(item) is not str or not item.strip() for item in value):
+        raise ValueError(f"{label} must contain non-empty exact strings")
+    if value != tuple(sorted(set(value))):
+        raise ValueError(f"{label} must be canonical, sorted, and unique")
+    return value
+
+
 class SurfaceStatus(StrEnum):
     COMPLETE = "COMPLETE"
     PARTIAL = "PARTIAL"
@@ -55,9 +76,65 @@ class CutDisposition(StrEnum):
 
 
 @dataclass(frozen=True)
+class CurrentnessRequirementProfile:
+    profile_id: str
+    proposition_type: str
+    scope_digest: str
+    requirements_source_id: str
+    requirements_source_digest: str
+    required_surfaces: tuple[str, ...]
+    optional_surfaces: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        _nonempty(self.profile_id, "profile_id")
+        _nonempty(self.proposition_type, "proposition_type")
+        _sha256(self.scope_digest, "scope_digest")
+        _nonempty(self.requirements_source_id, "requirements_source_id")
+        _sha256(
+            self.requirements_source_digest,
+            "requirements_source_digest",
+        )
+        required = _canonical_surface_ids(
+            self.required_surfaces,
+            "required_surfaces",
+            allow_empty=False,
+        )
+        optional = _canonical_surface_ids(
+            self.optional_surfaces,
+            "optional_surfaces",
+            allow_empty=True,
+        )
+        overlap = set(required).intersection(optional)
+        if overlap:
+            raise ValueError(
+                "required_surfaces and optional_surfaces must not overlap: "
+                + repr(sorted(overlap))
+            )
+
+    @property
+    def declared_surface_ids(self) -> tuple[str, ...]:
+        return tuple(sorted(self.required_surfaces + self.optional_surfaces))
+
+    def payload(self) -> dict[str, Any]:
+        return {
+            "schema": "VERA_CURRENTNESS_REQUIREMENT_PROFILE_V1",
+            "profile_id": self.profile_id,
+            "proposition_type": self.proposition_type,
+            "scope_digest": self.scope_digest,
+            "requirements_source_id": self.requirements_source_id,
+            "requirements_source_digest": self.requirements_source_digest,
+            "required_surfaces": list(self.required_surfaces),
+            "optional_surfaces": list(self.optional_surfaces),
+        }
+
+    @property
+    def digest(self) -> str:
+        return _digest(self.payload())
+
+
+@dataclass(frozen=True)
 class SurfaceReadback:
     surface_id: str
-    required: bool
     status: SurfaceStatus
     start_frontier: str
     end_frontier: str
@@ -66,8 +143,6 @@ class SurfaceReadback:
 
     def __post_init__(self) -> None:
         _nonempty(self.surface_id, "surface_id")
-        if type(self.required) is not bool:
-            raise ValueError("required must be boolean")
         if type(self.status) is not SurfaceStatus:
             raise ValueError("status must be exact SurfaceStatus")
         _nonempty(self.start_frontier, "start_frontier")
@@ -82,7 +157,6 @@ class SurfaceReadback:
     def payload(self) -> dict[str, Any]:
         return {
             "surface_id": self.surface_id,
-            "required": self.required,
             "status": self.status.value,
             "start_frontier": self.start_frontier,
             "end_frontier": self.end_frontier,
@@ -94,41 +168,76 @@ class SurfaceReadback:
 @dataclass(frozen=True)
 class CoherentCurrentnessCut:
     cut_id: str
+    requirement_profile: CurrentnessRequirementProfile
     live_input_digest: str
+    live_input_scope_digest: str
     restored_frontier_digest: str | None
     retry_count: int
+    predecessor_cut_digest: str | None
     surfaces: tuple[SurfaceReadback, ...]
 
     def __post_init__(self) -> None:
         _nonempty(self.cut_id, "cut_id")
+        if type(self.requirement_profile) is not CurrentnessRequirementProfile:
+            raise ValueError(
+                "requirement_profile must be exact CurrentnessRequirementProfile"
+            )
         _sha256(self.live_input_digest, "live_input_digest")
+        _sha256(self.live_input_scope_digest, "live_input_scope_digest")
+        if self.live_input_scope_digest != self.requirement_profile.scope_digest:
+            raise ValueError(
+                "live_input_scope_digest must match requirement profile scope"
+            )
         if self.restored_frontier_digest is not None:
             _sha256(self.restored_frontier_digest, "restored_frontier_digest")
         if type(self.retry_count) is not int or isinstance(self.retry_count, bool):
             raise ValueError("retry_count must be exact int")
         if self.retry_count not in (0, 1):
             raise ValueError("retry_count must be 0 or 1")
+        if self.retry_count == 0:
+            if self.predecessor_cut_digest is not None:
+                raise ValueError(
+                    "initial currentness cut cannot claim predecessor_cut_digest"
+                )
+        else:
+            if self.predecessor_cut_digest is None:
+                raise ValueError(
+                    "retry currentness cut requires predecessor_cut_digest"
+                )
+            _sha256(self.predecessor_cut_digest, "predecessor_cut_digest")
+
         if type(self.surfaces) is not tuple or not self.surfaces:
             raise ValueError("surfaces must be a non-empty tuple")
         if any(type(item) is not SurfaceReadback for item in self.surfaces):
             raise ValueError("surfaces must contain exact SurfaceReadback values")
-        ids = [item.surface_id for item in self.surfaces]
-        if len(ids) != len(set(ids)):
-            raise ValueError("surface_id values must be unique")
+
+        ids = tuple(item.surface_id for item in self.surfaces)
+        if ids != tuple(sorted(set(ids))):
+            raise ValueError("surface readbacks must be canonical, sorted, and unique")
+
+        declared = self.requirement_profile.declared_surface_ids
+        if ids != declared:
+            missing = tuple(sorted(set(declared) - set(ids)))
+            extra = tuple(sorted(set(ids) - set(declared)))
+            raise ValueError(
+                "surface readbacks must exactly match requirement profile inventory; "
+                f"missing={missing!r} extra={extra!r}"
+            )
 
     @property
     def digest(self) -> str:
         return _digest(
             {
-                "schema": "VERA_COHERENT_CURRENTNESS_CUT_V1",
+                "schema": "VERA_COHERENT_CURRENTNESS_CUT_V2",
                 "cut_id": self.cut_id,
+                "requirement_profile_digest": self.requirement_profile.digest,
+                "requirement_profile": self.requirement_profile.payload(),
                 "live_input_digest": self.live_input_digest,
+                "live_input_scope_digest": self.live_input_scope_digest,
                 "restored_frontier_digest": self.restored_frontier_digest,
                 "retry_count": self.retry_count,
-                "surfaces": [
-                    item.payload()
-                    for item in sorted(self.surfaces, key=lambda row: row.surface_id)
-                ],
+                "predecessor_cut_digest": self.predecessor_cut_digest,
+                "surfaces": [item.payload() for item in self.surfaces],
             }
         )
 
@@ -137,6 +246,8 @@ class CoherentCurrentnessCut:
 class CurrentnessDecision:
     disposition: CutDisposition
     cut_digest: str
+    requirement_profile_digest: str
+    scope_digest: str
     affected_surfaces: tuple[str, ...]
     live_input_controls: bool
     authority_granted: bool = False
@@ -148,7 +259,11 @@ def evaluate_currentness_cut(cut: CoherentCurrentnessCut) -> CurrentnessDecision
     if type(cut) is not CoherentCurrentnessCut:
         raise TypeError("cut must be exact CoherentCurrentnessCut")
 
-    required = tuple(item for item in cut.surfaces if item.required)
+    by_id = {item.surface_id: item for item in cut.surfaces}
+    required = tuple(
+        by_id[surface_id]
+        for surface_id in cut.requirement_profile.required_surfaces
+    )
 
     blocked = tuple(
         sorted(
@@ -161,6 +276,8 @@ def evaluate_currentness_cut(cut: CoherentCurrentnessCut) -> CurrentnessDecision
         return CurrentnessDecision(
             disposition=CutDisposition.BLOCKED_REQUIRED_SURFACE,
             cut_digest=cut.digest,
+            requirement_profile_digest=cut.requirement_profile.digest,
+            scope_digest=cut.requirement_profile.scope_digest,
             affected_surfaces=blocked,
             live_input_controls=True,
         )
@@ -170,6 +287,8 @@ def evaluate_currentness_cut(cut: CoherentCurrentnessCut) -> CurrentnessDecision
         return CurrentnessDecision(
             disposition=CutDisposition.RETRY_AFFECTED_SURFACES,
             cut_digest=cut.digest,
+            requirement_profile_digest=cut.requirement_profile.digest,
+            scope_digest=cut.requirement_profile.scope_digest,
             affected_surfaces=moved,
             live_input_controls=True,
         )
@@ -177,6 +296,8 @@ def evaluate_currentness_cut(cut: CoherentCurrentnessCut) -> CurrentnessDecision
         return CurrentnessDecision(
             disposition=CutDisposition.UNSTABLE_UNKNOWN,
             cut_digest=cut.digest,
+            requirement_profile_digest=cut.requirement_profile.digest,
+            scope_digest=cut.requirement_profile.scope_digest,
             affected_surfaces=moved,
             live_input_controls=True,
         )
@@ -184,6 +305,8 @@ def evaluate_currentness_cut(cut: CoherentCurrentnessCut) -> CurrentnessDecision
     return CurrentnessDecision(
         disposition=CutDisposition.CURRENT,
         cut_digest=cut.digest,
+        requirement_profile_digest=cut.requirement_profile.digest,
+        scope_digest=cut.requirement_profile.scope_digest,
         affected_surfaces=(),
         live_input_controls=True,
     )
@@ -192,6 +315,7 @@ def evaluate_currentness_cut(cut: CoherentCurrentnessCut) -> CurrentnessDecision
 __all__ = [
     "CoherentCurrentnessCut",
     "CurrentnessDecision",
+    "CurrentnessRequirementProfile",
     "CutDisposition",
     "SurfaceReadback",
     "SurfaceStatus",
