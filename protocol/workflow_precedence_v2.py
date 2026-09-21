@@ -144,6 +144,13 @@ def decide_protocol_v2(context: ProtocolV2Context) -> ProtocolV2Decision:
             "shared target has a competing current writer",
         )
 
+    if not context.current_instruction:
+        return ProtocolV2Decision(
+            ProtocolV2Action.STOP_NO_CURRENT_AUTHORITY,
+            False,
+            "no current instruction authorizes the bounded act",
+        )
+
     if context.handoff_required and context.github_route_available:
         return ProtocolV2Decision(
             ProtocolV2Action.DIRECT_GITHUB_HANDOFF,
@@ -166,13 +173,6 @@ def decide_protocol_v2(context: ProtocolV2Context) -> ProtocolV2Decision:
             ProtocolV2Action.COMPLETE,
             False,
             "stated acceptance criteria pass with no unresolved HIGH/MEDIUM defects",
-        )
-
-    if not context.current_instruction:
-        return ProtocolV2Decision(
-            ProtocolV2Action.STOP_NO_CURRENT_AUTHORITY,
-            False,
-            "no current instruction authorizes the bounded act",
         )
 
     # A fresher specific instruction controls its bounded scope. An older
