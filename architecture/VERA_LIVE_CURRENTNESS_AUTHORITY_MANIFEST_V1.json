@@ -1,0 +1,144 @@
+{
+  "schema": "VERA_LIVE_CURRENTNESS_AUTHORITY_MANIFEST_V1",
+  "status": "SOURCE_CANDIDATE_CURRENTNESS_OBSERVATION",
+  "observed_at": "2026-09-21T15:03:00-04:00",
+  "mission": "VERA::WHOLE_SYSTEM_REPAIR::EXECUTE_TO_VERIFIED_CLOSURE_V1",
+  "repository_observations": {
+    "vera": {
+      "repository": "thebrazenbeard/vera",
+      "ref": "main",
+      "head": "3241397755ae1da1af2ce1fb7e7b0f83e0da7538"
+    },
+    "vera_control_plane": {
+      "repository": "thebrazenbeard/vera-control-plane",
+      "ref": "main",
+      "head": "386ef60b7cd3911c07227ccf0e9563ace1f4731c"
+    },
+    "bus_topology": {
+      "repository": "thebrazenbeard/chat-communication-bus",
+      "source_commit": "f90d52e66d655e9c3cfac63cb529914ac51d3a88",
+      "path": "architecture/contracts/RADAR_TOPOLOGY_V1.json",
+      "vera_writer_lane": "bus/vera-v2",
+      "evidence_class": "RELEASE_BOUND_EXTERNAL_SOURCE"
+    }
+  },
+  "current_runtime_instruction_surface": {
+    "current_user_task": {
+      "status": "PRESENT_EXACT_LIVE_INPUT",
+      "authority_class": "PATRICK_CURRENT_TASK_CORRECTION_SCOPE",
+      "note": "Live input is authoritative for this task and is not restored from repository/provider state."
+    },
+    "native_project_kernel": {
+      "status": "PRESENT_IN_CURRENT_RUNTIME_INSTRUCTION_CONTEXT",
+      "exact_source_artifact_identity": "UNKNOWN",
+      "exact_source_digest": "UNKNOWN",
+      "installation_receipt": "UNAVAILABLE",
+      "note": "The current runtime is behaviorally constrained by Project-level Vera kernel instructions, but this observation surface does not expose an exact release artifact/hash binding."
+    }
+  },
+  "project_file_observations": [
+    {
+      "logical_id": "VERA_NATIVE_PROJECT_INTERFACE",
+      "file": "VERA_NATIVE_PROJECT_INTERFACE_V2.yaml",
+      "sha256": "8a1288270cb0d3df2da82d094917f1c4231155ff4488f91875eb75103d9d5d0b",
+      "declared_status": "NATIVE_INTERFACE_SOURCE",
+      "observation_status": "AVAILABLE_AND_READ_THIS_SESSION",
+      "installation_promotion": false
+    },
+    {
+      "logical_id": "VERA_NATIVE_PROJECT_PACK_MANIFEST",
+      "file": "VERA_NATIVE_PROJECT_PACK_MANIFEST_V2.json",
+      "sha256": "8452603113f704e053011a4e4ea1f124ce521af57baa85c999a56286659dcc2d",
+      "declared_status": "DRAFT_NATIVE_PROJECT_PACKAGE_FOR_INSTALL_REVIEW",
+      "observation_status": "AVAILABLE_AND_READ_THIS_SESSION",
+      "installation_promotion": false
+    },
+    {
+      "logical_id": "VERA_NATIVE_CHARTER",
+      "file": "VERA_NATIVE_CHARTER_V2.md",
+      "sha256": "b6ddbbf7266d3d0af3ec00b88626e8c71091d9f5905c4e02b9da158204547fec",
+      "observation_status": "AVAILABLE_PROJECT_SOURCE",
+      "installation_promotion": false
+    },
+    {
+      "logical_id": "VERA_CURRENTNESS_AND_RECOVERY",
+      "file": "VERA_CURRENTNESS_AND_RECOVERY_V2.md",
+      "sha256": "7be6e6b2cc03d630a474ca2de98fb7bb28b68c0860f32812963846b9a71ca654",
+      "observation_status": "AVAILABLE_PROJECT_SOURCE",
+      "installation_promotion": false
+    },
+    {
+      "logical_id": "VERA_COORDINATION",
+      "file": "VERA_COORDINATION_V2.md",
+      "sha256": "ed8219c0a0625dc5d37acb92d2aa8ebe992dd233cc3b3c0b9992f87d9c624634",
+      "observation_status": "AVAILABLE_PROJECT_SOURCE",
+      "installation_promotion": false
+    },
+    {
+      "logical_id": "VERA_MEMORY_AND_PRIVACY",
+      "file": "VERA_MEMORY_AND_PRIVACY_V2.md",
+      "sha256": "e808c9aec1d7b9fc24a72973f113803929d0edb31f421ee2937c7bd4de9e6a1a",
+      "observation_status": "AVAILABLE_PROJECT_SOURCE",
+      "installation_promotion": false
+    },
+    {
+      "logical_id": "VERA_CONTROL_SOURCE_SEPARATION",
+      "file": "VERA_CONTROL_SOURCE_SEPARATION_V2.md",
+      "sha256": "85d4c469b54c9bfd601bf1ba6426adee9f596b3e8655eaa1d673d1bb2d71f5a0",
+      "observation_status": "AVAILABLE_PROJECT_SOURCE",
+      "installation_promotion": false
+    },
+    {
+      "logical_id": "VERA_PROJECT_SOURCE_MANIFEST",
+      "file": "VERA_R10A0_PROJECT_SOURCE_MANIFEST_R10.json",
+      "sha256": "b7c70b1ad2c3bc533c7560320fb9a03b827f3eafad6296894216d75281b8dca1",
+      "observation_status": "AVAILABLE_RELEASE_SOURCE_EVIDENCE",
+      "installation_promotion": false
+    },
+    {
+      "logical_id": "VERA_FULL_SYSTEM_PROJECT_INSTRUCTIONS",
+      "file": "VERA_R10A0_FULL_SYSTEM_PROJECT_INSTRUCTIONS_R10.md",
+      "sha256": "e797d1a6e973b06ab3e58f9157aabb500ebfdbee1ee6c8da801bc202b6767a2f",
+      "observation_status": "AVAILABLE_RELEASE_SOURCE_EVIDENCE",
+      "installation_promotion": false
+    }
+  ],
+  "vcp_release_source_observation": {
+    "release": "R10A2",
+    "registry_path": "project-instructions/r10a2/VERA_R10A2_CONTROL_REGISTRY.json",
+    "observed_on_vcp_main": "386ef60b7cd3911c07227ccf0e9563ace1f4731c",
+    "registry_declared_status": "SOURCE_CANDIDATE_NOT_INSTALLED_NOT_RUNTIME_QUALIFIED",
+    "installation_promotion": false
+  },
+  "governing_release_resolution": {
+    "exact_release_id": "UNKNOWN",
+    "exact_release_source_commit": "UNKNOWN",
+    "exact_installed_artifact_digest": "UNKNOWN",
+    "exact_installation_receipt": "UNAVAILABLE",
+    "exact_runtime_consumption_receipt": "UNAVAILABLE",
+    "behavioral_qualification_for_exact_installed_release": "UNAVAILABLE",
+    "resolution": "BLOCKED_EXTERNAL",
+    "reason": "Current ChatGPT Project/runtime surfaces available to this worker do not expose a first-party exact installed-control release identifier/hash/receipt. Project-file presence and GitHub source cannot be promoted into installation."
+  },
+  "provider_observations": {
+    "vera_supabase": {
+      "project_id": "klmbpaigzeguvnpccqzz",
+      "observed_status": "ACTIVE_HEALTHY",
+      "role": "GOVERNED_EXTERNAL_STATE_EVIDENCE_NOT_NATIVE_CONTROL_AUTHORITY"
+    },
+    "vera_control_plane_supabase": {
+      "project_id": "fawkirqroyniueeqspif",
+      "observed_status": "ACTIVE_HEALTHY",
+      "role": "CONTROL_PLANE_PROVIDER_STATE_NOT_NATIVE_PROJECT_INSTALLATION_PROOF"
+    }
+  },
+  "hard_separations": [
+    "PROJECT_FILE_PRESENCE != PROJECT_INSTALLATION",
+    "GITHUB_SOURCE != PROJECT_INSTALLATION",
+    "PROJECT_INSTALLATION != RUNTIME_CONSUMPTION",
+    "RUNTIME_CONSUMPTION != BEHAVIORAL_QUALIFICATION",
+    "SUPABASE_DURABILITY != CURRENT_NATIVE_CONTROL_AUTHORITY",
+    "CURRENTNESS != IDENTITY"
+  ],
+  "claim_ceiling": "CURRENT_RUNTIME_OBSERVATION_AND_SOURCE_SEPARATION_ONLY"
+}
