@@ -4,9 +4,14 @@ This module evaluates supplied readback evidence only. It performs no external r
 does not grant authority, does not establish Vera identity, and does not authorize
 effects.
 
-Requiredness is not asserted by each readback. One explicit requirement profile binds
-the proposition/scope and declared required/optional surface inventory. Admission of
+Requiredness and readback-source semantics are not asserted by each readback. One
+explicit requirement profile binds the proposition/scope, required/optional surface
+inventory, and expected readback contract for every declared surface. Admission of
 that profile from its claimed governance source remains a separate boundary.
+
+Retry continuity is structurally bound through a typed predecessor receipt. The
+receipt does not prove that the predecessor was actually executed, persisted, or
+admitted; those stronger claims require external custody/readback evidence.
 """
 
 from __future__ import annotations
@@ -76,6 +81,28 @@ class CutDisposition(StrEnum):
 
 
 @dataclass(frozen=True)
+class SurfaceReadbackContract:
+    surface_id: str
+    readback_identity: str
+    contract_id: str
+    contract_digest: str
+
+    def __post_init__(self) -> None:
+        _nonempty(self.surface_id, "surface_id")
+        _nonempty(self.readback_identity, "readback_identity")
+        _nonempty(self.contract_id, "contract_id")
+        _sha256(self.contract_digest, "contract_digest")
+
+    def payload(self) -> dict[str, Any]:
+        return {
+            "surface_id": self.surface_id,
+            "readback_identity": self.readback_identity,
+            "contract_id": self.contract_id,
+            "contract_digest": self.contract_digest,
+        }
+
+
+@dataclass(frozen=True)
 class CurrentnessRequirementProfile:
     profile_id: str
     proposition_type: str
@@ -84,6 +111,7 @@ class CurrentnessRequirementProfile:
     requirements_source_digest: str
     required_surfaces: tuple[str, ...]
     optional_surfaces: tuple[str, ...] = ()
+    readback_contracts: tuple[SurfaceReadbackContract, ...] = ()
 
     def __post_init__(self) -> None:
         _nonempty(self.profile_id, "profile_id")
@@ -110,14 +138,39 @@ class CurrentnessRequirementProfile:
                 "required_surfaces and optional_surfaces must not overlap: "
                 + repr(sorted(overlap))
             )
+        if type(self.readback_contracts) is not tuple:
+            raise ValueError("readback_contracts must be an exact tuple")
+        if any(
+            type(item) is not SurfaceReadbackContract
+            for item in self.readback_contracts
+        ):
+            raise ValueError(
+                "readback_contracts must contain exact SurfaceReadbackContract values"
+            )
+        contract_ids = tuple(item.surface_id for item in self.readback_contracts)
+        if contract_ids != tuple(sorted(set(contract_ids))):
+            raise ValueError(
+                "readback_contracts must be canonical, sorted, and unique by surface_id"
+            )
+        if contract_ids != self.declared_surface_ids:
+            missing = tuple(sorted(set(self.declared_surface_ids) - set(contract_ids)))
+            extra = tuple(sorted(set(contract_ids) - set(self.declared_surface_ids)))
+            raise ValueError(
+                "readback_contracts must exactly match declared surface inventory; "
+                f"missing={missing!r} extra={extra!r}"
+            )
 
     @property
     def declared_surface_ids(self) -> tuple[str, ...]:
         return tuple(sorted(self.required_surfaces + self.optional_surfaces))
 
+    @property
+    def readback_contract_by_surface(self) -> dict[str, SurfaceReadbackContract]:
+        return {item.surface_id: item for item in self.readback_contracts}
+
     def payload(self) -> dict[str, Any]:
         return {
-            "schema": "VERA_CURRENTNESS_REQUIREMENT_PROFILE_V1",
+            "schema": "VERA_CURRENTNESS_REQUIREMENT_PROFILE_V2",
             "profile_id": self.profile_id,
             "proposition_type": self.proposition_type,
             "scope_digest": self.scope_digest,
@@ -125,6 +178,9 @@ class CurrentnessRequirementProfile:
             "requirements_source_digest": self.requirements_source_digest,
             "required_surfaces": list(self.required_surfaces),
             "optional_surfaces": list(self.optional_surfaces),
+            "readback_contracts": [
+                item.payload() for item in self.readback_contracts
+            ],
         }
 
     @property
@@ -139,7 +195,8 @@ class SurfaceReadback:
     start_frontier: str
     end_frontier: str
     readback_identity: str
-    result_digest: str
+    start_result_digest: str
+    end_result_digest: str
 
     def __post_init__(self) -> None:
         _nonempty(self.surface_id, "surface_id")
@@ -148,11 +205,15 @@ class SurfaceReadback:
         _nonempty(self.start_frontier, "start_frontier")
         _nonempty(self.end_frontier, "end_frontier")
         _nonempty(self.readback_identity, "readback_identity")
-        _sha256(self.result_digest, "result_digest")
+        _sha256(self.start_result_digest, "start_result_digest")
+        _sha256(self.end_result_digest, "end_result_digest")
 
     @property
     def moved(self) -> bool:
-        return self.start_frontier != self.end_frontier
+        return (
+            self.start_frontier != self.end_frontier
+            or self.start_result_digest != self.end_result_digest
+        )
 
     def payload(self) -> dict[str, Any]:
         return {
@@ -161,23 +222,73 @@ class SurfaceReadback:
             "start_frontier": self.start_frontier,
             "end_frontier": self.end_frontier,
             "readback_identity": self.readback_identity,
-            "result_digest": self.result_digest,
+            "start_result_digest": self.start_result_digest,
+            "end_result_digest": self.end_result_digest,
         }
+
+
+@dataclass(frozen=True)
+class PredecessorCutReceipt:
+    cut_digest: str
+    cut_family_id: str
+    requirement_profile_digest: str
+    scope_digest: str
+    retry_count: int
+    disposition: CutDisposition
+    affected_surfaces: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        _sha256(self.cut_digest, "predecessor cut_digest")
+        _nonempty(self.cut_family_id, "predecessor cut_family_id")
+        _sha256(
+            self.requirement_profile_digest,
+            "predecessor requirement_profile_digest",
+        )
+        _sha256(self.scope_digest, "predecessor scope_digest")
+        if type(self.retry_count) is not int or isinstance(self.retry_count, bool):
+            raise ValueError("predecessor retry_count must be exact int")
+        if self.retry_count != 0:
+            raise ValueError("predecessor retry_count must be 0 for the single retry")
+        if type(self.disposition) is not CutDisposition:
+            raise ValueError("predecessor disposition must be exact CutDisposition")
+        _canonical_surface_ids(
+            self.affected_surfaces,
+            "predecessor affected_surfaces",
+            allow_empty=False,
+        )
+
+    def payload(self) -> dict[str, Any]:
+        return {
+            "schema": "VERA_CURRENTNESS_PREDECESSOR_RECEIPT_V1",
+            "cut_digest": self.cut_digest,
+            "cut_family_id": self.cut_family_id,
+            "requirement_profile_digest": self.requirement_profile_digest,
+            "scope_digest": self.scope_digest,
+            "retry_count": self.retry_count,
+            "disposition": self.disposition.value,
+            "affected_surfaces": list(self.affected_surfaces),
+        }
+
+    @property
+    def digest(self) -> str:
+        return _digest(self.payload())
 
 
 @dataclass(frozen=True)
 class CoherentCurrentnessCut:
     cut_id: str
+    cut_family_id: str
     requirement_profile: CurrentnessRequirementProfile
     live_input_digest: str
     live_input_scope_digest: str
     restored_frontier_digest: str | None
     retry_count: int
-    predecessor_cut_digest: str | None
+    predecessor_receipt: PredecessorCutReceipt | None
     surfaces: tuple[SurfaceReadback, ...]
 
     def __post_init__(self) -> None:
         _nonempty(self.cut_id, "cut_id")
+        _nonempty(self.cut_family_id, "cut_family_id")
         if type(self.requirement_profile) is not CurrentnessRequirementProfile:
             raise ValueError(
                 "requirement_profile must be exact CurrentnessRequirementProfile"
@@ -195,16 +306,42 @@ class CoherentCurrentnessCut:
         if self.retry_count not in (0, 1):
             raise ValueError("retry_count must be 0 or 1")
         if self.retry_count == 0:
-            if self.predecessor_cut_digest is not None:
+            if self.predecessor_receipt is not None:
                 raise ValueError(
-                    "initial currentness cut cannot claim predecessor_cut_digest"
+                    "initial currentness cut cannot claim predecessor_receipt"
                 )
         else:
-            if self.predecessor_cut_digest is None:
+            if type(self.predecessor_receipt) is not PredecessorCutReceipt:
                 raise ValueError(
-                    "retry currentness cut requires predecessor_cut_digest"
+                    "retry currentness cut requires exact PredecessorCutReceipt"
                 )
-            _sha256(self.predecessor_cut_digest, "predecessor_cut_digest")
+            predecessor = self.predecessor_receipt
+            if predecessor.cut_family_id != self.cut_family_id:
+                raise ValueError("predecessor cut_family_id must match retry cut family")
+            if (
+                predecessor.requirement_profile_digest
+                != self.requirement_profile.digest
+            ):
+                raise ValueError(
+                    "predecessor requirement_profile_digest must match retry profile"
+                )
+            if predecessor.scope_digest != self.requirement_profile.scope_digest:
+                raise ValueError("predecessor scope_digest must match retry scope")
+            if predecessor.disposition is not CutDisposition.RETRY_AFFECTED_SURFACES:
+                raise ValueError(
+                    "predecessor disposition must be RETRY_AFFECTED_SURFACES"
+                )
+            undeclared = tuple(
+                sorted(
+                    set(predecessor.affected_surfaces)
+                    - set(self.requirement_profile.required_surfaces)
+                )
+            )
+            if undeclared:
+                raise ValueError(
+                    "predecessor affected_surfaces must be required surfaces; "
+                    f"undeclared={undeclared!r}"
+                )
 
         if type(self.surfaces) is not tuple or not self.surfaces:
             raise ValueError("surfaces must be a non-empty tuple")
@@ -224,19 +361,41 @@ class CoherentCurrentnessCut:
                 f"missing={missing!r} extra={extra!r}"
             )
 
+        contracts = self.requirement_profile.readback_contract_by_surface
+        mismatched_identity = tuple(
+            item.surface_id
+            for item in self.surfaces
+            if item.readback_identity != contracts[item.surface_id].readback_identity
+        )
+        if mismatched_identity:
+            raise ValueError(
+                "surface readback_identity must match profile-bound contract; "
+                f"mismatched={mismatched_identity!r}"
+            )
+
     @property
     def digest(self) -> str:
         return _digest(
             {
-                "schema": "VERA_COHERENT_CURRENTNESS_CUT_V2",
+                "schema": "VERA_COHERENT_CURRENTNESS_CUT_V3",
                 "cut_id": self.cut_id,
+                "cut_family_id": self.cut_family_id,
                 "requirement_profile_digest": self.requirement_profile.digest,
                 "requirement_profile": self.requirement_profile.payload(),
                 "live_input_digest": self.live_input_digest,
                 "live_input_scope_digest": self.live_input_scope_digest,
                 "restored_frontier_digest": self.restored_frontier_digest,
                 "retry_count": self.retry_count,
-                "predecessor_cut_digest": self.predecessor_cut_digest,
+                "predecessor_receipt_digest": (
+                    None
+                    if self.predecessor_receipt is None
+                    else self.predecessor_receipt.digest
+                ),
+                "predecessor_receipt": (
+                    None
+                    if self.predecessor_receipt is None
+                    else self.predecessor_receipt.payload()
+                ),
                 "surfaces": [item.payload() for item in self.surfaces],
             }
         )
@@ -317,7 +476,9 @@ __all__ = [
     "CurrentnessDecision",
     "CurrentnessRequirementProfile",
     "CutDisposition",
+    "PredecessorCutReceipt",
     "SurfaceReadback",
+    "SurfaceReadbackContract",
     "SurfaceStatus",
     "evaluate_currentness_cut",
 ]
