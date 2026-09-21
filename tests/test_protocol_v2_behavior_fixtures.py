@@ -127,6 +127,19 @@ class ProtocolV2BehaviorFixtureTests(unittest.TestCase):
         self.assertFalse(decision.may_act)
         self.assertFalse(decision.authority_expanded)
 
+    def test_handoff_cannot_bypass_missing_current_authority(self) -> None:
+        decision = decide_protocol_v2(
+            ProtocolV2Context(
+                effect_class=1,
+                current_instruction=False,
+                handoff_required=True,
+                github_route_available=True,
+            )
+        )
+        self.assertEqual(ProtocolV2Action.STOP_NO_CURRENT_AUTHORITY, decision.action)
+        self.assertFalse(decision.may_act)
+        self.assertFalse(decision.authority_expanded)
+
     def test_invalid_effect_class_fails_closed(self) -> None:
         with self.assertRaisesRegex(ValueError, "effect_class"):
             ProtocolV2Context(effect_class=4)
