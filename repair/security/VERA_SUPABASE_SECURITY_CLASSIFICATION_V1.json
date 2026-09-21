@@ -1,0 +1,87 @@
+{
+  "schema": "VERA_SUPABASE_SECURITY_CLASSIFICATION_V1",
+  "status": "READBACK_VERIFIED_NO_REACHABLE_CLIENT_DEFECT_FOUND",
+  "observed_at": "2026-09-21T15:20:05-04:00",
+  "provider": {
+    "project_id": "klmbpaigzeguvnpccqzz",
+    "status": "ACTIVE_HEALTHY"
+  },
+  "advisor": {
+    "lint": "rls_enabled_no_policy",
+    "level": "INFO",
+    "count": 31,
+    "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy"
+  },
+  "evidence": {
+    "advisory_tables": {
+      "count": 31,
+      "schemas": [
+        "public",
+        "radar",
+        "semantic_atlas"
+      ],
+      "anon_table_privilege_count": 0,
+      "authenticated_table_privilege_count": 0
+    },
+    "schema_usage": {
+      "public": {
+        "anon": true,
+        "authenticated": true,
+        "note": "default/exposed schema visibility does not grant table access"
+      },
+      "radar": {
+        "anon": false,
+        "authenticated": false
+      },
+      "semantic_atlas": {
+        "anon": false,
+        "authenticated": false
+      }
+    },
+    "privileged_role": {
+      "role": "service_role",
+      "bypassrls": true,
+      "note": "Privileged service role is intentionally outside client-role threat model; several advisory tables are service-only, while some memory-epoch tables are even more tightly brokered."
+    },
+    "client_callable_function_scan": {
+      "result": "NO_CLIENT_REACHABLE_SECURITY_DEFINER_FUNCTION_REFERENCING_ADVISORY_TABLES_FOUND",
+      "definition_scan_scope": [
+        "public",
+        "radar",
+        "semantic_atlas"
+      ],
+      "reachable_non_definer_trigger_helpers": [
+        {
+          "function": "public.block_vera_supersession_edge_mutation()",
+          "returns": "trigger",
+          "security_definer": false,
+          "table": "public.vera_save_state_supersession_edges",
+          "effect": "always raises append-only exception"
+        },
+        {
+          "function": "public.vera_validate_save_state_supersession_edge()",
+          "returns": "trigger",
+          "security_definer": false,
+          "table": "public.vera_save_state_supersession_edges",
+          "effect": "trigger validator; executes as invoker and clients have no table privilege"
+        }
+      ]
+    }
+  },
+  "classification": {
+    "current_security_posture": "DENY_ALL_OR_PRIVILEGED_ONLY_RLS_POSTURE",
+    "advisor_findings": "EXPECTED_INFO_NOT_REACHABLE_CLIENT_VULNERABILITY",
+    "production_repair_required": false,
+    "residual_risk": [
+      "Future grants or schema-usage changes could make the no-policy posture materially different.",
+      "Future SECURITY DEFINER RPC grants must be re-audited against these tables.",
+      "service_role remains privileged and bypasses RLS by design."
+    ]
+  },
+  "claim_ceiling": [
+    "CURRENT_PROVIDER_READBACK_ONLY",
+    "NO_CLAIM_OF_PERMANENT_FUTURE_SAFETY",
+    "NO_CLAIM_THAT_EVERY_TABLE_WAS_DESIGNED_INTENTIONALLY_DENY_ALL",
+    "NO_PROVIDER_MUTATION"
+  ]
+}
