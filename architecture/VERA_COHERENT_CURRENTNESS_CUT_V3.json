@@ -2,7 +2,7 @@
   "schema": "VERA_COHERENT_CURRENTNESS_CUT_CONTRACT_V3",
   "status": "CURRENT_MAIN_SOURCE_CANDIDATE_NOT_INSTALLED_NOT_RUNTIME_QUALIFIED",
   "base": {
-    "vera_main": "06090f96b1437a2a148c205f1ce7c264167644d7",
+    "vera_main": "d3a4b196dff4e580c5dad9406d3463398d18f0cd",
     "superseded_reviewed_predecessors": [
       {
         "pr": 147,
