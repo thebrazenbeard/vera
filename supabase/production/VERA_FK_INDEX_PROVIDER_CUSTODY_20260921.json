@@ -1,0 +1,49 @@
+{
+  "schema": "VERA_FK_INDEX_PROVIDER_CUSTODY_V1",
+  "observed_at": "2026-09-21T19:57:52.767Z",
+  "provider": {
+    "kind": "SUPABASE_POSTGRES",
+    "project_id": "klmbpaigzeguvnpccqzz",
+    "project_name": "Vera"
+  },
+  "source": {
+    "repository": "thebrazenbeard/vera",
+    "branch": "work/fix-unindexed-foreign-keys-20260921",
+    "source_commit": "1a0eac62efb789ea4b6684b23efc557b4a5736da",
+    "path": "supabase/migrations/20260921195800_add_missing_fk_indexes_v1.sql",
+    "git_blob": "46e56be4862e972312b5588cddf355ab6109978f",
+    "application_binding": "THE_EXACT_GITHUB_FETCHED_FILE_CONTENT_WAS_PASSED_DIRECTLY_TO_SUPABASE_APPLY_MIGRATION"
+  },
+  "provider_effect": {
+    "migration_version": "20260921195742",
+    "migration_name": "add_missing_fk_indexes_v1",
+    "provider_statement_count": 1,
+    "provider_statement_octets_utf8": 3199,
+    "provider_statement_sha256": "7cbdb6744b176a68bf15787934f584c56fcd51a91d95a6ce9a3d7cb4bc906c2a",
+    "index_count": 21,
+    "status": "APPLIED_VERIFIED"
+  },
+  "advisor_readback": {
+    "before": {
+      "unindexed_foreign_keys": 21,
+      "unused_index": 32
+    },
+    "after": {
+      "unindexed_foreign_keys": 0,
+      "unused_index": 53
+    },
+    "interpretation": "The 21 new indexes are immediately reported as unused because no qualifying workload has used them yet. This is expected immediately after creation and is not evidence that they should be dropped."
+  },
+  "scope": {
+    "fixed_lint": "0001_unindexed_foreign_keys",
+    "untouched_lint": "0005_unused_index",
+    "unused_index_policy": "OBSERVATIONAL_ONLY_NO_DROP_WITHOUT_WORKLOAD_AND_DEPENDENCY_EVIDENCE"
+  },
+  "claim_ceiling": [
+    "PROVIDER_INDEX_EFFECT_APPLIED_VERIFIED",
+    "UNINDEXED_FOREIGN_KEY_ADVISOR_CLEARED",
+    "SOURCE_PROVIDER_BINDING_RECORDED",
+    "NO_EXISTING_INDEX_REMOVAL",
+    "NO_RUNTIME_BEHAVIOR_QUALIFICATION"
+  ]
+}
