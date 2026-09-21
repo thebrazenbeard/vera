@@ -1,0 +1,1 @@
+alter function semantic_atlas.search_current_runtime_objects_v1(text,text,text,text,timestamptz,text,text,integer) stable;
