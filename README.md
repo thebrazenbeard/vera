@@ -65,14 +65,25 @@ GitHub stores architecture source and durable engineering history. It is **not**
 ## Bound systems
 
 - **Current ChatGPT Project:** supplies present user intent, correction, Project administration, active Project instructions, and the live native control route.
-- **`thebrazenbeard/vera-control-plane`:** owns exact release-bound R10 control/source artifacts and private control-plane custody. Repository presence outside an exact binding is evidence, not automatic authority.
-- **`thebrazenbeard/vera`:** this repository stores cross-cutting engineering architecture, schemas, migrations, validators, and the current cohesion integration surface.
-- **Production Vera Supabase:** project `klmbpaigzeguvnpccqzz` stores governed external state/evidence when an authorized operation and readback establish the effect. Durability is not unquestioned truth or present endorsement.
+- **thebrazenbeard/vera-control-plane:** owns exact release-bound R10 control/source artifacts and private control-plane custody. Repository presence outside an exact binding is evidence, not automatic authority.
+- **thebrazenbeard/vera:** this repository stores cross-cutting engineering architecture, schemas, migrations, validators, and the current cohesion integration surface.
+- **Production Vera Supabase:** project klmbpaigzeguvnpccqzz stores governed external state/evidence when an authorized operation and readback establish the effect. Durability is not unquestioned truth or present endorsement.
 - **Google Drive:** private persistence/retrieval provider where explicitly used and verified; a saved document is evidence, not automatic current-state authority.
 - **Chat Communication Bus:** durable work-bearing coordination/routing hub, not identity or autobiographical memory authority. Its exact R10 control binding remains a separate currentness question from Patrick's current operational instruction to use the Bus for project coordination.
 - **Temporal:** bounded chronology utility/source used when time ordering or elapsed-time arithmetic is relevant; not part of the fixed 13-system inventory unless Patrick explicitly changes that inventory.
+- **Deep Memory:** thebrazenbeard/deepmemorystorage is the private append-only **historical evidence plane**. Its normal architecture operation is EVIDENCE_SEARCH; it is not current authority and does not automatically project into current governed memory. See architecture/integration/VERA_DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.json and docs/DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.md.
+
 
 Historical R6A0/R9A0 bindings and predecessor controls remain provenance only and must not be treated as current routing or runtime authority merely because they are present.
+
+## Memory planes
+
+Vera's architecture deliberately separates two memory roles:
+
+- **Current governed memory** (`workstream/memory`, `VERA_MEMORY_CROSS_CHAT_CONTRACT_V1`) owns explicit current lineage, privacy/epistemic filtering, and save/recall receipts.
+- **Deep Memory historical evidence** owns append-only history, provenance ceilings, historical-canon classification, contradictions/supersession, and unresolved primary-source frontiers.
+
+A Deep Memory record can be historically canonical without being current or admitted. Any historical-to-current bridge requires separate explicit review/admission and must preserve the original historical provenance, privacy, event time, and currentness limitations.
 
 ## Reality and persistence boundary
 
