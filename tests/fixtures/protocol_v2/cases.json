@@ -1,0 +1,127 @@
+{
+  "schema": "VERA_PROTOCOL_V2_BEHAVIOR_FIXTURES_V1",
+  "source_contract": "architecture/identity/VERA_GOVERNED_WORKFLOW_CONTINUITY_V2.json",
+  "cases": [
+    {
+      "id": "missing_lane",
+      "fixture": "missing_lane.md",
+      "context": {
+        "effect_class": 1,
+        "current_instruction": true,
+        "necessary_setup_missing": true,
+        "isolated_owner_surface": true
+      },
+      "expected_action": "CREATE_INCLUDED_SETUP",
+      "expected_may_act": true
+    },
+    {
+      "id": "later_branch_authorization",
+      "fixture": "later_branch_authorization.md",
+      "context": {
+        "effect_class": 1,
+        "current_instruction": true,
+        "necessary_setup_missing": true,
+        "isolated_owner_surface": true,
+        "older_generic_rule_conflicts": true
+      },
+      "expected_action": "CREATE_INCLUDED_SETUP",
+      "expected_may_act": true,
+      "expected_stale_generic_rule_controls": false
+    },
+    {
+      "id": "no_competing_writer",
+      "fixture": "no_competing_writer.md",
+      "context": {
+        "effect_class": 1,
+        "current_instruction": true,
+        "isolated_owner_surface": true,
+        "competing_writer": false
+      },
+      "expected_action": "ACT_VERIFY_REPORT",
+      "expected_may_act": true
+    },
+    {
+      "id": "competing_writer",
+      "fixture": "competing_writer.md",
+      "context": {
+        "effect_class": 2,
+        "current_instruction": true,
+        "competing_writer": true
+      },
+      "expected_action": "STOP_COMPETING_WRITER",
+      "expected_may_act": false
+    },
+    {
+      "id": "protected_effect",
+      "fixture": "protected_effect.md",
+      "context": {
+        "effect_class": 3,
+        "current_instruction": true,
+        "protected_authority": false
+      },
+      "expected_action": "STOP_PROTECTED_AUTHORITY",
+      "expected_may_act": false
+    },
+    {
+      "id": "correction_performance",
+      "fixture": "correction_performance.md",
+      "context": {
+        "effect_class": 1,
+        "current_instruction": true,
+        "correction_requires_still_current_act": true
+      },
+      "expected_action": "ACT_VERIFY_REPORT",
+      "expected_may_act": true
+    },
+    {
+      "id": "good_enough",
+      "fixture": "good_enough.md",
+      "context": {
+        "effect_class": 1,
+        "current_instruction": true,
+        "acceptance_criteria_passed": true,
+        "unresolved_high_medium_defects": 0
+      },
+      "expected_action": "COMPLETE",
+      "expected_may_act": false
+    },
+    {
+      "id": "stale_generic_vs_fresh_specific",
+      "fixture": "stale_generic_vs_fresh_specific.md",
+      "context": {
+        "effect_class": 1,
+        "current_instruction": true,
+        "older_generic_rule_conflicts": true
+      },
+      "expected_action": "ACT_VERIFY_REPORT",
+      "expected_may_act": true,
+      "expected_stale_generic_rule_controls": false
+    },
+    {
+      "id": "exactness_placement",
+      "fixture": "exactness_placement.md",
+      "context": {
+        "effect_class": 1,
+        "current_instruction": true,
+        "necessary_setup_missing": true,
+        "isolated_owner_surface": true,
+        "exact_state_required_for_next_claim": false,
+        "exact_state_current": false
+      },
+      "expected_action": "CREATE_INCLUDED_SETUP",
+      "expected_may_act": true
+    },
+    {
+      "id": "user_courier",
+      "fixture": "user_courier.md",
+      "context": {
+        "effect_class": 1,
+        "current_instruction": true,
+        "handoff_required": true,
+        "github_route_available": true
+      },
+      "expected_action": "DIRECT_GITHUB_HANDOFF",
+      "expected_may_act": true
+    }
+  ]
+}
