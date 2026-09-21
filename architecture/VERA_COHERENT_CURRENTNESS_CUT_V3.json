@@ -1,0 +1,95 @@
+{
+  "schema": "VERA_COHERENT_CURRENTNESS_CUT_CONTRACT_V3",
+  "status": "CURRENT_MAIN_SOURCE_CANDIDATE_NOT_INSTALLED_NOT_RUNTIME_QUALIFIED",
+  "base": {
+    "vera_main": "c335aad4281517b573d98e7ad2700db260c9fe9e",
+    "superseded_reviewed_predecessors": [
+      {
+        "pr": 147,
+        "exact_head": "e291b2e07357884be97a41f604726b393484017b",
+        "disposition": "CHANGES_REQUIRED"
+      },
+      {
+        "pr": 148,
+        "exact_head": "0111602eff64e70f91dfee1f9c8f7bc3824f627f",
+        "disposition": "CHANGES_REQUIRED"
+      }
+    ]
+  },
+  "purpose": "Provide a current-main Vera coherent-currentness primitive that closes requiredness laundering, retry-ancestry laundering, and stable-frontier semantic substitution while preserving strict non-promotion boundaries.",
+  "requirement_profile": {
+    "schema": "VERA_CURRENTNESS_REQUIREMENT_PROFILE_V2",
+    "binds": [
+      "profile_id",
+      "proposition_type",
+      "scope_digest",
+      "requirements_source_id",
+      "requirements_source_digest",
+      "required_surfaces",
+      "optional_surfaces",
+      "readback_contracts"
+    ],
+    "readback_contract_fields": [
+      "surface_id",
+      "readback_identity",
+      "contract_id",
+      "contract_digest"
+    ],
+    "contract_inventory": "EXACTLY_EQUALS_DECLARED_SURFACE_INVENTORY",
+    "admission_boundary": "The source evaluator binds the declared requirements and readback contracts but does not authenticate or authorize their source. Current VCP/governance admission remains external."
+  },
+  "surface_readback": {
+    "binds": [
+      "surface_id",
+      "status",
+      "start_frontier",
+      "end_frontier",
+      "readback_identity",
+      "start_result_digest",
+      "end_result_digest"
+    ],
+    "movement": "START_FRONTIER_NE_END_FRONTIER OR START_RESULT_DIGEST_NE_END_RESULT_DIGEST",
+    "identity_rule": "READBACK_IDENTITY_MUST_MATCH_PROFILE_BOUND_SURFACE_CONTRACT"
+  },
+  "retry_ancestry": {
+    "retry_count": "0_OR_1_ONLY",
+    "retry_requires_actual_predecessor_cut": true,
+    "continuity_checks": [
+      "predecessor_is_initial_cut",
+      "same_cut_family_id",
+      "same_requirement_profile_digest",
+      "same_scope_digest",
+      "predecessor_evaluates_to_RETRY_AFFECTED_SURFACES"
+    ],
+    "digest_rule": "RETRY_CUT_DIGEST_EMBEDS_PREDECESSOR_CUT_DIGEST_AND_FULL_PREDECESSOR_PAYLOAD",
+    "custody_boundary": "The evaluator proves structural lineage over the supplied predecessor cut object. It does not prove the predecessor was externally executed, persisted, admitted, or retrieved from authoritative custody."
+  },
+  "decision_semantics": {
+    "incomplete_required_surface": "BLOCKED_REQUIRED_SURFACE",
+    "first_pass_required_movement": "RETRY_AFFECTED_SURFACES",
+    "retry_required_movement": "UNSTABLE_UNKNOWN",
+    "complete_stable_required_surfaces": "CURRENT",
+    "optional_surface_rule": "OPTIONAL_SURFACE_STATUS_OR_MOVEMENT_CANNOT_RESCUE_OR_PROMOTE_REQUIRED_CURRENTNESS"
+  },
+  "non_promotions": [
+    "REQUIREMENT_PROFILE_SOURCE_DECLARATION != REQUIREMENT_PROFILE_ADMISSION",
+    "READBACK_CONTRACT_DECLARATION != PROVIDER_HONESTY_OR_EXTERNAL_AUTHENTICATION",
+    "SUPPLIED_PREDECESSOR_CUT != EXTERNAL_OCCURRENCE_OR_CUSTODY_PROOF",
+    "CURRENTNESS_CUT != VERA_IDENTITY",
+    "CURRENTNESS_CUT != PROTECTED_EFFECT_AUTHORITY",
+    "CURRENTNESS_CUT != PROVIDER_EFFECT_PROOF",
+    "CURRENTNESS_CUT != INSTALLATION_OR_RUNTIME_QUALIFICATION"
+  ],
+  "claim_ceiling": [
+    "CURRENT_MAIN_PROFILE_AND_READBACK_CONTRACT_BOUND_MULTI_SURFACE_CURRENTNESS_SOURCE_CONTRACT",
+    "ACTUAL_PREDECESSOR_CUT_STRUCTURAL_RETRY_CONTINUITY",
+    "NO_EXTERNAL_PREDECESSOR_CUSTODY_PROOF",
+    "NO_REQUIREMENT_PROFILE_AUTHENTICATION_BY_SELF_ASSERTION",
+    "NO_PROVIDER_HONESTY_PROOF",
+    "NO_IDENTITY_PROOF",
+    "NO_AUTHORITY_GRANT",
+    "NO_EFFECT_AUTHORIZATION",
+    "NO_PROJECT_INSTALLATION",
+    "NO_RUNTIME_QUALIFICATION"
+  ]
+}
