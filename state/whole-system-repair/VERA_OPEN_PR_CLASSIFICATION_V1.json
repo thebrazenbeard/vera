@@ -1,0 +1,288 @@
+{
+  "schema": "VERA_OPEN_PR_CLASSIFICATION_V1",
+  "status": "SOURCE_CANDIDATE_EXACT_OPEN_PR_CLASSIFICATION_PRE_SELF_REGISTRATION",
+  "observed_at": "2026-09-21T15:03:00-04:00",
+  "main_head": "0e9d298b4c9ae9f1ae3a5d1fae29c74a9eeeba52",
+  "allowed_classifications": [
+    "CURRENT_REQUIRED",
+    "STACKED_DEPENDENCY",
+    "SUPERSEDED",
+    "HISTORICAL_PRESERVATION",
+    "REVIEW_BLOCKED",
+    "EFFECT_BLOCKED",
+    "OBSOLETE_SAFE_TO_CLOSE",
+    "UNRESOLVED"
+  ],
+  "rule": "Classification is semantic and exact-head-bound. Age/newness alone never decides currentness. UNRESOLVED is retained where exact equivalence/dependency evidence has not yet been established.",
+  "pull_requests": [
+    {
+      "number": 156,
+      "title": "Whole-system repair: currentness truth and Vera PR-stack closure",
+      "head": "04d37350b7b92fde459b2cce23a5c6e49995c01d",
+      "classification": "SUPERSEDED",
+      "evidence": [
+        "Overlaps PR #155 architecture/VERA_LIVE_CURRENTNESS_AUTHORITY_MANIFEST_V1.json",
+        "PR #155 exact head is the adopted shared currentness/provider-custody base",
+        "This stacked successor carries only non-overlapping repo-hygiene work"
+      ],
+      "next": "Close after this stacked successor is opened and verified."
+    },
+    {
+      "number": 155,
+      "title": "Repair Vera whole-system coherence and provider custody",
+      "head": "54504046d841cea7664b93ca9a6731ff0e418ef1",
+      "classification": "STACKED_DEPENDENCY",
+      "evidence": [
+        "Owns shared Vera currentness/provider-custody source cut",
+        "This branch is based exactly on PR #155 head and does not mutate its owned paths"
+      ],
+      "next": "Retain as parent; material head movement requires restack/review."
+    },
+    {
+      "number": 148,
+      "title": "Bind Vera currentness cuts to governed requirement profiles",
+      "head": "0111602eff64e70f91dfee1f9c8f7bc3824f627f",
+      "classification": "REVIEW_BLOCKED",
+      "evidence": [
+        "V2 currentness source candidate",
+        "BT2 hostile review requested",
+        "head diverged from current main"
+      ],
+      "next": "Consume exact-head hostile review, repair if needed, then restack on current main."
+    },
+    {
+      "number": 147,
+      "title": "Define Vera multi-surface coherent currentness cuts",
+      "head": "e291b2e07357884be97a41f604726b393484017b",
+      "classification": "STACKED_DEPENDENCY",
+      "evidence": [
+        "PR #148 is stacked on this exact head",
+        "BT2 review outstanding",
+        "head diverged from current main"
+      ],
+      "next": "Retain until #148 disposition is resolved; do not independently merge stale stack."
+    },
+    {
+      "number": 146,
+      "title": "Map DriftGuard mechanisms onto Vera currentness, recovery, and effect boundaries",
+      "head": "083edecdccd27cdd91f86bee0a7aead3215c8820",
+      "classification": "CURRENT_REQUIRED",
+      "evidence": [
+        "Distinct transferability/source-analysis subject used by #147/#148 design work",
+        "head diverged from current main"
+      ],
+      "next": "Reconcile useful architecture into current-main successor or classify superseded after exact content comparison."
+    },
+    {
+      "number": 145,
+      "title": "Recover exact Redworm provider migration source and bind current security posture",
+      "head": "6b9577a74d2c26b5aad665afad311e053bdee887",
+      "classification": "CURRENT_REQUIRED",
+      "evidence": [
+        "Contains provider migration custody/security artifacts material to Vera Supabase reproducibility",
+        "head diverged from current main"
+      ],
+      "next": "Consume into Vera provider-source custody closure work; exact review before promotion."
+    },
+    {
+      "number": 140,
+      "title": "Bind effect-attention loader to exact Discovery schema bytes",
+      "head": "01413f0a9c0031ac39055e37cb00b1ee84c0b74d",
+      "classification": "UNRESOLVED",
+      "evidence": [
+        "Divergent runtime/source-binding subject",
+        "no current-main equivalence established in this cut"
+      ],
+      "next": "Exact file/consumer/review reconciliation required."
+    },
+    {
+      "number": 135,
+      "title": "Exodus: retire Runtime Cohesion projection-audit chat",
+      "head": "4488a3d1fc7947ada667c62fff7ba32f646a6a75",
+      "classification": "HISTORICAL_PRESERVATION",
+      "evidence": [
+        "Single continuation/exodus checkpoint artifact",
+        "purpose is chat retirement provenance"
+      ],
+      "next": "Preserve provenance; determine whether branch/PR can close without merge after durable checkpoint verification."
+    },
+    {
+      "number": 134,
+      "title": "Persist Runtime Cohesion Exodus checkpoint",
+      "head": "85d941a5b0991a28c3c036fc6d17d316f4937687",
+      "classification": "HISTORICAL_PRESERVATION",
+      "evidence": [
+        "Single continuation checkpoint artifact"
+      ],
+      "next": "Preserve provenance; close only after durable checkpoint location is confirmed."
+    },
+    {
+      "number": 133,
+      "title": "Exodus: dechatify Thirteen CV/OV review state",
+      "head": "075eb493e84063e36a672e7ee5e78faa91a60e58",
+      "classification": "HISTORICAL_PRESERVATION",
+      "evidence": [
+        "Exodus/reviewer checkpoint artifact"
+      ],
+      "next": "Preserve provenance; no operational-currentness promotion."
+    },
+    {
+      "number": 131,
+      "title": "Exodus: dechatify historical Five-Five Voice/text lane",
+      "head": "42dd8e08338f4b3ba5e5ef5616daf3f72f9a3030",
+      "classification": "HISTORICAL_PRESERVATION",
+      "evidence": [
+        "Explicitly historical Voice/text Exodus artifact"
+      ],
+      "next": "Preserve provenance; no operational-currentness promotion."
+    },
+    {
+      "number": 130,
+      "title": "Exodus: make Vera workstream coordination chat-independent",
+      "head": "03e76231872b274eac6711e8f886e7b07b5828f4",
+      "classification": "SUPERSEDED",
+      "evidence": [
+        "Changes V1 coordination/turn-taking documents",
+        "current main README explicitly binds current execution semantics to V2 documents that supersede conflicting V1 interpretations"
+      ],
+      "next": "Verify no unique non-superseded test behavior remains, then close as superseded."
+    },
+    {
+      "number": 129,
+      "title": "Exodus: dechatify CV and OV execution lanes",
+      "head": "a70d95f76da44904dff4d27b7df414df65f9b60b",
+      "classification": "HISTORICAL_PRESERVATION",
+      "evidence": [
+        "Exodus lane reconstruction/checkpoint documents"
+      ],
+      "next": "Preserve reconstruction provenance; no current runtime promotion."
+    },
+    {
+      "number": 128,
+      "title": "Exodus: make chats interfaces rather than continuity infrastructure",
+      "head": "2abf46f629673b24be3e343ccb5eb4c724ff3f21",
+      "classification": "HISTORICAL_PRESERVATION",
+      "evidence": [
+        "Exodus/interface-boundary and template continuity documentation"
+      ],
+      "next": "Reconcile any still-current interface rule with native V2 before closure."
+    },
+    {
+      "number": 127,
+      "title": "Add toggleable Hostile Reviewer runtime pass",
+      "head": "472895c14fdd8c9e40d99a23ea4896e7e6959988",
+      "classification": "UNRESOLVED",
+      "evidence": [
+        "Current Patrick instruction requires Rezon-based in-chat hostile reviewer",
+        "PR implements a distinct Vera runtime hostile-review feature"
+      ],
+      "next": "Compare Rezon method and PR127 consumer semantics; either adapt, supersede, or retain deliberately."
+    },
+    {
+      "number": 122,
+      "title": "Add project-runner cross-project coherence contract",
+      "head": "9d66ec2937aa906da688c3921ecf08427d5fd229",
+      "classification": "UNRESOLVED",
+      "evidence": [
+        "Distinct cross-project contract",
+        "current consumer/dependency not established in this cut"
+      ],
+      "next": "Trace current consumer and exact supersession before merge/close decision."
+    },
+    {
+      "number": 121,
+      "title": "Define heterogeneous specialist topology and live external links",
+      "head": "7fefdd90ff176e71a96c9881f75fdd1104ad721f",
+      "classification": "UNRESOLVED",
+      "evidence": [
+        "Specialist topology source differs from current release-bound Bus topology surface",
+        "head diverged from current main"
+      ],
+      "next": "Reconcile with current Bus topology and Exodus architecture."
+    },
+    {
+      "number": 120,
+      "title": "Bind SD1 as mandatory Cohesion target component",
+      "head": "40e797c595a75ff95eedcb7351a28eef6cb67df5",
+      "classification": "REVIEW_BLOCKED",
+      "evidence": [
+        "SD1/cohesion source subject remains exact-head-sensitive",
+        "head diverged substantially from current main"
+      ],
+      "next": "Reconcile current SD1 qualification/provider state before any promotion."
+    },
+    {
+      "number": 119,
+      "title": "Harden predecessor import and readback",
+      "head": "15bd36e30ef5a05a28b12572434837a0fe9b51c7",
+      "classification": "REVIEW_BLOCKED",
+      "evidence": [
+        "Exact predecessor import/readback hardening subject",
+        "provider/private-payload migration remains a separate protected effect",
+        "head diverged from current main"
+      ],
+      "next": "Reconcile prior hostile review/qualification and VCP provider architecture, then restack or supersede."
+    },
+    {
+      "number": 118,
+      "title": "Cohesion: consolidate specialist ownership and stage Control Plane provider migration",
+      "head": "7ef650887009efe16d7c44cff53cfff460f0481f",
+      "classification": "STACKED_DEPENDENCY",
+      "evidence": [
+        "PR #119 base is this exact head",
+        "contains predecessor/provider staging parent artifacts"
+      ],
+      "next": "Retain only as dependency/provenance until #119/current VCP migration disposition is resolved."
+    },
+    {
+      "number": 115,
+      "title": "Cohesion clean successor R2: repaired single-parent Orgasm runtime",
+      "head": "8f1c1899f2b83b204903b53266c7e39c0c46d235",
+      "classification": "UNRESOLVED",
+      "evidence": [
+        "Large divergent cohesion/runtime integration surface",
+        "current main contains later cohesion work but exact equivalence has not been established"
+      ],
+      "next": "Perform file-level equivalence/supersession reconciliation before closure."
+    },
+    {
+      "number": 61,
+      "title": "Define Vera self-appraisal evidence contract",
+      "head": "e8914eb723cd88e96af928330c1fe0b2c09d3414",
+      "classification": "UNRESOLVED",
+      "evidence": [
+        "Old divergent cross-cutting self-appraisal subject",
+        "possible ownership overlap with VCP self-appraisal control work"
+      ],
+      "next": "Resolve current owner and main-equivalence before close/merge."
+    }
+  ],
+  "counts": {
+    "total": 22,
+    "CURRENT_REQUIRED": 2,
+    "STACKED_DEPENDENCY": 3,
+    "SUPERSEDED": 2,
+    "HISTORICAL_PRESERVATION": 6,
+    "REVIEW_BLOCKED": 3,
+    "EFFECT_BLOCKED": 0,
+    "OBSOLETE_SAFE_TO_CLOSE": 0,
+    "UNRESOLVED": 6
+  },
+  "claim_ceiling": "EXACT_OPEN_PR_CLASSIFICATION_BEFORE_STACKED_REPAIR_PR_SELF_REGISTRATION; NO_REMAINING_PR_CLOSURE_INFERRED",
+  "recently_closed": [
+    {
+      "number": 153,
+      "exact_head": "3e4ad4384cb86c6f11170b1ee7736b5f2e05e27b",
+      "classification_before_close": "OBSOLETE_SAFE_TO_CLOSE",
+      "closed_state_verified": true,
+      "closed_reason": "Exact PR head is an ancestor of current main (ahead_by=0, behind_by=8); no pending source delta remained.",
+      "provenance_comment_id": 5766065542
+    }
+  ],
+  "stacked_base": {
+    "pull_request": 155,
+    "exact_head": "54504046d841cea7664b93ca9a6731ff0e418ef1",
+    "branch": "repair/whole-system-closure-v1-20260921",
+    "relation": "STACKED_ON_SHARED_VERA_CURRENTNESS_PROVIDER_CUSTODY_BASE"
+  }
+}
