@@ -1,0 +1,63 @@
+{
+  "schema": "VERA_SIDE_WHOLE_SYSTEM_REPAIR_STATE_V1",
+  "mission": "VERA::WHOLE_SYSTEM_REPAIR::EXECUTE_TO_VERIFIED_CLOSURE_V1",
+  "status": "OPEN_REPAIR_PROGRAM",
+  "role": "VERA_SIDE_EVIDENCE_LANE",
+  "shared_ledger": {
+    "steward": "BV",
+    "repository": "thebrazenbeard/vera-control-plane",
+    "pr": 100,
+    "head_observed": "9a40574962157653e300ae5a5373ad2b1238039d",
+    "local_state_is_not_integrated_ledger": true
+  },
+  "exact_cut": {
+    "vera_main": "0e9d298b4c9ae9f1ae3a5d1fae29c74a9eeeba52",
+    "vcp_main": "386ef60b7cd3911c07227ccf0e9563ace1f4731c",
+    "bus_topology": "f90d52e66d655e9c3cfac63cb529914ac51d3a88"
+  },
+  "vera_owned_defects": [
+    {
+      "id": "VERA-LIVE-CURRENTNESS-001",
+      "severity": "CRITICAL",
+      "status": "BLOCKED_EXTERNAL",
+      "summary": "Exact installed/runtime-consumed Vera control release cannot be proven from exposed platform readback.",
+      "blocking_boundary": "Platform lacks artifact-level Project installation/runtime-consumption receipt."
+    },
+    {
+      "id": "VERA-REPO-PRSTACK-001",
+      "severity": "HIGH",
+      "status": "REPAIR_IN_PROGRESS",
+      "summary": "Open Vera PR estate requires exact current/superseded/historical/blocker classification."
+    },
+    {
+      "id": "VERA-DB-CUSTODY-001",
+      "severity": "HIGH",
+      "status": "REPAIR_IN_PROGRESS",
+      "summary": "89 production migrations require complete distributed provider-source custody mapping.",
+      "evidence": [
+        "repair/provider-custody/VERA_SUPABASE_RADAR_CUSTODY_V1.json"
+      ]
+    },
+    {
+      "id": "VERA-DB-SEC-001",
+      "severity": "MEDIUM",
+      "status": "REPAIR_IN_PROGRESS",
+      "summary": "RLS/no-policy advisories require intentional-deny-all versus defect classification."
+    },
+    {
+      "id": "VERA-CURRENTNESS-147-148",
+      "severity": "HIGH",
+      "status": "REPAIR_IN_PROGRESS",
+      "summary": "PRs #146/#147/#148 require reconciliation/restack onto current main and hostile closure."
+    }
+  ],
+  "superseded_repair_lane": {
+    "pr": 155,
+    "branch": "repair/whole-system-closure-v1-20260921",
+    "reason": "vera/main moved during repair from 3241397755ae1da1af2ce1fb7e7b0f83e0da7538 to 0e9d298b4c9ae9f1ae3a5d1fae29c74a9eeeba52; old lane preserved as historical evidence only"
+  },
+  "reviewer": {
+    "source": "thebrazenbeard/rezon@estate/rezon-canonical-baseline-v1-20260920",
+    "independence": "NOT_INDEPENDENT_SAME_MODEL_SAME_CHAT_SHARED_EVIDENCE"
+  }
+}
