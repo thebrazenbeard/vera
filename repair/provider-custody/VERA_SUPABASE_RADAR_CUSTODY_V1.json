@@ -1,0 +1,122 @@
+{
+  "schema": "VERA_SUPABASE_PROVIDER_CUSTODY_SLICE_V1",
+  "status": "PARTIAL_CUSTODY_SLICE_VERIFIED",
+  "provider": {
+    "project_id": "klmbpaigzeguvnpccqzz",
+    "migration_schema": "supabase_migrations.schema_migrations",
+    "observation_date": "2026-09-21"
+  },
+  "semantic_owner": {
+    "id": "RADAR",
+    "repository": "thebrazenbeard/chat-communication-bus",
+    "canonical_source_commit_observed": "aeab0f04fc9b4bd7c2945c9a53011c53fac809b4"
+  },
+  "reviewer": {
+    "method": "Rezon adversarial collaboration",
+    "independence": "NOT_INDEPENDENT_SAME_MODEL_SAME_CHAT_SHARED_EVIDENCE"
+  },
+  "classification_rules": {
+    "exact": "Provider statements joined with newline are byte-for-byte equal to Git file content.",
+    "semantic_only": "Provider and Git differ in bytes but become equal after CRLF normalization, SQL line-comment removal, whitespace collapse, and trim. This is executable-text equivalence evidence only, not exact applied-source identity."
+  },
+  "migrations": [
+    {
+      "version": "20260902120716",
+      "name": "radar_control_plane_v1",
+      "provider_sha256": "7e644e63f6fbe6ae9747043aa502f9c9c1bda42e8ec6fd99da6bbfaf0436b607",
+      "statement_count": 1,
+      "path": "supabase/migrations/20260902120716_radar_control_plane_v1.sql",
+      "source_commit": "aeab0f04fc9b4bd7c2945c9a53011c53fac809b4",
+      "source_blob": "aa383ca0aa80dc10a0ef924a0e80369da4b8b623",
+      "relation": "EXACT_PROVIDER_BYTES_EQUAL_CURRENT_GIT_SOURCE"
+    },
+    {
+      "version": "20260902120826",
+      "name": "radar_realtime_v1",
+      "provider_sha256": "0ef94f8a25ad0b68c354784ee460739a7ac4966496311d828ce9427a2c227be1",
+      "statement_count": 1,
+      "path": "supabase/migrations/20260902120826_radar_realtime_v1.sql",
+      "source_commit": "aeab0f04fc9b4bd7c2945c9a53011c53fac809b4",
+      "source_blob": "ee3a8a4a6d4161e348d009e27ca71d0048ac6f31",
+      "relation": "EXACT_PROVIDER_BYTES_EQUAL_CURRENT_GIT_SOURCE"
+    },
+    {
+      "version": "20260902203610",
+      "name": "radar_visual_identity_v1",
+      "provider_sha256": "516ff97ecdbb15c12a84e3c7ede6ef32174dc0acb1f22fe8518c75e1dd3ec14a",
+      "statement_count": 1,
+      "path": "supabase/migrations/20260902203610_radar_visual_identity_v1.sql",
+      "source_commit": "aeab0f04fc9b4bd7c2945c9a53011c53fac809b4",
+      "source_blob": "413d0c52c2fcdc5d3e651f3fd7d7011402d64e32",
+      "relation": "EXACT_PROVIDER_BYTES_EQUAL_CURRENT_GIT_SOURCE"
+    },
+    {
+      "version": "20260902204759",
+      "name": "radar_live_message_projection_v1",
+      "provider_sha256": "3c51e78c38afae43e7abfa4cdc61df92fb9e3b2d6931ef781be3f0d95df45d8d",
+      "statement_count": 1,
+      "path": "supabase/migrations/20260902204759_radar_live_message_projection_v1.sql",
+      "source_commit": "aeab0f04fc9b4bd7c2945c9a53011c53fac809b4",
+      "source_blob": "387f12130a9cfbbb7d3851208c3987dc0db7b1b1",
+      "relation": "SEMANTICALLY_EQUIVALENT_NOT_BYTE_IDENTICAL",
+      "evidence": {
+        "provider_length": 4963,
+        "git_length": 5500,
+        "executable_text_equal_after_line_comment_and_whitespace_normalization": true,
+        "historical_trace": "File first appears in current-main ancestry at f90d52e66d655e9c3cfac63cb529914ac51d3a88; its parent 9631a936370706612c675f8a39ed91f854d96990 has no file at this path. Exact applied bytes were not recovered from Git in this pass."
+      }
+    },
+    {
+      "version": "20260902231445",
+      "name": "radar_live_message_collision_v1",
+      "provider_sha256": "cccdbc8092bb78c510a9d1f8bffd9b9a97025f9df4a6a42632e595abf464d963",
+      "statement_count": 1,
+      "path": "supabase/migrations/20260902231445_radar_live_message_collision_v1.sql",
+      "source_commit": "aeab0f04fc9b4bd7c2945c9a53011c53fac809b4",
+      "source_blob": "9e44493e8725747f185f92f05b05ba51769948d9",
+      "relation": "EXACT_PROVIDER_BYTES_EQUAL_CURRENT_GIT_SOURCE"
+    },
+    {
+      "version": "20260903000603",
+      "name": "radar_receipt_plane_v1",
+      "provider_sha256": "054dd92a9699ab4178fdd37df409e883c878a1115e0f03f1db4dee1d2ba4309e",
+      "statement_count": 1,
+      "path": "supabase/migrations/20260903000603_radar_receipt_plane_v1.sql",
+      "source_commit": "aeab0f04fc9b4bd7c2945c9a53011c53fac809b4",
+      "source_blob": "6daf65692bf0891c95f99dbcf7b4fff467261d5b",
+      "relation": "EXACT_PROVIDER_BYTES_EQUAL_CURRENT_GIT_SOURCE"
+    },
+    {
+      "version": "20260903001906",
+      "name": "radar_assignment_plane_v1",
+      "provider_sha256": "9c8724b50175bc16570b2deae716d1a935f9894f98cacb2935e7e19da0c70065",
+      "statement_count": 1,
+      "path": "supabase/migrations/20260903001906_radar_assignment_plane_v1.sql",
+      "source_commit": "aeab0f04fc9b4bd7c2945c9a53011c53fac809b4",
+      "source_blob": "bb3a2b008afa8c0b7a3e5de1a18f83408c1961d0",
+      "relation": "EXACT_PROVIDER_BYTES_EQUAL_CURRENT_GIT_SOURCE"
+    },
+    {
+      "version": "20260903113314",
+      "name": "radar_operator_views_v1",
+      "provider_sha256": "2dfe61d3643e3663c6bbe72d64887c3cf3a5bf94e2df480cc2287ac58a353bb4",
+      "statement_count": 1,
+      "path": "supabase/migrations/20260903113314_radar_operator_views_v1.sql",
+      "source_commit": "aeab0f04fc9b4bd7c2945c9a53011c53fac809b4",
+      "source_blob": "5d69971fd004713322c189d2de1376b7b0b15040",
+      "relation": "EXACT_PROVIDER_BYTES_EQUAL_CURRENT_GIT_SOURCE"
+    }
+  ],
+  "summary": {
+    "migrations_in_slice": 8,
+    "exact_byte_matches": 7,
+    "semantic_only_matches": 1,
+    "unresolved_exact_source_bytes": 1
+  },
+  "claim_ceiling": [
+    "RADAR_PROVIDER_CUSTODY_PARTIAL_SLICE",
+    "NO_COMPLETE_VERA_PROVIDER_REPRODUCIBILITY_CLAIM",
+    "NO_PROVIDER_MUTATION",
+    "NO_CANONICAL_SOURCE_PROMOTION"
+  ]
+}
