@@ -1,0 +1,66 @@
+{
+  "schema": "VERA_COHERENT_CURRENTNESS_CUT_CONTRACT_V2",
+  "status": "STACKED_SOURCE_CANDIDATE_NOT_INSTALLED_NOT_RUNTIME_QUALIFIED",
+  "stacked_parent": {
+    "vera_pr": 147,
+    "exact_head": "e291b2e07357884be97a41f604726b393484017b"
+  },
+  "purpose": "Bind a Vera currentness decision to an explicit proposition/scope-specific requirement profile so individual readbacks cannot self-assert requiredness or silently omit/rename declared surfaces.",
+  "source_basis": {
+    "vera_main": "4866543d524399c7730a4ebb724c15aa541f80b9",
+    "vcp_main": "946e7846922999b22f323e559ba0e6290e9a5733",
+    "driftguard_pr31": "9df4800d81ab2e937ffa97263b8095305a845661",
+    "driftguard_claim": "SINGLE_SQLITE_BEGIN_IMMEDIATE_CURRENTNESS_SNAPSHOT_ONLY"
+  },
+  "requirement_profile": {
+    "binds": [
+      "profile_id",
+      "proposition_type",
+      "scope_digest",
+      "requirements_source_id",
+      "requirements_source_digest",
+      "required_surfaces",
+      "optional_surfaces"
+    ],
+    "required_surface_inventory": "NONEMPTY_CANONICAL_SORTED_UNIQUE",
+    "optional_surface_inventory": "CANONICAL_SORTED_UNIQUE",
+    "overlap": "REJECT",
+    "admission_boundary": "The evaluator binds the claimed requirements source but does not authenticate or authorize that source. Current VCP/governance admission of the profile is a separate prerequisite."
+  },
+  "cut_semantics": {
+    "live_input_scope_must_equal_profile_scope": true,
+    "observed_surface_set": "EXACTLY_EQUALS_PROFILE_REQUIRED_PLUS_OPTIONAL",
+    "readback_required_boolean": "REMOVED",
+    "first_required_surface_movement": "RETRY_AFFECTED_SURFACES",
+    "retry_ancestry": "retry_count=1 requires predecessor_cut_digest",
+    "second_required_surface_movement": "UNSTABLE_UNKNOWN",
+    "incomplete_required_surface": "BLOCKED_REQUIRED_SURFACE",
+    "optional_surface_rule": "OPTIONAL_SURFACE_STATUS_OR_MOVEMENT_CANNOT_RESCUE_OR_PROMOTE_REQUIRED_CURRENTNESS",
+    "current_decision_binds_requirement_profile_digest": true
+  },
+  "laundering_resistance": [
+    "A readback cannot mark itself optional.",
+    "Omitting a declared required surface rejects cut construction.",
+    "Adding or renaming a surface rejects cut construction unless the requirement profile itself changes.",
+    "Moving a surface from required to optional changes the requirement-profile digest.",
+    "Changing the declared requirements source changes the requirement-profile digest."
+  ],
+  "non_promotions": [
+    "REQUIREMENT_PROFILE_SOURCE_DECLARATION != REQUIREMENT_PROFILE_ADMISSION",
+    "CURRENTNESS_CUT != VERA_IDENTITY",
+    "CURRENTNESS_CUT != PROTECTED_EFFECT_AUTHORITY",
+    "CURRENTNESS_CUT != PROVIDER_EFFECT_PROOF",
+    "CURRENTNESS_CUT != INSTALLATION_OR_RUNTIME_QUALIFICATION",
+    "OPTIONAL_SURFACE_STABILITY != REQUIRED_SURFACE_CURRENTNESS"
+  ],
+  "effect_boundary": "A CURRENT disposition is eligibility/currentness evidence only. A protected/external effect must separately re-admit authority, exact target/currentness, writer ownership, and effect-specific preconditions.",
+  "claim_ceiling": [
+    "PROFILE_BOUND_MULTI_SURFACE_CURRENTNESS_SOURCE_CONTRACT",
+    "NO_REQUIREMENT_PROFILE_AUTHENTICATION_BY_SELF_ASSERTION",
+    "NO_IDENTITY_PROOF",
+    "NO_AUTHORITY_GRANT",
+    "NO_EFFECT_AUTHORIZATION",
+    "NO_PROJECT_INSTALLATION",
+    "NO_RUNTIME_QUALIFICATION"
+  ]
+}
