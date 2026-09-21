@@ -59,11 +59,17 @@ Construction verifies that the predecessor:
 - is an exact `CoherentCurrentnessCut`;
 - is an initial cut (`retry_count == 0`, no own predecessor);
 - has the same cut-family ID;
+- has a distinct cut ID;
 - has the exact same requirement-profile digest;
 - has the exact same scope digest;
-- actually evaluates under this source implementation to `RETRY_AFFECTED_SURFACES`.
+- has the exact same live-input digest;
+- actually evaluates under this source implementation to `RETRY_AFFECTED_SURFACES`;
+- ends each required surface at exactly the frontier where the retry starts;
+- ends each required surface with exactly the result digest where the retry starts.
 
 The retry payload/digest embeds both the predecessor cut digest and the full predecessor payload.
+
+This cross-attempt join matters: without it, a predecessor could observe `A -> B`, the world could move unobserved to `C`, and a retry could observe `C -> C` and incorrectly call the sequence stable. V3 R2 now rejects that hidden gap for every required surface, and it rejects changing the live-input subject between attempts.
 
 This prevents an arbitrary 64-character digest, unrelated profile/scope cut, stable predecessor, or wrong-family object from laundering retry ancestry.
 
@@ -90,7 +96,7 @@ Every decision remains explicitly non-promoting:
 
 ## Focused hostile suite
 
-The focused suite contains 27 cases covering:
+The focused suite contains 31 cases covering:
 
 - stable required cuts;
 - incomplete required surfaces;
@@ -109,10 +115,14 @@ The focused suite contains 27 cases covering:
 - unrelated scope;
 - predecessor that does not evaluate to `RETRY_AFFECTED_SURFACES`;
 - predecessor digest/payload derivation from the actual supplied cut;
+- retry live-input continuity;
+- hidden frontier gaps between predecessor end and retry start;
+- hidden result-digest gaps between predecessor end and retry start;
+- retry cut-ID reuse;
 - stable retry becoming `CURRENT`;
 - repeated retry movement becoming `UNSTABLE_UNKNOWN`.
 
-An equivalent local current-main V3 working tree passed **27/27** focused tests before publication. Exact remote-head execution must still be classified separately.
+The predecessor V3 working tree passed **27/27** focused tests before the cross-attempt continuity repair. That PASS does **not** transfer to the current head. The current source contains 31 focused cases, but exact-head execution is presently unavailable because hosted Actions is failing before runner steps begin and the alternate remote execution path is quota-paused.
 
 ## Claim ceiling
 
