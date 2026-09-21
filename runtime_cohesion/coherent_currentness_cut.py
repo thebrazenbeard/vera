@@ -321,6 +321,33 @@ class CoherentCurrentnessCut:
                 f"mismatched={mismatched_identity!r}"
             )
 
+        if self.retry_count == 1:
+            if self.cut_id == predecessor.cut_id:
+                raise ValueError("retry cut_id must differ from predecessor cut_id")
+            if self.live_input_digest != predecessor.live_input_digest:
+                raise ValueError(
+                    "retry live_input_digest must match predecessor live input"
+                )
+            predecessor_by_surface = {
+                item.surface_id: item for item in predecessor.surfaces
+            }
+            retry_by_surface = {item.surface_id: item for item in self.surfaces}
+            discontinuous_required = tuple(
+                surface_id
+                for surface_id in self.requirement_profile.required_surfaces
+                if (
+                    retry_by_surface[surface_id].start_frontier
+                    != predecessor_by_surface[surface_id].end_frontier
+                    or retry_by_surface[surface_id].start_result_digest
+                    != predecessor_by_surface[surface_id].end_result_digest
+                )
+            )
+            if discontinuous_required:
+                raise ValueError(
+                    "retry required-surface start must equal predecessor end; "
+                    f"discontinuous={discontinuous_required!r}"
+                )
+
     def payload(self) -> dict[str, Any]:
         return {
             "schema": "VERA_COHERENT_CURRENTNESS_CUT_V3",
