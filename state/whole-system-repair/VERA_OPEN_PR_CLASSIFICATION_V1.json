@@ -1,6 +1,6 @@
 {
   "schema": "VERA_OPEN_PR_CLASSIFICATION_V1",
-  "status": "SOURCE_CANDIDATE_FIRST_PASS",
+  "status": "SOURCE_CANDIDATE_FIRST_PASS_WITH_VERIFIED_CLOSURE",
   "observed_at": "2026-09-21T15:03:00-04:00",
   "main_head": "3241397755ae1da1af2ce1fb7e7b0f83e0da7538",
   "allowed_classifications": [
@@ -15,16 +15,6 @@
   ],
   "rule": "Classification is semantic and exact-head-bound. Age/newness alone never decides currentness. UNRESOLVED is retained where exact equivalence/dependency evidence has not yet been established.",
   "pull_requests": [
-    {
-      "number": 153,
-      "title": "Integrate Deep Memory consumer on current main",
-      "head": "3e4ad4384cb86c6f11170b1ee7736b5f2e05e27b",
-      "classification": "OBSOLETE_SAFE_TO_CLOSE",
-      "evidence": [
-        "PR head is an ancestor of current main: compare head->main ahead_by=0, behind_by=8"
-      ],
-      "next": "Close only after one final content/readback check; no merge required."
-    },
     {
       "number": 148,
       "title": "Bind Vera currentness cuts to governed requirement profiles",
@@ -245,15 +235,25 @@
     }
   ],
   "counts": {
-    "total": 21,
+    "total": 20,
     "CURRENT_REQUIRED": 2,
     "STACKED_DEPENDENCY": 2,
     "SUPERSEDED": 1,
     "HISTORICAL_PRESERVATION": 6,
     "REVIEW_BLOCKED": 3,
     "EFFECT_BLOCKED": 0,
-    "OBSOLETE_SAFE_TO_CLOSE": 1,
+    "OBSOLETE_SAFE_TO_CLOSE": 0,
     "UNRESOLVED": 6
   },
-  "claim_ceiling": "FIRST_PASS_CLASSIFICATION_NOT_CLOSURE"
+  "claim_ceiling": "FIRST_PASS_CLASSIFICATION_PLUS_EXACT_PR153_CLOSURE; REMAINING_OPEN_PRS_NOT_CLOSED",
+  "recently_closed": [
+    {
+      "number": 153,
+      "exact_head": "3e4ad4384cb86c6f11170b1ee7736b5f2e05e27b",
+      "classification_before_close": "OBSOLETE_SAFE_TO_CLOSE",
+      "closed_state_verified": true,
+      "closed_reason": "Exact PR head is an ancestor of current main (ahead_by=0, behind_by=8); no pending source delta remained.",
+      "provenance_comment_id": 5766065542
+    }
+  ]
 }
