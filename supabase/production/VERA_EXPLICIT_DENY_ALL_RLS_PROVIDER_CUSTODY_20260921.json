@@ -1,0 +1,41 @@
+{
+  "schema": "VERA_EXPLICIT_DENY_ALL_RLS_PROVIDER_CUSTODY_V1",
+  "observed_at": "2026-09-21T20:04:41Z",
+  "provider": {
+    "kind": "SUPABASE_POSTGRES",
+    "project_id": "klmbpaigzeguvnpccqzz",
+    "project_name": "Vera"
+  },
+  "source": {
+    "repository": "thebrazenbeard/vera",
+    "branch": "work/explicit-deny-all-rls-policies-20260921",
+    "source_commit": "71def973de3d84c8818bf35fabcc31a6c5b9f66a",
+    "path": "supabase/migrations/20260921200500_make_deny_all_rls_explicit_v1.sql",
+    "git_blob": "587a20e650fa6167f91b549a2bf57548ac70ef08",
+    "application_binding": "THE_EXACT_GITHUB_FETCHED_FILE_CONTENT_WAS_PASSED_DIRECTLY_TO_SUPABASE_APPLY_MIGRATION"
+  },
+  "provider_effect": {
+    "migration_version": "20260921200441",
+    "migration_name": "make_deny_all_rls_explicit_v1",
+    "provider_statement_count": 1,
+    "provider_statement_octets_utf8": 4468,
+    "provider_statement_sha256": "d7cbe3603d4085b6ae0276b88916d9ae8664a22a8515faf1daaecb0a89f30013",
+    "policy_count": 31,
+    "status": "APPLIED_VERIFIED"
+  },
+  "readback": {
+    "security_advisor_before_rls_enabled_no_policy": 31,
+    "security_advisor_after_lints": 0,
+    "deny_all_untrusted_v1_policy_count": 31,
+    "exact_public_false_false_policy_count": 31,
+    "grants_changed": false,
+    "semantics": "EXPLICIT_DENY_FOR_ALL_NON_BYPASS_RLS_ROLES; TRUSTED_BYPASSRLS_BACKEND_BEHAVIOR_UNCHANGED"
+  },
+  "claim_ceiling": [
+    "PROVIDER_RLS_POLICY_EFFECT_APPLIED_VERIFIED",
+    "SECURITY_ADVISOR_CLEARED",
+    "DENY_ALL_INTENT_MADE_EXPLICIT",
+    "NO_GRANT_EXPANSION",
+    "NO_RUNTIME_BEHAVIOR_QUALIFICATION"
+  ]
+}
