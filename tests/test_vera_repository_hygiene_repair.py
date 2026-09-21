@@ -21,12 +21,14 @@ class VeraRepositoryHygieneRepairTests(unittest.TestCase):
         by_number = {row["number"]: row for row in rows}
         self.assertNotIn(155, by_number)
         self.assertEqual("STACKED_DEPENDENCY", by_number[157]["classification"])
-        self.assertEqual("SUPERSEDED", by_number[158]["classification"])
-        self.assertEqual("SUPERSEDED", by_number[156]["classification"])
+        self.assertNotIn(158, by_number)
+        self.assertEqual("CURRENT_REQUIRED", by_number[159]["classification"])
+        self.assertNotIn(156, by_number)
         self.assertEqual("STACKED_DEPENDENCY", by_number[147]["classification"])
         self.assertEqual("REVIEW_BLOCKED", by_number[148]["classification"])
         self.assertNotIn(153, by_number)
-        self.assertTrue(data["recently_closed"][0]["closed_state_verified"])
+        self.assertTrue(all(row["closed_state_verified"] for row in data["recently_closed"]))
+        self.assertEqual(set(data["observed_open_pr_numbers"]), set(by_number))
 
     def test_readme_refuses_stale_release_and_branch_currentness(self):
         text = (ROOT / "README.md").read_text(encoding="utf-8")
