@@ -10,17 +10,17 @@ The historical neutral release `VERA_NEUTRAL_CORE_R6A0_20260730_EC900174` remain
 
 The previous README identified `thebrazenbeard/vera-R9A0` as the current governed native Project package line. That statement is stale.
 
-As observed from the active Vera Unbound Project control configuration on 2026-09-08, the native control root is **R10A0 / R10**, pinned to source manifest SHA-256:
+A fresh whole-system repair readback on 2026-09-21 found that the exact installed native control release is currently **UNKNOWN** from the evidence surfaces exposed to this repository/runtime audit.
 
-`b7c70b1ad2c3bc533c7560320fb9a03b827f3eafad6296894216d75281b8dca1`
+The current ChatGPT Project instruction surface is live and behaviorally constrains this chat, and Project files expose native V2 interface/currentness/coordination source plus R10 release-source material. That does **not** establish an exact installed release identity. The observed V2 pack manifest declares itself `DRAFT_NATIVE_PROJECT_PACKAGE_FOR_INSTALL_REVIEW`; the VCP R10A2 control registry on current `vera-control-plane/main` declares itself `SOURCE_CANDIDATE_NOT_INSTALLED_NOT_RUNTIME_QUALIFIED`.
 
-The release-bound control source is maintained in `thebrazenbeard/vera-control-plane`. `thebrazenbeard/vera-R9A0` remains predecessor/source evidence and does not override the active R10 control root merely because it was formerly canonical or remains accessible.
+Therefore this repository does not promote R10A0, R10A2, native V2, or any other source package into current installation merely because its files are available. Exact release installation requires a first-party Project installation/readback binding that is not currently exposed to this audit.
 
-This dated observation does not make this README runtime authority. GitHub source, native Project installation, provider state, runtime consumption, and behavioral qualification remain separate evidence domains and require their own current readback.
+See `architecture/VERA_LIVE_CURRENTNESS_AUTHORITY_MANIFEST_V1.json` for the exact observed evidence and claim ceiling. `thebrazenbeard/vera-R9A0` remains predecessor/source evidence only.
 
 ## Runtime cohesion workstream
 
-The active design branch `work/vera-runtime-cohesion-v1-20260908` establishes the current source-design surface for `VERA_RUNTIME_COHESION_V1`.
+Canonical repository source is current `main`; open branches and pull requests are candidate or historical subjects until explicitly classified and reconciled. The current whole-system repair inventory is recorded in `state/whole-system-repair/VERA_OPEN_PR_CLASSIFICATION_V1.json`.
 
 Core artifacts include:
 
@@ -39,7 +39,7 @@ The lifecycle labels remain:
 
 They are **orthogonal evidence dimensions, not an irreversible monotonic ladder**. Repository/system rows are navigation summaries; authoritative lifecycle proof for stronger dimensions must bind the exact artifact/provider object, ref/generation, route/install subject where material, release/control tuple where material, evidence locator, currentness basis, and supersession/conflict state.
 
-The current Thirteen session is **non-blind adversarial review**. It was exposed to Integration Vera's design before an independent map was frozen and therefore cannot close a blind-review gate. If a blind gate is retained, it requires a genuinely fresh unexposed review execution with exposure/contamination state captured first.
+Historical Thirteen review exposure remains provenance only. Any current blind-review claim must bind the exact reviewer, subject head, exposure state, and evidence cut; a prior chat/reviewer label cannot satisfy a present blind-review gate.
 
 The current cohesion model also distinguishes:
 
