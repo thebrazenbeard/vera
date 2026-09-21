@@ -41,8 +41,12 @@
     {
       "id": "VERA-DB-SEC-001",
       "severity": "MEDIUM",
-      "status": "REPAIR_IN_PROGRESS",
-      "summary": "RLS/no-policy advisories require intentional-deny-all versus defect classification."
+      "status": "ACCEPTED_LIMITATION",
+      "summary": "31 RLS-without-policy advisories were classified against direct grants, schema usage, role bypass, and client-callable function reachability. No reachable anon/authenticated defect was found.",
+      "evidence": [
+        "repair/security/VERA_SUPABASE_SECURITY_CLASSIFICATION_V1.json"
+      ],
+      "residual_limitation": "The INFO lint remains because deny-all/service-only tables intentionally have RLS with no client policies; future privilege or SECURITY DEFINER changes require re-audit."
     },
     {
       "id": "VERA-CURRENTNESS-147-148",
