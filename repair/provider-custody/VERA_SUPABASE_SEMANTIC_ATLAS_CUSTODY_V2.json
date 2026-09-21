@@ -1,0 +1,48 @@
+{
+  "schema": "VERA_SUPABASE_SEMANTIC_ATLAS_CUSTODY_V2",
+  "status": "PROVIDER_LEDGER_RECONSTRUCTIBILITY_RECOVERED",
+  "mission": "VERA::WHOLE_SYSTEM_REPAIR::EXECUTE_TO_VERIFIED_CLOSURE_V1",
+  "observed": {
+    "vera_main": "06090f96b1437a2a148c205f1ce7c264167644d7",
+    "provider_project": "klmbpaigzeguvnpccqzz",
+    "provider": "Vera Supabase",
+    "semantic_owner_repository": "thebrazenbeard/semanticatlas",
+    "semantic_owner_main": "5669a727b870a490ecee748b2cd712a2fc4a54c5",
+    "semanticatlas_recovery_pr": 7,
+    "semanticatlas_recovery_head": "e134104d9682cb674f39c7b270d3bab5a5631aad",
+    "recovery_manifest_path": "recovery/provider/VERA_SUPABASE_SEMANTIC_ATLAS_MIGRATION_LEDGER_V1.json",
+    "recovery_manifest_blob": "ec0db0398960c8309219e97b270967492ac376d3",
+    "migration_count": 28
+  },
+  "verification": {
+    "provider_readback_against_recovery_manifest": "PASS",
+    "matched_fields": [
+      "version",
+      "name",
+      "statement_count",
+      "statement_sha256s"
+    ],
+    "matched_migrations": 28,
+    "provider_mutation_performed": false
+  },
+  "custody_classes": {
+    "exact_provider_ledger_statement_bytes": 28,
+    "provider_statement_custody_unresolved": 0,
+    "historical_git_semantically_equivalent_candidates": 2,
+    "original_authoring_file_provenance_unresolved": 26,
+    "exact_original_authoring_file_bytes_established": 0
+  },
+  "interpretation": [
+    "The prior V1 practical reconstructibility gap is closed: all 28 provider migration statement arrays are now preserved in source-controlled Semantic Atlas recovery material.",
+    "Provider-ledger bytes are not automatically the original authoring-file bytes, paths, or commits.",
+    "The two V11 migrations retain separate historical Git evidence of semantically equivalent executable SQL.",
+    "The remaining 26 migrations still lack established original authoring-file provenance; that is an archaeology/provenance gap, not an executable reconstruction gap."
+  ],
+  "claim_ceiling": "PROVIDER_LEDGER_RECONSTRUCTIBILITY_RECOVERED / ORIGINAL_AUTHORING_PROVENANCE_PARTIAL / SEMANTICATLAS_RECOVERY_SOURCE_CANDIDATE_UNMERGED",
+  "non_claims": [
+    "This artifact does not prove current Semantic Atlas runtime consumption.",
+    "This artifact does not make provider state semantic authority.",
+    "This artifact does not merge Semantic Atlas PR #7 or Vera PR #165.",
+    "This artifact does not apply or alter any provider migration."
+  ]
+}
