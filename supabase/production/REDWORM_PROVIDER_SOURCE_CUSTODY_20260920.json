@@ -1,0 +1,60 @@
+{
+  "schema": "VERA_REDWORM_PROVIDER_SOURCE_CUSTODY_V1",
+  "status": "RECOVERED_PROVIDER_APPLIED_SOURCE_EXACT_BYTES_CURRENT_RLS_EFFECT_ORIGIN_UNRESOLVED",
+  "provider": {
+    "type": "SUPABASE_POSTGRES",
+    "project_ref": "klmbpaigzeguvnpccqzz"
+  },
+  "recovered_migration": {
+    "version": "20260810135003",
+    "name": "redworm_runtime_status_v1",
+    "provider_statement_count": 1,
+    "provider_statement_octets_utf8": 11887,
+    "provider_statement_sha256": "8dc9c7e0d72b9aaf033b08683f1c7f0f2c7c312051d21e0c1851f76ed9669d4b",
+    "git_path": "supabase/migrations/20260810135003_redworm_runtime_status_v1.sql",
+    "git_blob": "9d7d1d7b0908f3b68309eab2ce43643c1c02ac28",
+    "git_readback_exact_string_match": true,
+    "git_readback_octets_utf8": 11887,
+    "custody_semantics": "Git custody was reconstructed later from exact provider-held migration bytes. This Git commit is not asserted to be the historical origin of the already-applied provider effect."
+  },
+  "current_provider_readback": {
+    "observed_at": "2026-09-21T00:06:11.257829Z",
+    "base_tables": [
+      "lineage_events",
+      "lineage_state",
+      "runtime_registry",
+      "succession_transfers"
+    ],
+    "rls_enabled_table_count": 4,
+    "force_rls": false,
+    "table_acl_observed": "{postgres=arwdDxtm/postgres}",
+    "anon_schema_usage": false,
+    "authenticated_schema_usage": false,
+    "service_role_schema_usage": true,
+    "direct_table_grants_to_anon_authenticated_service_role": 0,
+    "service_role_bypassrls": true,
+    "security_definer_functions": [
+      "accept_succession(uuid,uuid,integer,text)",
+      "begin_succession(uuid,integer,text,text,text)",
+      "register_runtime(text,jsonb)",
+      "status(uuid)"
+    ],
+    "function_execute_acl": "postgres_and_service_role_only"
+  },
+  "currentness_correction": {
+    "prior_issue_observation": "RLS_DISABLED_ON_2026_09_01_AUDIT",
+    "current_observation": "RLS_ENABLED_ON_ALL_FOUR_BASE_TABLES",
+    "later_supabase_migrations_containing_redworm": 0,
+    "rls_enablement_effect_origin": "UNRESOLVED",
+    "rule": "Do not infer the current RLS-on effect came from the recovered 20260810135003 migration or from Git merely because current state is safer."
+  },
+  "claim_ceiling": [
+    "SOURCE_CUSTODY_RECOVERED",
+    "CURRENT_PROVIDER_SECURITY_POSTURE_OBSERVED",
+    "NO_DIRECT_CLIENT_TABLE_EXPOSURE_OBSERVED",
+    "RLS_ENABLEMENT_ORIGIN_UNRESOLVED",
+    "NOT_PROVIDER_MUTATION",
+    "NOT_RUNTIME_QUALIFICATION",
+    "NOT_MERGE_AUTHORITY"
+  ]
+}
