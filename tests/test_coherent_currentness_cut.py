@@ -7,7 +7,9 @@ from runtime_cohesion.coherent_currentness_cut import (
     CoherentCurrentnessCut,
     CurrentnessRequirementProfile,
     CutDisposition,
+    PredecessorCutReceipt,
     SurfaceReadback,
+    SurfaceReadbackContract,
     SurfaceStatus,
     evaluate_currentness_cut,
 )
@@ -17,12 +19,28 @@ def h(label: str) -> str:
     return sha256(label.encode("utf-8")).hexdigest()
 
 
+def contract(
+    surface_id: str,
+    *,
+    identity: str | None = None,
+    seed: str = "v1",
+) -> SurfaceReadbackContract:
+    return SurfaceReadbackContract(
+        surface_id=surface_id,
+        readback_identity=identity or f"readback:{surface_id}",
+        contract_id=f"contract:{surface_id}:{seed}",
+        contract_digest=h(f"contract:{surface_id}:{seed}"),
+    )
+
+
 def profile(
     *,
     required: tuple[str, ...] = ("BUS_TOPOLOGY",),
     optional: tuple[str, ...] = (),
     scope: str = "scope",
+    contract_seed: str = "v1",
 ) -> CurrentnessRequirementProfile:
+    declared = tuple(sorted(required + optional))
     return CurrentnessRequirementProfile(
         profile_id="profile-1",
         proposition_type="RECOVERY_CURRENTNESS",
@@ -31,6 +49,9 @@ def profile(
         requirements_source_digest=h("requirements-source"),
         required_surfaces=required,
         optional_surfaces=optional,
+        readback_contracts=tuple(
+            contract(surface_id, seed=contract_seed) for surface_id in declared
+        ),
     )
 
 
@@ -40,14 +61,22 @@ def surface(
     status: SurfaceStatus = SurfaceStatus.COMPLETE,
     start: str = "A",
     end: str = "A",
+    identity: str | None = None,
+    start_result: str | None = None,
+    end_result: str | None = None,
 ) -> SurfaceReadback:
+    start_digest = start_result or h(f"result:{surface_id}:{start}")
+    end_digest = end_result or (
+        start_digest if start == end else h(f"result:{surface_id}:{end}")
+    )
     return SurfaceReadback(
         surface_id=surface_id,
         status=status,
         start_frontier=start,
         end_frontier=end,
-        readback_identity=f"readback:{surface_id}",
-        result_digest=h(surface_id),
+        readback_identity=identity or f"readback:{surface_id}",
+        start_result_digest=start_digest,
+        end_result_digest=end_digest,
     )
 
 
@@ -57,14 +86,16 @@ class CoherentCurrentnessCutTests(unittest.TestCase):
         *surfaces: SurfaceReadback,
         requirement_profile: CurrentnessRequirementProfile | None = None,
         retry_count: int = 0,
-        predecessor_cut_digest: str | None = None,
+        predecessor_receipt: PredecessorCutReceipt | None = None,
         live_input_scope_digest: str | None = None,
+        cut_family_id: str = "family-1",
     ) -> CoherentCurrentnessCut:
         selected = requirement_profile or profile(
             required=tuple(sorted(item.surface_id for item in surfaces))
         )
         return CoherentCurrentnessCut(
-            cut_id="cut-1",
+            cut_id="cut-1" if retry_count == 0 else "cut-2",
+            cut_family_id=cut_family_id,
             requirement_profile=selected,
             live_input_digest=h("live-input"),
             live_input_scope_digest=(
@@ -74,8 +105,28 @@ class CoherentCurrentnessCutTests(unittest.TestCase):
             ),
             restored_frontier_digest=h("restored"),
             retry_count=retry_count,
-            predecessor_cut_digest=predecessor_cut_digest,
+            predecessor_receipt=predecessor_receipt,
             surfaces=tuple(sorted(surfaces, key=lambda item: item.surface_id)),
+        )
+
+    def predecessor(
+        self,
+        requirement_profile: CurrentnessRequirementProfile,
+        *,
+        family: str = "family-1",
+        scope_digest: str | None = None,
+        profile_digest: str | None = None,
+        disposition: CutDisposition = CutDisposition.RETRY_AFFECTED_SURFACES,
+        affected: tuple[str, ...] = ("BUS_TOPOLOGY",),
+    ) -> PredecessorCutReceipt:
+        return PredecessorCutReceipt(
+            cut_digest=h("first-cut"),
+            cut_family_id=family,
+            requirement_profile_digest=profile_digest or requirement_profile.digest,
+            scope_digest=scope_digest or requirement_profile.scope_digest,
+            retry_count=0,
+            disposition=disposition,
+            affected_surfaces=affected,
         )
 
     def assert_non_promoting(self, decision) -> None:
@@ -129,7 +180,7 @@ class CoherentCurrentnessCutTests(unittest.TestCase):
                 surface("BUS_TOPOLOGY", start="B", end="C"),
                 requirement_profile=requirement_profile,
                 retry_count=1,
-                predecessor_cut_digest=h("first-cut"),
+                predecessor_receipt=self.predecessor(requirement_profile),
             )
         )
         self.assertEqual(CutDisposition.UNSTABLE_UNKNOWN, decision.disposition)
@@ -187,7 +238,8 @@ class CoherentCurrentnessCutTests(unittest.TestCase):
                 start_frontier="A",
                 end_frontier="A",
                 readback_identity="readback:BUS_TOPOLOGY",
-                result_digest=h("BUS_TOPOLOGY"),
+                start_result_digest=h("a"),
+                end_result_digest=h("a"),
             )
 
     def test_missing_profile_required_surface_is_rejected(self):
@@ -251,22 +303,22 @@ class CoherentCurrentnessCutTests(unittest.TestCase):
                 live_input_scope_digest=h("different-scope"),
             )
 
-    def test_retry_cut_requires_predecessor_digest(self):
+    def test_retry_cut_requires_typed_predecessor_receipt(self):
         requirement_profile = profile(required=("BUS_TOPOLOGY",))
-        with self.assertRaisesRegex(ValueError, "requires predecessor_cut_digest"):
+        with self.assertRaisesRegex(ValueError, "requires exact PredecessorCutReceipt"):
             self.make_cut(
                 surface("BUS_TOPOLOGY"),
                 requirement_profile=requirement_profile,
                 retry_count=1,
             )
 
-    def test_initial_cut_cannot_claim_predecessor_digest(self):
+    def test_initial_cut_cannot_claim_predecessor_receipt(self):
         requirement_profile = profile(required=("BUS_TOPOLOGY",))
-        with self.assertRaisesRegex(ValueError, "cannot claim predecessor"):
+        with self.assertRaisesRegex(ValueError, "cannot claim predecessor_receipt"):
             self.make_cut(
                 surface("BUS_TOPOLOGY"),
                 requirement_profile=requirement_profile,
-                predecessor_cut_digest=h("not-allowed"),
+                predecessor_receipt=self.predecessor(requirement_profile),
             )
 
     def test_duplicate_readbacks_are_rejected(self):
@@ -274,12 +326,13 @@ class CoherentCurrentnessCutTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "canonical, sorted, and unique"):
             CoherentCurrentnessCut(
                 cut_id="cut-duplicate",
+                cut_family_id="family-1",
                 requirement_profile=requirement_profile,
                 live_input_digest=h("live-input"),
                 live_input_scope_digest=requirement_profile.scope_digest,
                 restored_frontier_digest=None,
                 retry_count=0,
-                predecessor_cut_digest=None,
+                predecessor_receipt=None,
                 surfaces=(
                     surface("BUS_TOPOLOGY"),
                     surface("BUS_TOPOLOGY"),
@@ -296,8 +349,129 @@ class CoherentCurrentnessCutTests(unittest.TestCase):
             requirements_source_digest=h("other-requirements-source"),
             required_surfaces=first.required_surfaces,
             optional_surfaces=first.optional_surfaces,
+            readback_contracts=first.readback_contracts,
         )
         self.assertNotEqual(first.digest, second.digest)
+
+
+    def test_equal_frontier_with_result_movement_is_not_current(self):
+        requirement_profile = profile(required=("BUS_TOPOLOGY",))
+        decision = evaluate_currentness_cut(
+            self.make_cut(
+                surface(
+                    "BUS_TOPOLOGY",
+                    start="A",
+                    end="A",
+                    start_result=h("snapshot-a"),
+                    end_result=h("snapshot-b"),
+                ),
+                requirement_profile=requirement_profile,
+            )
+        )
+        self.assertEqual(
+            CutDisposition.RETRY_AFFECTED_SURFACES,
+            decision.disposition,
+        )
+        self.assertEqual(("BUS_TOPOLOGY",), decision.affected_surfaces)
+
+    def test_mismatched_readback_identity_is_rejected(self):
+        requirement_profile = profile(required=("BUS_TOPOLOGY",))
+        with self.assertRaisesRegex(ValueError, "readback_identity"):
+            self.make_cut(
+                surface("BUS_TOPOLOGY", identity="readback:OTHER_PROVIDER"),
+                requirement_profile=requirement_profile,
+            )
+
+    def test_readback_contract_movement_changes_profile_digest(self):
+        first = profile(required=("BUS_TOPOLOGY",), contract_seed="v1")
+        second = profile(required=("BUS_TOPOLOGY",), contract_seed="v2")
+        self.assertNotEqual(first.digest, second.digest)
+
+    def test_stable_typed_retry_can_be_current(self):
+        requirement_profile = profile(required=("BUS_TOPOLOGY",))
+        decision = evaluate_currentness_cut(
+            self.make_cut(
+                surface("BUS_TOPOLOGY", start="B", end="B"),
+                requirement_profile=requirement_profile,
+                retry_count=1,
+                predecessor_receipt=self.predecessor(requirement_profile),
+            )
+        )
+        self.assertEqual(CutDisposition.CURRENT, decision.disposition)
+        self.assert_non_promoting(decision)
+
+    def test_retry_rejects_unrelated_cut_family(self):
+        requirement_profile = profile(required=("BUS_TOPOLOGY",))
+        with self.assertRaisesRegex(ValueError, "cut_family_id"):
+            self.make_cut(
+                surface("BUS_TOPOLOGY"),
+                requirement_profile=requirement_profile,
+                retry_count=1,
+                predecessor_receipt=self.predecessor(
+                    requirement_profile, family="unrelated-family"
+                ),
+            )
+
+    def test_retry_rejects_unrelated_profile_digest(self):
+        requirement_profile = profile(required=("BUS_TOPOLOGY",))
+        with self.assertRaisesRegex(ValueError, "requirement_profile_digest"):
+            self.make_cut(
+                surface("BUS_TOPOLOGY"),
+                requirement_profile=requirement_profile,
+                retry_count=1,
+                predecessor_receipt=self.predecessor(
+                    requirement_profile, profile_digest=h("other-profile")
+                ),
+            )
+
+    def test_retry_rejects_unrelated_scope(self):
+        requirement_profile = profile(required=("BUS_TOPOLOGY",))
+        with self.assertRaisesRegex(ValueError, "scope_digest"):
+            self.make_cut(
+                surface("BUS_TOPOLOGY"),
+                requirement_profile=requirement_profile,
+                retry_count=1,
+                predecessor_receipt=self.predecessor(
+                    requirement_profile, scope_digest=h("other-scope")
+                ),
+            )
+
+    def test_retry_requires_prior_retry_disposition(self):
+        requirement_profile = profile(required=("BUS_TOPOLOGY",))
+        with self.assertRaisesRegex(ValueError, "RETRY_AFFECTED_SURFACES"):
+            self.make_cut(
+                surface("BUS_TOPOLOGY"),
+                requirement_profile=requirement_profile,
+                retry_count=1,
+                predecessor_receipt=self.predecessor(
+                    requirement_profile, disposition=CutDisposition.CURRENT
+                ),
+            )
+
+    def test_retry_rejects_nonrequired_predecessor_affected_surface(self):
+        requirement_profile = profile(required=("BUS_TOPOLOGY",))
+        with self.assertRaisesRegex(ValueError, "must be required surfaces"):
+            self.make_cut(
+                surface("BUS_TOPOLOGY"),
+                requirement_profile=requirement_profile,
+                retry_count=1,
+                predecessor_receipt=self.predecessor(
+                    requirement_profile, affected=("UNRELATED",)
+                ),
+            )
+
+    def test_contract_inventory_must_match_declared_inventory(self):
+        with self.assertRaisesRegex(ValueError, "readback_contracts must exactly match"):
+            CurrentnessRequirementProfile(
+                profile_id="profile-1",
+                proposition_type="RECOVERY_CURRENTNESS",
+                scope_digest=h("scope"),
+                requirements_source_id="VCP_CURRENT_OWNER",
+                requirements_source_digest=h("requirements-source"),
+                required_surfaces=("BUS_TOPOLOGY",),
+                optional_surfaces=(),
+                readback_contracts=(),
+            )
 
 
 if __name__ == "__main__":
