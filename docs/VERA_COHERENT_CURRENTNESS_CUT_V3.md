@@ -7,7 +7,7 @@ This V3 source candidate is the clean current-main successor to the reviewed-but
 - PR #147 @ `e291b2e07357884be97a41f604726b393484017b` — CHANGES_REQUIRED;
 - PR #148 @ reviewed head `0111602eff64e70f91dfee1f9c8f7bc3824f627f` — CHANGES_REQUIRED.
 
-The successor is based on Vera main `06090f96b1437a2a148c205f1ce7c264167644d7`.
+The successor is based on Vera main `d3a4b196dff4e580c5dad9406d3463398d18f0cd`.
 
 ## What V3 fixes
 
