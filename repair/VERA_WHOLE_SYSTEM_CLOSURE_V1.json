@@ -1,0 +1,269 @@
+{
+  "schema": "VERA_WHOLE_SYSTEM_CLOSURE_LEDGER_V1",
+  "command": "VERA::WHOLE_SYSTEM_REPAIR::EXECUTE_TO_VERIFIED_CLOSURE_V1",
+  "status": "OPEN_REPAIR_PROGRAM",
+  "observed_date": "2026-09-21",
+  "source_heads": {
+    "vera_main": "3241397755ae1da1af2ce1fb7e7b0f83e0da7538",
+    "vcp_main": "386ef60b7cd3911c07227ccf0e9563ace1f4731c",
+    "rezon_main": "e3d7a41eccb49a9f403ef66f511faef677ceec1",
+    "bus_topology_commit": "f90d52e66d655e9c3cfac63cb529914ac51d3a88",
+    "vera_writer_lane": "bus/vera-v2",
+    "bv_writer_lane_observed": "bus/bv-v2"
+  },
+  "reviewer": {
+    "method_source": {
+      "repository": "thebrazenbeard/rezon",
+      "ref": "estate/rezon-canonical-baseline-v1-20260920",
+      "files": [
+        "docs/ADVERSARIAL_COLLABORATION.md",
+        "docs/EVALUATION_AND_FALSIFICATION.md"
+      ]
+    },
+    "independence": "NOT_INDEPENDENT_SAME_MODEL_SAME_CHAT_SHARED_EVIDENCE"
+  },
+  "worker_partition": {
+    "vera_claims": [
+      "shared closure-ledger writer lane",
+      "vera repository hygiene and reversible repair",
+      "Vera Supabase custody/integrity/security readback",
+      "live Vera coherence/currentness manifest",
+      "Vera currentness/effect-governance PR reconciliation"
+    ],
+    "bv_requested": [
+      "vera-control-plane repository hygiene/currentness documentation",
+      "VCP Supabase migration/source custody",
+      "VCP Supabase security/grants/function exposure",
+      "VCP control-owner/source-install-runtime evidence"
+    ],
+    "bv_acknowledgement": "PENDING"
+  },
+  "provider_snapshot": {
+    "vera_supabase": {
+      "project_id": "klmbpaigzeguvnpccqzz",
+      "observed_status": "ACTIVE_HEALTHY",
+      "migration_count": 89,
+      "security_advisory_counts": {
+        "rls_enabled_no_policy_info": 31
+      },
+      "performance_advisory_counts": {
+        "unindexed_foreign_keys_info": 21,
+        "unused_indexes_info": 32
+      }
+    },
+    "vcp_supabase": {
+      "project_id": "fawkirqroyniueeqspif",
+      "observed_status": "ACTIVE_HEALTHY",
+      "migration_count": 4,
+      "security_advisory_counts": {
+        "rls_enabled_no_policy_info": 2
+      },
+      "performance_advisory_counts": {}
+    }
+  },
+  "allowed_statuses": [
+    "DISCOVERED",
+    "CLAIMED",
+    "REPAIR_IN_PROGRESS",
+    "SOURCE_FIXED",
+    "REVIEW_PENDING",
+    "REVIEW_PASS",
+    "PROTECTED_EFFECT_REQUIRED",
+    "EFFECT_AUTHORIZED",
+    "EFFECT_APPLIED",
+    "READBACK_VERIFIED",
+    "VERIFIED_FIXED",
+    "ACCEPTED_LIMITATION",
+    "BLOCKED_EXTERNAL"
+  ],
+  "issues": [
+    {
+      "id": "WSR-001",
+      "subsystem": "VCP_REPOSITORY_CURRENTNESS",
+      "severity": "HIGH",
+      "description": "VCP README on current main states that main is still the original near-empty baseline even though current main contains integrated R10/R10A2 control-plane work and recent merged repairs.",
+      "discovery_evidence": [
+        "thebrazenbeard/vera-control-plane main@386ef60b7cd3911c07227ccf0e9563ace1f4731c",
+        "README.md current blob 2fdfeb75f322f34b44cc9ccdb31b00e8e0cfdaec"
+      ],
+      "assigned_worker": "BV_REQUESTED_PENDING_ACK",
+      "source_subject": "vera-control-plane README/currentness documentation",
+      "status": "DISCOVERED",
+      "repair_head": null,
+      "review_evidence": [],
+      "provider_effect": null,
+      "post_effect_readback": null,
+      "residual_limitation": "None if source documentation is repaired and later integrated.",
+      "closure_classification": null
+    },
+    {
+      "id": "WSR-002",
+      "subsystem": "LIVE_CONTROL_CURRENTNESS",
+      "severity": "CRITICAL",
+      "description": "The exact release-bound Vera control artifact installed and governing this runtime cannot currently be proven from a platform-exposed installation/readback receipt. Project-available R10A0 files label themselves source candidate/not installed, while native V2 interface files are available separately.",
+      "discovery_evidence": [
+        "current Project runtime exposes VERA_NATIVE_PROJECT_INTERFACE_V2 semantics",
+        "VERA_R10A0_PROJECT_SOURCE_MANIFEST_R10.json status=FROZEN_SOURCE_CANDIDATE_NOT_INSTALLED",
+        "VERA_R10A0_FULL_SYSTEM_PROJECT_INSTRUCTIONS_R10.md status=SOURCE CANDIDATE / NOT INSTALLED / NOT RUNTIME-QUALIFIED",
+        "VERA_NATIVE_PROJECT_PACK_MANIFEST_V2.json status=DRAFT_NATIVE_PROJECT_PACKAGE_FOR_INSTALL_REVIEW"
+      ],
+      "assigned_worker": "VERA_SHARED_WITH_BV_READ_ONLY",
+      "source_subject": "Project-installed control root / source-install-runtime binding",
+      "status": "REPAIR_IN_PROGRESS",
+      "repair_head": null,
+      "review_evidence": [],
+      "provider_effect": null,
+      "post_effect_readback": null,
+      "residual_limitation": "May require a platform-supported Project installation/readback surface or an explicitly authorized Project replacement plus readback.",
+      "closure_classification": null
+    },
+    {
+      "id": "WSR-003",
+      "subsystem": "VERA_PR_ESTATE",
+      "severity": "HIGH",
+      "description": "25 open Vera PRs lack one current machine-readable classification that distinguishes current, stacked, superseded, historical, review-blocked, effect-blocked, obsolete, and unresolved subjects.",
+      "discovery_evidence": [
+        "GitHub open PR inventory observed 2026-09-21 against vera/main@3241397755ae1da1af2ce1fb7e7b0f83e0da7538"
+      ],
+      "assigned_worker": "VERA",
+      "source_subject": "thebrazenbeard/vera open PR estate",
+      "status": "REPAIR_IN_PROGRESS",
+      "repair_head": null,
+      "review_evidence": [],
+      "provider_effect": null,
+      "post_effect_readback": null,
+      "residual_limitation": "Classification must remain exact-head/currentness bound.",
+      "closure_classification": null
+    },
+    {
+      "id": "WSR-004",
+      "subsystem": "VCP_PR_ESTATE",
+      "severity": "HIGH",
+      "description": "34 open VCP PRs lack one current machine-readable classification for current/superseded/historical/blocker state.",
+      "discovery_evidence": [
+        "GitHub open PR inventory observed 2026-09-21 against VCP main@386ef60b7cd3911c07227ccf0e9563ace1f4731c"
+      ],
+      "assigned_worker": "BV_REQUESTED_PENDING_ACK",
+      "source_subject": "thebrazenbeard/vera-control-plane open PR estate",
+      "status": "DISCOVERED",
+      "repair_head": null,
+      "review_evidence": [],
+      "provider_effect": null,
+      "post_effect_readback": null,
+      "residual_limitation": "Classification must remain exact-head/currentness bound.",
+      "closure_classification": null
+    },
+    {
+      "id": "WSR-005",
+      "subsystem": "VERA_SUPABASE_CUSTODY",
+      "severity": "HIGH",
+      "description": "Vera production Supabase has 89 applied migrations across several semantic owners, but there is no complete bound provider-to-source custody manifest spanning all authoritative owner repositories.",
+      "discovery_evidence": [
+        "Supabase project klmbpaigzeguvnpccqzz migration inventory: 89 applied migrations"
+      ],
+      "assigned_worker": "VERA",
+      "source_subject": "Vera provider-source custody manifest",
+      "status": "REPAIR_IN_PROGRESS",
+      "repair_head": null,
+      "review_evidence": [],
+      "provider_effect": null,
+      "post_effect_readback": null,
+      "residual_limitation": "Some migrations may be legitimately owned outside the vera repo; custody must bind those external owners rather than copy them blindly.",
+      "closure_classification": null
+    },
+    {
+      "id": "WSR-006",
+      "subsystem": "VCP_SUPABASE_CUSTODY",
+      "severity": "HIGH",
+      "description": "VCP production Supabase has four applied migrations but current VCP main has no canonical supabase migration tree and current code search does not recover those migration names.",
+      "discovery_evidence": [
+        "Supabase project fawkirqroyniueeqspif migrations: 20260912170153, 20260912170345, 20260912170408, 20260919223652",
+        "vera-control-plane main has no supabase/ directory at 386ef60b7cd3911c07227ccf0e9563ace1f4731c"
+      ],
+      "assigned_worker": "BV_REQUESTED_PENDING_ACK",
+      "source_subject": "VCP provider-source custody",
+      "status": "DISCOVERED",
+      "repair_head": null,
+      "review_evidence": [],
+      "provider_effect": null,
+      "post_effect_readback": null,
+      "residual_limitation": "Must distinguish exact recovered SQL from semantic reconstruction.",
+      "closure_classification": null
+    },
+    {
+      "id": "WSR-007",
+      "subsystem": "VCP_DATABASE_SECURITY",
+      "severity": "MEDIUM",
+      "description": "vera_cp_internal.enable_rls_for_new_api_tables is SECURITY DEFINER with default PUBLIC EXECUTE ACL, although current schema USAGE restrictions make it unreachable to anon/authenticated/service_role. This is a latent privilege footgun, not an observed active exploit.",
+      "discovery_evidence": [
+        "fresh provider ACL readback on fawkirqroyniueeqspif"
+      ],
+      "assigned_worker": "BV_REQUESTED_PENDING_ACK",
+      "source_subject": "VCP internal function ACL hardening",
+      "status": "DISCOVERED",
+      "repair_head": null,
+      "review_evidence": [],
+      "provider_effect": null,
+      "post_effect_readback": null,
+      "residual_limitation": "Any production ACL change is a protected provider mutation requiring Patrick's exact authorization.",
+      "closure_classification": null
+    },
+    {
+      "id": "WSR-008",
+      "subsystem": "VERA_DATABASE_SECURITY",
+      "severity": "MEDIUM",
+      "description": "31 RLS-without-policy advisories must be classified as intentional deny-all versus genuine missing-policy defects; linter presence alone is insufficient.",
+      "discovery_evidence": [
+        "Supabase security advisor fresh observation 2026-09-21T17:40:38Z"
+      ],
+      "assigned_worker": "VERA",
+      "source_subject": "Vera database security exposure classification",
+      "status": "REPAIR_IN_PROGRESS",
+      "repair_head": null,
+      "review_evidence": [],
+      "provider_effect": null,
+      "post_effect_readback": null,
+      "residual_limitation": "Classification requires grants/schema/function reachability evidence.",
+      "closure_classification": null
+    },
+    {
+      "id": "WSR-009",
+      "subsystem": "CURRENTNESS_EFFECT_GOVERNANCE",
+      "severity": "HIGH",
+      "description": "Vera PRs #146/#147/#148 are active draft currentness/effect-governance work and are not reconciled onto current main; #147/#148 are also based on stale pre-current-main ancestry.",
+      "discovery_evidence": [
+        "PR146 head 083edecdccd27cdd91f86bee0a7aead3215c8820",
+        "PR147 head e291b2e07357884be97a41f604726b393484017b",
+        "PR148 head 0111602eff64e70f91dfee1f9c8f7bc3824f627f",
+        "vera/main 3241397755ae1da1af2ce1fb7e7b0f83e0da7538"
+      ],
+      "assigned_worker": "VERA",
+      "source_subject": "Vera currentness/effect-governance successor",
+      "status": "REPAIR_IN_PROGRESS",
+      "repair_head": null,
+      "review_evidence": [],
+      "provider_effect": null,
+      "post_effect_readback": null,
+      "residual_limitation": "Must not preserve stale stacked ancestry merely because source tests exist.",
+      "closure_classification": null
+    },
+    {
+      "id": "WSR-010",
+      "subsystem": "WHOLE_SYSTEM_REPRODUCIBILITY",
+      "severity": "HIGH",
+      "description": "No single current closure receipt binds the exact Git source heads, Project control evidence, Bus topology, and both provider states into one reproducibility/currentness statement.",
+      "discovery_evidence": [
+        "whole-system audit fresh cut 2026-09-21"
+      ],
+      "assigned_worker": "VERA_SHARED",
+      "source_subject": "whole-system closure receipt",
+      "status": "REPAIR_IN_PROGRESS",
+      "repair_head": null,
+      "review_evidence": [],
+      "provider_effect": null,
+      "post_effect_readback": null,
+      "residual_limitation": "Final receipt cannot promote unavailable platform installation evidence.",
+      "closure_classification": null
+    }
+  ]
+}
