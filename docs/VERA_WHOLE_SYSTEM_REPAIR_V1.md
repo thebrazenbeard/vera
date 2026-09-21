@@ -1,11 +1,14 @@
 # Vera Whole-System Repair V1
 
-Status: **OPEN REPAIR PROGRAM**
+Status: **OPEN REPAIR PROGRAM / VERA-SIDE EVIDENCE LANE**
 
 Command: `VERA::WHOLE_SYSTEM_REPAIR::EXECUTE_TO_VERIFIED_CLOSURE_V1`
 
-This branch is the Vera-owned write lane for the shared closure ledger. It is not
-canonical merely because it exists.
+This branch is Vera's isolated repair/evidence lane. It is **not** the shared
+integrated closure ledger and is not canonical merely because it exists.
+
+Integrated shared-ledger stewardship was handed to BV on `bus/bv-v2`.
+Vera sends RESULT / BLOCKER / REVIEW evidence to BV for integration.
 
 ## Current exact source cut
 
@@ -14,6 +17,24 @@ canonical merely because it exists.
 - Bus topology binding `f90d52e66d655e9c3cfac63cb529914ac51d3a88`
 - Vera provider `klmbpaigzeguvnpccqzz`: ACTIVE_HEALTHY, 89 applied migrations
 - VCP provider `fawkirqroyniueeqspif`: ACTIVE_HEALTHY, 4 applied migrations
+
+## Worker partition
+
+Vera owns:
+
+- `thebrazenbeard/vera` repository hygiene and reversible repair;
+- Vera Supabase custody/security/integrity/reproducibility;
+- live Vera Project/source/runtime currentness evidence;
+- Vera currentness/effect-governance reconciliation.
+
+BV owns:
+
+- `thebrazenbeard/vera-control-plane` repair subjects;
+- VCP Supabase custody/security/provider repair;
+- the integrated whole-system closure ledger.
+
+Cross-cutting currentness may be inspected by both. Mutation still requires a
+bounded non-colliding subject.
 
 ## Rezon hostile review
 
@@ -25,7 +46,7 @@ especially `docs/ADVERSARIAL_COLLABORATION.md` and
 The in-chat reviewer is **not independent corroboration**. It shares this model,
 chat, task prompt, and evidence.
 
-## First critical finding
+## Critical live-currentness finding
 
 The current runtime does not expose a trustworthy artifact-level readback that
 answers which exact release-bound Vera control artifact is installed and
@@ -37,18 +58,31 @@ Current Project-available evidence contains both:
 - R10A0 release-source files whose own status says source candidate / not
   installed / not runtime-qualified.
 
-Therefore the repair program records the installed release as UNKNOWN rather
-than promoting source availability into installation.
+Therefore the exact installed release remains `UNKNOWN` rather than promoting
+source availability into installation.
 
-## Worker collision boundary
+## Vera Supabase custody progress
 
-Vera owns this ledger and Vera-side repair subjects. BV has been asked through
-the Chat Communication Bus to own VCP repository/provider repair subjects and
-return evidence. Cross-cutting control-currentness may be inspected by both;
-mutation requires a bounded claim/handoff.
+The first bounded custody slice is persisted at:
+
+`repair/provider-custody/VERA_SUPABASE_RADAR_CUSTODY_V1.json`
+
+For the eight production Radar migrations observed in Vera Supabase:
+
+- seven are byte-for-byte equal to Git-held migration source on
+  `thebrazenbeard/chat-communication-bus@aeab0f04fc9b4bd7c2945c9a53011c53fac809b4`;
+- `20260902204759_radar_live_message_projection_v1` is **not**
+  byte-identical to the current Git file, but its executable SQL is equal after
+  removing line comments and normalizing whitespace;
+- the exact originally applied Git bytes for that one migration remain
+  unrecovered.
+
+This is a partial custody result only. It does not yet establish complete Vera
+provider reproducibility.
 
 ## Completion rule
 
-This branch may only claim `WHOLE_SYSTEM_VERIFIED` after the user-specified
-definition of done is satisfied. A PR, test pass, or review pass is never
-sufficient by itself.
+This lane may only support a final `WHOLE_SYSTEM_VERIFIED` claim after the
+user-specified definition of done is satisfied in the integrated closure
+ledger. A PR, test pass, review pass, or source-custody slice is never sufficient
+by itself.
