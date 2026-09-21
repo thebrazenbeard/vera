@@ -1,6 +1,6 @@
 {
   "schema": "VERA_OPEN_PR_CLASSIFICATION_V1",
-  "status": "SOURCE_CANDIDATE_EXACT_OPEN_PR_CLASSIFICATION_PRE_SELF_REGISTRATION_R2",
+  "status": "EXACT_OPEN_PR_CLASSIFICATION_CURRENT_AT_OBSERVED_SET",
   "observed_at": "2026-09-21T15:03:00-04:00",
   "main_head": "0e9d298b4c9ae9f1ae3a5d1fae29c74a9eeeba52",
   "allowed_classifications": [
@@ -16,15 +16,16 @@
   "rule": "Classification is semantic and exact-head-bound. Age/newness alone never decides currentness. UNRESOLVED is retained where exact equivalence/dependency evidence has not yet been established.",
   "pull_requests": [
     {
-      "number": 158,
-      "title": "Repair Vera repository currentness and PR-stack hygiene",
-      "head": "8646fb9e713dd16abbd28e61828dd10b9da1c721",
-      "classification": "SUPERSEDED",
+      "number": 159,
+      "title": "Repair Vera repository currentness and PR-stack hygiene (r2)",
+      "head": "1d58460c0ffee9d94287818d0764ddf6d53828bc",
+      "classification": "CURRENT_REQUIRED",
       "evidence": [
-        "Stacked on closed PR #155 rather than current-main restack PR #157",
-        "This r2 branch is rebuilt on exact PR #157 head"
+        "Active non-overlapping repository-hygiene successor",
+        "Stacked on exact PR #157 current-main repair head",
+        "Owns README stale-currentness repair, open-PR classification, and focused regressions only"
       ],
-      "next": "Close after r2 successor PR is opened and verified."
+      "next": "Exact-head review and source validation; no merge without Patrick's separate authority."
     },
     {
       "number": 157,
@@ -36,18 +37,6 @@
         "This branch is based exactly on PR #157 head and does not mutate its owned paths"
       ],
       "next": "Retain as parent; material head movement requires restack/review."
-    },
-    {
-      "number": 156,
-      "title": "Whole-system repair: currentness truth and Vera PR-stack closure",
-      "head": "04d37350b7b92fde459b2cce23a5c6e49995c01d",
-      "classification": "SUPERSEDED",
-      "evidence": [
-        "Overlaps PR #155 architecture/VERA_LIVE_CURRENTNESS_AUTHORITY_MANIFEST_V1.json",
-        "PR #155 exact head is the adopted shared currentness/provider-custody base",
-        "This stacked successor carries only non-overlapping repo-hygiene work"
-      ],
-      "next": "Close after this stacked successor is opened and verified."
     },
     {
       "number": 148,
@@ -269,17 +258,17 @@
     }
   ],
   "counts": {
-    "total": 23,
-    "CURRENT_REQUIRED": 2,
+    "total": 22,
+    "CURRENT_REQUIRED": 3,
     "STACKED_DEPENDENCY": 3,
-    "SUPERSEDED": 3,
+    "SUPERSEDED": 1,
     "HISTORICAL_PRESERVATION": 6,
     "REVIEW_BLOCKED": 3,
     "EFFECT_BLOCKED": 0,
     "OBSOLETE_SAFE_TO_CLOSE": 0,
     "UNRESOLVED": 6
   },
-  "claim_ceiling": "EXACT_OPEN_PR_CLASSIFICATION_BEFORE_R2_SELF_REGISTRATION; NO_REMAINING_PR_CLOSURE_INFERRED",
+  "claim_ceiling": "EXACT_OPEN_PR_SET_AND_CLASSIFICATION_AT_RECORDED_HEADS; CLASSIFICATION_IS_NOT_MERGE_OR_CLOSURE_AUTHORITY",
   "recently_closed": [
     {
       "number": 153,
@@ -296,6 +285,22 @@
       "closed_state_verified": true,
       "closed_reason": "Superseded by current-main restack PR #157; closed by owning lane.",
       "provenance_comment_id": null
+    },
+    {
+      "number": 156,
+      "exact_head": "04d37350b7b92fde459b2cce23a5c6e49995c01d",
+      "classification_before_close": "SUPERSEDED",
+      "closed_state_verified": true,
+      "closed_reason": "Overlapped shared currentness subject and was superseded by collision-reconciled PR #159.",
+      "provenance_comment_id": 5766192601
+    },
+    {
+      "number": 158,
+      "exact_head": "8646fb9e713dd16abbd28e61828dd10b9da1c721",
+      "classification_before_close": "SUPERSEDED",
+      "closed_state_verified": true,
+      "closed_reason": "Stacked on closed PR #155; superseded by PR #159 stacked on current parent PR #157.",
+      "provenance_comment_id": 5766194825
     }
   ],
   "stacked_base": {
@@ -303,5 +308,29 @@
     "exact_head": "b5618bdd5d7978eb06ebb0d2a5e523f5d075a987",
     "branch": "repair/whole-system-closure-v1-current-main-20260921",
     "relation": "STACKED_ON_CURRENT_MAIN_VERA_CURRENTNESS_PROVIDER_CUSTODY_BASE"
-  }
+  },
+  "observed_open_pr_numbers": [
+    159,
+    157,
+    148,
+    147,
+    146,
+    145,
+    140,
+    135,
+    134,
+    133,
+    131,
+    130,
+    129,
+    128,
+    127,
+    122,
+    121,
+    120,
+    119,
+    118,
+    115,
+    61
+  ]
 }
