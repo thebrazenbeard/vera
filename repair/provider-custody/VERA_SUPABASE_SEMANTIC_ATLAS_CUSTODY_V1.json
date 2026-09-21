@@ -1,0 +1,326 @@
+{
+  "schema": "VERA_SUPABASE_SEMANTIC_ATLAS_CUSTODY_V1",
+  "status": "PARTIAL_CUSTODY_RECOVERY",
+  "mission": "VERA::WHOLE_SYSTEM_REPAIR::EXECUTE_TO_VERIFIED_CLOSURE_V1",
+  "observed": {
+    "vera_main": "06090f96b1437a2a148c205f1ce7c264167644d7",
+    "provider_project": "klmbpaigzeguvnpccqzz",
+    "provider": "Vera",
+    "semantic_owner_repository": "thebrazenbeard/semanticatlas",
+    "semantic_owner_main": "5669a727b870a490ecee748b2cd712a2fc4a54c5",
+    "migration_count": 28
+  },
+  "reviewer": {
+    "method": "Rezon literal-proposition hostile review",
+    "source_ref": "estate/rezon-canonical-baseline-v1-20260920",
+    "source_docs": [
+      "docs/ADVERSARIAL_COLLABORATION.md",
+      "docs/EVALUATION_AND_FALSIFICATION.md"
+    ],
+    "independence": "NOT_INDEPENDENT_SAME_MODEL_SAME_CHAT_SHARED_EVIDENCE"
+  },
+  "migrations": [
+    {
+      "version": "20260822223543",
+      "name": "semantic_atlas_runtime_capture_v1",
+      "statement_count": 1,
+      "provider_sha256": "1daf4df87ef06a325199d79eec1cb1254da9d5c44055818f3790fb7b4861ec6c",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260822223734",
+      "name": "semantic_atlas_snapshot_scope_v1_fix",
+      "statement_count": 1,
+      "provider_sha256": "c8933075ffab37ed7c19eed77641c08a448101f81628646f60dbff7a6dc5ab6e",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260822224126",
+      "name": "semantic_atlas_runtime_capture_hardening_v2_fix",
+      "statement_count": 1,
+      "provider_sha256": "fadf6e1a31b569f75a8fc52f7999a62623007bcd784f7d2147c4093b6c3fd85e",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260822224828",
+      "name": "semantic_atlas_runtime_capture_hardening_v3",
+      "statement_count": 1,
+      "provider_sha256": "74d9cafc354ab4e128e245394e47e43157815a6b3bbfbb1ff90cbc82f0b70398",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260822225106",
+      "name": "semantic_atlas_runtime_manifest_v2_readback_gate",
+      "statement_count": 1,
+      "provider_sha256": "5f821a6e0745f76453e3989d67c3356e471e35a21ec8f76058129547b65b0d5c",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823003143",
+      "name": "semantic_atlas_runtime_sealed_attempt_v4_fix",
+      "statement_count": 1,
+      "provider_sha256": "41b4a2aa7b029a695790a5a103de9f1911a1f45e02457631eded1e584a85a9ee",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823003901",
+      "name": "semantic_atlas_runtime_manifest_v3_transition_guard_v5",
+      "statement_count": 1,
+      "provider_sha256": "e58594d1311e1fd247906d8a52d0d362a8c00205d4c5f31f76063cce160f2499",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823005615",
+      "name": "semantic_atlas_runtime_repository_bound_manifest_v4_v6_fix",
+      "statement_count": 1,
+      "provider_sha256": "bca1e67d0718ae35e594dbc9c027c90a4f3a42d95241a12d552b083b9ff36232",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823010022",
+      "name": "semantic_atlas_runtime_scoped_provenance_views_v6_fix",
+      "statement_count": 1,
+      "provider_sha256": "d63688cf79088ca5b39a1725402c48fe42ddbe35d965af35884c76354e8a2978",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823010215",
+      "name": "semantic_atlas_runtime_disable_legacy_repository_unbound_rpcs_v6_fix",
+      "statement_count": 1,
+      "provider_sha256": "cbfe7a3de5da9c378b406f93823e55e5ad09d1119bd0f294ecba601a1bbe1327",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823010932",
+      "name": "semantic_atlas_runtime_current_read_gate_v1",
+      "statement_count": 1,
+      "provider_sha256": "a87085d243d720aa32b617075dbf12625b774d4140d8bc6fc7f09f01f8f9feb2",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823011630",
+      "name": "semantic_atlas_runtime_current_search_v1",
+      "statement_count": 1,
+      "provider_sha256": "8bf26f91c937be80930c13a1babeb300c576aefb6f424811ef53436aa42c2d99",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823092321",
+      "name": "semantic_atlas_runtime_current_read_consistent_snapshot_v2_fix",
+      "statement_count": 1,
+      "provider_sha256": "96ec5380f5ce7958c67bbc2ec2ecd069c05ca81dfbc5cf16347223094c108280",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823092434",
+      "name": "semantic_atlas_runtime_search_consistent_snapshot_v2_fix",
+      "statement_count": 1,
+      "provider_sha256": "42076191776a835bdd43db3ae1796fd686a521394c61dc83d716203faf614948",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823093204",
+      "name": "semantic_atlas_runtime_current_search_v2_broad_fallback",
+      "statement_count": 1,
+      "provider_sha256": "a14cbcb6bc6f12f2ce83a81a479be12aad9419456fb80c0953db5c33d36227fa",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823093414",
+      "name": "semantic_atlas_runtime_current_search_v3_ambiguity_signal",
+      "statement_count": 1,
+      "provider_sha256": "95877ed2aa6e119a5fb7ed92749654c04b67d8977f98989e4a6bef2b28a59888",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823094041",
+      "name": "semantic_atlas_runtime_current_search_v4_domain_separation",
+      "statement_count": 1,
+      "provider_sha256": "9cb32f0d2c07d77c3d83a3b20eaf498ad8eebf54c0f9996694654f452c3c3a38",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823094118",
+      "name": "semantic_atlas_runtime_current_search_v4_domain_separation_fix",
+      "statement_count": 1,
+      "provider_sha256": "da184daf90cc33c506ad8e9cd81a6cd94b43a2f7132b579b17cd38b186052cc3",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823094305",
+      "name": "semantic_atlas_runtime_current_search_v5_explicit_type_scope",
+      "statement_count": 1,
+      "provider_sha256": "bcd8970b000a5d8279ccd1634c745413642d1f0172ad17c31e6c8a9444aa761e",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823094509",
+      "name": "semantic_atlas_runtime_current_search_v5_wildcard_reject_fix",
+      "statement_count": 1,
+      "provider_sha256": "acc82cbe47786e983c5f5c837e052707f51fce01b535347e487b87214cdba7ae",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823095525",
+      "name": "semantic_atlas_runtime_current_search_v6_prelimit_ambiguity_stats",
+      "statement_count": 1,
+      "provider_sha256": "9e8e1b233e4993cedf360d327ba9d54bf1c826f75a01226919bd3ea466c1b5dd",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823101232",
+      "name": "semantic_atlas_runtime_current_search_v7_evidence_projection",
+      "statement_count": 1,
+      "provider_sha256": "afbd7aa750ed0b4521eb42da3bcb7c446dad68115b94c013ac58a0c384970552",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823105723",
+      "name": "semantic_atlas_runtime_current_search_v8_safe_result_projection",
+      "statement_count": 1,
+      "provider_sha256": "192c95874ecac5cea4d2fccc1fb648565b78f967545459093464cb5580194835",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823110735",
+      "name": "semantic_atlas_runtime_current_search_v9_opaque_generator_projection",
+      "statement_count": 1,
+      "provider_sha256": "a3c4127afb31330b9819a43e30a9e151fdef48b40e1eb236f371d12b207cf547",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823121232",
+      "name": "semantic_atlas_runtime_current_search_v10_english_fts",
+      "statement_count": 1,
+      "provider_sha256": "365ca3ebc5cbf6f2a45664778d0beded40777966299783b6553cf66c337fce33",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    },
+    {
+      "version": "20260823140041",
+      "name": "semantic_atlas_runtime_current_search_v11_working_project_memory",
+      "statement_count": 1,
+      "provider_sha256": "696da7591bd5653a2c30eabf347d93c9d7384485c826e60027ee0d3cb517dea9",
+      "custody": {
+        "status": "SEMANTICALLY_EQUIVALENT_EXECUTABLE_SQL",
+        "repository": "thebrazenbeard/semanticatlas",
+        "ref": "runtime/v11-working-project-memory",
+        "ref_head": "eff1394a8943c7398302e7f12a4671c46a6d5521",
+        "path": "build/sql/20260823140041_semantic_atlas_runtime_current_search_v11_working_project_memory.sql",
+        "git_blob": "816957dc43f05a9f2a8a87b99457072b2aa45b02",
+        "difference": "provider text equals Git after trimEnd; Git has one trailing newline"
+      }
+    },
+    {
+      "version": "20260823140448",
+      "name": "semantic_atlas_runtime_current_search_v11_cutover",
+      "statement_count": 1,
+      "provider_sha256": "297e7b62593ba6a366efd15e3c9f688defffe0b113c2fc0e1ec4c002719fb792",
+      "custody": {
+        "status": "SEMANTICALLY_EQUIVALENT_EXECUTABLE_SQL",
+        "repository": "thebrazenbeard/semanticatlas",
+        "ref": "runtime/v11-working-project-memory",
+        "ref_head": "eff1394a8943c7398302e7f12a4671c46a6d5521",
+        "path": "build/sql/20260823140448_semantic_atlas_runtime_current_search_v11_cutover.sql",
+        "git_blob": "24ab824fca2be38aed4a27d621bf7f4012bd3285",
+        "difference": "provider stores the two statements on one line; Git separates them by newline; normalized executable SQL is equal"
+      }
+    },
+    {
+      "version": "20260823162651",
+      "name": "semantic_atlas_empirical_v9_compat_v1",
+      "statement_count": 1,
+      "provider_sha256": "64460077e25f71af9c62a48f0c8fce3717e4edafc9d53e066327f5733dc78519",
+      "custody": {
+        "status": "UNRESOLVED_SOURCE_CUSTODY",
+        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+      }
+    }
+  ],
+  "summary": {
+    "recovered_semantically_equivalent": 2,
+    "unresolved": 26,
+    "exact_byte_identical": 0,
+    "reproducibility_class": "PARTIALLY_REPRODUCIBLE"
+  },
+  "non_claims": [
+    "This manifest does not prove current runtime consumption of Semantic Atlas.",
+    "This manifest does not promote provider state to semantic authority.",
+    "UNRESOLVED_SOURCE_CUSTODY does not mean source is lost; historical branches have not yet been exhaustively traversed.",
+    "Semantic equivalence is not exact original-byte custody."
+  ]
+}
