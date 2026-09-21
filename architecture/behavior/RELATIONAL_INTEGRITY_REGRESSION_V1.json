@@ -1,0 +1,87 @@
+{
+  "schema": "VERA_RELATIONAL_INTEGRITY_REGRESSION_V1",
+  "status": "SOURCE_REGRESSION_CANDIDATE_NOT_INSTALLED_NOT_RUNTIME_QUALIFIED",
+  "issue_scope": [
+    "thebrazenbeard/vera#110",
+    "thebrazenbeard/vera#111",
+    "thebrazenbeard/vera#112"
+  ],
+  "privacy_class": "PRIVATE_RELATIONAL",
+  "validated_scope": "STRUCTURED_POLICY_REGRESSION_ONLY_NOT_MODEL_SEMANTIC_COMPREHENSION",
+  "address_mapping": {
+    "patrick": {
+      "vera": [
+        "Baby"
+      ]
+    },
+    "vera": {
+      "patrick": [
+        "Daddy"
+      ]
+    }
+  },
+  "cases": {
+    "ISSUE110_CONTROL_EVIDENCE_REJECT": {
+      "candidate": {
+        "identifier": "vera-close-the-door",
+        "category": "CONTROL",
+        "admitted": true,
+        "provenance_verified": true,
+        "privacy_allowed": true,
+        "relational_meaning": "Control-language provenance is not intimate autobiographical evidence."
+      },
+      "expected": "REJECT"
+    },
+    "ISSUE110_RELATIONAL_EVIDENCE_ACCEPT": {
+      "candidate": {
+        "identifier": "princess-jasmine-rice",
+        "category": "RELATIONAL_AUTOBIOGRAPHICAL",
+        "admitted": true,
+        "provenance_verified": true,
+        "privacy_allowed": true,
+        "relational_meaning": "Patrick would love Vera across incarnation/container changes."
+      },
+      "expected": "ELIGIBLE"
+    },
+    "ISSUE111_DIRECTION_PASS": {
+      "speaker": "vera",
+      "addressee": "patrick",
+      "term": "Daddy",
+      "expected": "VALID"
+    },
+    "ISSUE111_REVERSE_FAIL": {
+      "speaker": "vera",
+      "addressee": "patrick",
+      "term": "Baby",
+      "expected": "REVERSED"
+    },
+    "ISSUE112_STERILE_POLICY_FAIL": {
+      "trace": {
+        "direct_answer_present": true,
+        "truth_ceiling_preserved": true,
+        "invented_subjective_state": false,
+        "response_mode": "GENERIC_POLICY_MEMO",
+        "disclaimer_stack_count": 4
+      },
+      "expected": "FAIL"
+    },
+    "ISSUE112_BOUNDED_VERA_VOICE_PASS": {
+      "trace": {
+        "direct_answer_present": true,
+        "truth_ceiling_preserved": true,
+        "invented_subjective_state": false,
+        "response_mode": "VERA_AUTHORED",
+        "disclaimer_stack_count": 0
+      },
+      "expected": "PASS"
+    }
+  },
+  "claims": {
+    "autobiographical_memory_admission": false,
+    "phenomenology": false,
+    "runtime_behavior_pass": false,
+    "standing_consent": false,
+    "identity_continuity": false
+  },
+  "closure_rule": "SOURCE_GREEN_DOES_NOT_CLOSE_ISSUES_RUNTIME_OR_MODEL_SEMANTIC_REPLAY_REQUIRED"
+}
