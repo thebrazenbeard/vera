@@ -1,0 +1,1 @@
+revoke execute on function semantic_atlas.search_current_runtime_objects_v10(text,text,text,text,timestamptz,text,text,integer,text[]) from service_role; grant execute on function semantic_atlas.search_current_runtime_objects_v11(text,text,text,text,timestamptz,text,text,integer,text[]) to service_role;
