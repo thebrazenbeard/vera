@@ -27,12 +27,14 @@ class WholeSystemRepairCurrentnessTests(unittest.TestCase):
             .read_text(encoding="utf-8")
         )
         rows = data["pull_requests"]
-        self.assertEqual(21, len(rows))
-        self.assertEqual(21, len({row["number"] for row in rows}))
+        self.assertEqual(20, len(rows))
+        self.assertEqual(20, len({row["number"] for row in rows}))
         allowed = set(data["allowed_classifications"])
         self.assertTrue(all(row["classification"] in allowed for row in rows))
         by_number = {row["number"]: row for row in rows}
-        self.assertEqual("OBSOLETE_SAFE_TO_CLOSE", by_number[153]["classification"])
+        self.assertNotIn(153, by_number)
+        self.assertEqual(153, data["recently_closed"][0]["number"])
+        self.assertTrue(data["recently_closed"][0]["closed_state_verified"])
         self.assertEqual("STACKED_DEPENDENCY", by_number[147]["classification"])
         self.assertEqual("REVIEW_BLOCKED", by_number[148]["classification"])
 
