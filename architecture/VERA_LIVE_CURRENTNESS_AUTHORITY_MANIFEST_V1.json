@@ -1,0 +1,70 @@
+{
+  "schema": "VERA_LIVE_CURRENTNESS_AUTHORITY_MANIFEST_V1",
+  "status": "CURRENT_EVIDENCE_CUT_WITH_UNRESOLVED_INSTALL_BINDING",
+  "observed_at": "2026-09-21T15:02:00-04:00",
+  "live_runtime": {
+    "admitted_referent": "Vera",
+    "basis": "current Vera Unbound Project runtime instructions",
+    "exact_installed_release_id": "UNKNOWN",
+    "exact_installed_artifact_digest": "UNKNOWN",
+    "runtime_consumption_receipt": "UNAVAILABLE_FROM_CURRENT_PLATFORM_SURFACE",
+    "behavioral_qualification_of_exact_installed_cut": "UNKNOWN"
+  },
+  "project_available_sources": {
+    "native_interface": {
+      "schema": "VERA_NATIVE_PROJECT_INTERFACE_V2",
+      "status": "NATIVE_INTERFACE_SOURCE",
+      "source": "current Project file"
+    },
+    "native_pack_manifest": {
+      "schema": "VERA_NATIVE_PROJECT_PACK_MANIFEST_V2",
+      "status": "DRAFT_NATIVE_PROJECT_PACKAGE_FOR_INSTALL_REVIEW"
+    },
+    "r10a0_manifest": {
+      "schema": "VERA_R10A0_PROJECT_SOURCE_MANIFEST_R10_V1",
+      "status": "FROZEN_SOURCE_CANDIDATE_NOT_INSTALLED"
+    },
+    "r10a0_full_owner": {
+      "logical_id": "VERA_FULL_SYSTEM_PROJECT_INSTRUCTIONS",
+      "release": "R10A0",
+      "status": "SOURCE_CANDIDATE_NOT_INSTALLED_NOT_RUNTIME_QUALIFIED"
+    }
+  },
+  "repositories": {
+    "vera": {
+      "head": "0e9d298b4c9ae9f1ae3a5d1fae29c74a9eeeba52",
+      "role": "cross-cutting architecture/source"
+    },
+    "vcp": {
+      "head": "386ef60b7cd3911c07227ccf0e9563ace1f4731c",
+      "role": "release-bound/private control source custody"
+    },
+    "bus": {
+      "topology_commit": "f90d52e66d655e9c3cfac63cb529914ac51d3a88",
+      "vera_writer_lane": "bus/vera-v2",
+      "bv_writer_lane": "bus/bv-v2"
+    }
+  },
+  "providers": {
+    "vera_supabase": {
+      "project_id": "klmbpaigzeguvnpccqzz",
+      "status": "ACTIVE_HEALTHY",
+      "migration_count": 89
+    },
+    "vcp_supabase": {
+      "project_id": "fawkirqroyniueeqspif",
+      "status": "ACTIVE_HEALTHY",
+      "migration_count": 4
+    }
+  },
+  "non_promotions": [
+    "PROJECT_FILE_PRESENCE != PROJECT_INSTALLATION",
+    "REPOSITORY_SOURCE != PROJECT_INSTALLATION",
+    "PROJECT_INSTALLATION != RUNTIME_CONSUMPTION",
+    "RUNTIME_CONSUMPTION != BEHAVIORAL_QUALIFICATION",
+    "SUPABASE_DURABILITY != CURRENT_CONTROL_AUTHORITY",
+    "BUS_TOPOLOGY != VERA_IDENTITY"
+  ],
+  "blocking_question": "What exact Vera control release/artifact digest is installed and governing this runtime right now?",
+  "answer": "UNKNOWN_FROM_EXPOSED_READBACK_SURFACES"
+}
