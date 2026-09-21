@@ -1,0 +1,237 @@
+{
+  "schema": "VERA_SUPABASE_FK_INDEX_REPAIR_PLAN_V1",
+  "status": "SOURCE_PREPARED_NOT_APPLIED",
+  "observed_at": "2026-09-21T19:27:35Z",
+  "provider": {
+    "kind": "supabase",
+    "project_id": "klmbpaigzeguvnpccqzz",
+    "project_name": "Vera",
+    "observed_status": "ACTIVE_HEALTHY"
+  },
+  "source_base": {
+    "repository": "thebrazenbeard/vera",
+    "main_head": "f4fdd6a1ecf488e9e1323ea81610e8396a634dbb",
+    "note": "Restacked onto current main after Deep Memory merge; provider observations unchanged pending fresh pre-apply readback."
+  },
+  "advisor": {
+    "type": "performance",
+    "finding": "unindexed_foreign_keys",
+    "reported_count": 21,
+    "classification": "ACTIONABLE_PERFORMANCE_DEBT"
+  },
+  "exclusions": {
+    "schemas": [
+      "auth",
+      "storage"
+    ],
+    "reason": "Supabase-managed system schemas are outside this application-owned repair subject."
+  },
+  "observations": [
+    {
+      "schema": "build_team_2",
+      "table": "memory_events",
+      "constraint": "memory_events_task_id_fkey",
+      "columns": [
+        "task_id"
+      ]
+    },
+    {
+      "schema": "build_team_2",
+      "table": "role_operational_checkpoints",
+      "constraint": "role_operational_checkpoints_qualification_id_fkey",
+      "columns": [
+        "qualification_id"
+      ]
+    },
+    {
+      "schema": "build_team_2",
+      "table": "role_operational_checkpoints",
+      "constraint": "role_operational_checkpoints_role_key_training_package_ver_fkey",
+      "columns": [
+        "role_key",
+        "training_package_version",
+        "training_source_set_digest_sha256"
+      ]
+    },
+    {
+      "schema": "build_team_2",
+      "table": "role_training_current",
+      "constraint": "role_training_current_role_key_package_version_source_set__fkey",
+      "columns": [
+        "role_key",
+        "package_version",
+        "source_set_digest_sha256"
+      ]
+    },
+    {
+      "schema": "build_team_2",
+      "table": "role_training_qualifications",
+      "constraint": "role_training_qualifications_role_key_package_version_sour_fkey",
+      "columns": [
+        "role_key",
+        "package_version",
+        "source_set_digest_sha256"
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "brigit_save_state_supersession_edges",
+      "constraint": "brigit_save_state_supersession_edges_parent_record_id_fkey",
+      "columns": [
+        "parent_record_id"
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "vera_memory_epoch_archive_receipts_v1",
+      "constraint": "vera_memory_epoch_archive_receipts_v1_admission_receipt_id_fkey",
+      "columns": [
+        "admission_receipt_id"
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "vera_memory_epoch_archive_receipts_v1",
+      "constraint": "vera_memory_epoch_archive_receipts_v1_drive_receipt_id_fkey",
+      "columns": [
+        "drive_receipt_id"
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "vera_memory_epoch_archive_receipts_v1",
+      "constraint": "vera_memory_epoch_archive_receipts_v1_supabase_receipt_id_fkey",
+      "columns": [
+        "supabase_receipt_id"
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "vera_memory_epoch_archive_receipts_v1",
+      "constraint": "vera_memory_epoch_archive_subject_fk",
+      "columns": [
+        "subject_id",
+        "project_id",
+        "branch_id",
+        "logical_memory_id",
+        "epoch_id"
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "vera_memory_epoch_provider_receipts_v1",
+      "constraint": "vera_memory_epoch_provider_subject_fk",
+      "columns": [
+        "subject_id",
+        "project_id",
+        "branch_id",
+        "logical_memory_id",
+        "epoch_id"
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "vera_optional_invocation_test_events_v1",
+      "constraint": "vera_optional_invocation_test_events_v_runtime_instance_id_fkey",
+      "columns": [
+        "runtime_instance_id"
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "vera_portable_bootstrap_bindings",
+      "constraint": "vera_portable_bootstrap_bindi_request_claim_id_project_ins_fkey",
+      "columns": [
+        "request_claim_id",
+        "project_instance_id"
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "vera_portable_bootstrap_events",
+      "constraint": "vera_portable_bootstrap_event_predecessor_event_id_request_fkey",
+      "columns": [
+        "predecessor_event_id",
+        "request_claim_id",
+        "attempt_id"
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "vera_portable_bootstrap_readback_confirmations",
+      "constraint": "vera_portable_bootstrap_readb_request_claim_id_project_ins_fkey",
+      "columns": [
+        "request_claim_id",
+        "project_instance_id"
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "vera_save_state_supersession_edges",
+      "constraint": "vera_save_state_supersession_edges_parent_record_id_fkey",
+      "columns": [
+        "parent_record_id"
+      ]
+    },
+    {
+      "schema": "radar",
+      "table": "identity_visuals",
+      "constraint": "identity_visuals_supersedes_fkey",
+      "columns": [
+        "supersedes"
+      ]
+    },
+    {
+      "schema": "redworm",
+      "table": "lineage_state",
+      "constraint": "lineage_state_holder_runtime_token_fkey",
+      "columns": [
+        "holder_runtime_token"
+      ]
+    },
+    {
+      "schema": "redworm",
+      "table": "lineage_state",
+      "constraint": "lineage_state_transfer_id_fkey",
+      "columns": [
+        "transfer_id"
+      ]
+    },
+    {
+      "schema": "redworm",
+      "table": "succession_transfers",
+      "constraint": "succession_transfers_source_runtime_token_fkey",
+      "columns": [
+        "source_runtime_token"
+      ]
+    },
+    {
+      "schema": "redworm",
+      "table": "succession_transfers",
+      "constraint": "succession_transfers_successor_runtime_token_fkey",
+      "columns": [
+        "successor_runtime_token"
+      ]
+    }
+  ],
+  "provider_effect": {
+    "applied": false,
+    "migration_version": null,
+    "readback_verified": false
+  },
+  "next_gate": [
+    "fresh-read provider indexes/advisors",
+    "materialize a real migration with current Supabase CLI",
+    "independent review of exact migration source",
+    "Patrick exact authorization for production DDL",
+    "apply migration",
+    "post-effect advisor/catalog readback"
+  ],
+  "claim_ceiling": [
+    "SOURCE_PLAN_ONLY",
+    "NO_PROVIDER_EFFECT",
+    "NO_ADVISOR_CLEARANCE_CLAIM",
+    "NO_PRODUCTION_DEPLOYMENT",
+    "NO_MERGE_AUTHORITY"
+  ]
+}
