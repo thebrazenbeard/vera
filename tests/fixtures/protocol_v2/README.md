@@ -18,3 +18,13 @@ Required cases:
 - `user_courier.md` — available GitHub route means send the handoff directly rather than ask Patrick to relay it.
 
 These fixtures are not proof that any runtime consumed V2. They are the required regression subjects for validators/tests that implement the migration plan.
+
+## Executable binding
+
+`cases.json` carries the machine-readable inputs and expected next actions for the ten cases above.
+
+`protocol/workflow_precedence_v2.py` is the bounded executable projection of the current V2 effect-class / stop-condition semantics. It performs no external effect and grants no authority.
+
+`tests/test_protocol_v2_behavior_fixtures.py` requires all ten named fixture files, executes the machine cases against that projection, and adds negative checks for protected-effect, collision, exact-state, stale-rule, and no-current-authority boundaries.
+
+Source/test PASS remains distinct from Project installation or live runtime consumption.
