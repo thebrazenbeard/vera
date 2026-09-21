@@ -306,15 +306,20 @@
       "statement_count": 1,
       "provider_sha256": "64460077e25f71af9c62a48f0c8fce3717e4edafc9d53e066327f5733dc78519",
       "custody": {
-        "status": "UNRESOLVED_SOURCE_CUSTODY",
-        "next_search_boundary": "semanticatlas historical branches/build artifacts and any source PR ancestry; filename absence is not evidence of loss"
+        "status": "EXACT_BYTE_IDENTICAL_EXECUTABLE_SQL",
+        "repository": "thebrazenbeard/semanticatlas",
+        "ref": "validation/semantic-atlas-empirical-execution-v0.7",
+        "ref_head": "27548eee279c1cf115ae7695add69700e6ad6c34",
+        "path": "research/validation/SEMANTIC_ATLAS_EMPIRICAL_V9_COMPAT_V1.sql",
+        "git_blob": "5bc7cc5975ca9b470482b66bf691f0660b76daff",
+        "difference": "none; Git file content equals the provider-ledger statement exactly"
       }
     }
   ],
   "summary": {
-    "recovered_semantically_equivalent": 2,
-    "unresolved": 26,
-    "exact_byte_identical": 0,
+    "recovered_semantically_equivalent": 3,
+    "unresolved": 25,
+    "exact_byte_identical": 1,
     "reproducibility_class": "PARTIALLY_REPRODUCIBLE"
   },
   "non_claims": [
