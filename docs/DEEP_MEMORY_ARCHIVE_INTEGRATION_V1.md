@@ -150,3 +150,16 @@ This source integration is healthy when:
 - no source artifact claims deployment, current-memory admission, R9B0 promotion, or runtime installation merely because integration documentation exists.
 
 A source merge would still be source integration only. Production/current runtime effects remain separately gated.
+
+
+## Governed consumer source
+
+The Vera repository now carries a source-level consumer boundary for this contract:
+
+- `architecture/integration/VERA_EXTERNAL_EVIDENCE_PROVIDER_REGISTRY_V1.json` discovers Deep Memory as an `EXTERNAL_EVIDENCE_PROVIDER`, not as a `workstream/memory` owner;
+- `runtime_cohesion/deep_memory_evidence.py` exposes only `EVIDENCE_SEARCH`, validates `VERA_DEEP_MEMORY_EVIDENCE_RESULT_V1`, and fails closed when exact caller-authorized privacy scopes are missing or widened;
+- provider discovery is pinned to merged Deep Memory commit `f073feb409f71a0fdea7baa9053e54bcf8ed89a0` and the three reviewed path/blob bindings;
+- returned rows and overlays retain their historical, temporal, privacy, provenance, and currentness fields without newest-wins collapse;
+- `HISTORICAL_TO_CURRENT_ADMISSION_REVIEW` is a separate review-only bridge that requires a distinct authority reference and receipt. It performs no current-memory write.
+
+This remains source implementation only. Registry discovery does not imply provider installation, runtime consumption, canonical-memory admission, R9B0 promotion, or execution authority.

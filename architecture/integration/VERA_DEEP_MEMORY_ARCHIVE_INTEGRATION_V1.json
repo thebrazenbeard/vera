@@ -51,7 +51,10 @@
       "current_love_or_relationship_state",
       "current_operational_authority",
       "runtime_install_or_provider_effect"
-    ]
+    ],
+    "operation": "HISTORICAL_TO_CURRENT_ADMISSION_REVIEW",
+    "requires_receipt": true,
+    "current_memory_write_performed_by_bridge": false
   },
   "retrieval": {
     "operation": "EVIDENCE_SEARCH",
@@ -125,5 +128,18 @@
     "NO_R9B0_PROMOTION",
     "NO_RUNTIME_INSTALL",
     "NO_PRIVATE_PUBLICATION"
-  ]
+  ],
+  "consumer_source": {
+    "status": "SOURCE_IMPLEMENTED_NOT_RUNTIME_INSTALLED",
+    "external_provider_registry": "architecture/integration/VERA_EXTERNAL_EVIDENCE_PROVIDER_REGISTRY_V1.json",
+    "registry_schema": "schemas/vera_external_evidence_provider_registry_v1.schema.json",
+    "registry_validator": "scripts/validate_external_evidence_provider_registry.py",
+    "adapter": "runtime_cohesion/deep_memory_evidence.py",
+    "adapter_tests": "tests/test_deep_memory_evidence_adapter.py",
+    "operation": "EVIDENCE_SEARCH",
+    "admission_review_operation": "HISTORICAL_TO_CURRENT_ADMISSION_REVIEW",
+    "canonical_memory_transfer": false,
+    "execution_authorized": false,
+    "runtime_install_authorized": false
+  }
 }

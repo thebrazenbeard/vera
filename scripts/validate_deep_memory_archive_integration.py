@@ -154,10 +154,26 @@ def main() -> int:
     assert current["automatic_archive_projection"] is False
     assert current["automatic_archive_admission"] is False
 
+    consumer = data["consumer_source"]
+    assert consumer["status"] == "SOURCE_IMPLEMENTED_NOT_RUNTIME_INSTALLED"
+    assert consumer["external_provider_registry"] == "architecture/integration/VERA_EXTERNAL_EVIDENCE_PROVIDER_REGISTRY_V1.json"
+    assert consumer["registry_schema"] == "schemas/vera_external_evidence_provider_registry_v1.schema.json"
+    assert consumer["registry_validator"] == "scripts/validate_external_evidence_provider_registry.py"
+    assert consumer["adapter"] == "runtime_cohesion/deep_memory_evidence.py"
+    assert consumer["adapter_tests"] == "tests/test_deep_memory_evidence_adapter.py"
+    assert consumer["operation"] == "EVIDENCE_SEARCH"
+    assert consumer["admission_review_operation"] == "HISTORICAL_TO_CURRENT_ADMISSION_REVIEW"
+    assert consumer["canonical_memory_transfer"] is False
+    assert consumer["execution_authorized"] is False
+    assert consumer["runtime_install_authorized"] is False
+
     bridge = data["bridge"]
     assert bridge["mode"] == "EXPLICIT_REVIEW_ONLY"
+    assert bridge["operation"] == "HISTORICAL_TO_CURRENT_ADMISSION_REVIEW"
     assert bridge["automatic"] is False
     assert bridge["requires_separate_authority"] is True
+    assert bridge["requires_receipt"] is True
+    assert bridge["current_memory_write_performed_by_bridge"] is False
 
     retrieval = data["retrieval"]
     assert retrieval["operation"] == "EVIDENCE_SEARCH"
@@ -194,6 +210,8 @@ def main() -> int:
         "EVIDENCE_SEARCH",
         "Pass 010",
         "conclusion derived only from that overlay",
+        "EXTERNAL_EVIDENCE_PROVIDER",
+        "HISTORICAL_TO_CURRENT_ADMISSION_REVIEW",
     ):
         assert required.casefold() in text.casefold(), required
 
