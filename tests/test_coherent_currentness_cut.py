@@ -87,16 +87,24 @@ class CoherentCurrentnessCutTests(unittest.TestCase):
         retry_count: int = 0,
         predecessor_cut: CoherentCurrentnessCut | None = None,
         live_input_scope_digest: str | None = None,
+        live_input_digest: str | None = None,
         cut_family_id: str = "family-1",
+        cut_id: str | None = None,
     ) -> CoherentCurrentnessCut:
         selected = requirement_profile or profile(
             required=tuple(sorted(item.surface_id for item in surfaces))
         )
         return CoherentCurrentnessCut(
-            cut_id="cut-1" if retry_count == 0 else "cut-2",
+            cut_id=(
+                cut_id
+                if cut_id is not None
+                else ("cut-1" if retry_count == 0 else "cut-2")
+            ),
             cut_family_id=cut_family_id,
             requirement_profile=selected,
-            live_input_digest=h("live-input"),
+            live_input_digest=(
+                h("live-input") if live_input_digest is None else live_input_digest
+            ),
             live_input_scope_digest=(
                 selected.scope_digest
                 if live_input_scope_digest is None
@@ -474,6 +482,67 @@ class CoherentCurrentnessCutTests(unittest.TestCase):
             predecessor.payload(),
             retry.payload()["predecessor_cut"],
         )
+
+    def test_retry_rejects_live_input_subject_change(self):
+        requirement_profile = profile(required=("BUS_TOPOLOGY",))
+        predecessor = self.predecessor(requirement_profile)
+        with self.assertRaisesRegex(ValueError, "live_input_digest"):
+            self.make_cut(
+                surface("BUS_TOPOLOGY", start="B", end="B"),
+                requirement_profile=requirement_profile,
+                retry_count=1,
+                predecessor_cut=predecessor,
+                live_input_digest=h("different-live-input"),
+            )
+
+    def test_retry_rejects_hidden_frontier_gap_between_attempts(self):
+        requirement_profile = profile(required=("BUS_TOPOLOGY",))
+        predecessor = self.predecessor(requirement_profile)
+        with self.assertRaisesRegex(ValueError, "start must equal predecessor end"):
+            self.make_cut(
+                surface("BUS_TOPOLOGY", start="C", end="C"),
+                requirement_profile=requirement_profile,
+                retry_count=1,
+                predecessor_cut=predecessor,
+            )
+
+    def test_retry_rejects_hidden_result_gap_between_attempts(self):
+        requirement_profile = profile(required=("BUS_TOPOLOGY",))
+        predecessor = self.make_cut(
+            surface(
+                "BUS_TOPOLOGY",
+                start="A",
+                end="B",
+                start_result=h("result-a"),
+                end_result=h("result-b"),
+            ),
+            requirement_profile=requirement_profile,
+        )
+        with self.assertRaisesRegex(ValueError, "start must equal predecessor end"):
+            self.make_cut(
+                surface(
+                    "BUS_TOPOLOGY",
+                    start="B",
+                    end="B",
+                    start_result=h("hidden-result-c"),
+                    end_result=h("hidden-result-c"),
+                ),
+                requirement_profile=requirement_profile,
+                retry_count=1,
+                predecessor_cut=predecessor,
+            )
+
+    def test_retry_rejects_reused_cut_id(self):
+        requirement_profile = profile(required=("BUS_TOPOLOGY",))
+        predecessor = self.predecessor(requirement_profile)
+        with self.assertRaisesRegex(ValueError, "cut_id"):
+            self.make_cut(
+                surface("BUS_TOPOLOGY", start="B", end="B"),
+                requirement_profile=requirement_profile,
+                retry_count=1,
+                predecessor_cut=predecessor,
+                cut_id=predecessor.cut_id,
+            )
 
     def test_contract_inventory_must_match_declared_inventory(self):
         with self.assertRaisesRegex(ValueError, "readback_contracts must exactly match"):
