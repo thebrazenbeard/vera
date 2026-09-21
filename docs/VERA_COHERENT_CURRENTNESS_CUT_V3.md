@@ -1,13 +1,13 @@
-# Vera Coherent Currentness Cut V3 — Current-Main Successor
+# Vera Coherent Currentness Cut V3 — Base-Bound Successor
 
-Status: **CURRENT-MAIN SOURCE CANDIDATE / NOT INSTALLED / NOT RUNTIME-QUALIFIED**
+Status: **BASE-BOUND SOURCE CANDIDATE / LIVE MAIN MOVED / NOT INSTALLED / NOT RUNTIME-QUALIFIED**
 
 This V3 source candidate is the clean current-main successor to the reviewed-but-failed currentness line:
 
 - PR #147 @ `e291b2e07357884be97a41f604726b393484017b` — CHANGES_REQUIRED;
 - PR #148 @ reviewed head `0111602eff64e70f91dfee1f9c8f7bc3824f627f` — CHANGES_REQUIRED.
 
-The successor is based on Vera main `c335aad4281517b573d98e7ad2700db260c9fe9e`.
+The successor is based on Vera main `c335aad4281517b573d98e7ad2700db260c9fe9e`.\n\nAfter this base was bound, live `main` advanced to `d696e659853ab12bb0a3f0cefb2022b3f8a45e32`. The observed upstream delta does not touch the V3 paths, but this document therefore does not claim the branch is still zero-behind current main. Review remains exact-head/source-subject review; a later integration/currentness gate must refresh live main again.
 
 ## What V3 fixes
 
