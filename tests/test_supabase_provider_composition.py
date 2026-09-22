@@ -11,8 +11,24 @@ def test_supabase_provider_composition_is_exact() -> None:
     report = validate()
     assert report["status"] == "PASS"
     assert report["provider_migrations"] == 98
-    assert report["pending_migrations"] == 0
+    assert report["pending_migrations"] == 1
     assert report["last_provider_version"] == "20260922171230"
+
+
+def test_datum_acl_pending_migration_is_exact_rekey_of_reviewed_source() -> None:
+    pending = json.loads(
+        (ROOT / "supabase/composition/PENDING_MIGRATIONS_V1.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert len(pending["pending"]) == 1
+    item = pending["pending"][0]
+    assert item["filename"] == "20260922190100_harden_datum_v2_mutation_function_acls.sql"
+    assert item["source_repository"] == "thebrazenbeard/vera"
+    assert item["source_ref"] == "3877054e2d224acfd9f83e2f533ced2c9ffcd14d"
+    assert item["source_blob"] == "f603a3ebbbc9553179995601ced867b5d096ef0f"
+    assert item["predecessor_pr"] == 189
+    assert item["effect_state"] == "SOURCE_REKEYED_FOR_PROVIDER_CUT_PROVIDER_EFFECT_PENDING"
 
 
 def test_radar_oidc_migration_is_promoted_from_exact_bus_source() -> None:

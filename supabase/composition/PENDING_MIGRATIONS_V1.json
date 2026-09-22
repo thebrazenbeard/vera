@@ -2,5 +2,18 @@
   "schema": "VERA_SUPABASE_PENDING_MIGRATIONS_V1",
   "project_ref": "klmbpaigzeguvnpccqzz",
   "baseline_last_provider_version": "20260922171230",
-  "pending": []
+  "pending": [
+    {
+      "filename": "20260922190100_harden_datum_v2_mutation_function_acls.sql",
+      "subject": "datum_v2_mutation_function_acls",
+      "source_repository": "thebrazenbeard/vera",
+      "source_ref": "3877054e2d224acfd9f83e2f533ced2c9ffcd14d",
+      "source_path": "supabase/migrations/20260921234500_harden_datum_v2_mutation_function_acls.sql",
+      "source_blob": "f603a3ebbbc9553179995601ced867b5d096ef0f",
+      "owner": "VERA_DATUM",
+      "predecessor_pr": 189,
+      "effect_state": "SOURCE_REKEYED_FOR_PROVIDER_CUT_PROVIDER_EFFECT_PENDING",
+      "rekey_reason": "CURRENT_PROVIDER_BASELINE_LAST_VERSION_IS_20260922171230"
+    }
+  ]
 }
