@@ -102,7 +102,7 @@ grant execute on function public.vera_mark_datum_referenced_v2(uuid)
 """
         failures = _validate_acl_sql(hostile)
         self.assertTrue(
-            any("client execute grant forbidden" in failure for failure in failures),
+            any("client function grant forbidden" in failure for failure in failures),
             failures,
         )
 
