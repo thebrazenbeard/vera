@@ -265,6 +265,17 @@ def validate_clean_successor(
     }
     if set(source_registry.get("required_entries") or []) != required_registry_entries:
         raise ValueError("source registry required-entry binding mismatch")
+    registry_doc = load_json_strict(root / SOURCE_REGISTRY_PATH)
+    registry_sources = registry_doc.get("sources")
+    if not isinstance(registry_sources, list):
+        raise ValueError("source registry sources must be an array")
+    registry_ids = {
+        row.get("id")
+        for row in registry_sources
+        if isinstance(row, dict) and isinstance(row.get("id"), str)
+    }
+    if not required_registry_entries.issubset(registry_ids):
+        raise ValueError("source registry is missing a required provenance entry")
 
     successor = record.get("downstream_successor")
     if not isinstance(successor, dict):
