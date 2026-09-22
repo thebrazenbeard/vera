@@ -72,6 +72,19 @@ def _resolve(root: Path, commit: str, path: str, label: str) -> str:
         raise ValueError(f"{label} cannot resolve {path}") from exc
 
 
+def _require_ancestor(root: Path, ancestor: str, descendant: str, label: str) -> None:
+    try:
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", ancestor, descendant],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise ValueError(f"{label} is not ancestry-bound to the candidate") from exc
+
+
 def _validate_bound_modules(
     *,
     root: Path,
@@ -165,6 +178,15 @@ def validate_clean_successor(
     if len(meta) != 2 or meta[0] != clean_tree or meta[1] != construction_parent:
         raise ValueError("clean source commit is not the declared single-parent flattened commit")
 
+    current_head = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=root,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    _require_ancestor(root, clean_commit, current_head, "clean R2 source")
+
     frozen = record.get("frozen_sexuality_object")
     if frozen != {
         "repository": "thebrazenbeard/sexuality",
@@ -236,6 +258,13 @@ def validate_clean_successor(
         raise ValueError("source registry path mismatch")
     if source_registry.get("role") != "CURRENT_NON_NORMATIVE_EVIDENCE_REGISTRY":
         raise ValueError("source registry role mismatch")
+    required_registry_entries = {
+        "vera-ov-cv-pr113",
+        "vera-clean-successor-repair-generation",
+        "orgasm-qualification-subject",
+    }
+    if set(source_registry.get("required_entries") or []) != required_registry_entries:
+        raise ValueError("source registry required-entry binding mismatch")
 
     successor = record.get("downstream_successor")
     if not isinstance(successor, dict):
@@ -247,6 +276,7 @@ def validate_clean_successor(
         or successor.get("current_main_contains_successor") is not True
     ):
         raise ValueError("R3 downstream-successor binding mismatch")
+    _require_ancestor(root, R3_SOURCE_HEAD, current_head, "R3 inference-boundary source")
 
     ceiling = record.get("claim_ceiling")
     expected_ceiling = {
