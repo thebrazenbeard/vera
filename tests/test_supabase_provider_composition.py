@@ -10,41 +10,43 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_supabase_provider_composition_is_exact() -> None:
     report = validate()
     assert report["status"] == "PASS"
-    assert report["provider_migrations"] == 98
-    assert report["pending_migrations"] == 1
-    assert report["last_provider_version"] == "20260922171230"
+    assert report["provider_migrations"] == 99
+    assert report["pending_migrations"] == 0
+    assert report["last_provider_version"] == "20260922190100"
 
 
-def test_datum_acl_pending_migration_is_exact_rekey_of_reviewed_source() -> None:
-    pending = json.loads(
-        (ROOT / "supabase/composition/PENDING_MIGRATIONS_V1.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    assert len(pending["pending"]) == 1
-    item = pending["pending"][0]
-    assert item["filename"] == "20260922190100_harden_datum_v2_mutation_function_acls.sql"
-    assert item["source_repository"] == "thebrazenbeard/vera"
-    assert item["source_ref"] == "3877054e2d224acfd9f83e2f533ced2c9ffcd14d"
-    assert item["source_blob"] == "f603a3ebbbc9553179995601ced867b5d096ef0f"
-    assert item["predecessor_pr"] == 189
-    assert item["effect_state"] == "SOURCE_REKEYED_FOR_PROVIDER_CUT_PROVIDER_EFFECT_PENDING"
-
-
-def test_radar_oidc_migration_is_promoted_from_exact_bus_source() -> None:
+def test_datum_acl_migration_is_promoted_from_exact_reviewed_source() -> None:
     inventory = json.loads(
         (
             ROOT
-            / "supabase/provider-custody/klmbpaigzeguvnpccqzz/VERA_FULL_PROVIDER_LEDGER_CUSTODY_V3.json"
+            / "supabase/provider-custody/klmbpaigzeguvnpccqzz/VERA_FULL_PROVIDER_LEDGER_CUSTODY_V4.json"
         ).read_text(encoding="utf-8")
     )
     item = inventory["migrations"][-1]
+    assert item["version"] == "20260922190100"
+    assert item["source_repository"] == "thebrazenbeard/vera"
+    assert item["source_ref"] == "c59d914e4a7cb1c39cfc4d5fd63f07b29b34c05c"
+    assert item["source_blob"] == "f603a3ebbbc9553179995601ced867b5d096ef0f"
+    assert item["predecessor_pr"] == 189
+    assert item["successor_pr"] == 196
+    readback = item["provider_effect_readback"]
+    assert readback["functions"] == 5
+    assert readback["anon_execute_all_false"] is True
+    assert readback["authenticated_execute_all_false"] is True
+    assert readback["service_role_execute_all_true"] is True
+
+
+def test_radar_oidc_migration_remains_exact_bus_bound() -> None:
+    inventory = json.loads(
+        (
+            ROOT
+            / "supabase/provider-custody/klmbpaigzeguvnpccqzz/VERA_FULL_PROVIDER_LEDGER_CUSTODY_V4.json"
+        ).read_text(encoding="utf-8")
+    )
+    item = inventory["migrations"][-2]
     assert item["version"] == "20260922171230"
     assert item["source_repository"] == "thebrazenbeard/chat-communication-bus"
-    assert item["source_ref"] == "f9179bd1426bf90c23ab6a4d14d5a8e9b39c66d2"
     assert item["source_blob"] == "054d668486887c05efe359314b51894e7274d0a6"
-    assert item["provider_effect_readback"]["rls_enabled"] is True
-    assert item["provider_effect_readback"]["force_rls"] is False
 
 
 def test_live_bus_edge_function_has_exact_noncanonical_source_binding() -> None:
