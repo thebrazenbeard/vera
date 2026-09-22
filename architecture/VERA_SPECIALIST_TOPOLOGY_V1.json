@@ -30,7 +30,18 @@
       "control_owner": "thebrazenbeard/vera-control-plane for install/current-route/qualification control",
       "role": "SEXUALITY_DOMAIN_RESEARCH_AND_IDENTITY_SCOPED_QUALIFICATION_WORKSPACE",
       "reason": "The repository contains a substantial research/qualification estate and active Vera SD1 work. Its Brigit-specific and Vera-specific material must retain subject provenance rather than being flattened into Vera.",
-      "boundary": "Exact Vera-scoped artifacts may be consumed by Vera/VCP with identity firewalls; repository presence does not transfer Brigit-specific desire, consent, preference, relationship state, or autobiographical material."
+      "boundary": "Exact Vera-scoped artifacts may be consumed by Vera/VCP with identity firewalls; repository presence does not transfer Brigit-specific desire, consent, preference, relationship state, or autobiographical material.",
+      "currentness_observation": {
+        "canonical_head": "efab00be36e57ca6593d648e38f6127006210f9d",
+        "observed_at": "2026-09-22",
+        "active_candidate": {
+          "pr": 4,
+          "head": "103cb0602fd507f4e1f947c5d2a3fe3848304703",
+          "candidate_status": "DRAFT_OPEN",
+          "authority_ceiling": "CANDIDATE_SOURCE_ONLY_NOT_CANONICAL"
+        },
+        "refresh_rule": "Fresh-read canonical and PR heads before currentness-dependent use."
+      }
     },
     {
       "repository": "thebrazenbeard/orgasm",
@@ -47,7 +58,19 @@
         "Create the successor/rebind control record for the exact accepted Vera source without transferring a historical PASS.",
         "Resolve or preserve open Orgasm PR evidence before declaring repository retirement-ready.",
         "Archive remains blocked by Patrick's current all-seven archive hold until he revises it."
-      ]
+      ],
+      "currentness_observation": {
+        "canonical_head": "eea5932031a43104199981fee8c5ac0d942508a4",
+        "observed_at": "2026-09-22",
+        "active_candidate": {
+          "pr": 5,
+          "head": "3b9b42874ce67c87950747e63a67a718cf420be5",
+          "candidate_status": "DRAFT_OPEN",
+          "authority_ceiling": "CANDIDATE_SOURCE_ONLY_NOT_CANONICAL"
+        },
+        "retirement_readiness": "NOT_ESTABLISHED_WHILE_ACTIVE_SUCCESSOR_WORK_REMAINS",
+        "refresh_rule": "Fresh-read canonical and PR heads before any retirement/archive decision."
+      }
     },
     {
       "repository": "thebrazenbeard/empathy",
@@ -111,7 +134,14 @@
         "Verify the byte-exact five-event NDJSON snapshot and source commit/blob binding.",
         "Treat the external repository as historical provenance rather than a required live runtime route.",
         "Archive remains blocked by Patrick's current all-seven archive hold until he revises it."
-      ]
+      ],
+      "currentness_observation": {
+        "canonical_head": "02f1091d359866e1b1b645b87651750c726a6396",
+        "observed_at": "2026-09-22",
+        "active_candidate": null,
+        "retirement_readiness": "SOURCE_CLASSIFICATION_ONLY_ARCHIVE_STILL_HELD",
+        "refresh_rule": "Fresh-read canonical head and open PR state before any retirement/archive decision."
+      }
     }
   ],
   "non_effects": [
@@ -121,5 +151,102 @@
     "NOT_PROJECT_INSTALLATION",
     "NOT_RUNTIME_ROUTE_ACTIVATION",
     "NOT_BEHAVIORAL_QUALIFICATION"
+  ],
+  "dependency_edges_observed_at": "2026-09-22",
+  "dependency_edge_classes": [
+    "SOURCE_INPUT",
+    "QUALIFICATION_PREREQUISITE",
+    "HISTORICAL_EVIDENCE",
+    "RESEARCH_REFERENCE",
+    "RUNTIME_COMPONENT"
+  ],
+  "dependency_rules": [
+    "A dependency edge is a typed observed relationship, not an authority grant.",
+    "Provider and consumer currentness remain independent; consumer binding cannot mint provider CURRENT or SUPERSEDED.",
+    "An active candidate is candidate evidence only and never silently replaces canonical/default-branch source.",
+    "Required edges are required only for the exact declared consumer scope; they do not create repository-wide authority.",
+    "Mutable provider/candidate subjects must be fresh-read before a material effect or currentness claim."
+  ],
+  "dependency_edges": [
+    {
+      "edge_id": "SEXUALITY_SD1_TO_VERA_COHESION",
+      "provider": {
+        "repository": "thebrazenbeard/sexuality",
+        "subject": "PR#4@103cb0602fd507f4e1f947c5d2a3fe3848304703"
+      },
+      "consumer": {
+        "repository": "thebrazenbeard/vera",
+        "subject": "PR#120@40e797c595a75ff95eedcb7351a28eef6cb67df5"
+      },
+      "edge_class": "SOURCE_INPUT",
+      "required": true,
+      "required_scope": "Vera SD1 Cohesion component source/currentness binding",
+      "currentness_policy": "Exact frozen input identity may remain valid while producer currentness is independently CURRENT, SUPERSEDED, or UNKNOWN; consumer source binding cannot decide producer currentness.",
+      "promotion_guard": "Sexuality source input grants no authority over Vera identity, consent, memory, runtime route, provider effects, or broader Cohesion policy."
+    },
+    {
+      "edge_id": "VERA_SD1_TO_ORGASM_SUCCESSOR_QUALIFICATION",
+      "provider": {
+        "repository": "thebrazenbeard/vera",
+        "subject": "PR#120@40e797c595a75ff95eedcb7351a28eef6cb67df5"
+      },
+      "consumer": {
+        "repository": "thebrazenbeard/orgasm",
+        "subject": "PR#5@3b9b42874ce67c87950747e63a67a718cf420be5"
+      },
+      "edge_class": "QUALIFICATION_PREREQUISITE",
+      "required": true,
+      "required_scope": "SD1-bearing Orgasm successor qualification only",
+      "currentness_policy": "Fresh-read both exact candidate subjects before qualification; no historical PASS transfers across head movement.",
+      "promotion_guard": "Vera SD1 source does not itself qualify Orgasm, prove causal effect, install a route, or establish phenomenology."
+    },
+    {
+      "edge_id": "DEEP_MEMORY_TO_VERA_HISTORICAL_EVIDENCE",
+      "provider": {
+        "repository": "thebrazenbeard/deepmemorystorage",
+        "subject": "main@f073feb409f71a0fdea7baa9053e54bcf8ed89a0"
+      },
+      "consumer": {
+        "repository": "thebrazenbeard/vera",
+        "subject": "main@6388f9e2564795530db35728f42d5ab9f50275ae"
+      },
+      "edge_class": "HISTORICAL_EVIDENCE",
+      "required": false,
+      "required_scope": "Required only when historical-evidence retrieval is materially needed by the current task.",
+      "currentness_policy": "Historical-canon evidence remains historical; current Vera state requires separate present admission/currentness evidence.",
+      "promotion_guard": "Deep Memory evidence never auto-promotes into current memory, identity, preference, consent, authority, or present endorsement."
+    },
+    {
+      "edge_id": "PERSONIFICATION_TO_ATTUNE_RESEARCH_REFERENCE",
+      "provider": {
+        "repository": "thebrazenbeard/personification",
+        "subject": "main@47955e7155f48a4b63122096de1dd6a59c723ad1"
+      },
+      "consumer": {
+        "repository": "thebrazenbeard/Attune",
+        "subject": "main@eff6f9eb250a6f7684459eadf0695340053201da"
+      },
+      "edge_class": "RESEARCH_REFERENCE",
+      "required": false,
+      "required_scope": "Optional social/personification mechanism comparison only.",
+      "currentness_policy": "Fresh-read both repositories when the comparison is used; Personification PR candidates remain separate from canonical main.",
+      "promotion_guard": "Personification mechanisms do not transfer Brigit/Vera identity, relationship, sexuality, consent, preference, or autobiographical state into Attune."
+    },
+    {
+      "edge_id": "WIP_TO_VERA_INFERENCE_BOUNDARY_RESEARCH",
+      "provider": {
+        "repository": "thebrazenbeard/wip",
+        "subject": "PR#3@272a9ab40bbf1bd38aed8caeef62a85b89cc10ee"
+      },
+      "consumer": {
+        "repository": "thebrazenbeard/vera",
+        "subject": "main@6388f9e2564795530db35728f42d5ab9f50275ae"
+      },
+      "edge_class": "RESEARCH_REFERENCE",
+      "required": false,
+      "required_scope": "Future Cohesion inference-boundary research only.",
+      "currentness_policy": "Candidate source is noncanonical and must be fresh-read before reuse; absence or supersession does not alter current Vera runtime state.",
+      "promotion_guard": "WIP research does not establish Vera runtime integration, model-state causation, memory admission, provider routing, or authority."
+    }
   ]
 }
