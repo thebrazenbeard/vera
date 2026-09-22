@@ -88,6 +88,7 @@ class CoherentCurrentnessCutTests(unittest.TestCase):
         predecessor_cut: CoherentCurrentnessCut | None = None,
         live_input_scope_digest: str | None = None,
         live_input_digest: str | None = None,
+        restored_frontier_digest: str | None = None,
         cut_family_id: str = "family-1",
         cut_id: str | None = None,
     ) -> CoherentCurrentnessCut:
@@ -110,7 +111,11 @@ class CoherentCurrentnessCutTests(unittest.TestCase):
                 if live_input_scope_digest is None
                 else live_input_scope_digest
             ),
-            restored_frontier_digest=h("restored"),
+            restored_frontier_digest=(
+                h("restored")
+                if restored_frontier_digest is None
+                else restored_frontier_digest
+            ),
             retry_count=retry_count,
             predecessor_cut=predecessor_cut,
             surfaces=tuple(sorted(surfaces, key=lambda item: item.surface_id)),
@@ -493,6 +498,18 @@ class CoherentCurrentnessCutTests(unittest.TestCase):
                 retry_count=1,
                 predecessor_cut=predecessor,
                 live_input_digest=h("different-live-input"),
+            )
+
+    def test_retry_rejects_restored_frontier_change(self):
+        requirement_profile = profile(required=("BUS_TOPOLOGY",))
+        predecessor = self.predecessor(requirement_profile)
+        with self.assertRaisesRegex(ValueError, "restored_frontier_digest"):
+            self.make_cut(
+                surface("BUS_TOPOLOGY", start="B", end="B"),
+                requirement_profile=requirement_profile,
+                retry_count=1,
+                predecessor_cut=predecessor,
+                restored_frontier_digest=h("different-restored-frontier"),
             )
 
     def test_retry_rejects_hidden_frontier_gap_between_attempts(self):
