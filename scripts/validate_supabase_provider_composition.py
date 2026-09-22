@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SUPABASE = ROOT / "supabase"
 MIGRATIONS = SUPABASE / "migrations"
 CUSTODY = SUPABASE / "provider-custody" / "klmbpaigzeguvnpccqzz"
-INVENTORY = CUSTODY / "VERA_FULL_PROVIDER_LEDGER_CUSTODY_V3.json"
+INVENTORY = CUSTODY / "VERA_FULL_PROVIDER_LEDGER_CUSTODY_V4.json"
 COMPOSITION = SUPABASE / "composition" / "VERA_PROVIDER_COMPOSITION_V1.json"
 PENDING = SUPABASE / "composition" / "PENDING_MIGRATIONS_V1.json"
 

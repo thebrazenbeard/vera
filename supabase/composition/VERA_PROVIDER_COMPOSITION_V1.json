@@ -7,10 +7,10 @@
   },
   "baseline": {
     "observed_cut": "2026-09-22",
-    "provider_inventory": "supabase/provider-custody/klmbpaigzeguvnpccqzz/VERA_FULL_PROVIDER_LEDGER_CUSTODY_V3.json",
-    "provider_migration_count": 98,
+    "provider_inventory": "supabase/provider-custody/klmbpaigzeguvnpccqzz/VERA_FULL_PROVIDER_LEDGER_CUSTODY_V4.json",
+    "provider_migration_count": 99,
     "first_version": "20260729012911",
-    "last_version": "20260922171230",
+    "last_version": "20260922190100",
     "executable_directory": "supabase/migrations",
     "invariant": "EXECUTABLE_IDENTITIES_AND_CUSTODY_BYTES_MATCH_BOUND_PROVIDER_OR_APPLIED_OWNER_SOURCE_EVIDENCE"
   },
