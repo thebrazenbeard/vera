@@ -25,6 +25,15 @@ The vendored schema is byte-identical to Discovery's experimental V0 contract:
 The schema is vendored only so Vera's source experiment can validate exact
 envelope structure without a runtime dependency on Discovery.
 
+The repository also pins the vendored schema path with:
+
+`architecture/discovery/effect_attempt_envelope_v0.schema.json -text`
+
+in `.gitattributes`. This deliberately disables Git text/EOL conversion for that
+one JSON artifact so Windows and Linux working-tree bytes remain the committed Git
+blob bytes. The loader therefore keeps its literal exact-byte contract rather than
+silently normalizing CRLF/LF differences.
+
 ## Independent observer
 
 `runtime_cohesion/effect_attention.py` is not exported through
