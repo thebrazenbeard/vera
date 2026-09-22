@@ -32,6 +32,17 @@ def committed_git_blob(path: Path) -> str:
     ).stdout.strip()
 
 
+def checkout_text_attribute(path: Path) -> str:
+    rel = path.relative_to(ROOT).as_posix()
+    output = subprocess.run(
+        ["git", "-C", str(ROOT), "check-attr", "text", "--", rel],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    return output.rsplit(":", 1)[-1].strip()
+
+
 def envelope(source: str, operation: str, phase: str, retry: str) -> dict:
     return {
         "schema_version": "DISCOVERY_EFFECT_ATTEMPT_V0",
@@ -76,6 +87,9 @@ class VeraEffectAttentionObserverTests(unittest.TestCase):
             committed_git_blob(SCHEMA),
             "b5d85ba31a33ad7192fd4a08934628a72e593312",
         )
+
+    def test_vendored_schema_disables_checkout_text_conversion(self):
+        self.assertEqual("unset", checkout_text_attribute(SCHEMA))
 
     def test_public_contract_type_has_no_schema_bypass_constructor(self):
         self.assertFalse(hasattr(EffectAttentionContract, "from_schema"))
