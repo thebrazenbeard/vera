@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from pathlib import Path
+import json
 import tempfile
 import unittest
 
@@ -88,10 +89,9 @@ class CohesionCleanSuccessorBindingTests(unittest.TestCase):
         record = self.record()
         binding = load_json_strict(BINDING_PATH)
         binding["runtime_implementation_cut"]["commit"] = "0" * 40
-        with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".json") as tmp:
-            import json
-            json.dump(binding, tmp)
-            tmp.flush()
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "binding.json"
+            path.write_text(json.dumps(binding), encoding="utf-8")
             with self.assertRaisesRegex(
                 ValueError,
                 "runtime binding file does not match declared implementation cut",
@@ -99,7 +99,7 @@ class CohesionCleanSuccessorBindingTests(unittest.TestCase):
                 validate_clean_successor(
                     record,
                     ownership_path=OWNERSHIP_PATH,
-                    binding_path=tmp.name,
+                    binding_path=path,
                     repository_root=ROOT,
                 )
 
