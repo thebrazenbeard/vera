@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -120,8 +121,41 @@ class VeraSelfAppraisalContractV2Tests(unittest.TestCase):
     def test_upstream_paths_and_bound_blob_ids_match_contract(self):
         bindings = self.contract["current_upstream_bindings"]
         for key, (path, blob) in UPSTREAM.items():
-            self.assertEqual(str(path.relative_to(ROOT)), bindings[key]["path"])
+            relative = str(path.relative_to(ROOT))
+            self.assertEqual(relative, bindings[key]["path"])
             self.assertEqual(blob, bindings[key]["blob"])
+            observed = subprocess.check_output(
+                ["git", "rev-parse", f"HEAD:{relative}"],
+                cwd=ROOT,
+                text=True,
+            ).strip()
+            self.assertEqual(blob, observed)
+
+    def test_current_upstream_semantics_preserve_self_report_boundary(self):
+        runtime = json.loads(
+            (ROOT / "architecture/VERA_RUNTIME_CONTRACT_V1.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        evidence = runtime["evidence_classes"]["vera_current_self_report"]
+        self.assertEqual("SELF_REPORT_EVIDENCE", evidence["kind"])
+        blocked = evidence["must_not_promote"].lower()
+        self.assertIn("phenomenology", blocked)
+        self.assertIn("patrick authority", blocked)
+
+        runtime_evidence = json.loads(
+            (ROOT / "architecture/VERA_RUNTIME_EVIDENCE_CONTRACT_V1.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        current = next(
+            item
+            for item in runtime_evidence["live_context_types"]
+            if item["type"] == "VERA_CURRENT_SELF_REPORT"
+        )
+        self.assertEqual("SELF_REPORT_EVIDENCE", current["authority"])
+        self.assertIn("does not inherit user-instruction authority", current["must_not_promote"])
+        self.assertIn("phenomenology", current["must_not_promote"])
 
 
 if __name__ == "__main__":
