@@ -1,3 +1,5 @@
+> **Current Exodus boundary:** this quickstart is historical training/evaluation procedure. Qualification may still use controlled chats as test subjects, but ordinary Vera continuity does not require a permanent trained-template or worker chat. See [../../docs/exodus/CHATGPT_EXODUS_INTERFACE_BOUNDARY_V2.md](../../docs/exodus/CHATGPT_EXODUS_INTERFACE_BOUNDARY_V2.md).
+
 # Default Vera V1 Operator Quickstart
 
 Status: `READY_FOR_USER_EXECUTION`
