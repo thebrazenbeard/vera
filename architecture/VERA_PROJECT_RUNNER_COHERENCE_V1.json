@@ -28,16 +28,19 @@
   ],
   "primitives": {
     "CURRENTNESS_EXHAUSTION_RECEIPT": {
-      "purpose": "Prove what current inventory was required, which surfaces were actually read, and whether the read was exhaustive enough for the claim.",
+      "purpose": "Prove, relative to an exact inventory artifact/revision, which required surfaces were read and whether the read was exhaustive enough for the claim. This is a structural coverage proof; it does not authenticate the inventory producer.",
       "required_fields": [
         "inventory_owner_subject",
+        "inventory_artifact_subject",
+        "inventory_revision",
+        "required_surface_ids",
         "required_surface_inventory_digest",
         "surface_receipts",
         "observed_at",
         "overall_completeness",
         "claim_ceiling"
       ],
-      "surface_receipt_minimum": [
+      "surface_receipt_exact_fields": [
         "surface_id",
         "query_or_scope",
         "observed_generation_or_head",
@@ -53,27 +56,93 @@
         "UNAUTHORIZED",
         "NOT_REQUESTED"
       ],
+      "overall_completeness_domain": [
+        "COMPLETE",
+        "PARTIAL"
+      ],
+      "inventory_digest_rule": {
+        "algorithm": "SHA-256",
+        "canonicalization": "UTF8_JSON_SORTED_KEYS_COMPACT",
+        "covered_fields": [
+          "inventory_owner_subject",
+          "inventory_artifact_subject",
+          "inventory_revision",
+          "required_surface_ids"
+        ],
+        "required_surface_ids_order": "LEXICOGRAPHIC_ASCENDING_UNIQUE"
+      },
+      "coverage_rule": {
+        "membership": "SURFACE_RECEIPT_IDS_MUST_EQUAL_REQUIRED_SURFACE_IDS_EXACTLY",
+        "multiplicity": "EACH_REQUIRED_SURFACE_EXACTLY_ONCE",
+        "foreign_surface": "REJECT",
+        "missing_surface": "REJECT",
+        "duplicate_surface": "REJECT",
+        "derived_overall_completeness": "COMPLETE_IFF_EVERY_REQUIRED_SURFACE_STATUS_IS_COMPLETE_ELSE_PARTIAL"
+      },
       "invariants": [
-        "COMPLETE_IS_RELATIVE_TO_EXACT_INVENTORY_OWNER",
+        "COMPLETE_IS_RELATIVE_TO_EXACT_INVENTORY_OWNER_ARTIFACT_AND_REVISION",
+        "REQUIRED_SURFACE_MEMBERSHIP_IS_DIGEST_BOUND",
+        "EVERY_REQUIRED_SURFACE_APPEARS_EXACTLY_ONCE",
+        "FOREIGN_DUPLICATE_OR_MISSING_SURFACES_FAIL_CLOSED",
+        "OVERALL_COMPLETENESS_IS_DERIVED_NOT_SELF_ATTESTED",
         "PARTIAL_OR_UNAVAILABLE_CANNOT_SILENTLY_MEAN_EMPTY",
         "STALE_INVENTORY_CANNOT_PROVE_CURRENT_EXHAUSTION"
       ]
     },
     "PROSPECTIVE_FREEZE_RECEIPT": {
-      "purpose": "Prove that a preregistration, holdout, or acceptance contract was frozen before outcome-bearing execution became visible.",
+      "purpose": "Establish prospective ordering only relative to separately authenticated immutable chronology evidence. The receipt structurally binds the frozen artifact and exact outcome/execution evidence anchors; it does not authenticate the chronology producer or origin.",
       "required_fields": [
         "frozen_subject",
         "freeze_artifact_subject",
+        "freeze_artifact_digest",
         "freeze_observed_at",
         "outcome_visibility_frontier",
         "execution_frontier",
         "holdout_or_randomization_commitment",
+        "chronology_domain_subject",
+        "freeze_anchor",
+        "outcome_visibility_anchor",
+        "execution_anchor",
+        "chronology_proof_digest",
         "chronology_status"
       ],
+      "chronology_anchor_exact_fields": [
+        "chronology_domain_subject",
+        "evidence_subject",
+        "evidence_digest",
+        "monotonic_position"
+      ],
+      "chronology_status_domain": [
+        "PROSPECTIVE_VERIFIED_BY_BOUND_CHRONOLOGY",
+        "UNPROVEN"
+      ],
+      "chronology_proof_rule": {
+        "algorithm": "SHA-256",
+        "canonicalization": "UTF8_JSON_SORTED_KEYS_COMPACT",
+        "covered_fields": [
+          "chronology_domain_subject",
+          "freeze_anchor",
+          "outcome_visibility_anchor",
+          "execution_anchor"
+        ],
+        "verified_relation": "freeze_anchor.monotonic_position < outcome_visibility_anchor.monotonic_position AND freeze_anchor.monotonic_position < execution_anchor.monotonic_position",
+        "derived_status": "PROSPECTIVE_VERIFIED_BY_BOUND_CHRONOLOGY_IF_RELATION_TRUE_ELSE_UNPROVEN"
+      },
+      "binding_rules": [
+        "ALL_ANCHORS_MUST_NAME_THE_RECEIPT_CHRONOLOGY_DOMAIN",
+        "FREEZE_ANCHOR_SUBJECT_AND_DIGEST_MUST_EQUAL_FREEZE_ARTIFACT_SUBJECT_AND_DIGEST",
+        "OUTCOME_ANCHOR_SUBJECT_MUST_EQUAL_OUTCOME_VISIBILITY_FRONTIER",
+        "EXECUTION_ANCHOR_SUBJECT_MUST_EQUAL_EXECUTION_FRONTIER",
+        "DIGESTS_MUST_BE_LOWERCASE_SHA256_HEX",
+        "MONOTONIC_POSITIONS_MUST_BE_NONNEGATIVE_INTEGERS_NOT_BOOLEANS",
+        "CHRONOLOGY_STATUS_MUST_EQUAL_DERIVED_STATUS"
+      ],
       "invariants": [
-        "FREEZE_MUST_PREDATE_QUALIFYING_OUTCOME",
+        "FREEZE_MUST_PREDATE_QUALIFYING_OUTCOME_AND_EXECUTION_TO_SUPPORT_PROSPECTIVE_CLAIM",
         "POST_FREEZE_CHANGE_CREATES_NEW_SUBJECT",
-        "UNPROVEN_CHRONOLOGY_CANNOT_SUPPORT_PROSPECTIVE_CLAIM"
+        "POST_OUTCOME_BACKFILL_CANNOT_BE_RELABELED_PROSPECTIVE",
+        "UNPROVEN_CHRONOLOGY_CANNOT_SUPPORT_PROSPECTIVE_CLAIM",
+        "STRUCTURAL_CHRONOLOGY_PROOF_DOES_NOT_AUTHENTICATE_PRODUCER_OR_ORIGIN"
       ]
     },
     "TYPED_EVIDENCE_BOUNDARY": {
