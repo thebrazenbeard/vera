@@ -56,6 +56,9 @@ def validate_currentness_exhaustion_receipt(receipt, primitive):
     ):
         _require_nonempty_string(receipt[field], field)
 
+    if receipt["claim_ceiling"] not in primitive["claim_ceiling_domain"]:
+        raise ProjectRunnerProofError("claim_ceiling is outside the exact allowed domain")
+
     required_ids = receipt["required_surface_ids"]
     if not isinstance(required_ids, list) or any(
         not isinstance(surface_id, str) or not surface_id for surface_id in required_ids
@@ -163,6 +166,11 @@ def validate_prospective_freeze_receipt(receipt, primitive):
         raise ProjectRunnerProofError("execution anchor subject mismatch")
 
     proof_payload = {
+        "frozen_subject": receipt["frozen_subject"],
+        "freeze_artifact_subject": receipt["freeze_artifact_subject"],
+        "freeze_artifact_digest": receipt["freeze_artifact_digest"],
+        "freeze_observed_at": receipt["freeze_observed_at"],
+        "holdout_or_randomization_commitment": receipt["holdout_or_randomization_commitment"],
         "chronology_domain_subject": receipt["chronology_domain_subject"],
         "freeze_anchor": anchors["freeze_anchor"],
         "outcome_visibility_anchor": anchors["outcome_visibility_anchor"],
