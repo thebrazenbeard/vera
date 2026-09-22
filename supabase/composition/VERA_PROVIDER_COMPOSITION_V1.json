@@ -1,0 +1,75 @@
+{
+  "schema": "VERA_SUPABASE_PROVIDER_COMPOSITION_V1",
+  "project": {
+    "name": "Vera",
+    "ref": "klmbpaigzeguvnpccqzz",
+    "role": "SHARED_RUNTIME_COMPOSITION_TARGET"
+  },
+  "baseline": {
+    "observed_cut": "2026-09-21",
+    "provider_inventory": "supabase/provider-custody/klmbpaigzeguvnpccqzz/VERA_FULL_PROVIDER_LEDGER_CUSTODY_V2.json",
+    "provider_migration_count": 97,
+    "first_version": "20260729012911",
+    "last_version": "20260921202237",
+    "executable_directory": "supabase/migrations",
+    "invariant": "EXECUTABLE_BASELINE_IDENTITIES_AND_BYTES_EQUAL_PROVIDER_LEDGER"
+  },
+  "ownership": {
+    "composition_repository": "thebrazenbeard/vera",
+    "semantics": "COMPOSITION_CUSTODY_DOES_NOT_REASSIGN_SOURCE_AUTHORSHIP_OR_EFFECT_AUTHORITY",
+    "explicit_bindings": [
+      {
+        "subject": "radar",
+        "source_repository": "thebrazenbeard/chat-communication-bus",
+        "evidence": "provider inventory new_provider_drift.source_owner_repository",
+        "provider_role": "LIVE_REBUILDABLE_PROJECTION"
+      },
+      {
+        "subject": "vera_core",
+        "source_repository": "thebrazenbeard/vera",
+        "evidence": "current repository/provider binding"
+      }
+    ],
+    "unresolved_historical_authoring": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+  },
+  "future_migrations": {
+    "rule": "NEW_EFFECT_CANDIDATES_MAY_EXIST_ABOVE_BASELINE_ONLY_WHEN_EXPLICITLY_DECLARED",
+    "declaration_file": "supabase/composition/PENDING_MIGRATIONS_V1.json",
+    "owner_source_must_be_bound": true,
+    "provider_apply_and_readback_are_separate_effects": true
+  },
+  "quarantine": {
+    "path": "supabase/drafts/pre-provider-composition-20260922",
+    "preserved_active_only_count": 20,
+    "semantics": "AUDIT_ONLY_NOT_EXECUTABLE_MIGRATION_INPUT",
+    "filenames": [
+      "20260729133200_add_event_time_precision.sql",
+      "20260729133300_enforce_save_state_lineage.sql",
+      "20260730213000_harden_neutral_v3_memory_contract.sql",
+      "20260730213100_tighten_neutral_v3_memory_governance.sql",
+      "20260730213200_close_neutral_v3_memory_review_gaps.sql",
+      "20260731003000_add_memory_request_idempotency.sql",
+      "20260731003100_correct_memory_request_status_semantics.sql",
+      "20260731142200_create_vera_portable_bootstrap_registry_v1.sql",
+      "20260901234500_reharden_save_state_view_privacy.sql",
+      "20260901235000_harden_bt2_trigger_search_paths.sql",
+      "20260909164500_add_vera_affective_runtime_v1.sql",
+      "20260909175000_harden_vera_affective_runtime_integrity_v1.sql",
+      "20260909181500_close_vera_affective_runtime_first_write_race_v1.sql",
+      "20260919162500_revoke_legacy_coordination_sequence_client_privileges.sql",
+      "20260920235500_persist_vera_affective_runtime_implementation_cut_v1.sql",
+      "20260920235700_normalize_vera_affective_runtime_nullable_json_v1.sql",
+      "20260920235900_add_vera_optional_invocation_test_executor_v1.sql",
+      "20260921000200_bind_optional_invocation_route_evidence_v1.sql",
+      "20260921195800_add_missing_fk_indexes_v1.sql",
+      "20260921200500_make_deny_all_rls_explicit_v1.sql"
+    ]
+  },
+  "claim_ceiling": [
+    "PROVIDER_RECONSTRUCTION_BASELINE",
+    "EXACT_PROVIDER_SQL_BYTES",
+    "NO_HISTORICAL_AUTHORSHIP_FABRICATION",
+    "NO_PROVIDER_REPLAY_BY_GIT_REPAIR",
+    "NO_AUTOMATIC_AUTHORITY_TRANSFER"
+  ]
+}
