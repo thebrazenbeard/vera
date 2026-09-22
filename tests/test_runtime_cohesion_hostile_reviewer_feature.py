@@ -210,6 +210,25 @@ class HostileReviewerFeatureTests(unittest.TestCase):
                 reviewer=reviewer,
             )
 
+    def test_unresolved_cannot_emit_stronger_route_without_explicit_request(self):
+        def reviewer(request):
+            return HostileReviewDecision(
+                subject_sha256=request.subject_sha256,
+                proposition_sha256=request.proposition_sha256,
+                literal_verdict="UNRESOLVED",
+                inferred_objective="Minimize dependency surface.",
+                stronger_route="Use candidate C.",
+                confidence="LOW",
+            )
+
+        with self.assertRaisesRegex(ValueError, "requires literal failure or explicit request"):
+            review_response(
+                HostileReviewerConfig(mode="ON"),
+                proposition=proposition(),
+                primary_answer="Use the smaller design.",
+                reviewer=reviewer,
+            )
+
     def test_explicit_stronger_route_request_allows_route_after_literal_survival(self):
         def reviewer(request):
             return surviving_decision(
