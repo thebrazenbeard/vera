@@ -14,7 +14,10 @@
     "git_blob_sha1": "b5d85ba31a33ad7192fd4a08934628a72e593312",
     "vendored_path": "architecture/discovery/effect_attempt_envelope_v0.schema.json",
     "loader_exact_git_blob_required": true,
-    "semantics": "EXPERIMENTAL_INTERCHANGE_ONLY_NOT_RUNTIME_AUTHORITY"
+    "semantics": "EXPERIMENTAL_INTERCHANGE_ONLY_NOT_RUNTIME_AUTHORITY",
+    "checkout_byte_contract": "GIT_ATTRIBUTES_TEXT_UNSET_NO_EOL_CONVERSION",
+    "gitattributes_rule": "architecture/discovery/effect_attempt_envelope_v0.schema.json -text",
+    "cross_platform_intent": "WORKING_TREE_BYTES_EQUAL_COMMITTED_GIT_BLOB_BYTES"
   },
   "qualified_producers": [
     {
