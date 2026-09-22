@@ -9,6 +9,12 @@ from typing import Any
 
 SCHEMA = "VERA_COHESION_CLEAN_SUCCESSOR_V1"
 REPOSITORY = "thebrazenbeard/vera"
+R2_CLEAN_SOURCE_COMMIT = "349de790a583bb2fbe7ad8e3f4663854f9d98e50"
+R2_CLEAN_SOURCE_TREE = "8754e26d2a7428a37e0ac0ff00992343869b417c"
+R2_CONSTRUCTION_PARENT = "b0b4cac1cd187b32a6e9012ef98ab0d136e35e92"
+R1_CLEAN_SOURCE_COMMIT = "0c110eb1cde73f22ccd419ff4a9ef1b1e1eddcf2"
+R1_REVIEW_HEAD = "75bcdae943bb6034d4be8899aba163550a8f39bd"
+RUNTIME_IMPLEMENTATION_CUT = "54fef2659f0a8633dcef60cd36b296c37b6fa4b0"
 DONOR_HEAD = "f7dbc3deeaaaeb46dcf7c7ea6b56a822f253232d"
 DONOR_TREE = "1582cefd1c5f20946b197da2e4268e45b2ef501f"
 DONOR_RUNTIME_GENERATION = "ba6221f56b98be69c3ede1be9e3502eff897ca1a"
@@ -19,6 +25,8 @@ FROZEN_SEXUALITY_BLOB = "a48eed5392fdadc073dccd1e799926042077f567"
 OWNERSHIP_PATH = "architecture/cohesion/VERA_COHESION_OWNERSHIP_CONTRACT_V0.json"
 OWNERSHIP_BLOB = "d6fdab49ddb691480757445148ecb77c52674c83"
 BINDING_PATH = "architecture/VERA_ORGASM_RUNTIME_BINDING_V1.json"
+SOURCE_REGISTRY_PATH = "architecture/cohesion/VERA_COHESION_SOURCE_REGISTRY_V0_20260911.json"
+R3_SOURCE_HEAD = "810d778e6a53d0bd5cc74bba17538d0f508f9644"
 
 
 def _pairs(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -51,7 +59,7 @@ def _blob_sha(raw: bytes) -> str:
     return hashlib.sha1(b"blob " + str(len(raw)).encode("ascii") + b"\0" + raw).hexdigest()
 
 
-def _resolve(root: Path, commit: str, path: str) -> str:
+def _resolve(root: Path, commit: str, path: str, label: str) -> str:
     try:
         return subprocess.run(
             ["git", "rev-parse", f"{commit}:{path}"],
@@ -61,7 +69,31 @@ def _resolve(root: Path, commit: str, path: str) -> str:
             text=True,
         ).stdout.strip()
     except (OSError, subprocess.CalledProcessError) as exc:
-        raise ValueError(f"clean source commit cannot resolve {path}") from exc
+        raise ValueError(f"{label} cannot resolve {path}") from exc
+
+
+def _validate_bound_modules(
+    *,
+    root: Path,
+    clean_commit: str,
+    cut: dict[str, Any],
+    cut_commit: str,
+    label: str,
+) -> None:
+    modules = cut.get("modules")
+    if not isinstance(modules, dict) or not modules:
+        raise ValueError(f"{label} has no modules")
+    for path, expected_blob in modules.items():
+        _sha(expected_blob, f"blob for {path}")
+        at_cut = _resolve(root, cut_commit, path, label)
+        at_clean = _resolve(root, clean_commit, path, "clean source commit")
+        if at_cut != expected_blob:
+            raise ValueError(f"{label} resolves a different runtime blob: {path}")
+        if at_clean != expected_blob:
+            raise ValueError(
+                "clean R2 source is not byte-equivalent to the bound runtime cut: "
+                f"{path}"
+            )
 
 
 def validate_clean_successor(
@@ -80,6 +112,13 @@ def validate_clean_successor(
     clean_commit = _sha(record.get("clean_source_commit"), "clean_source_commit")
     clean_tree = _sha(record.get("clean_source_tree"), "clean_source_tree")
     construction_parent = _sha(record.get("construction_parent"), "construction_parent")
+    if (
+        clean_commit != R2_CLEAN_SOURCE_COMMIT
+        or clean_tree != R2_CLEAN_SOURCE_TREE
+        or construction_parent != R2_CONSTRUCTION_PARENT
+    ):
+        raise ValueError("clean successor must bind the exact R2 source tuple")
+
     donor = record.get("donor")
     if not isinstance(donor, dict):
         raise ValueError("donor must be an object")
@@ -93,6 +132,25 @@ def validate_clean_successor(
         raise ValueError("donor provenance mismatch")
     if clean_commit == donor["head"] or record.get("flattening") != "ONE_COMMIT_SINGLE_PARENT_POLICY_LINEAGE":
         raise ValueError("flattened clean source must be distinct from donor ancestry")
+
+    r1 = record.get("r1_predecessor")
+    if not isinstance(r1, dict):
+        raise ValueError("r1_predecessor must be an object")
+    if (
+        r1.get("clean_source_commit") != R1_CLEAN_SOURCE_COMMIT
+        or r1.get("review_head") != R1_REVIEW_HEAD
+        or r1.get("status") != "SUPERSEDED_AFTER_STATIC_BLOCKERS"
+    ):
+        raise ValueError("R1 predecessor provenance mismatch")
+
+    repair_input = record.get("repair_input")
+    if not isinstance(repair_input, dict):
+        raise ValueError("repair_input must be an object")
+    if (
+        repair_input.get("runtime_generation") != RUNTIME_IMPLEMENTATION_CUT
+        or repair_input.get("history_imported") is not False
+    ):
+        raise ValueError("R2 repair-input provenance mismatch")
 
     try:
         meta = subprocess.run(
@@ -123,22 +181,72 @@ def validate_clean_successor(
     if declared_ownership != {"path": OWNERSHIP_PATH, "blob": OWNERSHIP_BLOB}:
         raise ValueError("ownership contract binding mismatch")
 
+    declared_binding = record.get("runtime_binding")
+    if not isinstance(declared_binding, dict):
+        raise ValueError("runtime_binding must be an object")
+    if declared_binding.get("path") != BINDING_PATH:
+        raise ValueError("runtime binding path mismatch")
+    if declared_binding.get("clean_source_commit") != clean_commit:
+        raise ValueError("runtime binding clean-source provenance mismatch")
+    if declared_binding.get("runtime_implementation_cut_commit") != RUNTIME_IMPLEMENTATION_CUT:
+        raise ValueError("runtime implementation cut mismatch")
+    if declared_binding.get("cohesion_integration_cut_commit") != RUNTIME_IMPLEMENTATION_CUT:
+        raise ValueError("cohesion integration cut mismatch")
+    if declared_binding.get("generation_commit") != RUNTIME_IMPLEMENTATION_CUT:
+        raise ValueError("cross-binding generation mismatch")
+    if declared_binding.get("bound_module_byte_equivalence_required") is not True:
+        raise ValueError("runtime binding must require bound-module byte equivalence")
+
     binding = load_json_strict(binding_path)
     runtime_cut = binding.get("runtime_implementation_cut")
     integration_cut = binding.get("cohesion_integration_cut")
     cross = binding.get("cross_binding")
     if not isinstance(runtime_cut, dict) or not isinstance(integration_cut, dict) or not isinstance(cross, dict):
         raise ValueError("runtime binding structure is incomplete")
-    if runtime_cut.get("commit") != clean_commit or integration_cut.get("commit") != clean_commit or cross.get("generation_commit") != clean_commit:
-        raise ValueError("runtime binding is not rebound to the clean source commit")
-    for cut in (runtime_cut, integration_cut):
-        modules = cut.get("modules")
-        if not isinstance(modules, dict) or not modules:
-            raise ValueError("runtime binding cut has no modules")
-        for path, expected_blob in modules.items():
-            _sha(expected_blob, f"blob for {path}")
-            if _resolve(root, clean_commit, path) != expected_blob:
-                raise ValueError(f"clean source commit resolves a different runtime blob: {path}")
+
+    runtime_commit = _sha(runtime_cut.get("commit"), "runtime implementation cut")
+    integration_commit = _sha(integration_cut.get("commit"), "cohesion integration cut")
+    generation_commit = _sha(cross.get("generation_commit"), "cross-binding generation")
+    if runtime_commit != declared_binding["runtime_implementation_cut_commit"]:
+        raise ValueError("runtime binding file does not match declared implementation cut")
+    if integration_commit != declared_binding["cohesion_integration_cut_commit"]:
+        raise ValueError("runtime binding file does not match declared integration cut")
+    if generation_commit != declared_binding["generation_commit"]:
+        raise ValueError("runtime binding file does not match declared generation")
+
+    _validate_bound_modules(
+        root=root,
+        clean_commit=clean_commit,
+        cut=runtime_cut,
+        cut_commit=runtime_commit,
+        label="runtime implementation cut",
+    )
+    _validate_bound_modules(
+        root=root,
+        clean_commit=clean_commit,
+        cut=integration_cut,
+        cut_commit=integration_commit,
+        label="cohesion integration cut",
+    )
+
+    source_registry = record.get("source_registry")
+    if not isinstance(source_registry, dict):
+        raise ValueError("source_registry must be an object")
+    if source_registry.get("path") != SOURCE_REGISTRY_PATH:
+        raise ValueError("source registry path mismatch")
+    if source_registry.get("role") != "CURRENT_NON_NORMATIVE_EVIDENCE_REGISTRY":
+        raise ValueError("source registry role mismatch")
+
+    successor = record.get("downstream_successor")
+    if not isinstance(successor, dict):
+        raise ValueError("downstream_successor must be an object")
+    if (
+        successor.get("generation") != "R3_INFERENCE_BOUNDARY"
+        or successor.get("material_source_head") != R3_SOURCE_HEAD
+        or successor.get("predecessor_clean_r2_source") != clean_commit
+        or successor.get("current_main_contains_successor") is not True
+    ):
+        raise ValueError("R3 downstream-successor binding mismatch")
 
     ceiling = record.get("claim_ceiling")
     expected_ceiling = {
