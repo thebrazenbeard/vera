@@ -54,6 +54,23 @@ class ProjectRunnerCoherenceV1Tests(unittest.TestCase):
     def freeze_primitive(self):
         return self.load_contract()["primitives"]["PROSPECTIVE_FREEZE_RECEIPT"]
 
+    def refresh_freeze_proof_digest(self, receipt):
+        receipt["chronology_proof_digest"] = canonical_digest(
+            {
+                "frozen_subject": receipt["frozen_subject"],
+                "freeze_artifact_subject": receipt["freeze_artifact_subject"],
+                "freeze_artifact_digest": receipt["freeze_artifact_digest"],
+                "freeze_observed_at": receipt["freeze_observed_at"],
+                "holdout_or_randomization_commitment": receipt[
+                    "holdout_or_randomization_commitment"
+                ],
+                "chronology_domain_subject": receipt["chronology_domain_subject"],
+                "freeze_anchor": receipt["freeze_anchor"],
+                "outcome_visibility_anchor": receipt["outcome_visibility_anchor"],
+                "execution_anchor": receipt["execution_anchor"],
+            }
+        )
+
     def valid_currentness_receipt(self):
         required_surface_ids = ["issues", "prs"]
         receipt = {
@@ -135,14 +152,7 @@ class ProjectRunnerCoherenceV1Tests(unittest.TestCase):
             "chronology_proof_digest": "",
             "chronology_status": "PROSPECTIVE_VERIFIED_BY_BOUND_CHRONOLOGY",
         }
-        receipt["chronology_proof_digest"] = canonical_digest(
-            {
-                "chronology_domain_subject": domain,
-                "freeze_anchor": anchors["freeze_anchor"],
-                "outcome_visibility_anchor": anchors["outcome_visibility_anchor"],
-                "execution_anchor": anchors["execution_anchor"],
-            }
-        )
+        self.refresh_freeze_proof_digest(receipt)
         return receipt
 
     def test_contract_exposes_exact_reusable_primitive_set(self):
@@ -222,6 +232,12 @@ class ProjectRunnerCoherenceV1Tests(unittest.TestCase):
             "PARTIAL",
         )
 
+    def test_currentness_claim_ceiling_is_exact_finite_domain(self):
+        receipt = self.valid_currentness_receipt()
+        receipt["claim_ceiling"] = "UNIVERSAL_CURRENTNESS_PROVEN"
+        with self.assertRaises(ProjectRunnerProofError):
+            validate_currentness_exhaustion_receipt(receipt, self.currentness_primitive())
+
     def test_prospective_freeze_bound_chronology_passes(self):
         receipt = self.valid_freeze_receipt()
         self.assertEqual(
@@ -232,14 +248,7 @@ class ProjectRunnerCoherenceV1Tests(unittest.TestCase):
     def test_post_outcome_backfill_cannot_be_relabelled_prospective(self):
         receipt = self.valid_freeze_receipt()
         receipt["freeze_anchor"]["monotonic_position"] = 40
-        receipt["chronology_proof_digest"] = canonical_digest(
-            {
-                "chronology_domain_subject": receipt["chronology_domain_subject"],
-                "freeze_anchor": receipt["freeze_anchor"],
-                "outcome_visibility_anchor": receipt["outcome_visibility_anchor"],
-                "execution_anchor": receipt["execution_anchor"],
-            }
-        )
+        self.refresh_freeze_proof_digest(receipt)
         with self.assertRaises(ProjectRunnerProofError):
             validate_prospective_freeze_receipt(receipt, self.freeze_primitive())
         receipt["chronology_status"] = "UNPROVEN"
@@ -248,17 +257,23 @@ class ProjectRunnerCoherenceV1Tests(unittest.TestCase):
             "UNPROVEN",
         )
 
+    def test_frozen_semantics_and_observed_time_are_digest_bound(self):
+        cases = {
+            "frozen_subject": "study:mutated-after-freeze",
+            "holdout_or_randomization_commitment": "commitment:mutated-after-freeze",
+            "freeze_observed_at": "2099-01-01T00:00:00Z",
+        }
+        for field, hostile in cases.items():
+            with self.subTest(field=field):
+                receipt = self.valid_freeze_receipt()
+                receipt[field] = hostile
+                with self.assertRaises(ProjectRunnerProofError):
+                    validate_prospective_freeze_receipt(receipt, self.freeze_primitive())
+
     def test_freeze_anchor_must_bind_exact_artifact_identity(self):
         receipt = self.valid_freeze_receipt()
         receipt["freeze_anchor"]["evidence_digest"] = "4" * 64
-        receipt["chronology_proof_digest"] = canonical_digest(
-            {
-                "chronology_domain_subject": receipt["chronology_domain_subject"],
-                "freeze_anchor": receipt["freeze_anchor"],
-                "outcome_visibility_anchor": receipt["outcome_visibility_anchor"],
-                "execution_anchor": receipt["execution_anchor"],
-            }
-        )
+        self.refresh_freeze_proof_digest(receipt)
         with self.assertRaises(ProjectRunnerProofError):
             validate_prospective_freeze_receipt(receipt, self.freeze_primitive())
 
@@ -267,42 +282,21 @@ class ProjectRunnerCoherenceV1Tests(unittest.TestCase):
             with self.subTest(anchor_name=anchor_name):
                 receipt = self.valid_freeze_receipt()
                 receipt[anchor_name]["evidence_subject"] = "forged:frontier"
-                receipt["chronology_proof_digest"] = canonical_digest(
-                    {
-                        "chronology_domain_subject": receipt["chronology_domain_subject"],
-                        "freeze_anchor": receipt["freeze_anchor"],
-                        "outcome_visibility_anchor": receipt["outcome_visibility_anchor"],
-                        "execution_anchor": receipt["execution_anchor"],
-                    }
-                )
+                self.refresh_freeze_proof_digest(receipt)
                 with self.assertRaises(ProjectRunnerProofError):
                     validate_prospective_freeze_receipt(receipt, self.freeze_primitive())
 
     def test_chronology_domain_mismatch_fails_closed(self):
         receipt = self.valid_freeze_receipt()
         receipt["execution_anchor"]["chronology_domain_subject"] = "other-domain"
-        receipt["chronology_proof_digest"] = canonical_digest(
-            {
-                "chronology_domain_subject": receipt["chronology_domain_subject"],
-                "freeze_anchor": receipt["freeze_anchor"],
-                "outcome_visibility_anchor": receipt["outcome_visibility_anchor"],
-                "execution_anchor": receipt["execution_anchor"],
-            }
-        )
+        self.refresh_freeze_proof_digest(receipt)
         with self.assertRaises(ProjectRunnerProofError):
             validate_prospective_freeze_receipt(receipt, self.freeze_primitive())
 
     def test_boolean_monotonic_position_is_rejected(self):
         receipt = self.valid_freeze_receipt()
         receipt["freeze_anchor"]["monotonic_position"] = False
-        receipt["chronology_proof_digest"] = canonical_digest(
-            {
-                "chronology_domain_subject": receipt["chronology_domain_subject"],
-                "freeze_anchor": receipt["freeze_anchor"],
-                "outcome_visibility_anchor": receipt["outcome_visibility_anchor"],
-                "execution_anchor": receipt["execution_anchor"],
-            }
-        )
+        self.refresh_freeze_proof_digest(receipt)
         with self.assertRaises(ProjectRunnerProofError):
             validate_prospective_freeze_receipt(receipt, self.freeze_primitive())
 
