@@ -1,17 +1,6 @@
 {
   "schema": "VERA_SUPABASE_PENDING_MIGRATIONS_V1",
   "project_ref": "klmbpaigzeguvnpccqzz",
-  "baseline_last_provider_version": "20260921202237",
-  "pending": [
-    {
-      "filename": "20260922171230_radar_oidc_replay_guard_rls_v1.sql",
-      "subject": "radar_oidc_replay_guard_rls_v1",
-      "source_repository": "thebrazenbeard/chat-communication-bus",
-      "source_ref": "f9179bd1426bf90c23ab6a4d14d5a8e9b39c66d2",
-      "source_path": "supabase/migrations/20260922171230_radar_oidc_replay_guard_rls_v1.sql",
-      "source_blob": "054d668486887c05efe359314b51894e7274d0a6",
-      "owner": "RADAR",
-      "effect_state": "SOURCE_COMPOSED_PROVIDER_EFFECT_PENDING"
-    }
-  ]
+  "baseline_last_provider_version": "20260922171230",
+  "pending": []
 }
