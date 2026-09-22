@@ -35,7 +35,9 @@
       },
       "../config.toml": {
         "blob": "bf0435948bd70f47bdd43c6e4925078d8ef252eb",
-        "provider_verify_jwt_matches": false
+        "source_verify_jwt": false,
+        "provider_verify_jwt": false,
+        "live_setting_matches_source": true
       }
     },
     "source_custody_blob": "190f7982eb78cde89303c383593d0241fa1053b4",
