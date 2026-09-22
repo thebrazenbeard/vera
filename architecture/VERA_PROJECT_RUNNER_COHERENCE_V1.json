@@ -86,7 +86,11 @@
         "FOREIGN_DUPLICATE_OR_MISSING_SURFACES_FAIL_CLOSED",
         "OVERALL_COMPLETENESS_IS_DERIVED_NOT_SELF_ATTESTED",
         "PARTIAL_OR_UNAVAILABLE_CANNOT_SILENTLY_MEAN_EMPTY",
-        "STALE_INVENTORY_CANNOT_PROVE_CURRENT_EXHAUSTION"
+        "STALE_INVENTORY_CANNOT_PROVE_CURRENT_EXHAUSTION",
+        "CLAIM_CEILING_IS_FINITE_AND_EXACT_BOUND"
+      ],
+      "claim_ceiling_domain": [
+        "EXACT_BOUND_INVENTORY_ONLY"
       ]
     },
     "PROSPECTIVE_FREEZE_RECEIPT": {
@@ -120,13 +124,19 @@
         "algorithm": "SHA-256",
         "canonicalization": "UTF8_JSON_SORTED_KEYS_COMPACT",
         "covered_fields": [
+          "frozen_subject",
+          "freeze_artifact_subject",
+          "freeze_artifact_digest",
+          "freeze_observed_at",
+          "holdout_or_randomization_commitment",
           "chronology_domain_subject",
           "freeze_anchor",
           "outcome_visibility_anchor",
           "execution_anchor"
         ],
         "verified_relation": "freeze_anchor.monotonic_position < outcome_visibility_anchor.monotonic_position AND freeze_anchor.monotonic_position < execution_anchor.monotonic_position",
-        "derived_status": "PROSPECTIVE_VERIFIED_BY_BOUND_CHRONOLOGY_IF_RELATION_TRUE_ELSE_UNPROVEN"
+        "derived_status": "PROSPECTIVE_VERIFIED_BY_BOUND_CHRONOLOGY_IF_RELATION_TRUE_ELSE_UNPROVEN",
+        "metadata_semantics": "freeze_observed_at is digest-bound metadata only; monotonic anchors, not the timestamp string, establish prospective ordering."
       },
       "binding_rules": [
         "ALL_ANCHORS_MUST_NAME_THE_RECEIPT_CHRONOLOGY_DOMAIN",
@@ -135,14 +145,17 @@
         "EXECUTION_ANCHOR_SUBJECT_MUST_EQUAL_EXECUTION_FRONTIER",
         "DIGESTS_MUST_BE_LOWERCASE_SHA256_HEX",
         "MONOTONIC_POSITIONS_MUST_BE_NONNEGATIVE_INTEGERS_NOT_BOOLEANS",
-        "CHRONOLOGY_STATUS_MUST_EQUAL_DERIVED_STATUS"
+        "CHRONOLOGY_STATUS_MUST_EQUAL_DERIVED_STATUS",
+        "FROZEN_SEMANTICS_AND_COMMITMENT_ARE_BOUND_IN_CHRONOLOGY_PROOF_DIGEST",
+        "FREEZE_OBSERVED_AT_IS_BOUND_METADATA_NOT_CHRONOLOGY_AUTHORITY"
       ],
       "invariants": [
         "FREEZE_MUST_PREDATE_QUALIFYING_OUTCOME_AND_EXECUTION_TO_SUPPORT_PROSPECTIVE_CLAIM",
         "POST_FREEZE_CHANGE_CREATES_NEW_SUBJECT",
         "POST_OUTCOME_BACKFILL_CANNOT_BE_RELABELED_PROSPECTIVE",
         "UNPROVEN_CHRONOLOGY_CANNOT_SUPPORT_PROSPECTIVE_CLAIM",
-        "STRUCTURAL_CHRONOLOGY_PROOF_DOES_NOT_AUTHENTICATE_PRODUCER_OR_ORIGIN"
+        "STRUCTURAL_CHRONOLOGY_PROOF_DOES_NOT_AUTHENTICATE_PRODUCER_OR_ORIGIN",
+        "POST_FREEZE_SEMANTIC_MUTATION_INVALIDATES_PROOF"
       ]
     },
     "TYPED_EVIDENCE_BOUNDARY": {
