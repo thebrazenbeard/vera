@@ -1,0 +1,279 @@
+{
+  "schema": "VERA_PROJECT_RUNNER_COHERENCE_V1",
+  "status": "SOURCE_COORDINATION_CONTRACT_ONLY_NOT_RUNTIME_AUTHORITY",
+  "owner_repository": "thebrazenbeard/vera",
+  "purpose": "Preserve reusable cross-project evidence and dependency shapes discovered by the Vera Project Runner without collapsing repository-local authority, currentness, source acceptance, installation, runtime effect, producer authenticity, or qualification state.",
+  "source_bindings": {
+    "vera_main": "6388f9e2564795530db35728f42d5ab9f50275ae",
+    "project_runner_main": "bc05812b560b4fcde3a362e72fba04c626cafac8",
+    "project_runner_rezon_hardening_pr31": "8e588bd1cb72808b4a611d2a0bcbaeba6cb10b15"
+  },
+  "authority_ceiling": "PATTERN_AND_DEPENDENCY_COORDINATION_ONLY_NO_CROSS_REPOSITORY_AUTHORITY",
+  "promotion_rules": {
+    "pattern_reuse_grants_authority": false,
+    "dependency_edge_promotes_provider_state": false,
+    "runner_observation_establishes_runtime_effect": false,
+    "unchanged_head_inherits_prior_finding_as_current_truth": false,
+    "consumer_currentness_overrides_provider_currentness": false,
+    "structural_self_consistency_authenticates_producer": false,
+    "unkeyed_digest_proves_origin": false
+  },
+  "runner_rules": [
+    "Fresh-check exact mutable subjects before relying on a prior sweep frontier.",
+    "On an unchanged exact subject, preserve the prior finding and attack the next unresolved layer rather than restating it.",
+    "A repeated defect class may be factored into a reusable contract shape only when the original project semantics and authority boundaries remain explicit.",
+    "Cross-project dependency discovery creates a coordination edge, never authority transfer.",
+    "Source, build, install, current-route, effect, qualification, and closure remain distinct on every edge.",
+    "Structural evidence verification may establish deterministic internal consistency without authenticating the producer or origin unless a separate authenticated provenance mechanism is bound."
+  ],
+  "primitives": {
+    "CURRENTNESS_EXHAUSTION_RECEIPT": {
+      "purpose": "Prove, relative to an exact inventory artifact/revision, which required surfaces were read and whether the read was exhaustive enough for the claim. This is a structural coverage proof; it does not authenticate the inventory producer.",
+      "required_fields": [
+        "inventory_owner_subject",
+        "inventory_artifact_subject",
+        "inventory_revision",
+        "required_surface_ids",
+        "required_surface_inventory_digest",
+        "surface_receipts",
+        "observed_at",
+        "overall_completeness",
+        "claim_ceiling"
+      ],
+      "surface_receipt_exact_fields": [
+        "surface_id",
+        "query_or_scope",
+        "observed_generation_or_head",
+        "frontier_or_pagination_state",
+        "result_count",
+        "result_digest",
+        "status"
+      ],
+      "allowed_statuses": [
+        "COMPLETE",
+        "PARTIAL",
+        "UNAVAILABLE",
+        "UNAUTHORIZED",
+        "NOT_REQUESTED"
+      ],
+      "overall_completeness_domain": [
+        "COMPLETE",
+        "PARTIAL"
+      ],
+      "inventory_digest_rule": {
+        "algorithm": "SHA-256",
+        "canonicalization": "UTF8_JSON_SORTED_KEYS_COMPACT",
+        "covered_fields": [
+          "inventory_owner_subject",
+          "inventory_artifact_subject",
+          "inventory_revision",
+          "required_surface_ids"
+        ],
+        "required_surface_ids_order": "LEXICOGRAPHIC_ASCENDING_UNIQUE"
+      },
+      "coverage_rule": {
+        "membership": "SURFACE_RECEIPT_IDS_MUST_EQUAL_REQUIRED_SURFACE_IDS_EXACTLY",
+        "multiplicity": "EACH_REQUIRED_SURFACE_EXACTLY_ONCE",
+        "foreign_surface": "REJECT",
+        "missing_surface": "REJECT",
+        "duplicate_surface": "REJECT",
+        "derived_overall_completeness": "COMPLETE_IFF_EVERY_REQUIRED_SURFACE_STATUS_IS_COMPLETE_ELSE_PARTIAL"
+      },
+      "invariants": [
+        "COMPLETE_IS_RELATIVE_TO_EXACT_INVENTORY_OWNER_ARTIFACT_AND_REVISION",
+        "REQUIRED_SURFACE_MEMBERSHIP_IS_DIGEST_BOUND",
+        "EVERY_REQUIRED_SURFACE_APPEARS_EXACTLY_ONCE",
+        "FOREIGN_DUPLICATE_OR_MISSING_SURFACES_FAIL_CLOSED",
+        "OVERALL_COMPLETENESS_IS_DERIVED_NOT_SELF_ATTESTED",
+        "PARTIAL_OR_UNAVAILABLE_CANNOT_SILENTLY_MEAN_EMPTY",
+        "STALE_INVENTORY_CANNOT_PROVE_CURRENT_EXHAUSTION",
+        "CLAIM_CEILING_IS_FINITE_AND_EXACT_BOUND"
+      ],
+      "claim_ceiling_domain": [
+        "EXACT_BOUND_INVENTORY_ONLY"
+      ]
+    },
+    "PROSPECTIVE_FREEZE_RECEIPT": {
+      "purpose": "Establish prospective ordering only relative to separately authenticated immutable chronology evidence. The receipt structurally binds the frozen artifact and exact outcome/execution evidence anchors; it does not authenticate the chronology producer or origin.",
+      "required_fields": [
+        "frozen_subject",
+        "freeze_artifact_subject",
+        "freeze_artifact_digest",
+        "freeze_observed_at",
+        "outcome_visibility_frontier",
+        "execution_frontier",
+        "holdout_or_randomization_commitment",
+        "chronology_domain_subject",
+        "freeze_anchor",
+        "outcome_visibility_anchor",
+        "execution_anchor",
+        "chronology_proof_digest",
+        "chronology_status"
+      ],
+      "chronology_anchor_exact_fields": [
+        "chronology_domain_subject",
+        "evidence_subject",
+        "evidence_digest",
+        "monotonic_position"
+      ],
+      "chronology_status_domain": [
+        "PROSPECTIVE_VERIFIED_BY_BOUND_CHRONOLOGY",
+        "UNPROVEN"
+      ],
+      "chronology_proof_rule": {
+        "algorithm": "SHA-256",
+        "canonicalization": "UTF8_JSON_SORTED_KEYS_COMPACT",
+        "covered_fields": [
+          "frozen_subject",
+          "freeze_artifact_subject",
+          "freeze_artifact_digest",
+          "freeze_observed_at",
+          "holdout_or_randomization_commitment",
+          "chronology_domain_subject",
+          "freeze_anchor",
+          "outcome_visibility_anchor",
+          "execution_anchor"
+        ],
+        "verified_relation": "freeze_anchor.monotonic_position < outcome_visibility_anchor.monotonic_position AND freeze_anchor.monotonic_position < execution_anchor.monotonic_position",
+        "derived_status": "PROSPECTIVE_VERIFIED_BY_BOUND_CHRONOLOGY_IF_RELATION_TRUE_ELSE_UNPROVEN",
+        "metadata_semantics": "freeze_observed_at is digest-bound metadata only; monotonic anchors, not the timestamp string, establish prospective ordering."
+      },
+      "binding_rules": [
+        "ALL_ANCHORS_MUST_NAME_THE_RECEIPT_CHRONOLOGY_DOMAIN",
+        "FREEZE_ANCHOR_SUBJECT_AND_DIGEST_MUST_EQUAL_FREEZE_ARTIFACT_SUBJECT_AND_DIGEST",
+        "OUTCOME_ANCHOR_SUBJECT_MUST_EQUAL_OUTCOME_VISIBILITY_FRONTIER",
+        "EXECUTION_ANCHOR_SUBJECT_MUST_EQUAL_EXECUTION_FRONTIER",
+        "DIGESTS_MUST_BE_LOWERCASE_SHA256_HEX",
+        "MONOTONIC_POSITIONS_MUST_BE_NONNEGATIVE_INTEGERS_NOT_BOOLEANS",
+        "CHRONOLOGY_STATUS_MUST_EQUAL_DERIVED_STATUS",
+        "FROZEN_SEMANTICS_AND_COMMITMENT_ARE_BOUND_IN_CHRONOLOGY_PROOF_DIGEST",
+        "FREEZE_OBSERVED_AT_IS_BOUND_METADATA_NOT_CHRONOLOGY_AUTHORITY"
+      ],
+      "invariants": [
+        "FREEZE_MUST_PREDATE_QUALIFYING_OUTCOME_AND_EXECUTION_TO_SUPPORT_PROSPECTIVE_CLAIM",
+        "POST_FREEZE_CHANGE_CREATES_NEW_SUBJECT",
+        "POST_OUTCOME_BACKFILL_CANNOT_BE_RELABELED_PROSPECTIVE",
+        "UNPROVEN_CHRONOLOGY_CANNOT_SUPPORT_PROSPECTIVE_CLAIM",
+        "STRUCTURAL_CHRONOLOGY_PROOF_DOES_NOT_AUTHENTICATE_PRODUCER_OR_ORIGIN",
+        "POST_FREEZE_SEMANTIC_MUTATION_INVALIDATES_PROOF"
+      ]
+    },
+    "TYPED_EVIDENCE_BOUNDARY": {
+      "purpose": "Keep direct facts, reports, observations, inference, derived summaries, imports, relationship interpretation, consent, and preference from silently promoting across proposition types.",
+      "required_fields": [
+        "proposition_type",
+        "evidence_class",
+        "source_subject",
+        "currentness",
+        "confidence_or_scope",
+        "supersession_or_conflict_links"
+      ],
+      "recommended_evidence_classes": [
+        "USER_OR_AUTHOR_STATED",
+        "OBSERVED",
+        "INFERRED",
+        "DERIVED",
+        "EXTERNAL_IMPORTED"
+      ],
+      "invariants": [
+        "INFERENCE_DOES_NOT_SILENTLY_BECOME_FACT",
+        "RELATIONSHIP_INFERENCE_DOES_NOT_CREATE_CONSENT_OR_PREFERENCE",
+        "CORRECTION_SUPERSEDES_INTERPRETATION_WITHOUT_ERASING_PROVENANCE"
+      ]
+    },
+    "EXECUTION_SUBJECT_MANIFEST": {
+      "purpose": "Bind deterministic, conformance, benchmark, or qualification evidence to the exact executable subject that produced it while preserving the distinction between structural verification and authenticated producer provenance.",
+      "required_fields": [
+        "source_subject",
+        "build_or_artifact_digest",
+        "runtime_versions",
+        "dependency_or_library_versions",
+        "backend_or_provider_subject",
+        "fixture_or_vector_digests",
+        "execution_configuration",
+        "result_receipt_subject"
+      ],
+      "invariants": [
+        "RUNTIME_DRIFT_CREATES_NEW_EXECUTION_SUBJECT",
+        "SOURCE_HEAD_EQUALITY_ALONE_DOES_NOT_PROVE_EXECUTION_EQUIVALENCE",
+        "RESULTS_DO_NOT_TRANSFER_ACROSS_EXECUTION_SUBJECTS",
+        "STRUCTURAL_SELF_CONSISTENCY_DOES_NOT_AUTHENTICATE_PRODUCER",
+        "UNKEYED_DIGEST_DOES_NOT_PROVE_PRODUCER_ORIGIN"
+      ]
+    },
+    "ANTI_TARGET_LEAKAGE_CHAIN": {
+      "purpose": "Prevent desired outputs, evaluator labels, or target behavior from being encoded into purported causal state through any stage of state construction or transformation.",
+      "required_stages": [
+        "STATE_PRODUCER",
+        "STATE_PAYLOAD",
+        "PROJECTOR_OR_TRANSFORM",
+        "EVALUATOR"
+      ],
+      "minimum_controls": [
+        "HIDDEN_TARGET_LABEL_REMAP",
+        "SAME_STATE_DIFFERENT_TARGET",
+        "STATE_SUBSTITUTION",
+        "PROJECTOR_PROVENANCE",
+        "TARGET_INFORMATION_ISOLATION"
+      ],
+      "invariants": [
+        "NO_DIRECTIVE_TEXT_DOES_NOT_PROVE_NO_TARGET_ENCODING",
+        "TARGET_AWARE_PROJECTOR_EFFECT_IS_PROJECTOR_CONDITIONED_NOT_STATE_CAUSAL",
+        "EVALUATOR_ONLY_TARGETS_ARE_UNAVAILABLE_TO_UPSTREAM_STATE_CONSTRUCTION"
+      ]
+    },
+    "DEPENDENCY_EDGE": {
+      "purpose": "Make a cross-project dependency explicit without allowing the provider to inherit consumer authority or the consumer to redefine provider currentness.",
+      "required_fields": [
+        "provider_artifact_subject",
+        "consumer_artifact_subject",
+        "edge_class",
+        "currentness_policy",
+        "promotion_guard",
+        "required_or_optional"
+      ],
+      "edge_classes": [
+        "SOURCE_INPUT",
+        "QUALIFICATION_PREREQUISITE",
+        "HISTORICAL_EVIDENCE",
+        "RESEARCH_REFERENCE",
+        "RUNTIME_COMPONENT"
+      ],
+      "invariants": [
+        "EDGE_NEVER_TRANSFERS_AUTHORITY",
+        "PROVIDER_AND_CONSUMER_CURRENTNESS_REMAIN_SEPARATE",
+        "DEPENDENCY_SATISFACTION_DOES_NOT_IMPLY_INSTALL_OR_QUALIFICATION"
+      ]
+    },
+    "EXPERIMENT_LINEAGE": {
+      "purpose": "Keep training, benchmark, market, and other repeated result generations as immutable subjects instead of overwriting one narrative result slot.",
+      "required_fields": [
+        "experiment_id",
+        "parent_or_supersedes_subject",
+        "execution_subject_manifest",
+        "input_or_corpus_subject",
+        "result_digest",
+        "observed_at",
+        "evidence_dimensions"
+      ],
+      "append_only": true,
+      "result_transfer_across_subjects": false,
+      "invariants": [
+        "REPEATED_OR_CONTRADICTORY_RUNS_REMAIN_SIDE_BY_SIDE",
+        "CURRENT_REFERENCE_POINTER_DOES_NOT_REWRITE_PRIOR_RUN",
+        "ARTIFACT_QUALIFICATION_AND_EXTERNAL_OUTCOME_EVIDENCE_MAY_ADVANCE_SEPARATELY"
+      ]
+    }
+  },
+  "non_effects": [
+    "NOT_MERGE_AUTHORITY",
+    "NOT_INSTALL_OR_RUNTIME_ACTIVATION",
+    "NOT_PROVIDER_MUTATION",
+    "NOT_TRAINING_AUTHORITY",
+    "NOT_BEHAVIORAL_QUALIFICATION",
+    "NOT_MEMORY_ADMISSION",
+    "NOT_IDENTITY_CONSENT_OR_PREFERENCE_PROMOTION",
+    "NOT_CROSS_REPOSITORY_SOURCE_AUTHORITY",
+    "NOT_PRODUCER_AUTHENTICATION"
+  ]
+}
