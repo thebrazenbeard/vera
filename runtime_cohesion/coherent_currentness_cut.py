@@ -328,6 +328,10 @@ class CoherentCurrentnessCut:
                 raise ValueError(
                     "retry live_input_digest must match predecessor live input"
                 )
+            if self.restored_frontier_digest != predecessor.restored_frontier_digest:
+                raise ValueError(
+                    "retry restored_frontier_digest must match predecessor restored frontier"
+                )
             predecessor_by_surface = {
                 item.surface_id: item for item in predecessor.surfaces
             }
