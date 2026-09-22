@@ -27,7 +27,10 @@ def validate() -> dict[str, object]:
         name = f'{item["version"]}_{item["name"]}.sql'
         if name in expected:
             raise AssertionError(f"duplicate provider migration identity: {name}")
-        expected[name] = item.get("provider_sha256") or item.get("custody_sha256")\n        if not expected[name]:\n            raise AssertionError(f"migration lacks custody digest: {name}")
+        digest = item.get("provider_sha256") or item.get("custody_sha256")
+        if not digest:
+            raise AssertionError(f"migration lacks custody digest: {name}")
+        expected[name] = digest
 
     if len(expected) != composition["baseline"]["provider_migration_count"]:
         raise AssertionError("provider/composition migration-count mismatch")
@@ -57,7 +60,7 @@ def validate() -> dict[str, object]:
         if sha256(custody) != digest:
             raise AssertionError(f"custody digest mismatch: {name}")
         if sha256(executable) != digest:
-            raise AssertionError(f"executable migration differs from provider: {name}")
+            raise AssertionError(f"executable migration differs from custody: {name}")
         if executable.read_bytes() != custody.read_bytes():
             raise AssertionError(f"executable/custody byte mismatch: {name}")
 
