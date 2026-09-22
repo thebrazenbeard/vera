@@ -204,10 +204,8 @@ class SpecialistTopologyV1Tests(unittest.TestCase):
             expected_subject,
             edges["VERA_SD1_TO_ORGASM_SUCCESSOR_QUALIFICATION"]["provider"]["subject"],
         )
-        serialized = json.dumps(data, sort_keys=True)
-        self.assertNotIn("PR#120@40e797c595a75ff95eedcb7351a28eef6cb67df5", serialized.replace(
-            json.dumps(refresh["predecessor_sd1_subject"]["subject"]), '""'
-        ))
+        live_edges = json.dumps(data["dependency_edges"], sort_keys=True)
+        self.assertNotIn("PR#120@", live_edges)
 
 
 if __name__ == "__main__":
