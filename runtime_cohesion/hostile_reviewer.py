@@ -267,6 +267,8 @@ def _validate_decision_against_request(
             raise ValueError(
                 "surviving literal claim must equal the reviewed literal proposition"
             )
+
+    if decision.literal_verdict != "LITERAL_FAILS":
         if (
             decision.inferred_objective is not None
             or decision.stronger_route is not None
