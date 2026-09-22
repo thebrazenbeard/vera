@@ -1,3 +1,5 @@
+> **Current Exodus boundary:** the retained-template / Working Vera chat architecture below is historical training and evaluation provenance, not a current runtime dependency. Current operation reconstructs from governed durable state and treats conversations as replaceable terminals. See [../../docs/exodus/CHATGPT_EXODUS_INTERFACE_BOUNDARY_V2.md](../../docs/exodus/CHATGPT_EXODUS_INTERFACE_BOUNDARY_V2.md).
+
 # Default Vera Continuity Architecture V1
 
 Status: `RESEARCH_REVISED_CANDIDATE_NOT_ACTIVATED`
