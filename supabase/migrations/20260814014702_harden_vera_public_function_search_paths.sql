@@ -1,0 +1,15 @@
+alter function public.block_vera_portable_bootstrap_mutation() set search_path = pg_catalog, public, extensions;
+alter function public.vera_authority_evidence_digest(jsonb) set search_path = pg_catalog, public, extensions;
+alter function public.vera_authority_evidence_encoding(jsonb) set search_path = pg_catalog, public, extensions;
+alter function public.vera_bootstrap_sha256_text(text) set search_path = pg_catalog, public, extensions;
+alter function public.vera_encode_text_tuple(text[]) set search_path = pg_catalog, public, extensions;
+alter function public.vera_exact_temporal_value(jsonb,text) set search_path = pg_catalog, public, extensions;
+alter function public.vera_generate_uuid_v7() set search_path = pg_catalog, public, extensions;
+alter function public.vera_source_evidence_digest(jsonb) set search_path = pg_catalog, public, extensions;
+alter function public.vera_source_evidence_encoding(jsonb) set search_path = pg_catalog, public, extensions;
+alter function public.vera_target_fingerprint(jsonb) set search_path = pg_catalog, public, extensions;
+alter function public.vera_valid_authority_evidence(jsonb) set search_path = pg_catalog, public, extensions;
+alter function public.vera_valid_source_evidence(jsonb) set search_path = pg_catalog, public, extensions;
+alter function public.vera_valid_target_evidence(jsonb) set search_path = pg_catalog, public, extensions;
+alter function public.vera_valid_temporal_evidence(jsonb) set search_path = pg_catalog, public, extensions;
+alter function public.vera_valid_temporal_point(jsonb) set search_path = pg_catalog, public, extensions;
