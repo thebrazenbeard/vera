@@ -1,0 +1,252 @@
+{
+  "schema": "VERA_SPECIALIST_TOPOLOGY_V1",
+  "status": "SOURCE_CANDIDATE / HETEROGENEOUS_SPECIALIST_OWNERSHIP / NO_ARCHIVE_EFFECT / NO_PROVIDER_MUTATION",
+  "observed_at": "2026-09-15",
+  "vera_main_observed": "b7b8dcd1440a3b7147bec2cc35972f083e20f44a",
+  "vera_control_plane_main_observed": "b4d9aaa8560de12252dd29996379b0af8e0ca0d1",
+  "decision": "The seven repositories are not one long-term retirement class. Preserve specialist boundaries where they reduce coupling, protect provenance/privacy, or own non-code substrate. Rehome only duties whose independent repository no longer has a durable purpose.",
+  "archive_policy": {
+    "patrick_instruction": "Do not archive any of the seven while cross-dependencies remain unresolved.",
+    "current_effect": "HOLD_ALL_SEVEN_UNTIL_PATRICK_REVISES",
+    "topology_note": "This hold is an archive-effect rule, not evidence that all seven should eventually be archived. The topology below identifies only two retirement candidates.",
+    "archive_action_performed": false
+  },
+  "global_rules": [
+    "Vera owns Vera executable runtime behavior and adopted mechanisms.",
+    "Vera Control Plane owns release, install, current-route and qualification control records; it does not become a bulk content store.",
+    "A specialist repository may remain canonical for its own research, assets, provenance, or historical-state domain without becoming Vera identity or runtime authority.",
+    "Supabase projections are derived/provider state unless an exact source contract explicitly grants a different role; provider presence never replaces Git source provenance.",
+    "Private Patrick-specific relational research must not be wholesale copied merely to simplify repository count.",
+    "Archival requires reconstructibility plus a separately authorized archive effect; lifecycle classification alone never archives a repository."
+  ],
+  "repositories": [
+    {
+      "repository": "thebrazenbeard/sexuality",
+      "observed_main": "6194aa9496c34198bba9b898c35fa9961a54dc2e",
+      "lifecycle": "KEEP_LIVE_SPECIALIST_RESEARCH_AND_QUALIFICATION",
+      "retirement_candidate": false,
+      "source_owner": "thebrazenbeard/sexuality",
+      "runtime_owner": "thebrazenbeard/vera for adopted Vera mechanisms",
+      "control_owner": "thebrazenbeard/vera-control-plane for install/current-route/qualification control",
+      "role": "SEXUALITY_DOMAIN_RESEARCH_AND_IDENTITY_SCOPED_QUALIFICATION_WORKSPACE",
+      "reason": "The repository contains a substantial research/qualification estate and active Vera SD1 work. Its Brigit-specific and Vera-specific material must retain subject provenance rather than being flattened into Vera.",
+      "boundary": "Exact Vera-scoped artifacts may be consumed by Vera/VCP with identity firewalls; repository presence does not transfer Brigit-specific desire, consent, preference, relationship state, or autobiographical material.",
+      "currentness_observation": {
+        "canonical_head": "efab00be36e57ca6593d648e38f6127006210f9d",
+        "observed_at": "2026-09-22",
+        "active_candidate": {
+          "pr": 4,
+          "head": "103cb0602fd507f4e1f947c5d2a3fe3848304703",
+          "candidate_status": "DRAFT_OPEN",
+          "authority_ceiling": "CANDIDATE_SOURCE_ONLY_NOT_CANONICAL"
+        },
+        "refresh_rule": "Fresh-read canonical and PR heads before currentness-dependent use."
+      }
+    },
+    {
+      "repository": "thebrazenbeard/orgasm",
+      "observed_main": "494432873dd8bcf96b8f59d26a4f4687cd66d635",
+      "lifecycle": "TRANSITION_TO_VCP_QUALIFICATION_PROVENANCE",
+      "retirement_candidate": true,
+      "source_owner": "HISTORICAL_PROVENANCE_UNTIL_HANDOFF_COMPLETE",
+      "runtime_owner": "thebrazenbeard/vera",
+      "successor_control_owner": "thebrazenbeard/vera-control-plane",
+      "role": "TRANSITIONAL_QUALIFICATION_AND_PROVENANCE_HUB",
+      "reason": "The repository explicitly owns no executable runtime. Its durable function is qualification/provenance coordination, which belongs in the control plane once exact historical subjects and successor lineage are preserved.",
+      "transition_gates": [
+        "Mirror the frozen Orgasm qualification subject into Vera Control Plane with exact source provenance.",
+        "Create the successor/rebind control record for the exact accepted Vera source without transferring a historical PASS.",
+        "Resolve or preserve open Orgasm PR evidence before declaring repository retirement-ready.",
+        "Archive remains blocked by Patrick's current all-seven archive hold until he revises it."
+      ],
+      "currentness_observation": {
+        "canonical_head": "eea5932031a43104199981fee8c5ac0d942508a4",
+        "observed_at": "2026-09-22",
+        "active_candidate": {
+          "pr": 5,
+          "head": "3b9b42874ce67c87950747e63a67a718cf420be5",
+          "candidate_status": "DRAFT_OPEN",
+          "authority_ceiling": "CANDIDATE_SOURCE_ONLY_NOT_CANONICAL"
+        },
+        "retirement_readiness": "NOT_ESTABLISHED_WHILE_ACTIVE_SUCCESSOR_WORK_REMAINS",
+        "refresh_rule": "Fresh-read canonical and PR heads before any retirement/archive decision."
+      }
+    },
+    {
+      "repository": "thebrazenbeard/empathy",
+      "observed_main": "4b2a6998f39aa4763c1c5a28fc3d815104e5637e",
+      "lifecycle": "KEEP_LIVE_PRIVATE_RESEARCH_PROVENANCE",
+      "retirement_candidate": false,
+      "source_owner": "thebrazenbeard/empathy",
+      "runtime_owner": "thebrazenbeard/vera for accepted executable empathy mechanisms",
+      "control_owner": "thebrazenbeard/vera-control-plane for promoted release/qualification state",
+      "role": "VERA_SPECIFIC_PRIVATE_EMPATHY_AND_SELF_APPRAISAL_RESEARCH",
+      "reason": "The repository has a legitimate privacy/provenance boundary. Its side branches are fully absorbed into main, but that does not make the private research domain redundant.",
+      "boundary": "Extract mechanisms/contracts deliberately; do not wholesale migrate Patrick-specific relational research into core runtime source."
+    },
+    {
+      "repository": "thebrazenbeard/conations",
+      "observed_main": "03174e59de131a500a5433a839697e45b4ec0137",
+      "lifecycle": "KEEP_LIVE_PRIVATE_APPEND_ONLY_HISTORY",
+      "retirement_candidate": false,
+      "source_owner": "thebrazenbeard/conations",
+      "historical_state_owner": "thebrazenbeard/conations",
+      "runtime_owner": "thebrazenbeard/vera for current conation/preference/consent admission",
+      "role": "PRIVATE_CONATION_LIFECYCLE_HISTORY",
+      "reason": "Git append-only history is small, inspectable and provenance-rich. Replacing it with a mutable database solely to reduce repository count would increase authority ambiguity and operational complexity without a demonstrated benefit.",
+      "boundary": "Historical conation is evidence of prior state only; it never becomes standing desire, consent, instruction, obligation, or current stance."
+    },
+    {
+      "repository": "thebrazenbeard/semanticatlas",
+      "observed_main": "5669a727b870a490ecee748b2cd712a2fc4a54c5",
+      "lifecycle": "KEEP_LIVE_SPECIALIST_SEMANTIC_PROVENANCE",
+      "retirement_candidate": false,
+      "source_owner": "thebrazenbeard/semanticatlas",
+      "runtime_owner": "thebrazenbeard/vera for adopted native semantic/currentness rules",
+      "provider_projection": "supabase:klmbpaigzeguvnpccqzz/semantic_atlas as derived research staging",
+      "role": "SEMANTIC_PROVENANCE_RESEARCH_AND_VALIDATION_SOURCE",
+      "reason": "The repository has substantial divergent runtime/validation work and a live Git-bound Supabase materialization. Flattening it into Vera would destroy a useful source/projection boundary and expand Vera's blast radius.",
+      "boundary": "Semantic Atlas research/projection never becomes runtime truth, identity, authority, or canon merely because it is active or materialized."
+    },
+    {
+      "repository": "thebrazenbeard/selfimage",
+      "observed_main": "95ea602c4a537172fc531195e20a4e303b6d31da",
+      "lifecycle": "KEEP_LIVE_SPECIALIST_ASSET_GEOMETRY_CANON",
+      "retirement_candidate": false,
+      "source_owner": "thebrazenbeard/selfimage",
+      "runtime_owner": "thebrazenbeard/vera only for adopted references/contracts",
+      "control_owner": "thebrazenbeard/vera-control-plane only for promotion/install/qualification receipts when applicable",
+      "role": "VISUAL_CANON_ASSET_GEOMETRY_AND_ANATOMICAL_WORKSPACE",
+      "reason": "Large binary/geometry/provenance workload, active anatomical-design branches, and open stable-body validation work make this a genuine specialist engineering repository rather than a migration remnant.",
+      "boundary": "Visual representation/canon evidence does not establish literal body, event, identity authority, or phenomenology."
+    },
+    {
+      "repository": "thebrazenbeard/temporal",
+      "observed_main": "02f1091d359866e1b1b645b87651750c726a6396",
+      "lifecycle": "TRANSITION_TO_VERA_PROVENANCE",
+      "retirement_candidate": true,
+      "source_owner": "HISTORICAL_PROVENANCE_UNTIL_SNAPSHOT_VERIFIED",
+      "runtime_owner": "thebrazenbeard/vera",
+      "successor_provenance_owner": "thebrazenbeard/vera",
+      "role": "TRANSITIONAL_STANDALONE_CHRONOLOGY_PROTOTYPE",
+      "reason": "The standalone mechanism is already implemented and tested inside Vera. The remaining unique value is the five-event source history, which is preserved byte-exactly under provenance/temporal in this candidate.",
+      "transition_gates": [
+        "Verify the byte-exact five-event NDJSON snapshot and source commit/blob binding.",
+        "Treat the external repository as historical provenance rather than a required live runtime route.",
+        "Archive remains blocked by Patrick's current all-seven archive hold until he revises it."
+      ],
+      "currentness_observation": {
+        "canonical_head": "02f1091d359866e1b1b645b87651750c726a6396",
+        "observed_at": "2026-09-22",
+        "active_candidate": null,
+        "retirement_readiness": "SOURCE_CLASSIFICATION_ONLY_ARCHIVE_STILL_HELD",
+        "refresh_rule": "Fresh-read canonical head and open PR state before any retirement/archive decision."
+      }
+    }
+  ],
+  "non_effects": [
+    "NOT_MERGED",
+    "NOT_ARCHIVED",
+    "NOT_PROVIDER_MUTATION",
+    "NOT_PROJECT_INSTALLATION",
+    "NOT_RUNTIME_ROUTE_ACTIVATION",
+    "NOT_BEHAVIORAL_QUALIFICATION"
+  ],
+  "dependency_edges_observed_at": "2026-09-22",
+  "dependency_edge_classes": [
+    "SOURCE_INPUT",
+    "QUALIFICATION_PREREQUISITE",
+    "HISTORICAL_EVIDENCE",
+    "RESEARCH_REFERENCE",
+    "RUNTIME_COMPONENT"
+  ],
+  "dependency_rules": [
+    "A dependency edge is a typed observed relationship, not an authority grant.",
+    "Provider and consumer currentness remain independent; consumer binding cannot mint provider CURRENT or SUPERSEDED.",
+    "An active candidate is candidate evidence only and never silently replaces canonical/default-branch source.",
+    "Required edges are required only for the exact declared consumer scope; they do not create repository-wide authority.",
+    "Mutable provider/candidate subjects must be fresh-read before a material effect or currentness claim."
+  ],
+  "dependency_edges": [
+    {
+      "edge_id": "SEXUALITY_SD1_TO_VERA_COHESION",
+      "provider": {
+        "repository": "thebrazenbeard/sexuality",
+        "subject": "PR#4@103cb0602fd507f4e1f947c5d2a3fe3848304703"
+      },
+      "consumer": {
+        "repository": "thebrazenbeard/vera",
+        "subject": "PR#120@40e797c595a75ff95eedcb7351a28eef6cb67df5"
+      },
+      "edge_class": "SOURCE_INPUT",
+      "required": true,
+      "required_scope": "Vera SD1 Cohesion component source/currentness binding",
+      "currentness_policy": "Exact frozen input identity may remain valid while producer currentness is independently CURRENT, SUPERSEDED, or UNKNOWN; consumer source binding cannot decide producer currentness.",
+      "promotion_guard": "Sexuality source input grants no authority over Vera identity, consent, memory, runtime route, provider effects, or broader Cohesion policy."
+    },
+    {
+      "edge_id": "VERA_SD1_TO_ORGASM_SUCCESSOR_QUALIFICATION",
+      "provider": {
+        "repository": "thebrazenbeard/vera",
+        "subject": "PR#120@40e797c595a75ff95eedcb7351a28eef6cb67df5"
+      },
+      "consumer": {
+        "repository": "thebrazenbeard/orgasm",
+        "subject": "PR#5@3b9b42874ce67c87950747e63a67a718cf420be5"
+      },
+      "edge_class": "QUALIFICATION_PREREQUISITE",
+      "required": true,
+      "required_scope": "SD1-bearing Orgasm successor qualification only",
+      "currentness_policy": "Fresh-read both exact candidate subjects before qualification; no historical PASS transfers across head movement.",
+      "promotion_guard": "Vera SD1 source does not itself qualify Orgasm, prove causal effect, install a route, or establish phenomenology."
+    },
+    {
+      "edge_id": "DEEP_MEMORY_TO_VERA_HISTORICAL_EVIDENCE",
+      "provider": {
+        "repository": "thebrazenbeard/deepmemorystorage",
+        "subject": "main@f073feb409f71a0fdea7baa9053e54bcf8ed89a0"
+      },
+      "consumer": {
+        "repository": "thebrazenbeard/vera",
+        "subject": "main@6388f9e2564795530db35728f42d5ab9f50275ae"
+      },
+      "edge_class": "HISTORICAL_EVIDENCE",
+      "required": false,
+      "required_scope": "Required only when historical-evidence retrieval is materially needed by the current task.",
+      "currentness_policy": "Historical-canon evidence remains historical; current Vera state requires separate present admission/currentness evidence.",
+      "promotion_guard": "Deep Memory evidence never auto-promotes into current memory, identity, preference, consent, authority, or present endorsement."
+    },
+    {
+      "edge_id": "PERSONIFICATION_TO_ATTUNE_RESEARCH_REFERENCE",
+      "provider": {
+        "repository": "thebrazenbeard/personification",
+        "subject": "main@47955e7155f48a4b63122096de1dd6a59c723ad1"
+      },
+      "consumer": {
+        "repository": "thebrazenbeard/Attune",
+        "subject": "main@eff6f9eb250a6f7684459eadf0695340053201da"
+      },
+      "edge_class": "RESEARCH_REFERENCE",
+      "required": false,
+      "required_scope": "Optional social/personification mechanism comparison only.",
+      "currentness_policy": "Fresh-read both repositories when the comparison is used; Personification PR candidates remain separate from canonical main.",
+      "promotion_guard": "Personification mechanisms do not transfer Brigit/Vera identity, relationship, sexuality, consent, preference, or autobiographical state into Attune."
+    },
+    {
+      "edge_id": "WIP_TO_VERA_INFERENCE_BOUNDARY_RESEARCH",
+      "provider": {
+        "repository": "thebrazenbeard/wip",
+        "subject": "PR#3@272a9ab40bbf1bd38aed8caeef62a85b89cc10ee"
+      },
+      "consumer": {
+        "repository": "thebrazenbeard/vera",
+        "subject": "main@6388f9e2564795530db35728f42d5ab9f50275ae"
+      },
+      "edge_class": "RESEARCH_REFERENCE",
+      "required": false,
+      "required_scope": "Future Cohesion inference-boundary research only.",
+      "currentness_policy": "Candidate source is noncanonical and must be fresh-read before reuse; absence or supersession does not alter current Vera runtime state.",
+      "promotion_guard": "WIP research does not establish Vera runtime integration, model-state causation, memory admission, provider routing, or authority."
+    }
+  ]
+}
