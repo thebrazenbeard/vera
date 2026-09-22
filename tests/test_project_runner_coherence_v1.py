@@ -1,6 +1,14 @@
+import copy
+import hashlib
 import json
 from pathlib import Path
 import unittest
+
+from runtime_cohesion.project_runner_proof_validation import (
+    ProjectRunnerProofError,
+    validate_currentness_exhaustion_receipt,
+    validate_prospective_freeze_receipt,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,9 +31,111 @@ EXPECTED_SOURCE_BINDINGS = {
 }
 
 
+def canonical_digest(value):
+    payload = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
 class ProjectRunnerCoherenceV1Tests(unittest.TestCase):
     def load_contract(self):
         return json.loads(CONTRACT_PATH.read_text(encoding="utf-8"))
+
+    def currentness_primitive(self):
+        return self.load_contract()["primitives"]["CURRENTNESS_EXHAUSTION_RECEIPT"]
+
+    def freeze_primitive(self):
+        return self.load_contract()["primitives"]["PROSPECTIVE_FREEZE_RECEIPT"]
+
+    def valid_currentness_receipt(self):
+        required_surface_ids = ["issues", "prs"]
+        receipt = {
+            "inventory_owner_subject": "repo:example/control",
+            "inventory_artifact_subject": "git:inventory@abc123",
+            "inventory_revision": "abc123",
+            "required_surface_ids": required_surface_ids,
+            "required_surface_inventory_digest": "",
+            "surface_receipts": [
+                {
+                    "surface_id": "issues",
+                    "query_or_scope": "open issues",
+                    "observed_generation_or_head": "head-a",
+                    "frontier_or_pagination_state": "EXHAUSTED",
+                    "result_count": 2,
+                    "result_digest": "digest-issues",
+                    "status": "COMPLETE",
+                },
+                {
+                    "surface_id": "prs",
+                    "query_or_scope": "open prs",
+                    "observed_generation_or_head": "head-b",
+                    "frontier_or_pagination_state": "EXHAUSTED",
+                    "result_count": 3,
+                    "result_digest": "digest-prs",
+                    "status": "COMPLETE",
+                },
+            ],
+            "observed_at": "2026-09-22T13:55:00Z",
+            "overall_completeness": "COMPLETE",
+            "claim_ceiling": "EXACT_BOUND_INVENTORY_ONLY",
+        }
+        receipt["required_surface_inventory_digest"] = canonical_digest(
+            {
+                "inventory_owner_subject": receipt["inventory_owner_subject"],
+                "inventory_artifact_subject": receipt["inventory_artifact_subject"],
+                "inventory_revision": receipt["inventory_revision"],
+                "required_surface_ids": required_surface_ids,
+            }
+        )
+        return receipt
+
+    def valid_freeze_receipt(self):
+        domain = "append-only-log:example/v1"
+        freeze_subject = "git:freeze@111"
+        outcome_subject = "run:outcome@222"
+        execution_subject = "run:execution@333"
+        freeze_digest = "1" * 64
+        anchors = {
+            "freeze_anchor": {
+                "chronology_domain_subject": domain,
+                "evidence_subject": freeze_subject,
+                "evidence_digest": freeze_digest,
+                "monotonic_position": 10,
+            },
+            "outcome_visibility_anchor": {
+                "chronology_domain_subject": domain,
+                "evidence_subject": outcome_subject,
+                "evidence_digest": "2" * 64,
+                "monotonic_position": 20,
+            },
+            "execution_anchor": {
+                "chronology_domain_subject": domain,
+                "evidence_subject": execution_subject,
+                "evidence_digest": "3" * 64,
+                "monotonic_position": 30,
+            },
+        }
+        receipt = {
+            "frozen_subject": "study:subject-v1",
+            "freeze_artifact_subject": freeze_subject,
+            "freeze_artifact_digest": freeze_digest,
+            "freeze_observed_at": "2026-09-22T12:00:00Z",
+            "outcome_visibility_frontier": outcome_subject,
+            "execution_frontier": execution_subject,
+            "holdout_or_randomization_commitment": "commitment:holdout-v1",
+            "chronology_domain_subject": domain,
+            **anchors,
+            "chronology_proof_digest": "",
+            "chronology_status": "PROSPECTIVE_VERIFIED_BY_BOUND_CHRONOLOGY",
+        }
+        receipt["chronology_proof_digest"] = canonical_digest(
+            {
+                "chronology_domain_subject": domain,
+                "freeze_anchor": anchors["freeze_anchor"],
+                "outcome_visibility_anchor": anchors["outcome_visibility_anchor"],
+                "execution_anchor": anchors["execution_anchor"],
+            }
+        )
+        return receipt
 
     def test_contract_exposes_exact_reusable_primitive_set(self):
         self.assertEqual(set(self.load_contract()["primitives"]), EXPECTED_PRIMITIVES)
@@ -62,19 +172,131 @@ class ProjectRunnerCoherenceV1Tests(unittest.TestCase):
         )
         self.assertIn("NOT_PRODUCER_AUTHENTICATION", data["non_effects"])
 
-    def test_currentness_exhaustion_requires_inventory_and_per_surface_evidence(self):
-        fields = set(
-            self.load_contract()["primitives"]["CURRENTNESS_EXHAUSTION_RECEIPT"]["required_fields"]
+    def test_currentness_inventory_digest_and_exact_coverage_pass(self):
+        receipt = self.valid_currentness_receipt()
+        self.assertEqual(
+            validate_currentness_exhaustion_receipt(receipt, self.currentness_primitive()),
+            "COMPLETE",
         )
-        self.assertTrue(
+
+    def test_currentness_missing_surface_fails_closed(self):
+        receipt = self.valid_currentness_receipt()
+        receipt["surface_receipts"].pop()
+        with self.assertRaises(ProjectRunnerProofError):
+            validate_currentness_exhaustion_receipt(receipt, self.currentness_primitive())
+
+    def test_currentness_duplicate_surface_fails_closed(self):
+        receipt = self.valid_currentness_receipt()
+        receipt["surface_receipts"][1]["surface_id"] = "issues"
+        with self.assertRaises(ProjectRunnerProofError):
+            validate_currentness_exhaustion_receipt(receipt, self.currentness_primitive())
+
+    def test_currentness_foreign_surface_fails_closed(self):
+        receipt = self.valid_currentness_receipt()
+        receipt["surface_receipts"][1]["surface_id"] = "deployments"
+        with self.assertRaises(ProjectRunnerProofError):
+            validate_currentness_exhaustion_receipt(receipt, self.currentness_primitive())
+
+    def test_currentness_inventory_membership_change_requires_digest_change(self):
+        receipt = self.valid_currentness_receipt()
+        receipt["required_surface_ids"].append("workflows")
+        with self.assertRaises(ProjectRunnerProofError):
+            validate_currentness_exhaustion_receipt(receipt, self.currentness_primitive())
+
+    def test_currentness_complete_is_derived_not_self_attested(self):
+        receipt = self.valid_currentness_receipt()
+        receipt["surface_receipts"][1]["status"] = "UNAVAILABLE"
+        with self.assertRaises(ProjectRunnerProofError):
+            validate_currentness_exhaustion_receipt(receipt, self.currentness_primitive())
+        receipt["overall_completeness"] = "PARTIAL"
+        self.assertEqual(
+            validate_currentness_exhaustion_receipt(receipt, self.currentness_primitive()),
+            "PARTIAL",
+        )
+
+    def test_prospective_freeze_bound_chronology_passes(self):
+        receipt = self.valid_freeze_receipt()
+        self.assertEqual(
+            validate_prospective_freeze_receipt(receipt, self.freeze_primitive()),
+            "PROSPECTIVE_VERIFIED_BY_BOUND_CHRONOLOGY",
+        )
+
+    def test_post_outcome_backfill_cannot_be_relabelled_prospective(self):
+        receipt = self.valid_freeze_receipt()
+        receipt["freeze_anchor"]["monotonic_position"] = 40
+        receipt["chronology_proof_digest"] = canonical_digest(
             {
-                "inventory_owner_subject",
-                "required_surface_inventory_digest",
-                "surface_receipts",
-                "observed_at",
-                "overall_completeness",
-            }.issubset(fields)
+                "chronology_domain_subject": receipt["chronology_domain_subject"],
+                "freeze_anchor": receipt["freeze_anchor"],
+                "outcome_visibility_anchor": receipt["outcome_visibility_anchor"],
+                "execution_anchor": receipt["execution_anchor"],
+            }
         )
+        with self.assertRaises(ProjectRunnerProofError):
+            validate_prospective_freeze_receipt(receipt, self.freeze_primitive())
+        receipt["chronology_status"] = "UNPROVEN"
+        self.assertEqual(
+            validate_prospective_freeze_receipt(receipt, self.freeze_primitive()),
+            "UNPROVEN",
+        )
+
+    def test_freeze_anchor_must_bind_exact_artifact_identity(self):
+        receipt = self.valid_freeze_receipt()
+        receipt["freeze_anchor"]["evidence_digest"] = "4" * 64
+        receipt["chronology_proof_digest"] = canonical_digest(
+            {
+                "chronology_domain_subject": receipt["chronology_domain_subject"],
+                "freeze_anchor": receipt["freeze_anchor"],
+                "outcome_visibility_anchor": receipt["outcome_visibility_anchor"],
+                "execution_anchor": receipt["execution_anchor"],
+            }
+        )
+        with self.assertRaises(ProjectRunnerProofError):
+            validate_prospective_freeze_receipt(receipt, self.freeze_primitive())
+
+    def test_outcome_or_execution_anchor_cannot_be_substituted(self):
+        for anchor_name in ("outcome_visibility_anchor", "execution_anchor"):
+            with self.subTest(anchor_name=anchor_name):
+                receipt = self.valid_freeze_receipt()
+                receipt[anchor_name]["evidence_subject"] = "forged:frontier"
+                receipt["chronology_proof_digest"] = canonical_digest(
+                    {
+                        "chronology_domain_subject": receipt["chronology_domain_subject"],
+                        "freeze_anchor": receipt["freeze_anchor"],
+                        "outcome_visibility_anchor": receipt["outcome_visibility_anchor"],
+                        "execution_anchor": receipt["execution_anchor"],
+                    }
+                )
+                with self.assertRaises(ProjectRunnerProofError):
+                    validate_prospective_freeze_receipt(receipt, self.freeze_primitive())
+
+    def test_chronology_domain_mismatch_fails_closed(self):
+        receipt = self.valid_freeze_receipt()
+        receipt["execution_anchor"]["chronology_domain_subject"] = "other-domain"
+        receipt["chronology_proof_digest"] = canonical_digest(
+            {
+                "chronology_domain_subject": receipt["chronology_domain_subject"],
+                "freeze_anchor": receipt["freeze_anchor"],
+                "outcome_visibility_anchor": receipt["outcome_visibility_anchor"],
+                "execution_anchor": receipt["execution_anchor"],
+            }
+        )
+        with self.assertRaises(ProjectRunnerProofError):
+            validate_prospective_freeze_receipt(receipt, self.freeze_primitive())
+
+    def test_boolean_monotonic_position_is_rejected(self):
+        receipt = self.valid_freeze_receipt()
+        receipt["freeze_anchor"]["monotonic_position"] = False
+        receipt["chronology_proof_digest"] = canonical_digest(
+            {
+                "chronology_domain_subject": receipt["chronology_domain_subject"],
+                "freeze_anchor": receipt["freeze_anchor"],
+                "outcome_visibility_anchor": receipt["outcome_visibility_anchor"],
+                "execution_anchor": receipt["execution_anchor"],
+            }
+        )
+        with self.assertRaises(ProjectRunnerProofError):
+            validate_prospective_freeze_receipt(receipt, self.freeze_primitive())
 
     def test_dependency_edge_keeps_provider_and_consumer_subjects_separate(self):
         edge = self.load_contract()["primitives"]["DEPENDENCY_EDGE"]
@@ -89,20 +311,6 @@ class ProjectRunnerCoherenceV1Tests(unittest.TestCase):
             }.issubset(set(edge["required_fields"]))
         )
         self.assertIn("EDGE_NEVER_TRANSFERS_AUTHORITY", edge["invariants"])
-
-    def test_prospective_freeze_requires_execution_frontier(self):
-        fields = set(
-            self.load_contract()["primitives"]["PROSPECTIVE_FREEZE_RECEIPT"]["required_fields"]
-        )
-        self.assertTrue(
-            {
-                "frozen_subject",
-                "freeze_artifact_subject",
-                "freeze_observed_at",
-                "outcome_visibility_frontier",
-                "execution_frontier",
-            }.issubset(fields)
-        )
 
     def test_anti_target_leakage_covers_producer_payload_projector_and_evaluator(self):
         stages = self.load_contract()["primitives"]["ANTI_TARGET_LEAKAGE_CHAIN"]["required_stages"]
