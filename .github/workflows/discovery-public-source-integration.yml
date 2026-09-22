@@ -1,0 +1,27 @@
+name: Discovery public source integration validation
+
+on:
+  pull_request:
+    paths:
+      - "architecture/VERA_RUNTIME_SOURCE_REGISTRY_V1.json"
+      - "tests/test_runtime_cohesion_live_sources.py"
+      - ".github/workflows/discovery-public-source-integration.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate Vera runtime source registry
+        run: >-
+          python -m unittest
+          tests.test_runtime_cohesion_live_sources.RuntimeSourceRegistryTests
+          -v
+      - name: Compile touched runtime source validation
+        run: python -m py_compile runtime_cohesion/live_sources.py tests/test_runtime_cohesion_live_sources.py
