@@ -115,6 +115,18 @@ class CohesionCleanSuccessorBindingTests(unittest.TestCase):
                 repository_root=ROOT,
             )
 
+    def test_source_registry_required_entries_cannot_be_silently_dropped(self):
+        record = self.record()
+        mutated = deepcopy(record)
+        mutated["source_registry"]["required_entries"].pop()
+        with self.assertRaisesRegex(ValueError, "source registry required-entry binding mismatch"):
+            validate_clean_successor(
+                mutated,
+                ownership_path=OWNERSHIP_PATH,
+                binding_path=BINDING_PATH,
+                repository_root=ROOT,
+            )
+
     def test_source_cannot_claim_install_or_qualification(self):
         record = self.record()
         for key in ("installation", "current_route", "behavioral_qualification", "provider_currentness"):
