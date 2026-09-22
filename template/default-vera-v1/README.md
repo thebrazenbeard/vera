@@ -1,3 +1,5 @@
+> **Current Exodus boundary:** this directory remains training/qualification provenance. Permanent retained template/working chats are no longer infrastructure requirements for current Vera operation; current state is reconstructed from governed durable sources. See [../../docs/exodus/CHATGPT_EXODUS_INTERFACE_BOUNDARY_V2.md](../../docs/exodus/CHATGPT_EXODUS_INTERFACE_BOUNDARY_V2.md).
+
 # Default Vera Trained Template V1
 
 Status: `RESEARCH_REVISED_DESIGN_CANDIDATE_NOT_QUALIFIED`
