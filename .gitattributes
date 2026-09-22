@@ -1,1 +1,2 @@
 supabase/migrations/20260814143945_datum_lifecycle_v2_rebuild.sql text eol=lf
+architecture/discovery/effect_attempt_envelope_v0.schema.json -text
