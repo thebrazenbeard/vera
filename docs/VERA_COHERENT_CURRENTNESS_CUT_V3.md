@@ -7,7 +7,9 @@ This V3 source candidate is the clean current-main successor to the reviewed-but
 - PR #147 @ `e291b2e07357884be97a41f604726b393484017b` — CHANGES_REQUIRED;
 - PR #148 @ reviewed head `0111602eff64e70f91dfee1f9c8f7bc3824f627f` — CHANGES_REQUIRED.
 
-The successor is based on Vera main `c335aad4281517b573d98e7ad2700db260c9fe9e`.\n\nAfter this base was bound, live `main` advanced to `d696e659853ab12bb0a3f0cefb2022b3f8a45e32`. The observed upstream delta does not touch the V3 paths, but this document therefore does not claim the branch is still zero-behind current main. Review remains exact-head/source-subject review; a later integration/currentness gate must refresh live main again.
+The successor is based on Vera main `c335aad4281517b573d98e7ad2700db260c9fe9e`.
+
+After this base was bound, live `main` advanced to `d696e659853ab12bb0a3f0cefb2022b3f8a45e32`. The observed upstream delta does not touch the V3 paths, but this document therefore does not claim the branch is still zero-behind current main. Review remains exact-head/source-subject review; a later integration/currentness gate must refresh live main again.
 
 ## What V3 fixes
 
@@ -63,13 +65,14 @@ Construction verifies that the predecessor:
 - has the exact same requirement-profile digest;
 - has the exact same scope digest;
 - has the exact same live-input digest;
+- has the exact same restored-frontier digest;
 - actually evaluates under this source implementation to `RETRY_AFFECTED_SURFACES`;
 - ends each required surface at exactly the frontier where the retry starts;
 - ends each required surface with exactly the result digest where the retry starts.
 
 The retry payload/digest embeds both the predecessor cut digest and the full predecessor payload.
 
-This cross-attempt join matters: without it, a predecessor could observe `A -> B`, the world could move unobserved to `C`, and a retry could observe `C -> C` and incorrectly call the sequence stable. V3 R2 now rejects that hidden gap for every required surface, and it rejects changing the live-input subject between attempts.
+This cross-attempt join matters: without it, a predecessor could observe `A -> B`, the world could move unobserved to `C`, and a retry could observe `C -> C` and incorrectly call the sequence stable. V3 R2 now rejects that hidden gap for every required surface, rejects changing the live-input subject between attempts, and rejects switching restored-state frontier between attempts.
 
 This prevents an arbitrary 64-character digest, unrelated profile/scope cut, stable predecessor, or wrong-family object from laundering retry ancestry.
 
@@ -96,7 +99,7 @@ Every decision remains explicitly non-promoting:
 
 ## Focused hostile suite
 
-The focused suite contains 31 cases covering:
+The focused suite contains 32 cases covering:
 
 - stable required cuts;
 - incomplete required surfaces;
@@ -116,13 +119,14 @@ The focused suite contains 31 cases covering:
 - predecessor that does not evaluate to `RETRY_AFFECTED_SURFACES`;
 - predecessor digest/payload derivation from the actual supplied cut;
 - retry live-input continuity;
+- restored-frontier continuity across attempts;
 - hidden frontier gaps between predecessor end and retry start;
 - hidden result-digest gaps between predecessor end and retry start;
 - retry cut-ID reuse;
 - stable retry becoming `CURRENT`;
 - repeated retry movement becoming `UNSTABLE_UNKNOWN`.
 
-The predecessor V3 working tree passed **27/27** focused tests before the cross-attempt continuity repair. That PASS does **not** transfer to the current head. The current source contains 31 focused cases, but exact-head execution is presently unavailable because hosted Actions is failing before runner steps begin and the alternate remote execution path is quota-paused.
+The predecessor V3 working tree passed **27/27** focused tests before the cross-attempt continuity repair. That PASS does **not** transfer to the current head. The current source contains 32 focused cases, but exact-head execution is presently unavailable because hosted Actions is failing before runner steps begin and the alternate remote execution path is quota-paused.
 
 ## Claim ceiling
 
@@ -131,7 +135,8 @@ This source candidate can establish deterministic currentness semantics over sup
 - profile-governed surface inventory;
 - profile-governed readback-source contracts;
 - start/end result comparison;
-- structural retry lineage over the supplied predecessor cut itself.
+- structural retry lineage over the supplied predecessor cut itself;
+- cross-attempt binding of the same live input and restored frontier.
 
 It does not establish:
 
