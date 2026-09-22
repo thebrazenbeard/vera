@@ -118,3 +118,56 @@ Any unresolved member or dependency leaves the whole cohort on hold.
 ## Non-effects
 
 This audit does not archive a repository, close or merge any pull request, change repository settings, mutate Supabase, install Project files, or claim behavioral qualification.
+
+
+---
+
+## RepairQuest currentness addendum — 2026-09-22
+
+This addendum updates mutable currentness observations without rewriting the 2026-09-15 audit record.
+
+### Live external repositories
+
+The machine registry now separates canonical/default-branch observations from material open candidates.
+
+Fresh observations:
+
+- `mediaphile`: canonical `main@7e658d5f92b099b55fe91508e3ba8a8b343163d5`; active consolidation candidate PR #3 at `113b4d05f5601083ec22877cd4702ed95d9caad6`.
+- `trek-data-core`: canonical `main@b805f441c896fe7cbc913cbdaaefed11928a963f`; no open candidate observed.
+- `Attune`: canonical `main@eff6f9eb250a6f7684459eadf0695340053201da`; the former placeholder state is obsolete because the foundation/influence-memory contracts have landed; no open candidate observed.
+- `personification`: canonical `main@47955e7155f48a4b63122096de1dd6a59c723ad1`; active Vera self-appraisal candidate PR #1 at `1eef4958bb2951d532485d2a44ecd835c316d4e0`.
+
+An `active_candidate` is candidate evidence only. It never replaces canonical source merely because it is newer or open, and it must be fresh-read before material use.
+
+### Retirement-candidate currentness
+
+The topology now records current candidate state separately from the original classification cut:
+
+- `orgasm`: canonical `main@eea5932031a43104199981fee8c5ac0d942508a4`; active reconciliation PR #5 at `3b9b42874ce67c87950747e63a67a718cf420be5`; retirement readiness remains **NOT ESTABLISHED** while active successor work remains.
+- `temporal`: canonical `main@02f1091d359866e1b1b645b87651750c726a6396`; no open PR candidate observed; archive remains blocked by Patrick's all-seven hold and by the wider dependency/reconstructibility gates.
+- `sexuality`: canonical `main@efab00be36e57ca6593d648e38f6127006210f9d`; active SD1 PR #4 at `103cb0602fd507f4e1f947c5d2a3fe3848304703`.
+
+### Typed dependency edges
+
+The machine topology now records dependency edges independently of repository lifecycle labels.
+
+Current observed edges include:
+
+1. Sexuality PR #4 -> Vera PR #120, `SOURCE_INPUT`, required for the Vera SD1 component binding.
+2. Vera PR #120 -> Orgasm PR #5, `QUALIFICATION_PREREQUISITE`, required only for SD1-bearing Orgasm successor qualification.
+3. Deep Memory `main@f073feb409f71a0fdea7baa9053e54bcf8ed89a0` -> Vera current main, `HISTORICAL_EVIDENCE`, task-conditional rather than always active.
+4. Personification canonical main -> Attune canonical main, `RESEARCH_REFERENCE`, optional comparison only.
+5. WIP PR #3 `272a9ab40bbf1bd38aed8caeef62a85b89cc10ee` -> Vera current main, `RESEARCH_REFERENCE`, optional future inference-boundary research.
+
+These edges do **not** grant the provider repository authority over the consumer. Provider currentness and consumer currentness remain independent. Candidate source does not become canonical through an edge.
+
+### Repair disposition
+
+The earlier review findings are therefore addressed at source level:
+
+- the live-external registry no longer hides material candidate work behind canonical-main-only observations;
+- candidate state is separately typed and explicitly noncanonical;
+- dependency edges now have class, exact observed subjects, required/optional scope, currentness policy, and promotion guard;
+- retirement/readiness logic can distinguish repository lifecycle from unresolved required dependencies.
+
+This addendum performs no archive, merge, provider mutation, install, route activation, memory admission, or qualification effect.
