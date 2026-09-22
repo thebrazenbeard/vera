@@ -1,18 +1,26 @@
-import copy
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import unittest
 
-from runtime_cohesion.project_runner_proof_validation import (
-    ProjectRunnerProofError,
-    validate_currentness_exhaustion_receipt,
-    validate_prospective_freeze_receipt,
-)
-
-
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "architecture" / "VERA_PROJECT_RUNNER_COHERENCE_V1.json"
+VALIDATOR_PATH = ROOT / "runtime_cohesion" / "project_runner_proof_validation.py"
+
+_spec = importlib.util.spec_from_file_location(
+    "vera_project_runner_proof_validation", VALIDATOR_PATH
+)
+if _spec is None or _spec.loader is None:
+    raise RuntimeError("unable to load Project Runner proof validator")
+_validator = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_validator)
+
+ProjectRunnerProofError = _validator.ProjectRunnerProofError
+validate_currentness_exhaustion_receipt = (
+    _validator.validate_currentness_exhaustion_receipt
+)
+validate_prospective_freeze_receipt = _validator.validate_prospective_freeze_receipt
 
 EXPECTED_PRIMITIVES = {
     "CURRENTNESS_EXHAUSTION_RECEIPT",
