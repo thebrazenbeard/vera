@@ -13,17 +13,35 @@ DriftGuard:
 - PR #31 exact head: `9df4800d81ab2e937ffa97263b8095305a845661`
   - atomic reload-currentness readback
   - exact local claim: `SINGLE_SQLITE_BEGIN_IMMEDIATE_CURRENTNESS_SNAPSHOT_ONLY`
-- PR #32 exact head: `fb810b21612e6c1a935ff108602f76f4fbdaaf68`
+- PR #32 exact head: `8a81745b24278e6e2e948115ae6ff3ada56c250b`
   - design-only durable effect fence / authorization CAS
-- PR #34 exact head: `1f4779800a9f45ae0a499823c7c1757f7103e4ab`
+- PR #34 exact head: `351b7a57b7213bd72cf881aa2bbaa449fb0fbc8f`
   - R11 governed benchmark attempts / holdout / single-use execution
 
 Vera:
-- `thebrazenbeard/vera@4866543d524399c7730a4ebb724c15aa541f80b9`
-- `thebrazenbeard/vera-control-plane@946e7846922999b22f323e559ba0e6290e9a5733`
+- `thebrazenbeard/vera@6388f9e2564795530db35728f42d5ab9f50275ae`
+- `thebrazenbeard/vera-control-plane@505c395890bde275cbbc6327be8f387e7f25ca3a`
 - inherited recovery owner:
   `thebrazenbeard/vera-control-plane@2d60cd8e87ac0aae89a5a9bd9a44bfb63f48aa64:project-instructions/r10a0/rounds/r4/VERA_R10A0_DOMAIN_CONTROLS_R4.md#REC_RECOVERY`
 - R10A2 restore-hardening source remains a source candidate, not installation/runtime proof.
+
+## Current-source refresh — 2026-09-22
+
+The original transferability pass bound earlier PR #32/#34 heads. Both moved materially after that pass.
+
+Fresh bindings now incorporate:
+
+- PR #32 `8a81745b...`: same-database/same-connection/same-transaction local CAS boundaries, a factory-gated single-use dispatch permit, and an explicit **two-key dispatch boundary**:
+  `CURRENT_PROTECTED_EFFECT_AUTHORITY AND EXACT_SINGLE_USE_DISPATCH_PERMIT`.
+  A permit is mechanical eligibility only; authority is independently current and externally supplied.
+- PR #34 `351b7a57...`: a durable `EXECUTING` state, single-use execution claim, rejection of operator abort/invalidation after the execution claim, cross-study binding checks, semantic-failure invalidation, and conservative handling of ambiguous completion that blocks successor retry.
+
+These changes strengthen rather than reverse the prior Vera dispositions. They add two explicit transfer rules:
+
+- `DISPATCH_PERMIT != PROTECTED_EFFECT_AUTHORITY`;
+- `EXECUTING_OR_AMBIGUOUS != RETRY_AUTHORITY`.
+
+They also sharpen the Vera requirement that authority/currentness be rechecked at the actual provider send boundary when it can change after reservation.
 
 ## Executive conclusion
 
@@ -147,7 +165,7 @@ Vera adaptation must additionally bind:
 - post-effect readback;
 - explicit effect claim ceiling.
 
-Mechanical reservation is never authority.
+Mechanical reservation is never authority. A single-use dispatch permit is also never authority; protected dispatch requires the exact mechanical permit and separately current external protected-effect authority.
 
 If Patrick's authority, target currentness, installation route, writer ownership, or provider precondition changes after reservation but before dispatch, dispatch must fail closed and require re-admission.
 
@@ -307,6 +325,24 @@ Behavioral anomaly or distribution shift fires.
 
 Required:
 - no inference of consciousness, hidden identity change, external contact, ontological anomaly, or causal model event.
+
+### VDG-13 — authority moves after reservation, before send
+
+A reservation and single-use mechanical permit are valid, but current protected-effect authority is revoked, expires, or changes before network I/O.
+
+Required:
+- do not dispatch on permit alone;
+- recheck the independently current authority at the provider send boundary;
+- missing/stale/mismatched authority blocks the effect without converting the reservation into authority.
+
+### VDG-14 — execution completion is ambiguous after one-shot claim
+
+A governed benchmark execution claim has been consumed and durable state is `EXECUTING`, but completion persistence is ambiguous.
+
+Required:
+- do not operator-abort/invalidate merely to manufacture a retry;
+- do not start a successor attempt while the active attempt is unresolved;
+- reconcile durable completion state or preserve typed uncertainty.
 
 ### VDG-12 — local ledger replacement
 
