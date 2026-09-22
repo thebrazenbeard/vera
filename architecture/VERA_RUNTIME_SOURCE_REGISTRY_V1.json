@@ -360,6 +360,70 @@
       "authority_ceiling": "Portfolio census, relationship hypotheses, reuse/deduplication experiments, and drift evidence only; Discovery does not own project semantics, control, runtime activation, or adoption authority.",
       "privacy_class": "PUBLIC_SAFE_META_EVIDENCE",
       "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/Attune",
+      "runtime_role": "RELATIONSHIP_COMPANION_ARCHITECTURE_SOURCE",
+      "activation_mode": "EXPLICIT_TASK_RETRIEVAL",
+      "authority_ceiling": "Product/relationship architecture evidence only; no automatic Vera identity, sexuality, consent, preference, or relationship-state transfer.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/god-brain",
+      "runtime_role": "EXPERIMENTAL_COGNITIVE_ARCHITECTURE_SOURCE",
+      "activation_mode": "MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Experimental cognition and extreme reasoning architecture only; metaphysical hypotheses are not Vera runtime truth or authority.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/hc-brain",
+      "runtime_role": "GENERIC_COGNITIVE_TEMPLATE_SOURCE",
+      "activation_mode": "MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Generic Hyperconnectome architecture may inform Vera mechanisms but cannot hydrate Vera identity, memory, preferences, or current state.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/on-theo",
+      "runtime_role": "HISTORICAL_RELIGIOUS_RESEARCH_SOURCE",
+      "activation_mode": "EXPLICIT_TASK_RETRIEVAL",
+      "authority_ceiling": "Historical/source-critical religious research only; no automatic belief, identity, memory, or worldview promotion.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/roots",
+      "runtime_role": "PROVENANCE_ORIGIN_TRACING_SOURCE",
+      "activation_mode": "EXPLICIT_TASK_RETRIEVAL",
+      "authority_ceiling": "Origin/derivation tracing evidence only; inferred provenance remains bounded by retrieved records and does not self-authorize corrections.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/testament",
+      "runtime_role": "LITERARY_RELIGIOUS_SYNTHESIS_SOURCE",
+      "activation_mode": "EXPLICIT_TASK_RETRIEVAL",
+      "authority_ceiling": "Literary/source-critical synthesis only; no automatic historical-truth, belief, identity, or memory promotion.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/voss",
+      "runtime_role": "AUDIT_AND_HOSTILE_REVIEW_SOURCE",
+      "activation_mode": "REVIEW_ONLY",
+      "authority_ceiling": "Forensic audit/review evidence only; review output does not grant authority, merge, activation, or runtime truth.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/world-zero",
+      "runtime_role": "SYSTEMS_MODELING_RESEARCH_SOURCE",
+      "activation_mode": "EXPLICIT_TASK_RETRIEVAL",
+      "authority_ceiling": "Systems-modeling and scientific comparison evidence only; scenario/model output is not Vera world-state truth.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false
     }
   ],
   "unbound_repositories": [
@@ -367,12 +431,6 @@
       "repository": "thebrazenbeard/project-lantern",
       "activation_mode": "NO_AUTO_BIND",
       "reason": "Separate project; R10 says no integration absent exact binding.",
-      "availability_implies_activation": false
-    },
-    {
-      "repository": "thebrazenbeard/voss",
-      "activation_mode": "NO_AUTO_BIND",
-      "reason": "Archived/external identity source; no current Vera runtime binding.",
       "availability_implies_activation": false
     },
     {
@@ -391,12 +449,6 @@
       "repository": "thebrazenbeard/trek-data-core",
       "activation_mode": "NO_AUTO_BIND",
       "reason": "Application/domain data project, not Vera runtime cognition.",
-      "availability_implies_activation": false
-    },
-    {
-      "repository": "thebrazenbeard/hc-brain",
-      "activation_mode": "NO_AUTO_BIND",
-      "reason": "Generic Hyperconnectome template; intentionally not a Vera identity/runtime instance.",
       "availability_implies_activation": false
     },
     {
@@ -442,51 +494,15 @@
       "availability_implies_activation": false
     },
     {
-      "repository": "thebrazenbeard/Attune",
-      "activation_mode": "NO_AUTO_BIND",
-      "reason": "Unassessed specialist/research repository; fail closed pending exact Vera-specific classification.",
-      "availability_implies_activation": false
-    },
-    {
       "repository": "thebrazenbeard/wreckforge",
       "activation_mode": "NO_AUTO_BIND",
       "reason": "Creative/domain project; no automatic Vera runtime or control binding.",
       "availability_implies_activation": false
     },
     {
-      "repository": "thebrazenbeard/roots",
-      "activation_mode": "NO_AUTO_BIND",
-      "reason": "Independent public research/source project; no current Vera runtime binding.",
-      "availability_implies_activation": false
-    },
-    {
-      "repository": "thebrazenbeard/world-zero",
-      "activation_mode": "NO_AUTO_BIND",
-      "reason": "Independent science/research project; evidence may be consulted by task, but no automatic Vera runtime binding.",
-      "availability_implies_activation": false
-    },
-    {
-      "repository": "thebrazenbeard/on-theo",
-      "activation_mode": "NO_AUTO_BIND",
-      "reason": "Independent theology/research project; no automatic Vera runtime or self-state binding.",
-      "availability_implies_activation": false
-    },
-    {
       "repository": "thebrazenbeard/firesafe",
       "activation_mode": "NO_AUTO_BIND",
       "reason": "Safety/project source not yet admitted into Vera runtime architecture; fail closed pending exact binding.",
-      "availability_implies_activation": false
-    },
-    {
-      "repository": "thebrazenbeard/testament",
-      "activation_mode": "NO_AUTO_BIND",
-      "reason": "Independent research/manuscript project; no automatic Vera runtime binding.",
-      "availability_implies_activation": false
-    },
-    {
-      "repository": "thebrazenbeard/god-brain",
-      "activation_mode": "NO_AUTO_BIND",
-      "reason": "Separate speculative research/cognitive-architecture project. Portfolio synthesis does not automatically bind it into Vera identity, memory, control, provider state, or runtime.",
       "availability_implies_activation": false
     }
   ],
@@ -710,5 +726,27 @@
     "semantics": "DISCOVERY_IS_PRIVACY_SAFE_DRIFT_AND_REUSE_EVIDENCE_NOT_PORTFOLIO_AUTHORITY",
     "promotion_guard": "A matching inventory digest establishes exact repository-name census continuity only for the compared observation. A historical Discovery census may remain internally valid while live owner inventory has drifted. Discovery hypotheses, lifecycle labels, reuse candidates, or source validation do not grant Vera control, provider, runtime, merge, install, or adoption authority.",
     "currentness_rule": "The bound Discovery census remains valid historical/source evidence at its exact 57-repository subject. A fresh owner inventory is a separate mutable currentness observation; count/digest drift must not rewrite the historical receipt or be described as an exact current match."
+  },
+  "discovery_implementation_binding": {
+    "schema": "VERA_DISCOVERY_IMPLEMENTATION_BINDING_V1",
+    "status": "SOURCE_INTEGRATION_BINDING_NOT_INSTALLATION_NOT_RUNTIME_QUALIFICATION",
+    "discovery_repository": "thebrazenbeard/discovery",
+    "discovery_pr": 39,
+    "discovery_head": "67a65c28a9d7c2d90acb616f8de9c90cd6e1c0fd",
+    "implementation_map_path": "architecture/DISCOVERY_VERA_VCP_IMPLEMENTATION_MAP_V1.json",
+    "public_subject_count": 23,
+    "promoted_from_unbound_count": 8,
+    "promoted_repositories": [
+      "thebrazenbeard/Attune",
+      "thebrazenbeard/god-brain",
+      "thebrazenbeard/hc-brain",
+      "thebrazenbeard/on-theo",
+      "thebrazenbeard/roots",
+      "thebrazenbeard/testament",
+      "thebrazenbeard/voss",
+      "thebrazenbeard/world-zero"
+    ],
+    "semantics": "Discovery classifies and prepares portfolio implementation into Vera/VCP; source registration creates governed reachability only and does not imply installation, runtime consumption, behavioral qualification, identity transfer, or control authority.",
+    "vcp_frontier_rule": "Discovery VCP dispositions create review frontiers only; VCP release/control binding remains separately exact-source and qualification governed."
   }
 }
