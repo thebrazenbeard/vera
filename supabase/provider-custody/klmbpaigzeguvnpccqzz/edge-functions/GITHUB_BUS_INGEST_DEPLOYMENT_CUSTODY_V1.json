@@ -1,0 +1,64 @@
+{
+  "schema": "VERA_SUPABASE_EDGE_FUNCTION_DEPLOYMENT_CUSTODY_V1",
+  "logical_id": "GITHUB_BUS_INGEST_DEPLOYMENT_CUSTODY",
+  "observed_date": "2026-09-22",
+  "provider": {
+    "project_ref": "klmbpaigzeguvnpccqzz",
+    "function_slug": "github-bus-ingest",
+    "function_id": "0116b31d-91bd-4a49-b0fc-d055450c0463",
+    "version": 5,
+    "status": "ACTIVE",
+    "verify_jwt": false,
+    "ezbr_sha256": "07a117919e985a8566d2ffa8bab9565c560b630d8448c0987ac29ec16a4b559a"
+  },
+  "exact_source_binding": {
+    "repository": "thebrazenbeard/chat-communication-bus",
+    "active_pr": 325,
+    "source_head": "640b44c4b715d870b6d5efcdb64ff447eec64467",
+    "function_tree": "79c2adca77485d848c16bfa03d457d08eba992e6",
+    "files": {
+      "handler.ts": {
+        "blob": "cc7cd56632e21c34ec861797db43b60f83977d9b",
+        "live_byte_match": true
+      },
+      "index.ts": {
+        "blob": "2972c6915b0fec2b8b6082e6da9d7a3c87be929b",
+        "live_byte_match": true
+      },
+      "deno.json": {
+        "blob": "b717027d0dbca1ed7cf7f362f16a33cfc5c6da99",
+        "live_byte_match": true
+      },
+      "deno.lock": {
+        "blob": "7fe9650c1ea2258877f55e254d3835cc0927c667",
+        "provider_file_not_returned_source_build_input": true
+      },
+      "../config.toml": {
+        "blob": "bf0435948bd70f47bdd43c6e4925078d8ef252eb",
+        "provider_verify_jwt_matches": false
+      }
+    },
+    "source_custody_blob": "190f7982eb78cde89303c383593d0241fa1053b4",
+    "qualification_contract_blob": "628a365b42b5e00b20ba1dc8252b0010189e9f5b"
+  },
+  "canonical_currentness": {
+    "bus_main_at_observation": "f9179bd1426bf90c23ab6a4d14d5a8e9b39c66d2",
+    "bus_main_handler_blob": "d5d9d33743ad1dd81b7e8f05557e3d8c9c98405d",
+    "live_matches_bus_main_handler": false,
+    "live_matches_active_pr325_head": true,
+    "canonical_source_resolution": "PENDING_BUS_PR_325_RECONCILIATION",
+    "independent_source_mutation_forbidden": true
+  },
+  "qualification": {
+    "source_contract_status": "LOCAL_EXECUTION_PENDING",
+    "deployed_active_is_not_source_qualification": true,
+    "provider_deployment_is_not_canonical_source_promotion": true
+  },
+  "claim_ceiling": [
+    "LIVE_DEPLOYMENT_SOURCE_BOUND",
+    "EXACT_HANDLER_INDEX_DENO_JSON_PARITY",
+    "ACTIVE_PR_SOURCE_NOT_CANONICAL_MAIN",
+    "NO_COMPETING_SOURCE_MUTATION",
+    "NO_QUALIFICATION_PROMOTION"
+  ]
+}

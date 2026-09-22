@@ -6,13 +6,13 @@
     "role": "SHARED_RUNTIME_COMPOSITION_TARGET"
   },
   "baseline": {
-    "observed_cut": "2026-09-21",
-    "provider_inventory": "supabase/provider-custody/klmbpaigzeguvnpccqzz/VERA_FULL_PROVIDER_LEDGER_CUSTODY_V2.json",
-    "provider_migration_count": 97,
+    "observed_cut": "2026-09-22",
+    "provider_inventory": "supabase/provider-custody/klmbpaigzeguvnpccqzz/VERA_FULL_PROVIDER_LEDGER_CUSTODY_V3.json",
+    "provider_migration_count": 98,
     "first_version": "20260729012911",
-    "last_version": "20260921202237",
+    "last_version": "20260922171230",
     "executable_directory": "supabase/migrations",
-    "invariant": "EXECUTABLE_BASELINE_IDENTITIES_AND_BYTES_EQUAL_PROVIDER_LEDGER"
+    "invariant": "EXECUTABLE_IDENTITIES_AND_CUSTODY_BYTES_MATCH_BOUND_PROVIDER_OR_APPLIED_OWNER_SOURCE_EVIDENCE"
   },
   "ownership": {
     "composition_repository": "thebrazenbeard/vera",
@@ -71,5 +71,13 @@
     "NO_HISTORICAL_AUTHORSHIP_FABRICATION",
     "NO_PROVIDER_REPLAY_BY_GIT_REPAIR",
     "NO_AUTOMATIC_AUTHORITY_TRANSFER"
-  ]
+  ],
+  "runtime_bindings": {
+    "github_bus_ingest": {
+      "custody": "supabase/provider-custody/klmbpaigzeguvnpccqzz/edge-functions/GITHUB_BUS_INGEST_DEPLOYMENT_CUSTODY_V1.json",
+      "source_repository": "thebrazenbeard/chat-communication-bus",
+      "source_state": "EXACT_ACTIVE_PR_HEAD_BOUND_NONCANONICAL_MAIN",
+      "collision_boundary": "BUS_PR_325_OWNS_FUNCTION_SOURCE_PATHS"
+    }
+  }
 }

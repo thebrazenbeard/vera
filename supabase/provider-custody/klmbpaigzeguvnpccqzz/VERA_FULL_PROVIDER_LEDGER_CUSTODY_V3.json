@@ -1,0 +1,1037 @@
+{
+  "schema": "VERA_SUPABASE_FULL_PROVIDER_LEDGER_CUSTODY_V3",
+  "supersedes_manifest": "supabase/provider-custody/klmbpaigzeguvnpccqzz/VERA_FULL_PROVIDER_LEDGER_CUSTODY_V2.json",
+  "provider": {
+    "kind": "SUPABASE_POSTGRES",
+    "project_id": "klmbpaigzeguvnpccqzz",
+    "project_name": "Vera"
+  },
+  "observed_cut": {
+    "date": "2026-09-22",
+    "migration_count": 98,
+    "first_version": "20260729012911",
+    "last_version": "20260922171230",
+    "predecessor_count": 97,
+    "newly_recovered_count": 1
+  },
+  "semantics": {
+    "provider_custody": "MIXED_EXACT_PROVIDER_LEDGER_CUSTODY_AND_EXACT_OWNER_SOURCE_APPLIED_VIA_GITHUB_INTEGRATION",
+    "predecessor_provider_custody": "97 EXACT_APPLIED_SQL SOURCES RECOVERED FROM SUPABASE MIGRATION LEDGER",
+    "new_effect_custody": "EXACT BUS OWNER SOURCE + PROVIDER MIGRATION IDENTITY + LIVE EFFECT READBACK",
+    "historical_git_origin": "NOT_INFERRED_WHERE_NOT_EXACTLY_BOUND",
+    "stronger_existing_source_bindings": "MAY_EXIST_AND_REMAIN_VALID_SEPARATE_EVIDENCE",
+    "provider_effect": "98TH EFFECT APPLIED BY EXISTING GITHUB_TO_SUPABASE INTEGRATION AFTER SOURCE MERGE; NO DUPLICATE MANUAL REPLAY"
+  },
+  "migrations": [
+    {
+      "version": "20260729012911",
+      "name": "initialize_vera_save_state_ledger",
+      "statement_count": 1,
+      "provider_bytes": 3578,
+      "provider_sha256": "6f75d8dc4146af0483e7967a075e458401769e6d9e2ac013e399ada74ca35ffa",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260729012911_initialize_vera_save_state_ledger.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260729013307",
+      "name": "harden_vera_save_state_trigger",
+      "statement_count": 1,
+      "provider_bytes": 487,
+      "provider_sha256": "c8ad70d3b94008a582d390024439af54178e4bcbcc2ed04ee435636adcbc36dd",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260729013307_harden_vera_save_state_trigger.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260729094322",
+      "name": "harden_vera_save_state_access",
+      "statement_count": 1,
+      "provider_bytes": 1263,
+      "provider_sha256": "0a7595b4df1a0ea1861de6568342a57262c80b567ec8fbf293687d82f28ef1e0",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260729094322_harden_vera_save_state_access.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260729125913",
+      "name": "add_vera_branch_coordination_ledger",
+      "statement_count": 1,
+      "provider_bytes": 5540,
+      "provider_sha256": "5875df2edfaca285046137e70707e5165d16c52d0492eb0b7e55e9dfb9522112",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260729125913_add_vera_branch_coordination_ledger.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260730191337",
+      "name": "add_neutral_vera_context_v3",
+      "statement_count": 1,
+      "provider_bytes": 2916,
+      "provider_sha256": "d040cf70d2512d7fb98856b8e0c946f4d8d90b65a4be0b78b979597eb6fdd312",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260730191337_add_neutral_vera_context_v3.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260730191421",
+      "name": "harden_neutral_vera_context_v3_access",
+      "statement_count": 1,
+      "provider_bytes": 1192,
+      "provider_sha256": "8a36530a8e6c5945f283734823436a39ab26e03b2ce3c46e3e3a844b92fc0c2c",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260730191421_harden_neutral_vera_context_v3_access.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260730191641",
+      "name": "complete_neutral_vera_context_v3_hardening",
+      "statement_count": 1,
+      "provider_bytes": 2348,
+      "provider_sha256": "3e297002c7409ce53b2d011001eafa689c3fd82bdbc46b00bc56d355a48a624d",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260730191641_complete_neutral_vera_context_v3_hardening.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260731233832",
+      "name": "create_vera_portable_bootstrap_registry_v1",
+      "statement_count": 1,
+      "provider_bytes": 10397,
+      "provider_sha256": "5ef06b1c881806eb429033b2bf38985f9b3cddf0f717ad83c0cb8a210c199f98",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260731233832_create_vera_portable_bootstrap_registry_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260804094928",
+      "name": "create_build_team_2_hivemind",
+      "statement_count": 1,
+      "provider_bytes": 6969,
+      "provider_sha256": "5631d2a5abfaea84aa3fcaefbd5f3d317cc149c43a2a7ac4ffe6ee29f5b0949e",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260804094928_create_build_team_2_hivemind.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260804100227",
+      "name": "harden_build_team_2_rls",
+      "statement_count": 1,
+      "provider_bytes": 642,
+      "provider_sha256": "fb220b5414ab66383ee987637bfde753bb148bcb3841f2aced55a3ebde9cc79f",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260804100227_harden_build_team_2_rls.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260804101423",
+      "name": "bt2_identity_and_rpc",
+      "statement_count": 1,
+      "provider_bytes": 5881,
+      "provider_sha256": "2b5c6a8cbad52dcce18c9ee5b121c8a07190cafd9be365c09f2f9368bb296bb6",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260804101423_bt2_identity_and_rpc.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260804101848",
+      "name": "update_seven_experimental_science",
+      "statement_count": 1,
+      "provider_bytes": 470,
+      "provider_sha256": "c3f773b4863e6fda5078f5484131aebaef9174362a19a88cf7be305a7fa4d8a1",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260804101848_update_seven_experimental_science.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260808165224",
+      "name": "bug_ops_v1_verified",
+      "statement_count": 1,
+      "provider_bytes": 20560,
+      "provider_sha256": "30a272c9d1d2c8856425fb31478befedd01cd382a18f085682c742a81b2bb011",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260808165224_bug_ops_v1_verified.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260808190124",
+      "name": "bug_ops_v1_forward_verified_correction",
+      "statement_count": 1,
+      "provider_bytes": 25346,
+      "provider_sha256": "26ce47e20a54ca03f9fe369f4cbb5daa8e71842c15aff004834a31c9a176a0db",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260808190124_bug_ops_v1_forward_verified_correction.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260808190145",
+      "name": "bug_ops_v1_claim_generation_cas",
+      "statement_count": 1,
+      "provider_bytes": 2371,
+      "provider_sha256": "8a82d0876f9ac93e172bec76bc7bcc74ff6721df33c601ab5c1165c3339704ca",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260808190145_bug_ops_v1_claim_generation_cas.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260808190215",
+      "name": "bug_ops_v1_terminal_reopen_and_recovery_fix",
+      "statement_count": 1,
+      "provider_bytes": 10913,
+      "provider_sha256": "bdaf8937073613d84a4985ef9ee80f21b281789c380532ccc19aea43e8e785c3",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260808190215_bug_ops_v1_terminal_reopen_and_recovery_fix.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260808190343",
+      "name": "bug_ops_v1_operation_receipts_and_static_roles",
+      "statement_count": 1,
+      "provider_bytes": 18378,
+      "provider_sha256": "702198fad7fc74ff276398b0443ad730371a352d6b8da7cbb76718739b9a6f37",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260808190343_bug_ops_v1_operation_receipts_and_static_roles.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260808190403",
+      "name": "bug_ops_v1_disable_deprecated_entrypoints",
+      "statement_count": 1,
+      "provider_bytes": 3700,
+      "provider_sha256": "ec3810d2d7792e78418a36d6054e1b7f90dbc5b64f683f558796eab2225fbcab",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260808190403_bug_ops_v1_disable_deprecated_entrypoints.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260808190428",
+      "name": "bug_ops_v1_ack_currentness_and_truncate_guards",
+      "statement_count": 1,
+      "provider_bytes": 4764,
+      "provider_sha256": "b3add53d1cc5b17be994a9683e5ad28603454dceea41ccc5fc17af658f732ed7",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260808190428_bug_ops_v1_ack_currentness_and_truncate_guards.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260810135003",
+      "name": "redworm_runtime_status_v1",
+      "statement_count": 1,
+      "provider_bytes": 11887,
+      "provider_sha256": "8dc9c7e0d72b9aaf033b08683f1c7f0f2c7c312051d21e0c1851f76ed9669d4b",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260810135003_redworm_runtime_status_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260813102949",
+      "name": "bt2_one_working_laws_mutable_current_v1",
+      "statement_count": 1,
+      "provider_bytes": 923,
+      "provider_sha256": "27b734d90f7e53aaff7c3ff60132fca29b85fdbf3c4ee40821f16d185a1a1a3e",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260813102949_bt2_one_working_laws_mutable_current_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260814014702",
+      "name": "harden_vera_public_function_search_paths",
+      "statement_count": 1,
+      "provider_bytes": 1601,
+      "provider_sha256": "766da911e8964b5b96e14e9cbf1327c33391996534f5b50857181739935e190b",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260814014702_harden_vera_public_function_search_paths.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260814124623",
+      "name": "datum_registry_v1",
+      "statement_count": 1,
+      "provider_bytes": 12491,
+      "provider_sha256": "242f9a1d40f9c0de09b79ce2009a06732108387aa61c34e912027dc46cdfc7a5",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260814124623_datum_registry_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260814124655",
+      "name": "datum_registry_v1_current_view",
+      "statement_count": 1,
+      "provider_bytes": 594,
+      "provider_sha256": "a1e25e6c58a6f3be025c22743368ec20ff72c8d3418a6332856d039923838bb9",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260814124655_datum_registry_v1_current_view.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260814124757",
+      "name": "datum_registry_v1_fix_uuid_head_select",
+      "statement_count": 1,
+      "provider_bytes": 3203,
+      "provider_sha256": "5896715ef969b1b9ab8ff14eb641c78a2052809d4893c1907eb577c94ea39fde",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260814124757_datum_registry_v1_fix_uuid_head_select.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260814143945",
+      "name": "datum_lifecycle_v2_rebuild",
+      "statement_count": 1,
+      "provider_bytes": 21520,
+      "provider_sha256": "079c34aa9ca338d70172fea56cd5118859b9ed9820ed06789c046cff48afeae5",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260814143945_datum_lifecycle_v2_rebuild.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260817091444",
+      "name": "bt2_one_training_checkpoint_infrastructure_v1",
+      "statement_count": 1,
+      "provider_bytes": 7570,
+      "provider_sha256": "4594e2cdc9c84fa4e8dc809a32c0072709012a78838d5dd451f48679f52210d5",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260817091444_bt2_one_training_checkpoint_infrastructure_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260817091608",
+      "name": "bt2_one_checkpoint_integrity_guards_v1",
+      "statement_count": 1,
+      "provider_bytes": 1197,
+      "provider_sha256": "6b9e0e7bf097c8522d4dac8376b8997e533895d3577a609d1faa158e508005ac",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260817091608_bt2_one_checkpoint_integrity_guards_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260817091717",
+      "name": "bt2_one_bootstrap_snapshot_v1_fix",
+      "statement_count": 1,
+      "provider_bytes": 2400,
+      "provider_sha256": "c91fa506e14fec99f4b3853731a2f370e44b4abbe9bcc3bc0b046456b06d941e",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260817091717_bt2_one_bootstrap_snapshot_v1_fix.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260822144712",
+      "name": "bt2_347d_vera_view_hardening_v1",
+      "statement_count": 1,
+      "provider_bytes": 726,
+      "provider_sha256": "084e8b856472c7d8d3170a0260b0e947d2d7252b0ad9b61bee383a408fafc9a9",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260822144712_bt2_347d_vera_view_hardening_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260822223543",
+      "name": "semantic_atlas_runtime_capture_v1",
+      "statement_count": 1,
+      "provider_bytes": 10990,
+      "provider_sha256": "1daf4df87ef06a325199d79eec1cb1254da9d5c44055818f3790fb7b4861ec6c",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260822223543_semantic_atlas_runtime_capture_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260822223734",
+      "name": "semantic_atlas_snapshot_scope_v1_fix",
+      "statement_count": 1,
+      "provider_bytes": 1994,
+      "provider_sha256": "c8933075ffab37ed7c19eed77641c08a448101f81628646f60dbff7a6dc5ab6e",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260822223734_semantic_atlas_snapshot_scope_v1_fix.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260822224126",
+      "name": "semantic_atlas_runtime_capture_hardening_v2_fix",
+      "statement_count": 1,
+      "provider_bytes": 11417,
+      "provider_sha256": "fadf6e1a31b569f75a8fc52f7999a62623007bcd784f7d2147c4093b6c3fd85e",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260822224126_semantic_atlas_runtime_capture_hardening_v2_fix.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260822224828",
+      "name": "semantic_atlas_runtime_capture_hardening_v3",
+      "statement_count": 1,
+      "provider_bytes": 22187,
+      "provider_sha256": "74d9cafc354ab4e128e245394e47e43157815a6b3bbfbb1ff90cbc82f0b70398",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260822224828_semantic_atlas_runtime_capture_hardening_v3.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260822225106",
+      "name": "semantic_atlas_runtime_manifest_v2_readback_gate",
+      "statement_count": 1,
+      "provider_bytes": 12845,
+      "provider_sha256": "5f821a6e0745f76453e3989d67c3356e471e35a21ec8f76058129547b65b0d5c",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260822225106_semantic_atlas_runtime_manifest_v2_readback_gate.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823003143",
+      "name": "semantic_atlas_runtime_sealed_attempt_v4_fix",
+      "statement_count": 1,
+      "provider_bytes": 21131,
+      "provider_sha256": "41b4a2aa7b029a695790a5a103de9f1911a1f45e02457631eded1e584a85a9ee",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823003143_semantic_atlas_runtime_sealed_attempt_v4_fix.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823003901",
+      "name": "semantic_atlas_runtime_manifest_v3_transition_guard_v5",
+      "statement_count": 1,
+      "provider_bytes": 26876,
+      "provider_sha256": "e58594d1311e1fd247906d8a52d0d362a8c00205d4c5f31f76063cce160f2499",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823003901_semantic_atlas_runtime_manifest_v3_transition_guard_v5.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823005615",
+      "name": "semantic_atlas_runtime_repository_bound_manifest_v4_v6_fix",
+      "statement_count": 1,
+      "provider_bytes": 23352,
+      "provider_sha256": "bca1e67d0718ae35e594dbc9c027c90a4f3a42d95241a12d552b083b9ff36232",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823005615_semantic_atlas_runtime_repository_bound_manifest_v4_v6_fix.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823010022",
+      "name": "semantic_atlas_runtime_scoped_provenance_views_v6_fix",
+      "statement_count": 1,
+      "provider_bytes": 2092,
+      "provider_sha256": "d63688cf79088ca5b39a1725402c48fe42ddbe35d965af35884c76354e8a2978",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823010022_semantic_atlas_runtime_scoped_provenance_views_v6_fix.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823010215",
+      "name": "semantic_atlas_runtime_disable_legacy_repository_unbound_rpcs_v6_fix",
+      "statement_count": 1,
+      "provider_bytes": 5358,
+      "provider_sha256": "cbfe7a3de5da9c378b406f93823e55e5ad09d1119bd0f294ecba601a1bbe1327",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823010215_semantic_atlas_runtime_disable_legacy_repository_unbound_rpcs_v6_fix.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823010932",
+      "name": "semantic_atlas_runtime_current_read_gate_v1",
+      "statement_count": 1,
+      "provider_bytes": 2521,
+      "provider_sha256": "a87085d243d720aa32b617075dbf12625b774d4140d8bc6fc7f09f01f8f9feb2",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823010932_semantic_atlas_runtime_current_read_gate_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823011630",
+      "name": "semantic_atlas_runtime_current_search_v1",
+      "statement_count": 1,
+      "provider_bytes": 1778,
+      "provider_sha256": "8bf26f91c937be80930c13a1babeb300c576aefb6f424811ef53436aa42c2d99",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823011630_semantic_atlas_runtime_current_search_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823092321",
+      "name": "semantic_atlas_runtime_current_read_consistent_snapshot_v2_fix",
+      "statement_count": 1,
+      "provider_bytes": 2541,
+      "provider_sha256": "96ec5380f5ce7958c67bbc2ec2ecd069c05ca81dfbc5cf16347223094c108280",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823092321_semantic_atlas_runtime_current_read_consistent_snapshot_v2_fix.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823092434",
+      "name": "semantic_atlas_runtime_search_consistent_snapshot_v2_fix",
+      "statement_count": 1,
+      "provider_bytes": 122,
+      "provider_sha256": "42076191776a835bdd43db3ae1796fd686a521394c61dc83d716203faf614948",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823092434_semantic_atlas_runtime_search_consistent_snapshot_v2_fix.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823093204",
+      "name": "semantic_atlas_runtime_current_search_v2_broad_fallback",
+      "statement_count": 1,
+      "provider_bytes": 3113,
+      "provider_sha256": "a14cbcb6bc6f12f2ce83a81a479be12aad9419456fb80c0953db5c33d36227fa",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823093204_semantic_atlas_runtime_current_search_v2_broad_fallback.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823093414",
+      "name": "semantic_atlas_runtime_current_search_v3_ambiguity_signal",
+      "statement_count": 1,
+      "provider_bytes": 2032,
+      "provider_sha256": "95877ed2aa6e119a5fb7ed92749654c04b67d8977f98989e4a6bef2b28a59888",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823093414_semantic_atlas_runtime_current_search_v3_ambiguity_signal.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823094041",
+      "name": "semantic_atlas_runtime_current_search_v4_domain_separation",
+      "statement_count": 1,
+      "provider_bytes": 4344,
+      "provider_sha256": "9cb32f0d2c07d77c3d83a3b20eaf498ad8eebf54c0f9996694654f452c3c3a38",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823094041_semantic_atlas_runtime_current_search_v4_domain_separation.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823094118",
+      "name": "semantic_atlas_runtime_current_search_v4_domain_separation_fix",
+      "statement_count": 1,
+      "provider_bytes": 4297,
+      "provider_sha256": "da184daf90cc33c506ad8e9cd81a6cd94b43a2f7132b579b17cd38b186052cc3",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823094118_semantic_atlas_runtime_current_search_v4_domain_separation_fix.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823094305",
+      "name": "semantic_atlas_runtime_current_search_v5_explicit_type_scope",
+      "statement_count": 1,
+      "provider_bytes": 4759,
+      "provider_sha256": "bcd8970b000a5d8279ccd1634c745413642d1f0172ad17c31e6c8a9444aa761e",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823094305_semantic_atlas_runtime_current_search_v5_explicit_type_scope.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823094509",
+      "name": "semantic_atlas_runtime_current_search_v5_wildcard_reject_fix",
+      "statement_count": 1,
+      "provider_bytes": 4425,
+      "provider_sha256": "acc82cbe47786e983c5f5c837e052707f51fce01b535347e487b87214cdba7ae",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823094509_semantic_atlas_runtime_current_search_v5_wildcard_reject_fix.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823095525",
+      "name": "semantic_atlas_runtime_current_search_v6_prelimit_ambiguity_stats",
+      "statement_count": 1,
+      "provider_bytes": 4786,
+      "provider_sha256": "9e8e1b233e4993cedf360d327ba9d54bf1c826f75a01226919bd3ea466c1b5dd",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823095525_semantic_atlas_runtime_current_search_v6_prelimit_ambiguity_stats.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823101232",
+      "name": "semantic_atlas_runtime_current_search_v7_evidence_projection",
+      "statement_count": 1,
+      "provider_bytes": 5471,
+      "provider_sha256": "afbd7aa750ed0b4521eb42da3bcb7c446dad68115b94c013ac58a0c384970552",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823101232_semantic_atlas_runtime_current_search_v7_evidence_projection.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823105723",
+      "name": "semantic_atlas_runtime_current_search_v8_safe_result_projection",
+      "statement_count": 1,
+      "provider_bytes": 2494,
+      "provider_sha256": "192c95874ecac5cea4d2fccc1fb648565b78f967545459093464cb5580194835",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823105723_semantic_atlas_runtime_current_search_v8_safe_result_projection.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823110735",
+      "name": "semantic_atlas_runtime_current_search_v9_opaque_generator_projection",
+      "statement_count": 1,
+      "provider_bytes": 2137,
+      "provider_sha256": "a3c4127afb31330b9819a43e30a9e151fdef48b40e1eb236f371d12b207cf547",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823110735_semantic_atlas_runtime_current_search_v9_opaque_generator_projection.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823121232",
+      "name": "semantic_atlas_runtime_current_search_v10_english_fts",
+      "statement_count": 1,
+      "provider_bytes": 5873,
+      "provider_sha256": "365ca3ebc5cbf6f2a45664778d0beded40777966299783b6553cf66c337fce33",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823121232_semantic_atlas_runtime_current_search_v10_english_fts.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823140041",
+      "name": "semantic_atlas_runtime_current_search_v11_working_project_memory",
+      "statement_count": 1,
+      "provider_bytes": 6902,
+      "provider_sha256": "696da7591bd5653a2c30eabf347d93c9d7384485c826e60027ee0d3cb517dea9",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823140041_semantic_atlas_runtime_current_search_v11_working_project_memory.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823140448",
+      "name": "semantic_atlas_runtime_current_search_v11_cutover",
+      "statement_count": 1,
+      "provider_bytes": 304,
+      "provider_sha256": "297e7b62593ba6a366efd15e3c9f688defffe0b113c2fc0e1ec4c002719fb792",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823140448_semantic_atlas_runtime_current_search_v11_cutover.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260823162651",
+      "name": "semantic_atlas_empirical_v9_compat_v1",
+      "statement_count": 1,
+      "provider_bytes": 2578,
+      "provider_sha256": "64460077e25f71af9c62a48f0c8fce3717e4edafc9d53e066327f5733dc78519",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260823162651_semantic_atlas_empirical_v9_compat_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260829104849",
+      "name": "r9b0_memory_epoch_v1",
+      "statement_count": 1,
+      "provider_bytes": 67762,
+      "provider_sha256": "8ce442783ece3ed15ea74cc2052f4455433ab7b6d4bb841389d5a0e06f974d24",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260829104849_r9b0_memory_epoch_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260829214852",
+      "name": "repair_vera_save_state_head_resolution_v1",
+      "statement_count": 1,
+      "provider_bytes": 6198,
+      "provider_sha256": "4899af3a7f27d821cd52a8d8f22baf71520125165f6be78b11005d04fb40f6a3",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260829214852_repair_vera_save_state_head_resolution_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260830182602",
+      "name": "r9b0_provider_readback_cardinality_v1",
+      "statement_count": 1,
+      "provider_bytes": 11809,
+      "provider_sha256": "13c40c22554ac476e4019e00c75d1630d56c71b5aa5cb11f0735bfd197e72af3",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260830182602_r9b0_provider_readback_cardinality_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260901233955",
+      "name": "reharden_save_state_view_privacy",
+      "statement_count": 1,
+      "provider_bytes": 1283,
+      "provider_sha256": "913cf49c74a0b2812abc9db1878fcf5e4b919d047381ed06a8bd838251f55b05",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260901233955_reharden_save_state_view_privacy.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260901234308",
+      "name": "harden_bt2_trigger_search_paths",
+      "statement_count": 1,
+      "provider_bytes": 244,
+      "provider_sha256": "fd24a6a8c6aa60abf9b99636bf2f14da8b3d493055ca791bc9ef1811b431ada7",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260901234308_harden_bt2_trigger_search_paths.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260901234840",
+      "name": "brigit_save_state_core_v1",
+      "statement_count": 1,
+      "provider_bytes": 2384,
+      "provider_sha256": "f3ae6f601e810ab37c363a4cd168c21504ba9f9097b6d69aa39f268348b8ff37",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260901234840_brigit_save_state_core_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260901234857",
+      "name": "brigit_save_state_guards_views_v1",
+      "statement_count": 1,
+      "provider_bytes": 6411,
+      "provider_sha256": "a8767d10f27f7bd8b9a3c13dcc96a68560683b11a3a8cecd97ecbc02b6cca775",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260901234857_brigit_save_state_guards_views_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260901234914",
+      "name": "brigit_coordination_core_v1",
+      "statement_count": 1,
+      "provider_bytes": 4000,
+      "provider_sha256": "4019cf710747cb5cb5e894e358320474b90436eb40a91ab077beaef08a54f9ea",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260901234914_brigit_coordination_core_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260901234936",
+      "name": "brigit_context_core_v1",
+      "statement_count": 1,
+      "provider_bytes": 8579,
+      "provider_sha256": "af0eece44b6f3b8b22823f8fe4166ba97028672d48ec77d407c2c09a77b829ea",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260901234936_brigit_context_core_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260901235001",
+      "name": "brigit_context_views_functions_v1",
+      "statement_count": 1,
+      "provider_bytes": 8258,
+      "provider_sha256": "812b6946c7c6253591b8e7c0606ffa6c5db8b584d95c329226b876916a40afa4",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260901235001_brigit_context_views_functions_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260901235016",
+      "name": "brigit_context_verify_function_v1",
+      "statement_count": 1,
+      "provider_bytes": 4002,
+      "provider_sha256": "3820bf33c7258ac2d5b49331dae3ccf6966c5447fb8392966ddec3e89d817c9a",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260901235016_brigit_context_verify_function_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260901235125",
+      "name": "brigit_function_acl_hardening_v1",
+      "statement_count": 1,
+      "provider_bytes": 2006,
+      "provider_sha256": "cb369a378673fd446b7211dac1f65f72cb59ee742ea07756050181998df465ab",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260901235125_brigit_function_acl_hardening_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260902120716",
+      "name": "radar_control_plane_v1",
+      "statement_count": 1,
+      "provider_bytes": 13799,
+      "provider_sha256": "7e644e63f6fbe6ae9747043aa502f9c9c1bda42e8ec6fd99da6bbfaf0436b607",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260902120716_radar_control_plane_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260902120826",
+      "name": "radar_realtime_v1",
+      "statement_count": 1,
+      "provider_bytes": 721,
+      "provider_sha256": "0ef94f8a25ad0b68c354784ee460739a7ac4966496311d828ce9427a2c227be1",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260902120826_radar_realtime_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260902151756",
+      "name": "bug_ops_receipt_first_replay_safety_v2",
+      "statement_count": 1,
+      "provider_bytes": 12907,
+      "provider_sha256": "a4cffcddebd6acbbe4f1a62d1d33b45b541a2a34189c65df0d51cf3a39a9552e",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260902151756_bug_ops_receipt_first_replay_safety_v2.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260902151848",
+      "name": "bug_ops_retire_voss_role_v2",
+      "statement_count": 1,
+      "provider_bytes": 1631,
+      "provider_sha256": "6960370949c3de61baefeb55e961eab17a485b5a9ef89479db9b965650253346",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260902151848_bug_ops_retire_voss_role_v2.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260902152137",
+      "name": "bug_ops_route_replay_safety_project_key_v2",
+      "statement_count": 1,
+      "provider_bytes": 5658,
+      "provider_sha256": "f8fb5c5ed3e0c122f999219deed205763856e35e21581c716c8848caee8eb8b9",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260902152137_bug_ops_route_replay_safety_project_key_v2.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260902203610",
+      "name": "radar_visual_identity_v1",
+      "statement_count": 1,
+      "provider_bytes": 2055,
+      "provider_sha256": "516ff97ecdbb15c12a84e3c7ede6ef32174dc0acb1f22fe8518c75e1dd3ec14a",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260902203610_radar_visual_identity_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260902204759",
+      "name": "radar_live_message_projection_v1",
+      "statement_count": 1,
+      "provider_bytes": 4963,
+      "provider_sha256": "3c51e78c38afae43e7abfa4cdc61df92fb9e3b2d6931ef781be3f0d95df45d8d",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260902204759_radar_live_message_projection_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260902231445",
+      "name": "radar_live_message_collision_v1",
+      "statement_count": 1,
+      "provider_bytes": 6027,
+      "provider_sha256": "cccdbc8092bb78c510a9d1f8bffd9b9a97025f9df4a6a42632e595abf464d963",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260902231445_radar_live_message_collision_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260903000603",
+      "name": "radar_receipt_plane_v1",
+      "statement_count": 1,
+      "provider_bytes": 7484,
+      "provider_sha256": "054dd92a9699ab4178fdd37df409e883c878a1115e0f03f1db4dee1d2ba4309e",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260903000603_radar_receipt_plane_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260903001906",
+      "name": "radar_assignment_plane_v1",
+      "statement_count": 1,
+      "provider_bytes": 17131,
+      "provider_sha256": "9c8724b50175bc16570b2deae716d1a935f9894f98cacb2935e7e19da0c70065",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260903001906_radar_assignment_plane_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260903113314",
+      "name": "radar_operator_views_v1",
+      "statement_count": 1,
+      "provider_bytes": 2546,
+      "provider_sha256": "2dfe61d3643e3663c6bbe72d64887c3cf3a5bf94e2df480cc2287ac58a353bb4",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260903113314_radar_operator_views_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260909161852",
+      "name": "add_vera_affective_runtime_v1",
+      "statement_count": 1,
+      "provider_bytes": 4785,
+      "provider_sha256": "484e3a365c79235395e39718664f9ce0e6befde15f008294d6fcdb1df6b15a64",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260909161852_add_vera_affective_runtime_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260909175556",
+      "name": "harden_vera_affective_runtime_integrity_v1",
+      "statement_count": 1,
+      "provider_bytes": 8209,
+      "provider_sha256": "7ca7e5d517d5fda97391da7d8d52e27053140f9afd2bace1af95116801b52fa0",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260909175556_harden_vera_affective_runtime_integrity_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260920234744",
+      "name": "close_vera_affective_runtime_first_write_race_v1",
+      "statement_count": 1,
+      "provider_bytes": 8500,
+      "provider_sha256": "22c74680b969cf638ed37b54d22a15af9b916f0b48bf8dd2460bb4c85022586a",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260920234744_close_vera_affective_runtime_first_write_race_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260920235217",
+      "name": "persist_vera_affective_runtime_implementation_cut_v1",
+      "statement_count": 1,
+      "provider_bytes": 8992,
+      "provider_sha256": "bace08dcfd8adfbf3a103cd9fdef28988142b4e1a08ca16330080b226099ec65",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260920235217_persist_vera_affective_runtime_implementation_cut_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260920235414",
+      "name": "normalize_vera_affective_runtime_nullable_json_v1",
+      "statement_count": 1,
+      "provider_bytes": 1013,
+      "provider_sha256": "b477fb1eb092a2dc27d7bdcb0a52a03674303b3698a257e1a148524e73f4b23c",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260920235414_normalize_vera_affective_runtime_nullable_json_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260920235606",
+      "name": "add_vera_optional_invocation_test_executor_v1",
+      "statement_count": 1,
+      "provider_bytes": 13437,
+      "provider_sha256": "3b5c31006d71664db8f0a47d8cbfa7fa331bc7a481577953223bfcf9ca937a3d",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260920235606_add_vera_optional_invocation_test_executor_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260921000232",
+      "name": "bind_optional_invocation_route_evidence_v1",
+      "statement_count": 1,
+      "provider_bytes": 7011,
+      "provider_sha256": "55e326b6ede356b9c0abb6ce6014914584f8356182ea185d09b898f207636ade",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260921000232_bind_optional_invocation_route_evidence_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260921164521",
+      "name": "revoke_legacy_coordination_sequence_client_privileges",
+      "statement_count": 1,
+      "provider_bytes": 122,
+      "provider_sha256": "b37e0d9098699b12247adbaf4b292bbae911adcab831aaa64c878587a3e1f100",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260921164521_revoke_legacy_coordination_sequence_client_privileges.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260921195742",
+      "name": "add_missing_fk_indexes_v1",
+      "statement_count": 1,
+      "provider_bytes": 3199,
+      "provider_sha256": "7cbdb6744b176a68bf15787934f584c56fcd51a91d95a6ce9a3d7cb4bc906c2a",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260921195742_add_missing_fk_indexes_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260921200441",
+      "name": "make_deny_all_rls_explicit_v1",
+      "statement_count": 1,
+      "provider_bytes": 4468,
+      "provider_sha256": "d7cbe3603d4085b6ae0276b88916d9ae8664a22a8515faf1daaecb0a89f30013",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260921200441_make_deny_all_rls_explicit_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260921202213",
+      "name": "20260903214334_radar_thread_closure_v1",
+      "statement_count": 1,
+      "provider_bytes": 1765,
+      "provider_sha256": "5e25380d13c7164bba61bbd512e8e0f8de4c9bef799664d0cf7de4da8e79025c",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260921202213_20260903214334_radar_thread_closure_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260921202217",
+      "name": "20260905230823_radar_oidc_replay_guard_v1",
+      "statement_count": 1,
+      "provider_bytes": 2989,
+      "provider_sha256": "c8a67a22f541d30fc6b9914ecb9bbe1190939925fa9f2a0f3f2e7e3fee06fe32",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260921202217_20260905230823_radar_oidc_replay_guard_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260921202221",
+      "name": "20260906133630_radar_node_routing_hardening_v1",
+      "statement_count": 1,
+      "provider_bytes": 6637,
+      "provider_sha256": "6d4d6a501cd3684c5360e039d2398fa96de9402b9f7367679be0ce2b5177d567",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260921202221_20260906133630_radar_node_routing_hardening_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260921202226",
+      "name": "20260906154101_radar_projection_journal_v1",
+      "statement_count": 1,
+      "provider_bytes": 13523,
+      "provider_sha256": "d19febc5b42f3b4e35b8ee04a60310079e8a4a258b6e7331f21e7fc8b823046a",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260921202226_20260906154101_radar_projection_journal_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260921202232",
+      "name": "20260906165117_radar_projection_journal_api_v1",
+      "statement_count": 1,
+      "provider_bytes": 3461,
+      "provider_sha256": "62b232ba5716c41d308759e4e1c76f0cb24a24e76badc8165721dcb00e00e07b",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260921202232_20260906165117_radar_projection_journal_api_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260921202237",
+      "name": "20260908010500_radar_projection_atomic_file_v1",
+      "statement_count": 1,
+      "provider_bytes": 10232,
+      "provider_sha256": "0ad1488f6a4413e91c1e15eb97d12924dbd92012d5728e2a8ceb876d65ffe82c",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260921202237_20260908010500_radar_projection_atomic_file_v1.sql",
+      "custody_class": "EXACT_PROVIDER_SOURCE_RECOVERED",
+      "historical_authoring_provenance": "NOT_INFERRED_FROM_PROVIDER_CUSTODY"
+    },
+    {
+      "version": "20260922171230",
+      "name": "radar_oidc_replay_guard_rls_v1",
+      "statement_count": 13,
+      "source_bytes": 1782,
+      "custody_sha256": "5e74e43870c9648787ec18d6b11e88b77c0d2cd0af737db243f4ec0106439df5",
+      "custody_path": "supabase/provider-custody/klmbpaigzeguvnpccqzz/applied/20260922171230_radar_oidc_replay_guard_rls_v1.sql",
+      "custody_class": "EXACT_OWNER_SOURCE_APPLIED_VIA_GITHUB_INTEGRATION_PROVIDER_IDENTITY_AND_EFFECT_READBACK_VERIFIED",
+      "historical_authoring_provenance": "EXACT_SOURCE_BOUND",
+      "source_repository": "thebrazenbeard/chat-communication-bus",
+      "source_ref": "f9179bd1426bf90c23ab6a4d14d5a8e9b39c66d2",
+      "source_path": "supabase/migrations/20260922171230_radar_oidc_replay_guard_rls_v1.sql",
+      "source_blob": "054d668486887c05efe359314b51894e7274d0a6",
+      "provider_identity_readback": true,
+      "provider_effect_readback": {
+        "rls_enabled": true,
+        "force_rls": false,
+        "anon_dml": false,
+        "authenticated_dml": false,
+        "service_role_direct_dml": false,
+        "rpc_service_role_only": true
+      }
+    }
+  ],
+  "new_provider_drift": {
+    "owner_context": "RADAR_PROVIDER_EFFECTS_OBSERVED_IN_VERA_SUPABASE",
+    "source_owner_repository": "thebrazenbeard/chat-communication-bus",
+    "exact_new_source_ref": "f9179bd1426bf90c23ab6a4d14d5a8e9b39c66d2",
+    "exact_new_source_blob": "054d668486887c05efe359314b51894e7274d0a6",
+    "vera_bus_mutation_authority": "EXCLUDED_RADAR_STEWARDSHIP_EXCEPT_EXACT_USER_AUTHORIZED_COMPOSITION_EFFECT",
+    "provider_replay_performed": false,
+    "provider_semantics_changed_by_custody_commit": false
+  },
+  "claim_ceiling": [
+    "FULL_PROVIDER_LEDGER_RECONSTRUCTIBILITY_AT_OBSERVED_CUT",
+    "EXACT_PROVIDER_OR_EXACT_APPLIED_OWNER_SOURCE_CUSTODY",
+    "NO_HISTORICAL_AUTHORING_PROVENANCE_FABRICATION",
+    "NO_DUPLICATE_MIGRATION_REPLAY",
+    "LIVE_EFFECT_READBACK_FOR_98TH_MIGRATION",
+    "NO_AUTOMATIC_AUTHORITY_TRANSFER"
+  ]
+}

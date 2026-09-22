@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SUPABASE = ROOT / "supabase"
 MIGRATIONS = SUPABASE / "migrations"
 CUSTODY = SUPABASE / "provider-custody" / "klmbpaigzeguvnpccqzz"
-INVENTORY = CUSTODY / "VERA_FULL_PROVIDER_LEDGER_CUSTODY_V2.json"
+INVENTORY = CUSTODY / "VERA_FULL_PROVIDER_LEDGER_CUSTODY_V3.json"
 COMPOSITION = SUPABASE / "composition" / "VERA_PROVIDER_COMPOSITION_V1.json"
 PENDING = SUPABASE / "composition" / "PENDING_MIGRATIONS_V1.json"
 
@@ -27,7 +27,7 @@ def validate() -> dict[str, object]:
         name = f'{item["version"]}_{item["name"]}.sql'
         if name in expected:
             raise AssertionError(f"duplicate provider migration identity: {name}")
-        expected[name] = item["provider_sha256"]
+        expected[name] = item.get("provider_sha256") or item.get("custody_sha256")\n        if not expected[name]:\n            raise AssertionError(f"migration lacks custody digest: {name}")
 
     if len(expected) != composition["baseline"]["provider_migration_count"]:
         raise AssertionError("provider/composition migration-count mismatch")
