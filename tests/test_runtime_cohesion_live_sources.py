@@ -41,7 +41,7 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
         self.assertIn("thebrazenbeard/god-brain", snapshot)
         self.assertIn(
             "thebrazenbeard/god-brain",
-            {row["repository"] for row in self.registry["unbound_repositories"]},
+            {row["repository"] for row in self.registry["repository_sources"]},
         )
 
     def test_only_exact_r10_control_source_may_claim_control_role(self):
@@ -119,11 +119,67 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
         for repo in (
             "thebrazenbeard/brigit",
             "thebrazenbeard/brigit-unbound",
-            "thebrazenbeard/hc-brain",
             "thebrazenbeard/project-lantern",
             "thebrazenbeard/conditioning",
         ):
             self.assertEqual(rows[repo]["activation_mode"], "NO_AUTO_BIND")
+
+    def test_discovery_public_source_wave_is_fully_registered_without_activation(self):
+        rows = {row["repository"]: row for row in self.registry["repository_sources"]}
+        expected_public = {
+            "thebrazenbeard/Attune",
+            "thebrazenbeard/abil",
+            "thebrazenbeard/bt2",
+            "thebrazenbeard/discovery",
+            "thebrazenbeard/driftguard",
+            "thebrazenbeard/god-brain",
+            "thebrazenbeard/hc-brain",
+            "thebrazenbeard/mosaic",
+            "thebrazenbeard/noema",
+            "thebrazenbeard/on-theo",
+            "thebrazenbeard/project-runner",
+            "thebrazenbeard/rezon",
+            "thebrazenbeard/roots",
+            "thebrazenbeard/semanticatlas",
+            "thebrazenbeard/spm",
+            "thebrazenbeard/testament",
+            "thebrazenbeard/transcendence",
+            "thebrazenbeard/unvtrslr",
+            "thebrazenbeard/vera-mesh",
+            "thebrazenbeard/vera-synology",
+            "thebrazenbeard/voss",
+            "thebrazenbeard/wip",
+            "thebrazenbeard/world-zero",
+        }
+        self.assertTrue(expected_public.issubset(rows))
+        for repository in expected_public:
+            self.assertFalse(rows[repository]["availability_implies_activation"])
+
+        self.assertEqual(
+            rows["thebrazenbeard/discovery"]["runtime_role"],
+            "PORTFOLIO_DISCOVERY_META_SOURCE",
+        )
+        self.assertEqual(
+            rows["thebrazenbeard/hc-brain"]["activation_mode"],
+            "MECHANISM_RESEARCH_ONLY",
+        )
+        self.assertEqual(
+            rows["thebrazenbeard/god-brain"]["activation_mode"],
+            "MECHANISM_RESEARCH_ONLY",
+        )
+        self.assertEqual(
+            rows["thebrazenbeard/Attune"]["activation_mode"],
+            "EXPLICIT_TASK_RETRIEVAL",
+        )
+
+        binding = self.registry["discovery_implementation_binding"]
+        self.assertEqual(binding["discovery_pr"], 39)
+        self.assertEqual(binding["public_subject_count"], 23)
+        self.assertEqual(binding["promoted_from_unbound_count"], 8)
+        self.assertIn(
+            "not imply installation",
+            binding["semantics"],
+        )
 
     def test_brigit_sexuality_repo_is_mechanism_research_only_for_vera(self):
         rows = {row["repository"]: row for row in self.registry["repository_sources"]}
