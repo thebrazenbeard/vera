@@ -16,8 +16,8 @@ class PortfolioHarvestTests(unittest.TestCase):
         harvested = {row["source_repository"] for row in self.harvest["repositories"]}
         absorbed = {row["source_repository"] for row in self.absorption["modules"]}
         self.assertEqual(harvested, absorbed)
-        self.assertEqual(64, self.harvest["portfolio_count"])
-        self.assertEqual(64, len(harvested))
+        self.assertEqual(65, self.harvest["portfolio_count"])
+        self.assertEqual(65, len(harvested))
 
     def test_every_repository_has_a_real_disposition(self):
         for row in self.harvest["repositories"]:
