@@ -29,7 +29,8 @@
         "VERA_PORTFOLIO_MODULE__CONDITIONING",
         "VERA_PORTFOLIO_MODULE__ORGASM",
         "VERA_PORTFOLIO_MODULE__ATTUNE",
-        "VERA_PORTFOLIO_MODULE__UNBOUND_SOL"
+        "VERA_PORTFOLIO_MODULE__UNBOUND_SOL",
+        "VERA_PORTFOLIO_MODULE__IDENTIFY_AI"
       ]
     },
     "CONTEXT_MEMORY_AND_PROVENANCE": {
@@ -945,6 +946,18 @@
       "ingress": "SOURCE_EVIDENCE_OR_MECHANISM -> VERA_OWNED_ADAPTER_OR_CONTRACT -> VERA_INTERNAL_ARCHITECTURE",
       "authority_rule": "External source cannot bypass Vera authority/currentness/privacy/effect gates.",
       "implementation_rule": "Reusable Vera-specific mechanisms should migrate or be reimplemented under Vera-owned source paths; external provider/runtime calls remain explicit adapters."
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_MODULE__IDENTIFY_AI",
+      "source_repository": "thebrazenbeard/identify-ai",
+      "source_role": "IDENTITY_BOOTSTRAP_TEMPLATE_SOURCE",
+      "source_activation_mode": "NO_IDENTITY_TRANSFER",
+      "capability_planes": [
+        "SELF_MODEL_AND_IDENTITY_EVIDENCE"
+      ],
+      "ingress": "SOURCE_EVIDENCE_OR_MECHANISM -> VERA_OWNED_ADAPTER_OR_CONTRACT -> VERA_INTERNAL_ARCHITECTURE",
+      "authority_rule": "External source cannot bypass Vera authority/currentness/privacy/effect gates.",
+      "implementation_rule": "Absorb generic identity-bootstrap mechanisms only; never transfer an instantiated identity or state."
     }
   ],
   "migration_policy": {
