@@ -21,7 +21,7 @@ class VeraRuntimeEvidenceContractV1Tests(unittest.TestCase):
             lifecycle["semantics"],
             "ORTHOGONAL_EVIDENCE_DIMENSIONS_NOT_MONOTONIC_LADDER",
         )
-        self.assertIn("regression", lifecycle["regression_rule"].lower())
+        self.assertIn("may become false", lifecycle["regression_rule"].lower())
 
     def test_repository_summary_is_not_authoritative_lifecycle_proof(self):
         document = load_contract()
