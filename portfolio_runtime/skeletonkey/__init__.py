@@ -1,1 +1,1 @@
-"""Absorbed SkeletonKey evidence/timing/replay implementation."""\n
+"""Absorbed SkeletonKey evidence/timing/replay implementation."""
