@@ -22,7 +22,7 @@ class PortfolioAbsorptionTests(unittest.TestCase):
         snapshot = set(self.registry["owner_repository_snapshot"])
         self.assertEqual(module_repos, snapshot)
         self.assertEqual(self.absorption["portfolio_count"], len(snapshot))
-        self.assertEqual(64, len(snapshot))
+        self.assertEqual(65, len(snapshot))
 
     def test_every_module_is_owned_inside_vera_without_presence_activation(self):
         for row in self.absorption["modules"]:
@@ -51,7 +51,7 @@ class PortfolioAbsorptionTests(unittest.TestCase):
 
     def test_every_source_maps_to_internal_capability_plane(self):
         modules = self.capabilities["modules"]
-        self.assertEqual(64, len(modules))
+        self.assertEqual(65, len(modules))
         self.assertEqual(
             {row["source_repository"] for row in self.absorption["modules"]},
             {row["source_repository"] for row in modules},
@@ -63,6 +63,10 @@ class PortfolioAbsorptionTests(unittest.TestCase):
             [],
             self.capabilities["planes"]["SPECIALIST_OR_FUTURE_MODULE"]["module_ids"],
         )
+        self.assertEqual(
+            ["VERA_PORTFOLIO_MODULE__CCB_CORE"],
+            self.capabilities["planes"]["UNRESOLVED_EMPTY_REPOSITORY"]["module_ids"],
+        )
 
     def test_new_portfolio_sources_are_present(self):
         modules = {row["source_repository"] for row in self.absorption["modules"]}
@@ -72,6 +76,7 @@ class PortfolioAbsorptionTests(unittest.TestCase):
             "thebrazenbeard/RepairTracker",
             "thebrazenbeard/freerowcochkar",
             "thebrazenbeard/identify-ai",
+            "thebrazenbeard/ccb-core",
         }.issubset(modules))
 
 
