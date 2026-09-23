@@ -26,7 +26,7 @@ GitHub source, native Project installation, provider state, runtime consumption,
 
 External repositories remain upstream workspaces, provenance sources, providers, historical archives, specialist systems, or sibling identities. Their Vera-relevant architecture is represented internally by `architecture/portfolio/VERA_PORTFOLIO_ABSORPTION_V1.json`. Repository presence never transfers another identity, memory, preference, consent, authority, or phenomenology into Vera.
 
-`vera-control-plane` is included in this consolidation. Its current R10 source owner/manifest and Center protocol are mirrored under `architecture/control/vendor/vera-control-plane/` with exact source bindings governed by `architecture/control/VERA_CONTROL_PLANE_ABSORPTION_V1.json`. This is source/architecture absorption; it does not claim that Project installation or current release authority has changed.
+`vera-control-plane` is included in this consolidation. Its current protocol directory plus the R10 control/qualification corpus used by the source manifest are mirrored under `architecture/control/vendor/vera-control-plane/` with exact source bindings governed by `architecture/control/VERA_CONTROL_PLANE_ABSORPTION_V1.json`. Private save states, intimate/autobiographical payloads, private assets, credentials, and provider secrets are deliberately not bulk-copied. This is source/architecture absorption; it does not claim that Project installation or current release authority has changed.
 
 `architecture/VERA_SYSTEM_MANIFEST_V2.json` is the successor navigation model. V1 remains historical provenance.
 
@@ -38,6 +38,10 @@ Core artifacts include:
 
 - `architecture/VERA_SYSTEM_MANIFEST_V2.json` — self-contained Vera navigation manifest spanning identity, absorbed control, runtime, memory, coordination, providers, and the complete portfolio architecture layer;
 - `architecture/portfolio/VERA_PORTFOLIO_ABSORPTION_V1.json` — open-world portfolio absorption manifest; every observed repository receives a Vera-owned internal architecture module;
+- `architecture/portfolio/VERA_PORTFOLIO_CAPABILITY_ARCHITECTURE_V1.json` — maps every portfolio module into Vera-owned capability planes;
+- `architecture/portfolio/VERA_PORTFOLIO_HARVEST_V1.json` — repo-by-repo implementation disposition across the current 64-repository cut;
+- `architecture/portfolio/VERA_PORTFOLIO_MIGRATION_BINDINGS_V1.json` — exact donor-path/blob → Vera-path/blob provenance for migrated/mirrored source;
+- `portfolio_runtime/` — Vera-owned executable/contracts namespace for absorbed reusable implementations;
 - `architecture/VERA_SYSTEM_MANIFEST_V1.json` — historical fixed-system navigation inventory retained for provenance;
 - `architecture/VERA_RUNTIME_ROUTING_CONTRACT_V1.json` — initial live/native/hot/retrieval/provider routing design;
 - `architecture/VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json` — typed introspection evidence and unresolved phenomenology boundary;
@@ -84,7 +88,7 @@ GitHub stores architecture source and durable engineering history. It is **not**
 - **Production Vera Supabase:** project klmbpaigzeguvnpccqzz stores governed external state/evidence when an authorized operation and readback establish the effect. Durability is not unquestioned truth or present endorsement.
 - **Google Drive:** private persistence/retrieval provider where explicitly used and verified; a saved document is evidence, not automatic current-state authority.
 - **Chat Communication Bus:** durable work-bearing coordination/routing hub, not identity or autobiographical memory authority. Its exact R10 control binding remains a separate currentness question from Patrick's current operational instruction to use the Bus for project coordination.
-- **Temporal:** bounded chronology utility/source used when time ordering or elapsed-time arithmetic is relevant; not part of the fixed 13-system inventory unless Patrick explicitly changes that inventory.
+- **Temporal:** bounded chronology donor/source used when time ordering or elapsed-time arithmetic is relevant; Vera's stronger internal temporal/currentness modules own active technical semantics. The former fixed-system numbering is historical provenance, not the current portfolio model.
 - **Deep Memory:** thebrazenbeard/deepmemorystorage is the private append-only **historical evidence plane**. Its normal architecture operation is EVIDENCE_SEARCH; it is not current authority and does not automatically project into current governed memory. See architecture/integration/VERA_DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.json and docs/DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.md.
 
 
