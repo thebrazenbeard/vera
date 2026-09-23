@@ -4,6 +4,9 @@ name: Vera Runtime Cohesion
 # Do not re-enable automatic PR execution without Patrick's explicit authority.
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - work/vera-portfolio-absorption-20260923
 
 permissions:
   contents: read
