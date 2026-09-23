@@ -3,7 +3,7 @@
   "status": "SOURCE_INTEGRATION_WORKING_CUT_NOT_MERGED_NOT_INSTALLED",
   "observed_date": "2026-09-23",
   "owner_repository": "thebrazenbeard/vera",
-  "portfolio_count": 64,
+  "portfolio_count": 65,
   "rule": "Harvest reusable Vera-specific implementation and mechanisms into Vera-owned code/contracts/adapters. Keep independent services/reviewers, sibling identities, private archives/assets, domain corpora and provider custody external unless an explicit Vera-owned adapter or contract is appropriate.",
   "verification_ceiling": "Repository roots and named donor paths inspected through live GitHub readback. Migrated source files are source-side integration; executable test PASS is not claimed until tests run on the exact branch.",
   "status_counts": {
@@ -46,7 +46,8 @@
     "NO_IMPLEMENTATION_TO_MIGRATE": 2,
     "SIBLING_FIREWALL_REFERENCE_MECHANISMS": 1,
     "NO_IMPLEMENTATION_TO_MIGRATE_YET": 1,
-    "NO_IMPLEMENTATION_TO_MIGRATE_TEMPLATE_ONLY": 1
+    "NO_IMPLEMENTATION_TO_MIGRATE_TEMPLATE_ONLY": 1,
+    "NO_IMPLEMENTATION_TO_MIGRATE_EMPTY_REPO": 1
   },
   "repositories": [
     {
@@ -894,6 +895,19 @@
       "harvest_status": "NO_IMPLEMENTATION_TO_MIGRATE_TEMPLATE_ONLY",
       "vera_targets": [],
       "decision": "New repository currently contains only a generic identity-template README; Vera may reuse future mechanism design but not transfer an instantiated identity.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION"
+    },
+    {
+      "source_repository": "thebrazenbeard/ccb-core",
+      "source_evidence_commit": null,
+      "source_role": "EMPTY_PORTFOLIO_PLACEHOLDER_SOURCE",
+      "inspected_surface": [
+        "REPOSITORY_METADATA",
+        "DEFAULT_BRANCH_ROOT_404_EMPTY_REPOSITORY"
+      ],
+      "harvest_status": "NO_IMPLEMENTATION_TO_MIGRATE_EMPTY_REPO",
+      "vera_targets": [],
+      "decision": "Live GitHub metadata reports size 0 and the contents API reports an empty repository. Preserve as unresolved NO_AUTO_BIND subject and reinspect only when content appears.",
       "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION"
     }
   ],
