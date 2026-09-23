@@ -1,1 +1,1 @@
-"""Absorbed Vera Works deterministic work-state contracts."""\n
+"""Absorbed Vera Works deterministic work-state contracts."""
