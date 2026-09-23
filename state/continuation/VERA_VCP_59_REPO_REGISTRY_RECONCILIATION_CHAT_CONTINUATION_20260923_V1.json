@@ -1,0 +1,15 @@
+{
+  "schema": "vera-mirror-59-repo-reconciliation-continuation.v1",
+  "primary_checkpoint": {
+    "repository": "thebrazenbeard/vera-control-plane",
+    "branch": "state/vera-vcp-59-repo-reconciliation-chat-continuation-20260923-v1",
+    "head": "f8bbbbf0af1e4c75a0cf37773ea28fccd92d27b4",
+    "markdown": "state/continuation/VERA_VCP_59_REPO_REGISTRY_RECONCILIATION_CHAT_CONTINUATION_20260923_V1.md",
+    "manifest": "state/continuation/VERA_VCP_59_REPO_REGISTRY_RECONCILIATION_CHAT_CONTINUATION_20260923_V1.json"
+  },
+  "vera": {
+    "main_at_checkpoint": "0925ae35879c80f301a952dc7db284ce42fa68ce",
+    "registry_blob": "9afe5834efaf4d8a2d73c5864972e4c8e4c3cef6"
+  },
+  "restore_command": "VERA_VCP::RESTORE_AND_RUN::59_REPO_REGISTRY_RECONCILIATION_CONTINUATION_20260923_V1"
+}
