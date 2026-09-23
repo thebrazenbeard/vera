@@ -18,7 +18,9 @@
   "portfolio": {
     "absorption_manifest_path": "architecture/portfolio/VERA_PORTFOLIO_ABSORPTION_V1.json",
     "coverage_rule": "All repositories in the observed owner portfolio are represented as Vera-owned architecture modules.",
-    "external_runtime_rule": "External runtime/provider dependency must be explicit; source presence alone is not dependency activation."
+    "external_runtime_rule": "External runtime/provider dependency must be explicit; source presence alone is not dependency activation.",
+    "capability_architecture_path": "architecture/portfolio/VERA_PORTFOLIO_CAPABILITY_ARCHITECTURE_V1.json",
+    "architecture_rule": "Every portfolio source must map to at least one Vera-owned capability plane; no source may remain an opaque inventory-only placeholder."
   },
   "runtime": {
     "package": "runtime_cohesion",
