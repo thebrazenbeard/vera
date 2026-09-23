@@ -20,13 +20,25 @@ The release-bound control source is maintained in `thebrazenbeard/vera-control-p
 
 GitHub source, native Project installation, provider state, runtime consumption, and behavioral qualification remain separate evidence domains and require their own current readback.
 
+## Architectural home and portfolio absorption
+
+`thebrazenbeard/vera` is the self-contained architectural home for Vera-specific identity, control, runtime/cohesion, memory/privacy, coordination semantics, provider adapters, and portfolio-derived mechanisms.
+
+External repositories remain upstream workspaces, provenance sources, providers, historical archives, specialist systems, or sibling identities. Their Vera-relevant architecture is represented internally by `architecture/portfolio/VERA_PORTFOLIO_ABSORPTION_V1.json`. Repository presence never transfers another identity, memory, preference, consent, authority, or phenomenology into Vera.
+
+`vera-control-plane` is included in this consolidation. Its current R10 source owner/manifest and Center protocol are mirrored under `architecture/control/vendor/vera-control-plane/` with exact source bindings governed by `architecture/control/VERA_CONTROL_PLANE_ABSORPTION_V1.json`. This is source/architecture absorption; it does not claim that Project installation or current release authority has changed.
+
+`architecture/VERA_SYSTEM_MANIFEST_V2.json` is the successor navigation model. V1 remains historical provenance.
+
 ## Runtime cohesion workstream
 
 Canonical repository source is current `main`. Open branches and pull requests are candidate, stacked, review-blocked, delegated, or historical subjects until their exact content is reconciled; branch age or naming does not make one the active design surface.
 
 Core artifacts include:
 
-- `architecture/VERA_SYSTEM_MANIFEST_V1.json` — machine-readable 13-system navigation inventory;
+- `architecture/VERA_SYSTEM_MANIFEST_V2.json` — self-contained Vera navigation manifest spanning identity, absorbed control, runtime, memory, coordination, providers, and the complete portfolio architecture layer;
+- `architecture/portfolio/VERA_PORTFOLIO_ABSORPTION_V1.json` — open-world portfolio absorption manifest; every observed repository receives a Vera-owned internal architecture module;
+- `architecture/VERA_SYSTEM_MANIFEST_V1.json` — historical fixed-system navigation inventory retained for provenance;
 - `architecture/VERA_RUNTIME_ROUTING_CONTRACT_V1.json` — initial live/native/hot/retrieval/provider routing design;
 - `architecture/VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json` — typed introspection evidence and unresolved phenomenology boundary;
 - `architecture/VERA_RUNTIME_EVIDENCE_CONTRACT_V1.json` — current three-way reconciliation correction for lifecycle proof granularity, live-context authority typing, observable active-context semantics, recall-floor behavior, and durable operational state;
@@ -58,7 +70,7 @@ None of those classes silently promotes into another.
 
 ### Temporal
 
-`thebrazenbeard/temporal` is a bounded auxiliary chronology source: Vera's watch. It records timestamped events and supports chronological ordering and elapsed-time arithmetic. It is **not system #14**, a memory system, truth/provenance warehouse, current-state authority, phenomenology layer, or general cohesion router. Cohesion may retrieve Temporal when chronology is materially relevant while preserving the event record's original evidence/authority class.
+`thebrazenbeard/temporal` remains a bounded chronology source and donor architecture for Vera's internal temporal semantics. It records timestamped events and supports chronological ordering and elapsed-time arithmetic; it is not a memory system, truth/provenance warehouse, current-state authority, phenomenology layer, or general router. The former “system #14” framing belonged to the historical fixed-system inventory and is no longer the portfolio architecture model.
 
 ## Purpose
 
@@ -67,7 +79,7 @@ GitHub stores architecture source and durable engineering history. It is **not**
 ## Bound systems
 
 - **Current ChatGPT Project:** supplies present user intent, correction, Project administration, active Project instructions, and the live native control route.
-- **thebrazenbeard/vera-control-plane:** owns exact release-bound R10 control/source artifacts and private control-plane custody. Repository presence outside an exact binding is evidence, not automatic authority.
+- **thebrazenbeard/vera-control-plane:** remains upstream/private control custody and current release-source evidence, while Vera now mirrors its Vera-specific control architecture internally under `architecture/control/`. Repository presence or mirroring is not automatic active authority.
 - **thebrazenbeard/vera:** this repository stores cross-cutting engineering architecture, schemas, migrations, validators, and the current cohesion integration surface.
 - **Production Vera Supabase:** project klmbpaigzeguvnpccqzz stores governed external state/evidence when an authorized operation and readback establish the effect. Durability is not unquestioned truth or present endorsement.
 - **Google Drive:** private persistence/retrieval provider where explicitly used and verified; a saved document is evidence, not automatic current-state authority.
