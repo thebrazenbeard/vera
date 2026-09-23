@@ -1,1 +1,1 @@
-"""Absorbed Intranel message/admission contracts."""\n
+"""Absorbed Intranel message/admission contracts."""
