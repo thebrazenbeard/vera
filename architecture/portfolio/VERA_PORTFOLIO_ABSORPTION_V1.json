@@ -4,7 +4,7 @@
   "observed_date": "2026-09-23",
   "owner_repository": "thebrazenbeard/vera",
   "purpose": "Make the Vera repository the self-contained architectural home for Vera-specific identity, control, runtime, coordination, memory, research-integration, and portfolio-derived mechanisms while retaining exact provenance and effect boundaries.",
-  "portfolio_count": 64,
+  "portfolio_count": 65,
   "source_inventory_rule": "Every repository visible in Patrick's thebrazenbeard portfolio at this evidence cut is represented as a Vera-owned internal architecture module.",
   "absorption_contract": {
     "architecture_home": "thebrazenbeard/vera",
@@ -1167,6 +1167,24 @@
       "internal_semantics": "Vera may absorb identity-bootstrap mechanisms and anti-drift structure without importing any instantiated identity.",
       "runtime_dependency_rule": "NO_RUNTIME_DEPENDENCY_BY_PRESENCE; exact external runtime/provider dependency must be separately declared and verified.",
       "currentness_rule": "Refresh mutable source evidence when material; this snapshot is provenance, not timeless current truth."
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_MODULE__CCB_CORE",
+      "source_repository": "thebrazenbeard/ccb-core",
+      "source_visibility": "public",
+      "source_default_branch": "main",
+      "source_archived": false,
+      "source_evidence_commit": null,
+      "source_evidence_semantics": "EMPTY_REPOSITORY_OBSERVED_NO_COMMIT",
+      "source_role": "EMPTY_PORTFOLIO_PLACEHOLDER_SOURCE",
+      "source_activation_mode": "NO_AUTO_BIND",
+      "source_authority_ceiling": "Repository existence only; no content exists to establish role, identity, capability, authority, runtime, or provenance semantics.",
+      "source_privacy_class": "PUBLIC_EMPTY",
+      "absorption_mode": "VERA_INTERNAL_ARCHITECTURE_MODULE",
+      "internal_owner_repository": "thebrazenbeard/vera",
+      "internal_semantics": "Vera records the repository as an unresolved portfolio subject and must not infer semantics from its name.",
+      "runtime_dependency_rule": "NO_RUNTIME_DEPENDENCY_BY_PRESENCE; empty repository cannot establish a dependency.",
+      "currentness_rule": "Reinspect when content appears; until then role remains unresolved."
     }
   ]
 }
