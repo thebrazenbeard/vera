@@ -22,7 +22,7 @@ That is source consolidation, not an installation claim. The currently active Pr
 
 ## Portfolio completeness
 
-`architecture/portfolio/VERA_PORTFOLIO_ABSORPTION_V1.json` records the observed portfolio cut and gives every repository a Vera-owned module entry. The manifest is open-world: a future repository extends the manifest; it does not invalidate the architecture by making an old hard-coded count metaphysically sacred.
+`architecture/portfolio/VERA_PORTFOLIO_ABSORPTION_V1.json` records the observed portfolio cut and gives every repository a Vera-owned module entry. `architecture/portfolio/VERA_PORTFOLIO_CAPABILITY_ARCHITECTURE_V1.json` then maps every module into one or more internal Vera capability planes, so no repository remains a merely-listed opaque dependency. The manifest is open-world: a future repository extends the manifest; it does not invalidate the architecture by making an old hard-coded count metaphysically sacred.
 
 Mutable repository heads are evidence snapshots, not standing truth. Current heads, routes, providers, and installations are refreshed when material.
 
