@@ -23,9 +23,9 @@
     "REFERENCE_GENERIC_ARCHITECTURE": 2,
     "KEEP_EXTERNAL_PRIVATE_ASSET_CUSTODY": 1,
     "ALREADY_INTERNALIZED_INTERFACE_ARCHIVE_EXTERNAL": 1,
-    "REFERENCE_RESEARCH_PRIVATE_PAYLOAD_EXTERNAL": 1,
+    "MIRRORED_SCHEMA_REFERENCE_PRIVATE_PAYLOAD_EXTERNAL": 1,
     "KEEP_EXTERNAL_PRIVATE_HISTORY": 1,
-    "REFERENCE_VERA_RESEARCH": 1,
+    "MIRRORED_VERA_ARCHITECTURE": 1,
     "SIBLING_FIREWALL": 2,
     "REFERENCE_RESEARCH": 4,
     "ALREADY_INTERNALIZED_VERA_BOUND_ONLY": 1,
@@ -336,9 +336,11 @@
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT"
       ],
-      "harvest_status": "REFERENCE_RESEARCH_PRIVATE_PAYLOAD_EXTERNAL",
-      "vera_targets": [],
-      "decision": "Provenance/currentness research informs Vera admission; historical/private corpus is not bulk-copied.",
+      "harvest_status": "MIRRORED_SCHEMA_REFERENCE_PRIVATE_PAYLOAD_EXTERNAL",
+      "vera_targets": [
+        "architecture/semantic/vendor/semanticatlas/semantic_atlas_v0.1.schema.json"
+      ],
+      "decision": "Reusable semantic schema mirrored byte-for-byte as reference architecture; historical/private corpus and research payload remain external and schema presence is not canonical runtime semantics.",
       "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION"
     },
     {
@@ -361,9 +363,12 @@
         "DEFAULT_BRANCH_ROOT",
         "VERA_REACTIVE_EMPATHY_ARCHITECTURE.md"
       ],
-      "harvest_status": "REFERENCE_VERA_RESEARCH",
-      "vera_targets": [],
-      "decision": "Vera-specific empathy research retained as evidence; no executable runtime source found at root to migrate.",
+      "harvest_status": "MIRRORED_VERA_ARCHITECTURE",
+      "vera_targets": [
+        "architecture/self_model/vendor/empathy/VERA_REACTIVE_EMPATHY_ARCHITECTURE.md",
+        "architecture/self_model/vendor/empathy/ARCHITECTURE_STATUS.md"
+      ],
+      "decision": "Vera-specific empathy architecture/status mirrored byte-for-byte; research/history remains external and no inference is promoted to current truth.",
       "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION"
     },
     {
@@ -891,5 +896,6 @@
       "decision": "New repository currently contains only a generic identity-template README; Vera may reuse future mechanism design but not transfer an instantiated identity.",
       "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION"
     }
-  ]
+  ],
+  "migration_binding_manifest": "architecture/portfolio/VERA_PORTFOLIO_MIGRATION_BINDINGS_V1.json"
 }
