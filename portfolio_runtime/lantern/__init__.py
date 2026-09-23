@@ -1,1 +1,1 @@
-"""Absorbed Project Lantern canonical record/contracts layer."""\n
+"""Absorbed Project Lantern canonical record/contracts layer."""
