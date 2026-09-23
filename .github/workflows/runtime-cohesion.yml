@@ -59,6 +59,7 @@ jobs:
           tests.test_runtime_cohesion_live_sources
           tests.test_portfolio_absorption
           tests.test_portfolio_harvest
+          tests.test_portfolio_migration_bindings
           tests.test_portfolio_runtime_absorbed
           tests.test_runtime_cohesion_affect_integration
           tests.test_runtime_cohesion_affect_signal_to_cohesion_port
