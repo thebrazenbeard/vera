@@ -63,6 +63,7 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
             "thebrazenbeard/vera-habitat",
             "thebrazenbeard/self",
             "thebrazenbeard/bt2",
+            "thebrazenbeard/identify-ai",
         ):
             self.assertEqual(rows[repo]["activation_mode"], "NO_AUTO_BIND")
 
