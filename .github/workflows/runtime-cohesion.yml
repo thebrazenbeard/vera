@@ -58,6 +58,8 @@ jobs:
           tests.test_runtime_cohesion_executor_provider_admission_boundary
           tests.test_runtime_cohesion_live_sources
           tests.test_portfolio_absorption
+          tests.test_portfolio_harvest
+          tests.test_portfolio_runtime_absorbed
           tests.test_runtime_cohesion_affect_integration
           tests.test_runtime_cohesion_affect_signal_to_cohesion_port
           tests.test_runtime_cohesion_affect_signal_mapping_snapshot
@@ -114,6 +116,8 @@ jobs:
           tests.test_affective_runtime_persistence_source
           tests.test_affective_runtime_cas_initialization_source
           -v
+      - name: Compile absorbed portfolio runtime
+        run: python -m compileall -q portfolio_runtime
       - name: Compile cohesion validators, runtime, and tests
         run: >-
           python -m py_compile
