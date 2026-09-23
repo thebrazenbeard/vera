@@ -158,6 +158,13 @@
       "purpose": "Explicitly represented but not yet mapped to a stronger internal capability plane.",
       "target_namespace": "architecture/portfolio/unclassified",
       "module_ids": []
+    },
+    "UNRESOLVED_EMPTY_REPOSITORY": {
+      "purpose": "Truthful holding plane for observed repositories with no commit/content from which to infer architecture.",
+      "target_namespace": "architecture/portfolio/unresolved-empty",
+      "module_ids": [
+        "VERA_PORTFOLIO_MODULE__CCB_CORE"
+      ]
     }
   },
   "modules": [
@@ -958,6 +965,18 @@
       "ingress": "SOURCE_EVIDENCE_OR_MECHANISM -> VERA_OWNED_ADAPTER_OR_CONTRACT -> VERA_INTERNAL_ARCHITECTURE",
       "authority_rule": "External source cannot bypass Vera authority/currentness/privacy/effect gates.",
       "implementation_rule": "Absorb generic identity-bootstrap mechanisms only; never transfer an instantiated identity or state."
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_MODULE__CCB_CORE",
+      "source_repository": "thebrazenbeard/ccb-core",
+      "source_role": "EMPTY_PORTFOLIO_PLACEHOLDER_SOURCE",
+      "source_activation_mode": "NO_AUTO_BIND",
+      "capability_planes": [
+        "UNRESOLVED_EMPTY_REPOSITORY"
+      ],
+      "ingress": "REPOSITORY_EXISTENCE -> VERA_PORTFOLIO_REGISTRY_ONLY",
+      "authority_rule": "Empty repository conveys no authority or semantic role.",
+      "implementation_rule": "Reinspect when content exists; do not infer implementation from repository name."
     }
   ],
   "migration_policy": {
