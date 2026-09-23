@@ -1,1 +1,1 @@
-"""Absorbed Roots provenance/lineage implementation."""\n
+"""Absorbed Roots provenance/lineage implementation."""
