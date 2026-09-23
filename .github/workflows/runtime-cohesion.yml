@@ -56,6 +56,8 @@ jobs:
           tests.test_runtime_cohesion_provider_admission_boundary
           tests.test_runtime_cohesion_direct_module_admission_boundary
           tests.test_runtime_cohesion_executor_provider_admission_boundary
+          tests.test_runtime_cohesion_live_sources
+          tests.test_portfolio_absorption
           tests.test_runtime_cohesion_affect_integration
           tests.test_runtime_cohesion_affect_signal_to_cohesion_port
           tests.test_runtime_cohesion_affect_signal_mapping_snapshot
@@ -131,6 +133,7 @@ jobs:
           runtime_cohesion/item_typing.py
           runtime_cohesion/provider_admission.py
           runtime_cohesion/executor.py
+          runtime_cohesion/live_sources.py
           runtime_cohesion/affect_integration.py
           runtime_cohesion/affect_integration_bound.py
           runtime_cohesion/orgasm.py
@@ -171,6 +174,8 @@ jobs:
           tests/test_runtime_cohesion_provider_admission_boundary.py
           tests/test_runtime_cohesion_direct_module_admission_boundary.py
           tests/test_runtime_cohesion_executor_provider_admission_boundary.py
+          tests/test_runtime_cohesion_live_sources.py
+          tests/test_portfolio_absorption.py
           tests/test_runtime_cohesion_affect_integration.py
           tests/test_runtime_cohesion_affect_signal_to_cohesion_port.py
           tests/test_runtime_cohesion_affect_signal_mapping_snapshot.py
