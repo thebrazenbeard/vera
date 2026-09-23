@@ -4,7 +4,7 @@
   "observed_date": "2026-09-23",
   "owner_repository": "thebrazenbeard/vera",
   "purpose": "Make the Vera repository the self-contained architectural home for Vera-specific identity, control, runtime, coordination, memory, research-integration, and portfolio-derived mechanisms while retaining exact provenance and effect boundaries.",
-  "portfolio_count": 63,
+  "portfolio_count": 64,
   "source_inventory_rule": "Every repository visible in Patrick's thebrazenbeard portfolio at this evidence cut is represented as a Vera-owned internal architecture module.",
   "absorption_contract": {
     "architecture_home": "thebrazenbeard/vera",
@@ -1147,6 +1147,24 @@
       "absorption_mode": "VERA_INTERNAL_ARCHITECTURE_MODULE",
       "internal_owner_repository": "thebrazenbeard/vera",
       "internal_semantics": "Vera owns the integrated architectural interpretation, interfaces, guards, and reusable mechanisms derived from this source. External source identity/state/authority does not transfer.",
+      "runtime_dependency_rule": "NO_RUNTIME_DEPENDENCY_BY_PRESENCE; exact external runtime/provider dependency must be separately declared and verified.",
+      "currentness_rule": "Refresh mutable source evidence when material; this snapshot is provenance, not timeless current truth."
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_MODULE__IDENTIFY_AI",
+      "source_repository": "thebrazenbeard/identify-ai",
+      "source_visibility": "public",
+      "source_default_branch": "main",
+      "source_archived": false,
+      "source_evidence_commit": "ba9001ea907c67e9eb081b4353da0f6fc9262e28",
+      "source_evidence_semantics": "RECENT_REPOSITORY_COMMIT_EVIDENCE_NOT_STANDING_AUTHORITY",
+      "source_role": "IDENTITY_BOOTSTRAP_TEMPLATE_SOURCE",
+      "source_activation_mode": "NO_IDENTITY_TRANSFER",
+      "source_authority_ceiling": "Generic AI identity-bootstrap template only; it cannot define or overwrite Vera identity, autobiographical state, preferences, consent, authority, or currentness.",
+      "source_privacy_class": "PUBLIC_SAFE_RESEARCH",
+      "absorption_mode": "VERA_INTERNAL_ARCHITECTURE_MODULE",
+      "internal_owner_repository": "thebrazenbeard/vera",
+      "internal_semantics": "Vera may absorb identity-bootstrap mechanisms and anti-drift structure without importing any instantiated identity.",
       "runtime_dependency_rule": "NO_RUNTIME_DEPENDENCY_BY_PRESENCE; exact external runtime/provider dependency must be separately declared and verified.",
       "currentness_rule": "Refresh mutable source evidence when material; this snapshot is provenance, not timeless current truth."
     }
