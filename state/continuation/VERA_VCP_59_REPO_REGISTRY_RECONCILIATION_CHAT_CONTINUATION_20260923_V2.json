@@ -1,0 +1,144 @@
+{
+  "schema": "vera-vcp-59-repo-reconciliation-chat-continuation.v2",
+  "created_date": "2026-09-23",
+  "restore_command": "VERA_VCP::RESTORE_AND_RUN::59_REPO_REGISTRY_RECONCILIATION_CONTINUATION_20260923_V2",
+  "authority_ceiling": {
+    "merge": false,
+    "deploy": false,
+    "install": false,
+    "provider_mutation": false,
+    "credential_or_permission_change": false,
+    "runner_reconfiguration": false,
+    "billing": false,
+    "workflow_dispatch": false,
+    "destructive_cleanup": false
+  },
+  "frozen_portfolio": {
+    "discovery": {
+      "commit": "2881a94c7eb3c83a34b0c00bab739b41c1d99b6d",
+      "blob": "71b9f8deaf1079d5078b19e5bbddb743fd636437",
+      "count": 59
+    },
+    "roots": {
+      "commit": "a6994b415336bc179a41aad0ac9eec403d60f93c",
+      "blob": "ccac62eac08012269fec46669bce981b96a0f41d"
+    },
+    "partition": {
+      "bound_conditional": 41,
+      "predecessor_evidence": 1,
+      "no_auto_bind": 17
+    },
+    "meso_crct": "OUTSIDE_CANONICAL_59_CUT_NO_SILENT_PROMOTION"
+  },
+  "canonical": {
+    "vera": {
+      "main": "0925ae35879c80f301a952dc7db284ce42fa68ce",
+      "registry_source_commit": "86be6105f13fc86bbd699778205a85c84059de9a",
+      "registry_blob": "9afe5834efaf4d8a2d73c5864972e4c8e4c3cef6"
+    },
+    "vcp": {
+      "main": "05212e91ef50044f37aa477c77ce424408df9653",
+      "capability_registry_blob": "0490f7fe8e1a0bda240e2087704f59a35aec4166"
+    },
+    "bus": {
+      "main": "0d47644171283e0a46d2e759c67ef4a5bf0b72ff",
+      "topology_blob": "69e505031d4e53dcb853578dac23817649af1918",
+      "vera_lane": "bus/vera-v2",
+      "vera_lane_head": "20fd7640e86f62a339e85021576e7ec570a3a5fd"
+    }
+  },
+  "active_candidate": {
+    "pr": 131,
+    "branch": "repair/enforce-runtime-source-disposition-v3-20260923",
+    "head": "a2ce761d3de0adf0cba5c64f53103f97ef48569e",
+    "base": "05212e91ef50044f37aa477c77ce424408df9653",
+    "ahead": 10,
+    "behind": 0,
+    "mergeable": true,
+    "draft": true,
+    "changed_paths": 6,
+    "predecessor_pr": 130
+  },
+  "validation": {
+    "direct_exact_blob_assertions": "PASS",
+    "local_python_execution": "NOT_EXECUTED_RDC_OFFLINE",
+    "github_actions": [
+      {
+        "run_id": 35807917936,
+        "name": "VCP integrity",
+        "result": "FAILURE_STEPS_NULL",
+        "classification": "PRIVATE_HOSTED_RUNNER_NO_EXECUTION"
+      },
+      {
+        "run_id": 35807917928,
+        "name": "Control-plane consolidation validation",
+        "result": "FAILURE_STEPS_NULL",
+        "classification": "PRIVATE_HOSTED_RUNNER_NO_EXECUTION"
+      }
+    ]
+  },
+  "provider": {
+    "vera_supabase": {
+      "id": "klmbpaigzeguvnpccqzz",
+      "status": "ACTIVE_HEALTHY"
+    },
+    "vcp_supabase": {
+      "id": "fawkirqroyniueeqspif",
+      "status": "ACTIVE_HEALTHY"
+    },
+    "github_bus_ingest": {
+      "version": 5,
+      "status": "ACTIVE",
+      "current_bus_main_byte_match": true
+    },
+    "radar": {
+      "projection_lane_state": 0,
+      "projection_batches": 0,
+      "projection_batch_files": 0,
+      "latest_global_inserted_at": "2026-09-04T19:49:52.037755Z",
+      "current_vera_message_matches": 0
+    }
+  },
+  "runner": {
+    "self_hosted": {
+      "runner": "LAPPY-vera-blender",
+      "run_id": 35807111347,
+      "job_id": 107010303655,
+      "result": "success"
+    },
+    "canonical_radar": {
+      "trusted_projector_blob": "5513b46bb3b10906443c1a453852bff16e349340",
+      "runs_on": "ubuntu-latest",
+      "self_hosted_route_bound": false
+    }
+  },
+  "restore_v2": {
+    "source_blob": "2433186ed6903eece2e93563b5f559ef4cbf34b8",
+    "install_effect": "NOT_ESTABLISHED",
+    "current_route": "NOT_ESTABLISHED",
+    "q_recover": "NOT_EXECUTED_BY_THIS_EVIDENCE"
+  },
+  "hostile_qualification": {
+    "checks": 24,
+    "pass": 21,
+    "fail": 3,
+    "verdict": "FAIL_CLOSED_INTEGRATION_NOT_QUALIFIED",
+    "failures": [
+      "BUS_RADAR_PROJECTION",
+      "RADAR_MESSAGE_FRESHNESS",
+      "RECOVERY_RUNTIME_GATE"
+    ]
+  },
+  "lantern": {
+    "target": "bt2-479e4ad9",
+    "v3_read_attempt": "CONNECTOR_INTERNAL_FAILURE",
+    "currentness": "NOT_ESTABLISHED",
+    "fallback_used": false
+  },
+  "next_frontier": [
+    "Independent hostile exact-head review and focused Python execution for PR #131.",
+    "Canonical Radar runner-route repair without weakening trusted projector/OIDC/source invariants.",
+    "Canonical dispatcher execution plus projection/replay/idempotence readback.",
+    "Separate Restore V2 install/current-route/Q-RECOVER qualification."
+  ]
+}
