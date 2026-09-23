@@ -1,1 +1,1 @@
-"""Absorbed Attune relationship and memory firewalls."""\n
+"""Absorbed Attune relationship and memory firewalls."""
