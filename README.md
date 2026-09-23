@@ -39,7 +39,7 @@ Core artifacts include:
 - `architecture/VERA_SYSTEM_MANIFEST_V2.json` — self-contained Vera navigation manifest spanning identity, absorbed control, runtime, memory, coordination, providers, and the complete portfolio architecture layer;
 - `architecture/portfolio/VERA_PORTFOLIO_ABSORPTION_V1.json` — open-world portfolio absorption manifest; every observed repository receives a Vera-owned internal architecture module;
 - `architecture/portfolio/VERA_PORTFOLIO_CAPABILITY_ARCHITECTURE_V1.json` — maps every portfolio module into Vera-owned capability planes;
-- `architecture/portfolio/VERA_PORTFOLIO_HARVEST_V1.json` — repo-by-repo implementation disposition across the current 64-repository cut;
+- `architecture/portfolio/VERA_PORTFOLIO_HARVEST_V1.json` — repo-by-repo implementation disposition across the current 65-repository cut;
 - `architecture/portfolio/VERA_PORTFOLIO_MIGRATION_BINDINGS_V1.json` — exact donor-path/blob → Vera-path/blob provenance for migrated/mirrored source;
 - `portfolio_runtime/` — Vera-owned executable/contracts namespace for absorbed reusable implementations;
 - `architecture/VERA_SYSTEM_MANIFEST_V1.json` — historical fixed-system navigation inventory retained for provenance;
