@@ -24,7 +24,9 @@
     "harvest_ledger_path": "architecture/portfolio/VERA_PORTFOLIO_HARVEST_V1.json",
     "migration_bindings_path": "architecture/portfolio/VERA_PORTFOLIO_MIGRATION_BINDINGS_V1.json",
     "absorbed_runtime_namespace": "portfolio_runtime",
-    "implementation_rule": "Reusable Vera-specific code/contracts migrate into Vera-owned namespaces; stronger already-internalized implementations remain canonical; independent validators/services, sibling identities, private archives/assets, and domain applications remain external behind explicit interfaces."
+    "implementation_rule": "Reusable Vera-specific code/contracts migrate into Vera-owned namespaces; stronger already-internalized implementations remain canonical; independent validators/services, sibling identities, private archives/assets, and domain applications remain external behind explicit interfaces.",
+    "current_observed_repository_count": 65,
+    "empty_repository_rule": "An observed empty repository is included but remains NO_AUTO_BIND in UNRESOLVED_EMPTY_REPOSITORY until content establishes a defensible role."
   },
   "runtime": {
     "package": "runtime_cohesion",
