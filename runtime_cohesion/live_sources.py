@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Mapping
 
 
-ROUTE_BINDING_STATUSES = {"VERIFIED_EXACT", "UNRESOLVED", "CONFLICT"}
+ROUTE_BINDING_STATUSES = {"VERIFIED_EXACT", "UNRESOLVED", "CONFLICT", "HISTORICAL_PROVIDER_PROJECTION"}
 
 
 def validate_source_registry(registry: Mapping[str, Any]) -> tuple[str, ...]:
@@ -91,6 +91,46 @@ def validate_source_registry(registry: Mapping[str, Any]) -> tuple[str, ...]:
     ):
         errors.append("CURRENT_CONTROL_SOURCE must be vera-control-plane with EXACT_R10_CONTROL_LOAD")
 
+    portfolio = registry.get("portfolio_reconciliation")
+    if not isinstance(portfolio, Mapping):
+        errors.append("portfolio_reconciliation is required")
+    else:
+        counts = portfolio.get("classification_counts")
+        if not isinstance(counts, Mapping):
+            errors.append("portfolio_reconciliation.classification_counts is required")
+        else:
+            if counts.get("total") != 59:
+                errors.append("portfolio repository count must be 59")
+            if counts.get("classified_source_rows") != 42 or counts.get("no_auto_bind") != 17:
+                errors.append("portfolio classification counts must be 42 source / 17 no-auto-bind")
+        discovery = portfolio.get("discovery")
+        roots = portfolio.get("roots")
+        if not isinstance(discovery, Mapping) or discovery.get("commit") != "2881a94c7eb3c83a34b0c00bab739b41c1d99b6d" or discovery.get("blob_sha") != "71b9f8deaf1079d5078b19e5bbddb743fd636437":
+            errors.append("Discovery canonical portfolio binding mismatch")
+        if not isinstance(roots, Mapping) or roots.get("commit") != "a6994b415336bc179a41aad0ac9eec403d60f93c" or roots.get("blob_sha") != "ccac62eac08012269fec46669bce981b96a0f41d":
+            errors.append("Roots canonical lineage binding mismatch")
+        if len(snapshot) != 59 or len(bound) != 42 or len(unbound) != 17:
+            errors.append("registry live classification cardinality mismatch")
+
+    for repository in ("thebrazenbeard/vera-apk", "thebrazenbeard/vera-habitat", "thebrazenbeard/hc-brain", "thebrazenbeard/self", "thebrazenbeard/bt2"):
+        if repository not in unbound:
+            errors.append(f"{repository}: expected NO_AUTO_BIND classification")
+    if "thebrazenbeard/voss" not in bound:
+        errors.append("voss must be bound as review-only source")
+
+    route_case = registry.get("observed_cross_provider_cases", {}).get("bus_to_radar_writer_route")
+    if not isinstance(route_case, Mapping):
+        errors.append("bus_to_radar_writer_route evidence is required")
+    else:
+        if route_case.get("source_observed_value") != "bus/vera-v2":
+            errors.append("current Bus Vera writer lane drift")
+        if route_case.get("provider_projection_observed_value") != "bus/vera-sol-v1":
+            errors.append("historical Supabase Vera projection drift")
+        if route_case.get("provider_projection_authoritative_for_current_routing") is not False:
+            errors.append("historical provider projection must not be current routing authority")
+        if route_case.get("classification") != "HISTORICAL_PROVIDER_PROJECTION_NON_AUTHORITATIVE_FOR_CURRENT_ROUTING":
+            errors.append("historical provider projection classification mismatch")
+
     providers = registry.get("provider_sources")
     if not isinstance(providers, Mapping):
         errors.append("provider_sources must be an object")
@@ -143,6 +183,38 @@ def evaluate_route_binding(expected_route: Any, observed_route: Any) -> dict[str
         "current_route_established": False,
         "native_control_qualified": False,
         "reason": "Exact projection values match; native control/current-route qualification remains separately governed.",
+    }
+
+
+
+def classify_route_projection(
+    expected_route: Any,
+    observed_projection: Any,
+    *,
+    projection_authoritative_for_current_routing: bool,
+) -> dict[str, Any]:
+    """Classify a provider route projection without confusing history with routing authority."""
+    if not isinstance(expected_route, str) or not expected_route or not isinstance(observed_projection, str) or not observed_projection:
+        return {
+            "status": "UNRESOLVED",
+            "projection_matches": False,
+            "provider_projection_authoritative_for_current_routing": projection_authoritative_for_current_routing,
+            "current_route_established_by_projection": False,
+            "reason": "Exact current-route and provider-projection values are both required.",
+        }
+    if projection_authoritative_for_current_routing:
+        decision = evaluate_route_binding(expected_route, observed_projection)
+        return {
+            **decision,
+            "provider_projection_authoritative_for_current_routing": True,
+            "current_route_established_by_projection": decision["status"] == "VERIFIED_EXACT",
+        }
+    return {
+        "status": "HISTORICAL_PROVIDER_PROJECTION",
+        "projection_matches": expected_route == observed_projection,
+        "provider_projection_authoritative_for_current_routing": False,
+        "current_route_established_by_projection": False,
+        "reason": "Provider projection is retained as historical/bootstrap provenance; current route authority is resolved from the live Bus topology.",
     }
 
 

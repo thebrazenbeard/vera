@@ -5,6 +5,7 @@ import unittest
 from runtime_cohesion.live_sources import (
     classify_memory_epoch_object,
     classify_persisted_runtime_holder,
+    classify_route_projection,
     classify_semantic_snapshot,
     evaluate_route_binding,
     validate_source_registry,
@@ -30,6 +31,12 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
         self.assertIn("thebrazenbeard/vera", snapshot)
         self.assertIn("thebrazenbeard/hc-brain", snapshot)
         self.assertIn("thebrazenbeard/brigit", snapshot)
+        self.assertEqual(59, len(snapshot))
+        self.assertEqual(42, len(bound))
+        self.assertEqual(17, len(unbound))
+        self.assertIn("thebrazenbeard/WorkBridgeMCP", snapshot)
+        self.assertIn("thebrazenbeard/discovery", bound)
+        self.assertIn("thebrazenbeard/roots", bound)
 
     def test_only_exact_r10_control_source_may_claim_control_role(self):
         control_rows = [row for row in self.registry["repository_sources"] if row["runtime_role"] == "CURRENT_CONTROL_SOURCE"]
@@ -45,6 +52,10 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
             "thebrazenbeard/hc-brain",
             "thebrazenbeard/project-lantern",
             "thebrazenbeard/conditioning",
+            "thebrazenbeard/vera-apk",
+            "thebrazenbeard/vera-habitat",
+            "thebrazenbeard/self",
+            "thebrazenbeard/bt2",
         ):
             self.assertEqual(rows[repo]["activation_mode"], "NO_AUTO_BIND")
 
@@ -86,11 +97,43 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
         self.assertFalse(drive["availability_implies_activation"])
 
 
+    def test_registry_is_bound_to_canonical_discovery_and_roots(self):
+        p = self.registry["portfolio_reconciliation"]
+        self.assertEqual(p["classification_counts"]["total"], 59)
+        self.assertEqual(p["classification_counts"]["classified_source_rows"], 42)
+        self.assertEqual(p["classification_counts"]["no_auto_bind"], 17)
+        self.assertEqual(p["discovery"]["commit"], "2881a94c7eb3c83a34b0c00bab739b41c1d99b6d")
+        self.assertEqual(p["discovery"]["blob_sha"], "71b9f8deaf1079d5078b19e5bbddb743fd636437")
+        self.assertEqual(p["roots"]["commit"], "a6994b415336bc179a41aad0ac9eec403d60f93c")
+        self.assertEqual(p["roots"]["blob_sha"], "ccac62eac08012269fec46669bce981b96a0f41d")
+
+    def test_voss_is_review_source_while_empty_stubs_are_unbound(self):
+        bound = {row["repository"]: row for row in self.registry["repository_sources"]}
+        unbound = {row["repository"]: row for row in self.registry["unbound_repositories"]}
+        self.assertEqual(bound["thebrazenbeard/voss"]["runtime_role"], "AUDIT_AND_HOSTILE_REVIEW_SOURCE")
+        self.assertEqual(unbound["thebrazenbeard/vera-apk"]["activation_mode"], "NO_AUTO_BIND")
+        self.assertEqual(unbound["thebrazenbeard/vera-habitat"]["activation_mode"], "NO_AUTO_BIND")
+
+
 class RuntimeProviderStateTests(unittest.TestCase):
-    def test_stale_supabase_radar_route_conflicts_with_current_bus_route(self):
-        decision = evaluate_route_binding("bus/vera-v2", "bus/vera-sol-v1")
+    def test_historical_supabase_radar_projection_is_not_current_route_conflict(self):
+        decision = classify_route_projection(
+            "bus/vera-v2",
+            "bus/vera-sol-v1",
+            projection_authoritative_for_current_routing=False,
+        )
+        self.assertEqual(decision["status"], "HISTORICAL_PROVIDER_PROJECTION")
+        self.assertFalse(decision["projection_matches"])
+        self.assertFalse(decision["provider_projection_authoritative_for_current_routing"])
+        self.assertFalse(decision["current_route_established_by_projection"])
+
+    def test_true_authoritative_route_mismatch_still_conflicts(self):
+        decision = classify_route_projection(
+            "bus/vera-v2",
+            "bus/vera-sol-v1",
+            projection_authoritative_for_current_routing=True,
+        )
         self.assertEqual(decision["status"], "CONFLICT")
-        self.assertFalse(decision["current_route_established"])
 
     def test_exact_route_match_is_provider_projection_evidence_only(self):
         decision = evaluate_route_binding("bus/vera-v2", "bus/vera-v2")
