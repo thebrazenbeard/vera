@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ABSORPTION = ROOT / "architecture" / "portfolio" / "VERA_PORTFOLIO_ABSORPTION_V1.json"
 REGISTRY = ROOT / "architecture" / "VERA_RUNTIME_SOURCE_REGISTRY_V1.json"
 CONTROL = ROOT / "architecture" / "control" / "VERA_CONTROL_PLANE_ABSORPTION_V1.json"
+CAPABILITIES = ROOT / "architecture" / "portfolio" / "VERA_PORTFOLIO_CAPABILITY_ARCHITECTURE_V1.json"
 
 
 class PortfolioAbsorptionTests(unittest.TestCase):
@@ -13,6 +14,7 @@ class PortfolioAbsorptionTests(unittest.TestCase):
         self.absorption = json.loads(ABSORPTION.read_text(encoding="utf-8"))
         self.registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
         self.control = json.loads(CONTROL.read_text(encoding="utf-8"))
+        self.capabilities = json.loads(CAPABILITIES.read_text(encoding="utf-8"))
 
     def test_absorption_covers_exact_runtime_portfolio_snapshot(self):
         modules = self.absorption["modules"]
@@ -45,6 +47,22 @@ class PortfolioAbsorptionTests(unittest.TestCase):
         sol = modules["thebrazenbeard/unbound-sol"]
         self.assertEqual(sol["source_activation_mode"], "NO_IDENTITY_TRANSFER")
         self.assertIn("do not transfer to Vera", sol["source_authority_ceiling"])
+
+
+    def test_every_source_maps_to_internal_capability_plane(self):
+        modules = self.capabilities["modules"]
+        self.assertEqual(63, len(modules))
+        self.assertEqual(
+            {row["source_repository"] for row in self.absorption["modules"]},
+            {row["source_repository"] for row in modules},
+        )
+        for row in modules:
+            self.assertTrue(row["capability_planes"])
+            self.assertNotIn("SPECIALIST_OR_FUTURE_MODULE", row["capability_planes"])
+        self.assertEqual(
+            [],
+            self.capabilities["planes"]["SPECIALIST_OR_FUTURE_MODULE"]["module_ids"],
+        )
 
     def test_new_portfolio_sources_are_present(self):
         modules = {row["source_repository"] for row in self.absorption["modules"]}
