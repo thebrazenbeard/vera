@@ -1,7 +1,7 @@
 {
   "schema": "VERA_RUNTIME_SOURCE_REGISTRY_V1",
   "workstream": "VERA_RUNTIME_COHESION_V1",
-  "status": "NON_NORMATIVE_OPERATIONAL_SUPPORT / LIVE_64_REPOSITORY_DIRECTORY / NOT_INSTALLED / NOT_RUNTIME_QUALIFIED",
+  "status": "NON_NORMATIVE_OPERATIONAL_SUPPORT / LIVE_65_REPOSITORY_DIRECTORY / NOT_INSTALLED / NOT_RUNTIME_QUALIFIED",
   "observed_at": "2026-09-23",
   "registry_semantics": "OPEN_WORLD_SOURCE_DIRECTORY; this 63-repository cut is direct live GitHub portfolio evidence. Registration controls retrieval/classification only and never grants authority, activation, installation, currentness, memory admission, consent, phenomenology, or protected-effect permission. Portfolio architecture is additionally internalized by architecture/portfolio/VERA_PORTFOLIO_ABSORPTION_V1.json.",
   "owner_repository_snapshot": [
@@ -68,7 +68,8 @@
     "thebrazenbeard/unbound-sol",
     "thebrazenbeard/RepairTracker",
     "thebrazenbeard/freerowcochkar",
-    "thebrazenbeard/identify-ai"
+    "thebrazenbeard/identify-ai",
+    "thebrazenbeard/ccb-core"
   ],
   "repository_sources": [
     {
@@ -614,6 +615,15 @@
       "privacy_class": "PUBLIC_SAFE_RESEARCH",
       "availability_implies_activation": false,
       "observed_head": "ba9001ea907c67e9eb081b4353da0f6fc9262e28"
+    },
+    {
+      "repository": "thebrazenbeard/ccb-core",
+      "runtime_role": "EMPTY_PORTFOLIO_PLACEHOLDER_SOURCE",
+      "activation_mode": "NO_AUTO_BIND",
+      "authority_ceiling": "Repository existence only; no content exists to establish role or capability.",
+      "privacy_class": "PUBLIC_EMPTY",
+      "availability_implies_activation": false,
+      "observed_head": null
     }
   ],
   "provider_sources": {
@@ -777,14 +787,14 @@
     "portfolio_binding": "Discovery classifies the canonical repository cut; Roots resolves provenance/supersession; neither grants runtime activation."
   },
   "portfolio_reconciliation": {
-    "status": "LIVE_64_REPOSITORY_CUT_WITH_PREDECESSOR_59_LINEAGE",
+    "status": "LIVE_65_REPOSITORY_CUT_WITH_PREDECESSOR_59_LINEAGE",
     "observed_date": "2026-09-23",
     "classification_counts": {
-      "total": 64,
+      "total": 65,
       "bound_conditional": 45,
       "predecessor_evidence": 1,
       "classified_source_rows": 46,
-      "no_auto_bind": 18,
+      "no_auto_bind": 19,
       "archived": 1,
       "empty_stubs": 2,
       "unresolved_hc_template_claimants": 3
@@ -815,13 +825,14 @@
     },
     "current_inventory": {
       "source": "GitHub connected live repository listing",
-      "repository_count": 64,
+      "repository_count": 65,
       "newly_observed_since_predecessor_59": [
         "thebrazenbeard/meso-crct",
         "thebrazenbeard/unbound-sol",
         "thebrazenbeard/RepairTracker",
         "thebrazenbeard/freerowcochkar",
-        "thebrazenbeard/identify-ai"
+        "thebrazenbeard/identify-ai",
+        "thebrazenbeard/ccb-core"
       ],
       "claim_ceiling": "PORTFOLIO_PRESENCE_AND_SOURCE_CLASSIFICATION_ONLY_NOT_RUNTIME_CONSUMPTION_OR_AUTHORITY"
     },
