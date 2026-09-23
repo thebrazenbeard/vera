@@ -35,7 +35,7 @@ class AbsorbedPortfolioRuntimeTests(unittest.TestCase):
         first = build_derivation_manifest(**kwargs)
         second = build_derivation_manifest(**kwargs)
         assert_replay_match(first, second)
-        self.assertEqual(first.output_content_id, sha256_hex(b"same").join(("", "")))
+        self.assertEqual(first.output_content_id, "sha256:" + sha256_hex(b"same"))
 
     def test_skeletonkey_sequence_marks_gaps_without_reordering_history(self):
         result = assess_sequence([SequenceSample(1), SequenceSample(3), SequenceSample(2)])
@@ -68,7 +68,7 @@ class AbsorbedPortfolioRuntimeTests(unittest.TestCase):
 
     def test_intranel_admission_module_is_importable_under_vera_ownership(self):
         self.assertTrue(callable(intranel_admission.operation_digest))
-        self.assertTrue(callable(intranel_admission.admit_message))
+        self.assertTrue(callable(intranel_admission.admit))
 
     def test_lantern_canonical_records_are_deterministic(self):
         self.assertEqual(canonical_json({"b": 2, "a": 1}), '{"a":1,"b":2}')
