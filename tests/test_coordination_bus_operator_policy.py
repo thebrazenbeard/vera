@@ -3,8 +3,11 @@ from __future__ import annotations
 import unittest
 
 from coordination_bus.operator_policy import (
+    BusContentsWritePlan,
     BusWritePlan,
     OperatorPolicyViolation,
+    REQUIRED_CONTENTS_API_WRITE_ACTIONS,
+    validate_bus_contents_write_plan,
     validate_bus_write_plan,
 )
 
@@ -43,6 +46,20 @@ def valid_plan(**overrides):
     }
     values.update(overrides)
     return BusWritePlan(**values)
+
+
+def valid_contents_plan(**overrides):
+    values = {
+        "writer_branch": CURRENT_WRITER_LANE,
+        "message_path": "messages/20260921-vera-test.md",
+        "initial_branch_head": SHA_A,
+        "message_absence_verified": True,
+        "refreshed_branch_head": SHA_C,
+        "force_ref_update": False,
+        "actions": REQUIRED_CONTENTS_API_WRITE_ACTIONS,
+    }
+    values.update(overrides)
+    return BusContentsWritePlan(**values)
 
 
 class BusOperatorPolicyTests(unittest.TestCase):
@@ -120,8 +137,13 @@ class BusOperatorPolicyTests(unittest.TestCase):
         import coordination_bus
 
         self.assertIs(coordination_bus.BusWritePlan, BusWritePlan)
+        self.assertIs(coordination_bus.BusContentsWritePlan, BusContentsWritePlan)
         self.assertIs(coordination_bus.OperatorPolicyViolation, OperatorPolicyViolation)
         self.assertIs(coordination_bus.validate_bus_write_plan, validate_bus_write_plan)
+        self.assertIs(
+            coordination_bus.validate_bus_contents_write_plan,
+            validate_bus_contents_write_plan,
+        )
 
     def test_merge_or_delete_actions_are_forbidden_for_bus_message_write(self):
         for action in ("MERGE_PULL_REQUEST", "DELETE_REF", "FORCE_UPDATE_REF"):
@@ -136,6 +158,62 @@ class BusOperatorPolicyTests(unittest.TestCase):
         with self.assertRaisesRegex(OperatorPolicyViolation, "40-character"):
             validate_bus_write_plan(
                 valid_plan(refreshed_branch_head="not-a-sha"),
+                expected_writer_branch=CURRENT_WRITER_LANE,
+            )
+
+    def test_valid_contents_api_append_plan_passes(self):
+        plan = valid_contents_plan()
+        self.assertIs(
+            validate_bus_contents_write_plan(
+                plan,
+                expected_writer_branch=CURRENT_WRITER_LANE,
+            ),
+            plan,
+        )
+
+    def test_contents_api_profile_also_forbids_pr_creation(self):
+        with self.assertRaisesRegex(OperatorPolicyViolation, "CREATE_PULL_REQUEST"):
+            validate_bus_contents_write_plan(
+                valid_contents_plan(
+                    actions=("READ_BRANCH_HEAD", "CREATE_PULL_REQUEST"),
+                ),
+                expected_writer_branch=CURRENT_WRITER_LANE,
+            )
+
+    def test_contents_api_requires_authoritative_message_absence(self):
+        with self.assertRaisesRegex(OperatorPolicyViolation, "absence"):
+            validate_bus_contents_write_plan(
+                valid_contents_plan(message_absence_verified=False),
+                expected_writer_branch=CURRENT_WRITER_LANE,
+            )
+
+    def test_contents_api_requires_branch_frontier_advance(self):
+        with self.assertRaisesRegex(OperatorPolicyViolation, "advance"):
+            validate_bus_contents_write_plan(
+                valid_contents_plan(refreshed_branch_head=SHA_A),
+                expected_writer_branch=CURRENT_WRITER_LANE,
+            )
+
+    def test_contents_api_rejects_head_json_cas_actions(self):
+        with self.assertRaisesRegex(OperatorPolicyViolation, "CAS_UPDATE_HEAD_JSON"):
+            validate_bus_contents_write_plan(
+                valid_contents_plan(
+                    actions=REQUIRED_CONTENTS_API_WRITE_ACTIONS + ("CAS_UPDATE_HEAD_JSON",),
+                ),
+                expected_writer_branch=CURRENT_WRITER_LANE,
+            )
+
+    def test_contents_api_wrong_writer_lane_is_rejected(self):
+        with self.assertRaisesRegex(OperatorPolicyViolation, "writer branch"):
+            validate_bus_contents_write_plan(
+                valid_contents_plan(writer_branch="bus/radar-v2"),
+                expected_writer_branch=CURRENT_WRITER_LANE,
+            )
+
+    def test_contents_api_force_update_is_rejected(self):
+        with self.assertRaisesRegex(OperatorPolicyViolation, "force"):
+            validate_bus_contents_write_plan(
+                valid_contents_plan(force_ref_update=True),
                 expected_writer_branch=CURRENT_WRITER_LANE,
             )
 
