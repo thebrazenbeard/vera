@@ -20,7 +20,11 @@
     "coverage_rule": "All repositories in the observed owner portfolio are represented as Vera-owned architecture modules.",
     "external_runtime_rule": "External runtime/provider dependency must be explicit; source presence alone is not dependency activation.",
     "capability_architecture_path": "architecture/portfolio/VERA_PORTFOLIO_CAPABILITY_ARCHITECTURE_V1.json",
-    "architecture_rule": "Every portfolio source must map to at least one Vera-owned capability plane; no source may remain an opaque inventory-only placeholder."
+    "architecture_rule": "Every portfolio source must map to at least one Vera-owned capability plane; no source may remain an opaque inventory-only placeholder.",
+    "harvest_ledger_path": "architecture/portfolio/VERA_PORTFOLIO_HARVEST_V1.json",
+    "migration_bindings_path": "architecture/portfolio/VERA_PORTFOLIO_MIGRATION_BINDINGS_V1.json",
+    "absorbed_runtime_namespace": "portfolio_runtime",
+    "implementation_rule": "Reusable Vera-specific code/contracts migrate into Vera-owned namespaces; stronger already-internalized implementations remain canonical; independent validators/services, sibling identities, private archives/assets, and domain applications remain external behind explicit interfaces."
   },
   "runtime": {
     "package": "runtime_cohesion",
