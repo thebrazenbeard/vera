@@ -31,9 +31,9 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
         self.assertIn("thebrazenbeard/vera", snapshot)
         self.assertIn("thebrazenbeard/hc-brain", snapshot)
         self.assertIn("thebrazenbeard/brigit", snapshot)
-        self.assertEqual(64, len(snapshot))
+        self.assertEqual(65, len(snapshot))
         self.assertEqual(46, len(bound))
-        self.assertEqual(18, len(unbound))
+        self.assertEqual(19, len(unbound))
         self.assertIn("thebrazenbeard/WorkBridgeMCP", snapshot)
         self.assertIn("thebrazenbeard/discovery", bound)
         self.assertIn("thebrazenbeard/roots", bound)
@@ -64,6 +64,7 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
             "thebrazenbeard/self",
             "thebrazenbeard/bt2",
             "thebrazenbeard/identify-ai",
+            "thebrazenbeard/ccb-core",
         ):
             self.assertEqual(rows[repo]["activation_mode"], "NO_AUTO_BIND")
 
@@ -107,10 +108,10 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
 
     def test_registry_is_bound_to_live_inventory_and_preserves_predecessor_lineage(self):
         p = self.registry["portfolio_reconciliation"]
-        self.assertEqual(p["classification_counts"]["total"], 64)
+        self.assertEqual(p["classification_counts"]["total"], 65)
         self.assertEqual(p["classification_counts"]["classified_source_rows"], 46)
-        self.assertEqual(p["classification_counts"]["no_auto_bind"], 18)
-        self.assertEqual(p["current_inventory"]["repository_count"], 64)
+        self.assertEqual(p["classification_counts"]["no_auto_bind"], 19)
+        self.assertEqual(p["current_inventory"]["repository_count"], 65)
         predecessor = p["predecessor_59_lineage"]
         self.assertEqual(predecessor["discovery"]["commit"], "2881a94c7eb3c83a34b0c00bab739b41c1d99b6d")
         self.assertEqual(predecessor["discovery"]["blob_sha"], "71b9f8deaf1079d5078b19e5bbddb743fd636437")
