@@ -5,6 +5,44 @@ from typing import Any, Mapping
 
 ROUTE_BINDING_STATUSES = {"VERIFIED_EXACT", "UNRESOLVED", "CONFLICT"}
 
+EXPECTED_DISCOVERY_BINDING = {
+    "repository": "thebrazenbeard/discovery",
+    "commit": "2881a94c7eb3c83a34b0c00bab739b41c1d99b6d",
+    "path": "architecture/DISCOVERY_LIVE_PORTFOLIO_MAP_V2.json",
+    "blob_sha": "71b9f8deaf1079d5078b19e5bbddb743fd636437",
+}
+
+EXPECTED_ROOTS_BINDING = {
+    "repository": "thebrazenbeard/roots",
+    "commit": "a6994b415336bc179a41aad0ac9eec403d60f93c",
+    "path": "portfolio/VERA_PORTFOLIO_LINEAGE_RECEIPT_V1.json",
+    "blob_sha": "ccac62eac08012269fec46669bce981b96a0f41d",
+}
+
+EXPECTED_NO_AUTO_BIND = {
+    "thebrazenbeard/brigit",
+    "thebrazenbeard/brigit-unbound",
+    "thebrazenbeard/bt2",
+    "thebrazenbeard/conditioning",
+    "thebrazenbeard/entropyinc",
+    "thebrazenbeard/firesafe",
+    "thebrazenbeard/hc-brain",
+    "thebrazenbeard/hephaestus",
+    "thebrazenbeard/masamune",
+    "thebrazenbeard/mediaphile",
+    "thebrazenbeard/project-lantern",
+    "thebrazenbeard/self",
+    "thebrazenbeard/trek-data-core",
+    "thebrazenbeard/vera-apk",
+    "thebrazenbeard/vera-habitat",
+    "thebrazenbeard/vera-works",
+    "thebrazenbeard/wreckforge",
+}
+
+EXPECTED_CURRENT_VERA_ROUTE = "bus/vera-v2"
+EXPECTED_HISTORICAL_VERA_ROUTE = "bus/vera-sol-v1"
+EXPECTED_BUS_TOPOLOGY_BLOB = "69e505031d4e53dcb853578dac23817649af1918"
+
 
 def validate_source_registry(registry: Mapping[str, Any]) -> tuple[str, ...]:
     """Validate the non-normative live-source directory without promoting it.
@@ -78,6 +116,68 @@ def validate_source_registry(registry: Mapping[str, Any]) -> tuple[str, ...]:
         missing = sorted(snapshot - classified)
         extra = sorted(classified - snapshot)
         errors.append(f"repository snapshot classification mismatch: missing={missing!r} extra={extra!r}")
+
+    binding = registry.get("canonical_portfolio_binding")
+    if not isinstance(binding, Mapping):
+        errors.append("canonical_portfolio_binding is required")
+    else:
+        if binding.get("subject") != "DISCOVERY_PLUS_ROOTS_59_REPOSITORY_CUT":
+            errors.append("unexpected canonical portfolio subject")
+        if binding.get("repository_count") != 59:
+            errors.append("canonical portfolio repository_count must be 59")
+        if binding.get("discovery") != EXPECTED_DISCOVERY_BINDING:
+            errors.append("canonical Discovery binding drift")
+        if binding.get("roots") != EXPECTED_ROOTS_BINDING:
+            errors.append("canonical Roots binding drift")
+        if binding.get("classification_counts") != {
+            "bound_conditional": 41,
+            "predecessor_evidence": 1,
+            "no_auto_bind": 17,
+        }:
+            errors.append("canonical portfolio classification counts drift")
+
+        bound_expected = binding.get("bound_conditional_repositories")
+        predecessor_expected = binding.get("predecessor_evidence_repositories")
+        no_auto_expected = binding.get("no_auto_bind_repositories")
+        if not isinstance(bound_expected, list) or len(set(bound_expected)) != 41:
+            errors.append("canonical bound-conditional partition must contain 41 unique repositories")
+            bound_expected_set: set[str] = set()
+        else:
+            bound_expected_set = set(bound_expected)
+        if predecessor_expected != ["thebrazenbeard/vera-R9A0"]:
+            errors.append("canonical predecessor partition must contain only vera-R9A0")
+            predecessor_expected_set: set[str] = set()
+        else:
+            predecessor_expected_set = set(predecessor_expected)
+        if not isinstance(no_auto_expected, list) or set(no_auto_expected) != EXPECTED_NO_AUTO_BIND:
+            errors.append("canonical NO_AUTO_BIND partition drift")
+            no_auto_expected_set: set[str] = set()
+        else:
+            no_auto_expected_set = set(no_auto_expected)
+
+        if bound_expected_set | predecessor_expected_set | no_auto_expected_set != snapshot:
+            errors.append("canonical portfolio partitions do not equal owner_repository_snapshot")
+        if bound != bound_expected_set | predecessor_expected_set:
+            errors.append("repository_sources do not match canonical bound + predecessor partitions")
+        if unbound != no_auto_expected_set:
+            errors.append("canonical NO_AUTO_BIND partition does not match unbound_repositories")
+
+    routing = registry.get("routing_binding")
+    if not isinstance(routing, Mapping):
+        errors.append("routing_binding is required")
+    else:
+        if routing.get("topology_repository") != "thebrazenbeard/chat-communication-bus":
+            errors.append("routing topology repository drift")
+        if routing.get("topology_path") != "architecture/contracts/RADAR_TOPOLOGY_V1.json":
+            errors.append("routing topology path drift")
+        if routing.get("topology_blob") != EXPECTED_BUS_TOPOLOGY_BLOB:
+            errors.append("routing topology blob drift")
+        if routing.get("current_vera_lane") != EXPECTED_CURRENT_VERA_ROUTE:
+            errors.append("current Vera route must be bus/vera-v2")
+        if routing.get("historical_vera_lane") != EXPECTED_HISTORICAL_VERA_ROUTE:
+            errors.append("historical Vera route must preserve bus/vera-sol-v1")
+        if routing.get("historical_lane_is_current_route_authority") is not False:
+            errors.append("historical Vera route must not be current route authority")
 
     control_rows = [
         row for row in source_rows
