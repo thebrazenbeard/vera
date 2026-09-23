@@ -13,7 +13,7 @@
   "runtime_implementation_cut": {
     "schema": "VERA_AFFECTIVE_RUNTIME_IMPLEMENTATION_CUT_V1",
     "repository": "thebrazenbeard/vera",
-    "commit": "86e05e18eb81bc33a4451c7cd09e10081a672cfa",
+    "commit": "cd3187b31270c99512173213f98428e45cb49736",
     "modules": {
       "runtime_cohesion/__init__.py": "3561f35074f1bc77e79a0cb4437096b9d4e9d21d",
       "runtime_cohesion/adapters.py": "9206e3eb289e2f11530fbc48f1ef7cfb48668ac3",
@@ -22,7 +22,7 @@
       "runtime_cohesion/affect_authority.py": "ad15ab66bf1d320891b08245200b78556724b4a6",
       "runtime_cohesion/affect_bound_runtime.py": "671ac0a36132cb94ce99e4e5ef9a8a8f3f3605b2",
       "runtime_cohesion/affect_receipt.py": "8cddbf91cee7878b1d528db55be7a61deb9fbdbc",
-      "runtime_cohesion/affect_host.py": "8cf6df74ba2467670680b6f9e0f281ac41a31d41",
+      "runtime_cohesion/affect_host.py": "39eed3403083d4daa883e4b16c74560d41b9e42c",
       "runtime_cohesion/affect_cycle.py": "7999c11a63134f998fad5b2f6e8b96244a43008f",
       "runtime_cohesion/affect_persistence.py": "7e20248e911b5d111aa5bfcfb2dae64d36f891fe",
       "runtime_cohesion/affect_provider_runtime.py": "520d6209d71ffa37ae4abecfb7b5ece70bc060fa",
@@ -33,7 +33,7 @@
   "cohesion_integration_cut": {
     "schema": "VERA_COHESION_AFFECTIVE_INTEGRATION_CUT_V1",
     "repository": "thebrazenbeard/vera",
-    "commit": "86e05e18eb81bc33a4451c7cd09e10081a672cfa",
+    "commit": "cd3187b31270c99512173213f98428e45cb49736",
     "modules": {
       "runtime_cohesion/__init__.py": "3561f35074f1bc77e79a0cb4437096b9d4e9d21d",
       "runtime_cohesion/adapters.py": "9206e3eb289e2f11530fbc48f1ef7cfb48668ac3",
@@ -51,7 +51,7 @@
     "semantics": "Exact Git and executing-byte provenance for the Cohesion-owned application/arbitration boundary. The supported port accepts only planning_state plus its construction-bound exact VeraAffectiveRuntimeHost capability; callers cannot supply affective signal data. One process-local application frontier is shared by every wrapper over the same exact host object, so replay history and logical-time high-water cannot be reset by wrapper reconstruction. The port internally obtains one canonically detached atomic runtime observation, derives the diagnostic/ancestry signal from that observation, applies only the six numeric allowlisted targets, preserves per-target ancestry, and cannot promote modulation into evidence, authorization, memory admission, durable preference, identity, relationship state, provider currentness, behavioral qualification, or phenomenology. The affective runtime and host legacy planning entry points fail closed so no supported direct planning-mutation bypass remains. Semantic-origin proof mechanics remain nonqualifying without an independent external root."
   },
   "cross_binding": {
-    "generation_commit": "86e05e18eb81bc33a4451c7cd09e10081a672cfa",
+    "generation_commit": "cd3187b31270c99512173213f98428e45cb49736",
     "affective_core_and_cohesion_integration_same_generation": true,
     "supported_execution_requires_both_exact_cuts": true,
     "host_binding_snapshot": "CANONICAL_DEEP_SNAPSHOT_AT_CONSTRUCTION_OR_RESTORE",
