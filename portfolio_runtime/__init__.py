@@ -1,0 +1,1 @@
+"""Vera-owned absorbed portfolio implementation.\n\nModules here are source-integrated into the Vera repository with provenance tracked\nin architecture/portfolio/VERA_PORTFOLIO_HARVEST_V1.json.\n"""\n
