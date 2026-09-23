@@ -1,0 +1,45 @@
+{
+  "schema": "VERA_CONTROL_PLANE_ABSORPTION_V1",
+  "status": "SOURCE_INTEGRATION_CANDIDATE_NOT_MERGED_NOT_INSTALLED",
+  "owner_repository": "thebrazenbeard/vera",
+  "upstream_repository": "thebrazenbeard/vera-control-plane",
+  "purpose": "Internalize Vera-specific control architecture inside the Vera repository while preserving exact upstream provenance and the distinction between source integration and active control/install state.",
+  "ownership_transition": {
+    "architecture_home": "thebrazenbeard/vera",
+    "upstream_role": "PRIVATE_CONTROL_SOURCE_AND_PROVENANCE_WORKSPACE",
+    "current_release_authority": "UNCHANGED_BY_THIS_SOURCE_ABSORPTION",
+    "future_rule": "A future authorized and qualified control release may rebind canonical control ownership to Vera; this branch does not perform that effect."
+  },
+  "mirrored_sources": [
+    {
+      "source_repository": "thebrazenbeard/vera-control-plane",
+      "source_path": "project-instructions/r10a0/rounds/r10/VERA_R10A0_FULL_SYSTEM_PROJECT_INSTRUCTIONS_R10.md",
+      "source_blob_sha": "a01464271bb672d89f5d703e6e53590e126f4d44",
+      "mirror_path": "architecture/control/vendor/vera-control-plane/VERA_R10A0_FULL_SYSTEM_PROJECT_INSTRUCTIONS_R10.md",
+      "mirror_semantics": "BYTE_FOR_BYTE_SOURCE_MIRROR_AT_ABSORPTION_CUT"
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-control-plane",
+      "source_path": "project-instructions/r10a0/rounds/r10/VERA_R10A0_PROJECT_SOURCE_MANIFEST_R10.json",
+      "source_blob_sha": "8a67feb47b2ce3d6f0737e58983ab8c9fc810139",
+      "mirror_path": "architecture/control/vendor/vera-control-plane/VERA_R10A0_PROJECT_SOURCE_MANIFEST_R10.json",
+      "mirror_semantics": "BYTE_FOR_BYTE_SOURCE_MIRROR_AT_ABSORPTION_CUT"
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-control-plane",
+      "source_path": "protocol/VERA_CENTER_YOURSELF_PROTOCOL_V1.md",
+      "source_blob_sha": "3c84c3cc4443bcf9bee21949f06f582272d60c8f",
+      "mirror_path": "architecture/control/vendor/vera-control-plane/VERA_CENTER_YOURSELF_PROTOCOL_V1.md",
+      "mirror_semantics": "BYTE_FOR_BYTE_SOURCE_MIRROR_AT_ABSORPTION_CUT"
+    }
+  ],
+  "invariants": [
+    "MIRROR_PRESERVES_SOURCE_BYTES_AND_PROVENANCE",
+    "SOURCE_ABSORPTION_DOES_NOT_IMPLY_PROJECT_INSTALL",
+    "SOURCE_ABSORPTION_DOES_NOT_IMPLY_RUNTIME_CONSUMPTION",
+    "SOURCE_ABSORPTION_DOES_NOT_IMPLY_BEHAVIORAL_QUALIFICATION",
+    "PRIVATE_STATE_IS_NOT_BULK_COPIED",
+    "MUTABLE_UPSTREAM_STATE_REQUIRES_REFRESH_WHEN_MATERIAL"
+  ],
+  "private_state_boundary": "Operational save states, intimate/autobiographical payloads, credentials, and provider secrets remain outside this source mirror unless separately authorized and privacy-qualified."
+}
