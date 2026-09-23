@@ -179,7 +179,10 @@ def validate_evidence_contract(document: dict[str, Any]) -> None:
     active = document.get("active_context_semantics", {})
     _require(active.get("qualification_term") == "ACTIVE_CONTEXT_SET", "runtime evidence active context term drift")
     _require("retrieved_artifact_set" in active.get("observable_surface", []), "runtime evidence observable surface lacks retrieval evidence")
-    _require("downstream_leakage_or_stickiness_behavior" in active.get("observable_surface", []), "runtime evidence observable surface lacks anti-stickiness behavior")
+    _require(
+        "downstream_leakage_or_stickiness_behavior" in active.get("observable_surface", []),
+        f"runtime evidence observable surface lacks anti-stickiness behavior: {active.get('observable_surface', [])!r}",
+    )
     _require("do not claim latent model activation" in active.get("epistemic_rule", "").lower(), "runtime evidence must not claim unobserved latent activation")
     recall = document.get("activation_recall_floor", {})
     predicates = set(recall.get("activation_predicates", []))
