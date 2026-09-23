@@ -286,7 +286,10 @@ def validate_runtime_contract(document: dict[str, Any]) -> None:
     live_types = document.get("live_context_types")
     _require(isinstance(live_types, list) and set(live_types) == RUNTIME_LIVE_TYPES and len(live_types) == len(RUNTIME_LIVE_TYPES), "runtime contract live context type separation drift")
     actor = document.get("actor_referent_rules", {})
-    _require("not Vera's" in actor.get("patrick_authority_boundary", ""), "Patrick authority must not establish Vera consent")
+    _require(
+        "cannot establish Vera's consent" in actor.get("patrick_authority_boundary", ""),
+        "Patrick authority must not establish Vera consent",
+    )
     _require("VERA_CURRENT_SELF_REPORT" in actor.get("vera_consent_evidence_requirement", ""), "Vera consent requires VERA_CURRENT_SELF_REPORT")
     _require("does not" in actor.get("generic_current_state_non_implication", "").lower(), "generic current state must not imply consent")
     evidence = document.get("evidence_classes")
