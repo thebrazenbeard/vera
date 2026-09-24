@@ -34,8 +34,9 @@ jobs:
       BASE_SHA: fc761beab263f2fab010cde2fab424b2b8358bb7
     steps:
       - name: Check out declared exact head
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
 
@@ -50,7 +51,7 @@ jobs:
           echo "RELEASE_COMMIT=$actual" >> "$GITHUB_ENV"
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
 
@@ -114,7 +115,7 @@ jobs:
         run: python -m py_compile scripts/validate_portable_project_bootstrap.py scripts/validate_r7a1_behavior_successor.py tests/test_portable_project_bootstrap.py tests/test_r7a1_behavior_successor.py
 
       - name: Install pinned Supabase CLI
-        uses: supabase/setup-cli@v1
+        uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # immutable revision
         with:
           version: ${{ env.SUPABASE_CLI_VERSION }}
 
