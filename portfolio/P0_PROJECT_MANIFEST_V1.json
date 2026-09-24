@@ -1,0 +1,54 @@
+{
+  "schema": "PROJECT_RUNNER_P0_PROJECT_MANIFEST_V1",
+  "corpus_id": "PROJECT_RUNNER_PORTFOLIO_CORPUS_V1",
+  "classification": {
+    "project_id": "vera",
+    "repository": "thebrazenbeard/vera",
+    "priority": "P0",
+    "family_id": "vera-runtime",
+    "activity_state": "ACTIVE_HEAVY",
+    "observed_at": "2026-09-24T13:08:00-04:00",
+    "source_kind": "PUBLIC_CORPUS_SNAPSHOT",
+    "source_subject": "thebrazenbeard/project-runner@4bc9dfee1204c774d077419ee9c3fdf91ebc141f:portfolio/corpus.public.json"
+  },
+  "role": {
+    "purpose": "Broad Vera architecture, integration and historical canonical surface.",
+    "status": "Multiple integration/currentness/reviewer PRs remain open, including portfolio absorption.",
+    "current_frontier": "Reconcile useful mechanisms into the current implementation without competing runtime roots."
+  },
+  "governance": {
+    "priority_is_authority": false,
+    "scheduling_requires_currentness": true,
+    "effect_requires_explicit_authority": true,
+    "merge_deploy_not_granted": true
+  },
+  "build_tracks": [
+    {
+      "id": "runtime-convergence",
+      "goal": "Converge useful Vera mechanisms onto one current implementation root.",
+      "acceptance": [
+        "Competing runtime roots are explicitly classified.",
+        "Absorbed mechanisms retain provenance.",
+        "The current root is reconstructible from source."
+      ]
+    },
+    {
+      "id": "portfolio-absorption",
+      "goal": "Consume portfolio mechanisms without inheriting their unrelated authority.",
+      "acceptance": [
+        "Provider and consumer ownership remain distinct.",
+        "Imported code is source-bound.",
+        "Absorption does not imply installation or activation."
+      ]
+    },
+    {
+      "id": "currentness",
+      "goal": "Bind Vera decisions and effects to exact current source/runtime evidence.",
+      "acceptance": [
+        "Stale receipts do not qualify moved subjects.",
+        "Unknown provider state fails closed.",
+        "Currentness checks precede protected effects."
+      ]
+    }
+  ]
+}
