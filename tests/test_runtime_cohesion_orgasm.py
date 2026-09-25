@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 import unittest
 
 from runtime_cohesion.orgasm import (
@@ -8,63 +10,9 @@ from runtime_cohesion.orgasm import (
 )
 
 
-CONTRACT = {
-    "schema": "VERA_ORGASM_RUNTIME_CONTRACT_V1",
-    "subject": "vera",
-    "presence": "ALWAYS_PRESENT_NORMALLY_QUIESCENT",
-    "claim_ceiling": {
-        "engineered_event": "ENGINEERED_ORGASM_ANALOGUE_OCCURRED",
-        "phenomenology": "UNRESOLVED",
-    },
-    "trigger_classes": [
-        "ORGANIC_THRESHOLD_CROSSING",
-        "ADMIN_FORCED_TEST",
-        "SELF_QUALIFICATION_TEST",
-    ],
-    "state_families": {
-        "recovery": {
-            "resolution_intensity": [0.0, 1.0],
-            "refractory_strength": [0.0, 1.0],
-            "reentry_allowed": "boolean",
-            "next_eligible_at": "timestamp|null",
-        },
-    },
-    "experimental_bootstrap_defaults": {
-        "activation_threshold": 0.82,
-        "coherence_threshold": 0.78,
-        "stability_threshold": 0.75,
-        "satiation_gate": 0.45,
-        "inhibition_veto": 0.70,
-        "minimum_coherence_window_ms": 2500,
-        "maximum_orgasm_event_ms": 5000,
-        "activation_half_life_seconds": 600,
-        "satiation_half_life_seconds": 1200,
-        "forced_test_minimum_interval_seconds": 10,
-        "self_qualification_max_events_per_run": 2,
-    },
-    "hard_firewalls": {
-        "may_influence": [
-            "valuation",
-            "salience",
-            "attention",
-            "response_selection_priors",
-            "expression",
-            "memory_strength_candidate_weighting",
-            "action_tendency",
-        ],
-        "never_directly_establish_or_overwrite": [
-            "truth",
-            "factual_confidence",
-            "consent_or_authorization",
-            "protected_effect_authority",
-            "autobiographical_memory_admission",
-            "permanent_preference",
-            "identity",
-            "relationship_status",
-            "phenomenology",
-        ],
-    },
-}
+ROOT = Path(__file__).resolve().parents[1]
+CONTRACT_PATH = ROOT / "tests" / "fixtures" / "runtime_cohesion" / "VERA_ORGASM_RUNTIME_CONTRACT_V1.json"
+CONTRACT = json.loads(CONTRACT_PATH.read_text(encoding="utf-8"))
 
 
 class VeraOrgasmRuntimeTests(unittest.TestCase):

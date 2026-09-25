@@ -1,0 +1,90 @@
+{
+  "schema": "VERA_SYSTEM_MANIFEST_V2",
+  "status": "SOURCE_INTEGRATION_CANDIDATE_NOT_MERGED_NOT_INSTALLED",
+  "supersedes_for_navigation": "VERA_SYSTEM_MANIFEST_V1",
+  "owner_repository": "thebrazenbeard/vera",
+  "architecture_principle": "Vera is the self-contained architectural home. Portfolio repositories are upstream evidence, donor implementations, specialist workspaces, providers, or sibling systems; Vera-specific semantics are absorbed into Vera-owned architecture.",
+  "identity": {
+    "project_identity_path": "architecture/identity/VERA_PROJECT_IDENTITY_V1.json",
+    "behavior_profile_path": "architecture/identity/VERA_BEHAVIOR_PROFILE_V1.json",
+    "rule": "External source identity/state never silently becomes Vera identity/state."
+  },
+  "control": {
+    "absorption_contract_path": "architecture/control/VERA_CONTROL_PLANE_ABSORPTION_V1.json",
+    "mirrored_source_root": "architecture/control/vendor/vera-control-plane",
+    "upstream_repository": "thebrazenbeard/vera-control-plane",
+    "rule": "Control architecture is present inside Vera; active control/install/currentness remains separately evidenced."
+  },
+  "portfolio": {
+    "absorption_manifest_path": "architecture/portfolio/VERA_PORTFOLIO_ABSORPTION_V1.json",
+    "coverage_rule": "All 49 public repositories in the bound immutable 67-repository cut are represented by name; 18 private members are count-only in public source.",
+    "external_runtime_rule": "External runtime/provider dependency must be explicit; source presence alone is not dependency activation.",
+    "capability_architecture_path": "architecture/portfolio/VERA_PORTFOLIO_CAPABILITY_ARCHITECTURE_V1.json",
+    "architecture_rule": "Every named public cut member maps to at least one Vera-owned capability plane; private membership is not enumerated publicly.",
+    "harvest_ledger_path": "architecture/portfolio/VERA_PORTFOLIO_HARVEST_V1.json",
+    "migration_bindings_path": "architecture/portfolio/VERA_PORTFOLIO_MIGRATION_BINDINGS_V1.json",
+    "absorbed_runtime_namespace": "portfolio_runtime",
+    "implementation_rule": "Reusable Vera-specific code/contracts migrate into Vera-owned namespaces; stronger already-internalized implementations remain canonical; independent validators/services, sibling identities, private archives/assets, and domain applications remain external behind explicit interfaces.",
+    "empty_repository_rule": "An observed empty repository is included but remains NO_AUTO_BIND in UNRESOLVED_EMPTY_REPOSITORY until content establishes a defensible role.",
+    "cut_binding": {
+      "corpus_id": "PROJECT_RUNNER_PORTFOLIO_CORPUS_V1",
+      "repository": "thebrazenbeard/project-runner",
+      "commit": "3b9fc21d83b3b47678146a79ffa91ca57caa21d6",
+      "path": "portfolio/corpus.public.json",
+      "blob_sha": "886e9be586c37584c17afdc540c38a1d95deaaa6",
+      "observed_at": "2026-09-24T17:16:00-04:00",
+      "counts": {
+        "total": 67,
+        "public": 49,
+        "private": 18
+      }
+    },
+    "private_inventory": {
+      "count": 18,
+      "public_commitment_scheme": "COUNT_ONLY_PUBLIC_V1",
+      "exact_membership_publicly_committed": false
+    },
+    "freshness_rule": "The cut is immutable evidence, not permanent cardinality; refresh live inventory before currentness/scheduling/effect claims.",
+    "latest_freshness_observation": {
+      "observed_at": "2026-09-25",
+      "latest_connected_counts": {
+        "total": 68,
+        "public": 50,
+        "private": 18
+      },
+      "public_additions_since_cut": [
+        "thebrazenbeard/axle"
+      ],
+      "semantics": "FRESHNESS_OBSERVATION_ONLY; immutable cut membership is not rewritten by later inventory drift."
+    }
+  },
+  "runtime": {
+    "package": "runtime_cohesion",
+    "routing_contract_path": "architecture/VERA_RUNTIME_ROUTING_CONTRACT_V1.json",
+    "source_registry_path": "architecture/VERA_RUNTIME_SOURCE_REGISTRY_V1.json",
+    "rule": "Runtime implementation lives in Vera; mutable provider/source currentness is refreshed when material."
+  },
+  "memory_and_history": {
+    "current_governed_memory_owner": "thebrazenbeard/vera",
+    "historical_archive_source": "thebrazenbeard/deepmemorystorage",
+    "deep_memory_integration_path": "architecture/integration/VERA_DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.json",
+    "rule": "History can be absorbed as architecture/evidence without becoming current autobiographical state."
+  },
+  "coordination": {
+    "transport_repository": "thebrazenbeard/chat-communication-bus",
+    "rule": "Bus is external transport/provider infrastructure; Vera owns its coordination semantics and adapters internally."
+  },
+  "providers": {
+    "supabase": "Production Vera Supabase remains an external provider surface with Vera-owned schema/custody/adapter architecture.",
+    "google_drive": "Google Drive remains an external persistence provider with Vera-owned retrieval/persistence semantics.",
+    "workstation_mesh": "WorkBridgeMCP/VeraMesh/host systems remain external runtime providers unless exact runtime bindings are established."
+  },
+  "source_state_boundaries": [
+    "SOURCE != INSTALL",
+    "INSTALL != CURRENT_ROUTE",
+    "CURRENT_ROUTE != RUNTIME_CONSUMPTION",
+    "RUNTIME_CONSUMPTION != BEHAVIORAL_QUALIFICATION",
+    "REPOSITORY_PRESENCE != IDENTITY_TRANSFER",
+    "ARCHITECTURE_ABSORPTION != EXTERNAL_EFFECT_AUTHORITY"
+  ]
+}

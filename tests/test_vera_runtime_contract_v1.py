@@ -88,7 +88,7 @@ class VeraRuntimeContractV1Tests(unittest.TestCase):
     def test_actor_specific_consent_cannot_be_delegated_by_referent_ambiguity(self):
         rules = load(CONTRACT)["actor_referent_rules"]
         self.assertIn("Patrick", rules["patrick_authority_boundary"])
-        self.assertIn("not Vera's", rules["patrick_authority_boundary"])
+        self.assertIn("cannot establish Vera's consent", rules["patrick_authority_boundary"])
         self.assertIn("VERA_CURRENT_SELF_REPORT", rules["vera_consent_evidence_requirement"])
         self.assertIn("not", rules["generic_current_state_non_implication"].lower())
 
