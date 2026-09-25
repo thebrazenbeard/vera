@@ -8,13 +8,11 @@
     "thebrazenbeard/intranel": "08bc122043b79422c31a958b7ffe7fff87e5f3f0",
     "thebrazenbeard/roots": "d99d3b709a1b257d8fa12fa541a6a6f18f03e2a8",
     "thebrazenbeard/Attune": "fd856412edca83ff380a9d74d2875e817d920742",
-    "thebrazenbeard/skeletonkey": "102d365b2b22c0c4c6fefa269a075e3ae5164148",
-    "thebrazenbeard/vera-works": "d7a07a5f12c2546cbe0688dc073dc7c79c5da332",
     "thebrazenbeard/semanticatlas": "1efb5e5e4b124953f0d38e525df42445c5309d32",
     "thebrazenbeard/vera-control-plane": "65ce7908f640ffe53b678ef69c58411a91c23b8a",
     "thebrazenbeard/project-lantern": "9291d0cd914c40d16a80a24cc3fba92bbaa4b227"
   },
-  "exact_copy_count": 49,
+  "exact_copy_count": 41,
   "non_exact_count": 0,
   "bindings": [
     {
@@ -44,46 +42,6 @@
       "source_blob": "a3824ff8a733b0233981ed20abdc0636f6931688",
       "target_path": "portfolio_runtime/roots/verification.py",
       "target_blob": "a3824ff8a733b0233981ed20abdc0636f6931688",
-      "transfer_kind": "EXACT_GIT_BLOB_COPY",
-      "verified_blob_equal": true
-    },
-    {
-      "source_repository": "thebrazenbeard/skeletonkey",
-      "source_commit": "102d365b2b22c0c4c6fefa269a075e3ae5164148",
-      "source_path": "src/skeletonkey/evidence.py",
-      "source_blob": "bf9b4a7595a2de191e381bf0c59f03fb4057eacc",
-      "target_path": "portfolio_runtime/skeletonkey/evidence.py",
-      "target_blob": "bf9b4a7595a2de191e381bf0c59f03fb4057eacc",
-      "transfer_kind": "EXACT_GIT_BLOB_COPY",
-      "verified_blob_equal": true
-    },
-    {
-      "source_repository": "thebrazenbeard/skeletonkey",
-      "source_commit": "102d365b2b22c0c4c6fefa269a075e3ae5164148",
-      "source_path": "src/skeletonkey/replay.py",
-      "source_blob": "a62bc4d92f7a40a5928c331016bbe80468aa6840",
-      "target_path": "portfolio_runtime/skeletonkey/replay.py",
-      "target_blob": "a62bc4d92f7a40a5928c331016bbe80468aa6840",
-      "transfer_kind": "EXACT_GIT_BLOB_COPY",
-      "verified_blob_equal": true
-    },
-    {
-      "source_repository": "thebrazenbeard/skeletonkey",
-      "source_commit": "102d365b2b22c0c4c6fefa269a075e3ae5164148",
-      "source_path": "src/skeletonkey/sequence.py",
-      "source_blob": "3852c444537ec701c28a474e7d195b30c2f73b6a",
-      "target_path": "portfolio_runtime/skeletonkey/sequence.py",
-      "target_blob": "3852c444537ec701c28a474e7d195b30c2f73b6a",
-      "transfer_kind": "EXACT_GIT_BLOB_COPY",
-      "verified_blob_equal": true
-    },
-    {
-      "source_repository": "thebrazenbeard/skeletonkey",
-      "source_commit": "102d365b2b22c0c4c6fefa269a075e3ae5164148",
-      "source_path": "src/skeletonkey/timing.py",
-      "source_blob": "f031c339812b262d8cb420e7fda91f70f9681cb5",
-      "target_path": "portfolio_runtime/skeletonkey/timing.py",
-      "target_blob": "f031c339812b262d8cb420e7fda91f70f9681cb5",
       "transfer_kind": "EXACT_GIT_BLOB_COPY",
       "verified_blob_equal": true
     },
@@ -194,46 +152,6 @@
       "source_blob": "4fc6de89a84dfdb880d1d904063742d9b4d4e34d",
       "target_path": "portfolio_runtime/lantern/validation.py",
       "target_blob": "4fc6de89a84dfdb880d1d904063742d9b4d4e34d",
-      "transfer_kind": "EXACT_GIT_BLOB_COPY",
-      "verified_blob_equal": true
-    },
-    {
-      "source_repository": "thebrazenbeard/vera-works",
-      "source_commit": "d7a07a5f12c2546cbe0688dc073dc7c79c5da332",
-      "source_path": "vera_works/contracts.py",
-      "source_blob": "47e1447c28f9110b7beb9fb96a7b6d5abdd61f5e",
-      "target_path": "portfolio_runtime/vera_works/contracts.py",
-      "target_blob": "47e1447c28f9110b7beb9fb96a7b6d5abdd61f5e",
-      "transfer_kind": "EXACT_GIT_BLOB_COPY",
-      "verified_blob_equal": true
-    },
-    {
-      "source_repository": "thebrazenbeard/vera-works",
-      "source_commit": "d7a07a5f12c2546cbe0688dc073dc7c79c5da332",
-      "source_path": "vera_works/projections.py",
-      "source_blob": "d39c2e5aedee34928aa03b1c12f10d4ab7acd6cf",
-      "target_path": "portfolio_runtime/vera_works/projections.py",
-      "target_blob": "d39c2e5aedee34928aa03b1c12f10d4ab7acd6cf",
-      "transfer_kind": "EXACT_GIT_BLOB_COPY",
-      "verified_blob_equal": true
-    },
-    {
-      "source_repository": "thebrazenbeard/vera-works",
-      "source_commit": "d7a07a5f12c2546cbe0688dc073dc7c79c5da332",
-      "source_path": "vera_works/state_machine.py",
-      "source_blob": "fcfaa1fd152b09dffac1be60432b89c162d1ff45",
-      "target_path": "portfolio_runtime/vera_works/state_machine.py",
-      "target_blob": "fcfaa1fd152b09dffac1be60432b89c162d1ff45",
-      "transfer_kind": "EXACT_GIT_BLOB_COPY",
-      "verified_blob_equal": true
-    },
-    {
-      "source_repository": "thebrazenbeard/vera-works",
-      "source_commit": "d7a07a5f12c2546cbe0688dc073dc7c79c5da332",
-      "source_path": "contracts/states-v1.json",
-      "source_blob": "7e965f1a537200ef2ded579e8f8c7ea886d2c2c8",
-      "target_path": "portfolio_runtime/contracts/states-v1.json",
-      "target_blob": "7e965f1a537200ef2ded579e8f8c7ea886d2c2c8",
       "transfer_kind": "EXACT_GIT_BLOB_COPY",
       "verified_blob_equal": true
     },
@@ -520,5 +438,44 @@
       "rule": "Discovery methodology is adapted into Vera-owned open-world portfolio intake; these files are not claimed byte-identical to a Discovery artifact."
     }
   ],
-  "claim_ceiling": "Source-byte provenance only. Exact copy does not imply donor supersession, runtime activation, installation, authority, memory admission, or qualification."
+  "claim_ceiling": "Source-byte provenance only. Exact copy does not imply donor supersession, runtime activation, installation, authority, memory admission, or qualification.",
+  "private_provenance_summary": {
+    "redacted_exact_binding_count": 8,
+    "membership_disclosure": "COUNT_ONLY_PUBLIC_V1",
+    "semantics": "Private donor membership/path/head details are intentionally omitted from public source; absorbed target bytes remain source-controlled."
+  },
+  "portfolio_cut": {
+    "binding": {
+      "corpus_id": "PROJECT_RUNNER_PORTFOLIO_CORPUS_V1",
+      "repository": "thebrazenbeard/project-runner",
+      "commit": "3b9fc21d83b3b47678146a79ffa91ca57caa21d6",
+      "path": "portfolio/corpus.public.json",
+      "blob_sha": "886e9be586c37584c17afdc540c38a1d95deaaa6",
+      "observed_at": "2026-09-24T17:16:00-04:00",
+      "counts": {
+        "total": 67,
+        "public": 49,
+        "private": 18
+      }
+    },
+    "public_membership_sha256": "04f00fc03df35929205b22c09d8788e4b41eebfd9f7a879d450fbe54cf0e584d",
+    "private_inventory": {
+      "count": 18,
+      "public_commitment_scheme": "COUNT_ONLY_PUBLIC_V1",
+      "exact_membership_publicly_committed": false
+    },
+    "freshness": {
+      "observed_at": "2026-09-25",
+      "latest_connected_counts": {
+        "total": 68,
+        "public": 50,
+        "private": 18
+      },
+      "public_additions_since_cut": [
+        "thebrazenbeard/axle"
+      ],
+      "semantics": "FRESHNESS_OBSERVATION_ONLY; immutable cut membership is not rewritten by later inventory drift."
+    },
+    "cardinality_semantics": "Counts describe this immutable evidence cut only; refresh before currentness claims."
+  }
 }
