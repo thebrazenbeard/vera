@@ -111,7 +111,13 @@ jobs:
           tests.test_affective_runtime_provider_contract
           tests.test_affective_runtime_persistence_source
           tests.test_affective_runtime_cas_initialization_source
+          tests.test_portfolio_absorption_v2
+          tests.test_portfolio_harvest_v2
+          tests.test_portfolio_migration_bindings_v2
+          tests.test_portfolio_runtime_public_safe
           -v
+      - name: Compile public-safe absorbed portfolio runtime
+        run: python -m compileall -q portfolio_runtime
       - name: Compile cohesion validators, runtime, and tests
         run: >-
           python -m py_compile
