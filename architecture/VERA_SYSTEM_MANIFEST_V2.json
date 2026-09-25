@@ -1,0 +1,38 @@
+{
+  "schema": "VERA_SYSTEM_MANIFEST_V2",
+  "status": "PUBLIC_SAFE_SUCCESSOR_NAVIGATION_NOT_INSTALLED_NOT_RUNTIME_QUALIFIED",
+  "owner_repository": "thebrazenbeard/vera",
+  "portfolio_cut": "architecture/portfolio/VERA_PORTFOLIO_PUBLIC_CUT_V2.json",
+  "runtime_source_registry": "architecture/VERA_RUNTIME_SOURCE_REGISTRY_V2.json",
+  "portfolio_harvest": "architecture/portfolio/VERA_PORTFOLIO_HARVEST_V2.json",
+  "migration_bindings": "architecture/portfolio/VERA_PORTFOLIO_MIGRATION_BINDINGS_V2.json",
+  "control_plane_mirror": "architecture/control/VERA_CONTROL_PLANE_ABSORPTION_V2.json",
+  "executable_public_harvest": [
+    "portfolio_runtime/attune",
+    "portfolio_runtime/intranel",
+    "portfolio_runtime/lantern",
+    "portfolio_runtime/roots"
+  ],
+  "public_provenance_mirrors": [
+    "architecture/control/vendor/vera-control-plane",
+    "architecture/self_model/vendor/empathy",
+    "architecture/semantic/vendor/semanticatlas"
+  ],
+  "navigation_semantics": {
+    "fixed_system_count": "NONE",
+    "portfolio_cardinality": "IMMUTABLE_CUT_FACT_NOT_PERMANENT_SYSTEM_INVARIANT",
+    "repository_presence": "EVIDENCE_NOT_ACTIVATION",
+    "private_portfolio_membership": "COUNT_ONLY_ON_PUBLIC_SOURCE",
+    "currentness": "REFRESH_MUTABLE_SOURCE_BEFORE_MATERIAL_USE"
+  },
+  "predecessor": {
+    "pull_request": 200,
+    "head": "078d2d7242384c58676305d47654406713e599cf",
+    "preserved": "PUBLIC_SAFE_MECHANISM_AND_PROVENANCE_HARVEST",
+    "rejected": [
+      "PRIVATE_MEMBERSHIP_DISCLOSURE",
+      "PERMANENT_PORTFOLIO_CARDINALITY_ASSERTIONS",
+      "REPOSITORY_PRESENCE_AS_INTERNAL_RUNTIME_OWNERSHIP"
+    ]
+  }
+}
