@@ -1,0 +1,66 @@
+name: Vera Portfolio Public-Safe Successor V2
+
+on:
+  pull_request:
+    paths:
+      - "architecture/portfolio/**"
+      - "architecture/control/**"
+      - "architecture/self_model/vendor/empathy/**"
+      - "architecture/semantic/vendor/semanticatlas/**"
+      - "architecture/VERA_RUNTIME_SOURCE_REGISTRY_V2.json"
+      - "architecture/VERA_SYSTEM_MANIFEST_V2.json"
+      - "portfolio_runtime/**"
+      - "docs/VERA_PORTFOLIO_PUBLIC_SAFE_SUCCESSOR_V2.md"
+      - "tests/test_portfolio_public_successor_v2.py"
+      - "tests/test_portfolio_migration_bindings_v2.py"
+      - "tests/test_portfolio_runtime_public_harvest_v2.py"
+      - "tests/test_portfolio_public_navigation_v2.py"
+      - ".github/workflows/portfolio-public-successor-v2.yml"
+  push:
+    branches:
+      - "portfolio/public-safe-successor-pr200-v2-20260924"
+    paths:
+      - "architecture/portfolio/**"
+      - "architecture/control/**"
+      - "architecture/self_model/vendor/empathy/**"
+      - "architecture/semantic/vendor/semanticatlas/**"
+      - "architecture/VERA_RUNTIME_SOURCE_REGISTRY_V2.json"
+      - "architecture/VERA_SYSTEM_MANIFEST_V2.json"
+      - "portfolio_runtime/**"
+      - "docs/VERA_PORTFOLIO_PUBLIC_SAFE_SUCCESSOR_V2.md"
+      - "tests/test_portfolio_public_successor_v2.py"
+      - "tests/test_portfolio_migration_bindings_v2.py"
+      - "tests/test_portfolio_runtime_public_harvest_v2.py"
+      - "tests/test_portfolio_public_navigation_v2.py"
+      - ".github/workflows/portfolio-public-successor-v2.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-public-successor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate successor JSON syntax
+        run: |
+          python -m json.tool architecture/portfolio/VERA_PORTFOLIO_PUBLIC_CUT_V2.json >/dev/null
+          python -m json.tool architecture/VERA_RUNTIME_SOURCE_REGISTRY_V2.json >/dev/null
+          python -m json.tool architecture/portfolio/VERA_PORTFOLIO_HARVEST_V2.json >/dev/null
+          python -m json.tool architecture/portfolio/VERA_PORTFOLIO_MIGRATION_BINDINGS_V2.json >/dev/null
+          python -m json.tool architecture/control/VERA_CONTROL_PLANE_ABSORPTION_V2.json >/dev/null
+          python -m json.tool architecture/VERA_SYSTEM_MANIFEST_V2.json >/dev/null
+      - name: Compile preserved public runtime harvest
+        run: python -m compileall -q portfolio_runtime
+      - name: Run public successor regressions
+        run: >-
+          python -m unittest
+          tests.test_portfolio_public_successor_v2
+          tests.test_portfolio_migration_bindings_v2
+          tests.test_portfolio_runtime_public_harvest_v2
+          tests.test_portfolio_public_navigation_v2
+          -v
