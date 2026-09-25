@@ -1,0 +1,181 @@
+{
+  "schema": "VERA_PORTFOLIO_MIGRATION_BINDINGS_V2",
+  "owner_repository": "thebrazenbeard/vera",
+  "cut_binding": {
+    "source_repository": "thebrazenbeard/project-runner",
+    "source_ref": "portfolio/effect-confirmed-finalization-v1-20260924",
+    "source_commit": "6c8e6827a204380b40b7c7fa07d785ca53cec136",
+    "corpus_path": "portfolio/corpus.public.json",
+    "corpus_blob_sha": "886e9be586c37584c17afdc540c38a1d95deaaa6",
+    "corpus_id": "PROJECT_RUNNER_PORTFOLIO_CORPUS_V1",
+    "observed_at": "2026-09-24T17:16:00-04:00",
+    "counts": {
+      "total": 67,
+      "public": 49,
+      "private": 18,
+      "archived": 2,
+      "public_archived": 0,
+      "private_archived": 2
+    },
+    "semantics": "IMMUTABLE_DESCRIPTIVE_CUT_NOT_STANDING_CURRENTNESS"
+  },
+  "public_only": true,
+  "bindings": [
+    {
+      "source_repository": "thebrazenbeard/roots",
+      "source_commit": "d99d3b709a1b257d8fa12fa541a6a6f18f03e2a8",
+      "source_path": "src/roots/model.py",
+      "source_blob": "6c170d60dbafd6a8f9cd50d87f45068bfe6976d4",
+      "target_path": "portfolio_runtime/roots/model.py",
+      "target_blob": "6c170d60dbafd6a8f9cd50d87f45068bfe6976d4",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/roots",
+      "source_commit": "d99d3b709a1b257d8fa12fa541a6a6f18f03e2a8",
+      "source_path": "src/roots/normalize.py",
+      "source_blob": "452a1275cf76eb952fb39ba20f1b1f810f4ec79a",
+      "target_path": "portfolio_runtime/roots/normalize.py",
+      "target_blob": "452a1275cf76eb952fb39ba20f1b1f810f4ec79a",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/roots",
+      "source_commit": "d99d3b709a1b257d8fa12fa541a6a6f18f03e2a8",
+      "source_path": "src/roots/verification.py",
+      "source_blob": "a3824ff8a733b0233981ed20abdc0636f6931688",
+      "target_path": "portfolio_runtime/roots/verification.py",
+      "target_blob": "a3824ff8a733b0233981ed20abdc0636f6931688",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/intranel",
+      "source_commit": "08bc122043b79422c31a958b7ffe7fff87e5f3f0",
+      "source_path": "src/intranel/canonical.py",
+      "source_blob": "6e177d0c904931be0428690e131def4ec4ec5693",
+      "target_path": "portfolio_runtime/intranel/canonical.py",
+      "target_blob": "6e177d0c904931be0428690e131def4ec4ec5693",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/intranel",
+      "source_commit": "08bc122043b79422c31a958b7ffe7fff87e5f3f0",
+      "source_path": "src/intranel/jsonvalue.py",
+      "source_blob": "763cc4c59e5515383ae4472f001647ca074c2c6c",
+      "target_path": "portfolio_runtime/intranel/jsonvalue.py",
+      "target_blob": "763cc4c59e5515383ae4472f001647ca074c2c6c",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/intranel",
+      "source_commit": "08bc122043b79422c31a958b7ffe7fff87e5f3f0",
+      "source_path": "src/intranel/types.py",
+      "source_blob": "0a788b69eae29ecd333a771cdcd3cf6ee6174823",
+      "target_path": "portfolio_runtime/intranel/types.py",
+      "target_blob": "0a788b69eae29ecd333a771cdcd3cf6ee6174823",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/intranel",
+      "source_commit": "08bc122043b79422c31a958b7ffe7fff87e5f3f0",
+      "source_path": "src/intranel/message.py",
+      "source_blob": "9641e20b5d42060e0814b195cace967d026dc268",
+      "target_path": "portfolio_runtime/intranel/message.py",
+      "target_blob": "9641e20b5d42060e0814b195cace967d026dc268",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/intranel",
+      "source_commit": "08bc122043b79422c31a958b7ffe7fff87e5f3f0",
+      "source_path": "src/intranel/admission.py",
+      "source_blob": "8cbe7d95c38c92653bdf9cbfe7a690e7abd2b92b",
+      "target_path": "portfolio_runtime/intranel/admission.py",
+      "target_blob": "8cbe7d95c38c92653bdf9cbfe7a690e7abd2b92b",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/Attune",
+      "source_commit": "fd856412edca83ff380a9d74d2875e817d920742",
+      "source_path": "src/attune_contracts.py",
+      "source_blob": "f9879d354792a8d06542c10f44bee29dc79d2bce",
+      "target_path": "portfolio_runtime/attune/contracts.py",
+      "target_blob": "f9879d354792a8d06542c10f44bee29dc79d2bce",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/project-lantern",
+      "source_commit": "9291d0cd914c40d16a80a24cc3fba92bbaa4b227",
+      "source_path": "src/lantern/ids.py",
+      "source_blob": "9865ee13c38178701201dafc9b2de0ef35fb9c7b",
+      "target_path": "portfolio_runtime/lantern/ids.py",
+      "target_blob": "9865ee13c38178701201dafc9b2de0ef35fb9c7b",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/project-lantern",
+      "source_commit": "9291d0cd914c40d16a80a24cc3fba92bbaa4b227",
+      "source_path": "src/lantern/canonical.py",
+      "source_blob": "875d5cd01a0fb4236847522451062e4eed59ec21",
+      "target_path": "portfolio_runtime/lantern/canonical.py",
+      "target_blob": "875d5cd01a0fb4236847522451062e4eed59ec21",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/project-lantern",
+      "source_commit": "9291d0cd914c40d16a80a24cc3fba92bbaa4b227",
+      "source_path": "src/lantern/contracts.py",
+      "source_blob": "e94b1ede57bad11609608558e28a7e77627fdbce",
+      "target_path": "portfolio_runtime/lantern/contracts.py",
+      "target_blob": "e94b1ede57bad11609608558e28a7e77627fdbce",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/project-lantern",
+      "source_commit": "9291d0cd914c40d16a80a24cc3fba92bbaa4b227",
+      "source_path": "src/lantern/_store_types.py",
+      "source_blob": "aec4abb3fc575f56cae27aae55f90bdcf01f1d36",
+      "target_path": "portfolio_runtime/lantern/_store_types.py",
+      "target_blob": "aec4abb3fc575f56cae27aae55f90bdcf01f1d36",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/project-lantern",
+      "source_commit": "9291d0cd914c40d16a80a24cc3fba92bbaa4b227",
+      "source_path": "src/lantern/validation.py",
+      "source_blob": "4fc6de89a84dfdb880d1d904063742d9b4d4e34d",
+      "target_path": "portfolio_runtime/lantern/validation.py",
+      "target_blob": "4fc6de89a84dfdb880d1d904063742d9b4d4e34d",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    }
+  ],
+  "exact_copy_count": 14,
+  "non_exact_count": 0,
+  "private_donor_bindings_publicly_enumerated": false,
+  "private_inventory_count": 18,
+  "derived_integrations": [
+    {
+      "source_repository": "thebrazenbeard/discovery",
+      "transfer_kind": "DERIVED_ARCHITECTURE",
+      "target_paths": [
+        "architecture/portfolio/VERA_PORTFOLIO_ABSORPTION_V2.json",
+        "architecture/portfolio/VERA_PORTFOLIO_HARVEST_V2.json"
+      ],
+      "rule": "Discovery methodology informs open-world intake; Project Runner corpus cut provides the exact public-safe membership subject."
+    }
+  ],
+  "claim_ceiling": "Exact public donor blob provenance only. Copying source does not imply donor supersession, runtime activation, installation, authority, or private-membership disclosure."
+}
