@@ -24,7 +24,7 @@
   "cardinality_semantics": {
     "rule": "COUNTS_ARE_PROPERTIES_OF_THIS_IMMUTABLE_CUT_NOT_PERMANENT_PORTFOLIO_ASSERTIONS",
     "future_repository_change": "DOES_NOT_INVALIDATE_HISTORICAL_CUT__REQUIRES_FRESHER_CUT_FOR_CURRENTNESS",
-    "tests_must_not_treat_literal_counts_as_etERNAL": true
+    "tests_must_not_treat_literal_counts_as_eternal": true
   },
   "freshness_contract": {
     "before_runtime_or_authority_use": [
