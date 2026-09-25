@@ -4,7 +4,7 @@
 
 **Virtual Environment for Reciprocal Agency**
 
-This private repository contains version-controlled cross-cutting technical architecture for the V.E.R.A. project: source code, database migrations, schemas, validators, behavior/runtime support artifacts, and non-sensitive architecture documentation.
+This repository contains version-controlled cross-cutting technical architecture for the V.E.R.A. project: source code, database migrations, schemas, validators, behavior/runtime support artifacts, and non-sensitive architecture documentation.
 
 ## Currentness boundary
 
