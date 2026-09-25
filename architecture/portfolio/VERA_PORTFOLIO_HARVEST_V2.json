@@ -1,0 +1,659 @@
+{
+  "schema": "VERA_PORTFOLIO_HARVEST_V2",
+  "owner_repository": "thebrazenbeard/vera",
+  "cut_binding": {
+    "source_repository": "thebrazenbeard/project-runner",
+    "source_ref": "portfolio/effect-confirmed-finalization-v1-20260924",
+    "source_commit": "6c8e6827a204380b40b7c7fa07d785ca53cec136",
+    "corpus_path": "portfolio/corpus.public.json",
+    "corpus_blob_sha": "886e9be586c37584c17afdc540c38a1d95deaaa6",
+    "corpus_id": "PROJECT_RUNNER_PORTFOLIO_CORPUS_V1",
+    "observed_at": "2026-09-24T17:16:00-04:00",
+    "counts": {
+      "total": 67,
+      "public": 49,
+      "private": 18,
+      "archived": 2,
+      "public_archived": 0,
+      "private_archived": 2
+    },
+    "semantics": "IMMUTABLE_DESCRIPTIVE_CUT_NOT_STANDING_CURRENTNESS"
+  },
+  "public_repository_count": 49,
+  "public_repositories": [
+    {
+      "source_repository": "thebrazenbeard/abil",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "REFERENCE_RESEARCH",
+      "legacy_pr200_decision": "Adaptive learning/integration research only; no executable root implementation to migrate.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/Attune",
+      "mechanism_disposition": "CARRIED_EXACT_PUBLIC_MECHANISM",
+      "legacy_pr200_harvest_status": "MIGRATED_CODE",
+      "legacy_pr200_decision": "Relationship/commercial influence firewall and provenance-preserving memory reconciliation migrated; product/persona state stays external.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "src/attune_contracts.py"
+      ],
+      "vera_targets": [
+        "portfolio_runtime/attune/contracts.py"
+      ],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/bt2",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "REFERENCE_GENERIC_ARCHITECTURE",
+      "legacy_pr200_decision": "HC-family reusable template; keep as independent/generic source rather than importing identity-neutral bulk code as Vera-specific.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/bugops",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "KEEP_EXTERNAL_REPAIR_EVIDENCE",
+      "legacy_pr200_decision": "Incident/failure evidence source remains external; provider schemas/custody already represented in Vera.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/build-team-2.0",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "REFERENCE_ONLY",
+      "legacy_pr200_decision": "Workforce/training/coordination knowledge; no runtime code at root requiring absorption.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/ccb-core",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "NO_IMPLEMENTATION_TO_MIGRATE_EMPTY_REPO",
+      "legacy_pr200_decision": "Live GitHub metadata reports size 0 and the contents API reports an empty repository. Preserve as unresolved NO_AUTO_BIND subject and reinspect only when content appears.",
+      "inspected_surface": [
+        "REPOSITORY_METADATA",
+        "DEFAULT_BRANCH_ROOT_404_EMPTY_REPOSITORY"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/conations",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "KEEP_EXTERNAL_PRIVATE_HISTORY",
+      "legacy_pr200_decision": "Conation history remains private historical evidence; not standing desire/consent/current authority.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/deepmemorystorage",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "ALREADY_INTERNALIZED_INTERFACE_ARCHIVE_EXTERNAL",
+      "legacy_pr200_decision": "Retrieval/evidence interfaces already live in Vera; private archival payload remains external.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "architecture",
+        "schema",
+        "tools"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/discovery",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "MIGRATED_METHOD_AND_REGISTRY",
+      "legacy_pr200_decision": "DISCOVER→CLASSIFY→IMPLEMENT→VERIFY discipline and open-world portfolio intake are being absorbed into Vera; standalone observatory may remain independent evidence source.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "tools",
+        "architecture",
+        "portfolio"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/driftguard",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "KEEP_EXTERNAL_INDEPENDENT_VALIDATOR",
+      "legacy_pr200_decision": "Independent drift/benchmark validator remains external to preserve falsification independence; Vera retains transfer/adapter contract rather than copying the validator into itself.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "src/driftguard"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/empathy",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "MIRRORED_VERA_ARCHITECTURE",
+      "legacy_pr200_decision": "Vera-specific empathy architecture/status mirrored byte-for-byte; research/history remains external and no inference is promoted to current truth.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "VERA_REACTIVE_EMPATHY_ARCHITECTURE.md"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/freerowcochkar",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "NO_IMPLEMENTATION_TO_MIGRATE",
+      "legacy_pr200_decision": "Current default branch is descriptive stub only.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/fuckup",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "NOT_PRESENT_IN_PR200",
+      "legacy_pr200_decision": null,
+      "inspected_surface": "PROJECT_RUNNER_PUBLIC_CORPUS_METADATA",
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/god-brain",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "REFERENCE_DUPLICATE_HC_LINEAGE",
+      "legacy_pr200_decision": "Observed runtime tree equals HC runtime tree at inspected cut; no duplicate code migration.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "runtime"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/hc-brain",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "REFERENCE_GENERIC_ARCHITECTURE",
+      "legacy_pr200_decision": "Identity-neutral cognitive architecture is a conformance/mechanism reference. Generic HC code is not silently retyped as Vera-specific implementation.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "runtime/cognitive_core",
+        "runtime/reference_kernel"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/hephaestus",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "REFERENCE_PROJECT_ENGINEERING_SPECIALIST",
+      "legacy_pr200_decision": "Reusable Project-engineering doctrine is reference knowledge; specialist identity/qualification does not transfer.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "knowledge",
+        "docs",
+        "templates"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/intranel",
+      "mechanism_disposition": "CARRIED_EXACT_PUBLIC_MECHANISM",
+      "legacy_pr200_harvest_status": "MIGRATED_CODE",
+      "legacy_pr200_decision": "Canonical message and receiver-owned admission/effect/replay checks migrated; transport deployment remains external.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "src/intranel/{canonical,jsonvalue,types,message,admission}.py"
+      ],
+      "vera_targets": [
+        "portfolio_runtime/intranel"
+      ],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/masamune",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "KEEP_EXTERNAL_DEBUGGER",
+      "legacy_pr200_decision": "Independent debugging/root-cause reviewer remains external to preserve separate review lane.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "PROTOCOL_V2_CURRENT.md"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/meso-crct",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "NO_IMPLEMENTATION_TO_MIGRATE",
+      "legacy_pr200_decision": "Current default branch contains only descriptive stub/license surface.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/mosaic",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "DOMAIN_EXTERNAL_RESEARCH",
+      "legacy_pr200_decision": "Research/experimental project state, no reusable Vera runtime implementation identified at root.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/noema",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "REFERENCE_RESEARCH",
+      "legacy_pr200_decision": "Cognitive architecture research only; no executable root implementation to migrate.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/on-theo",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "DOMAIN_EXTERNAL",
+      "legacy_pr200_decision": "Theology/historical research project remains separate research corpus.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/personification",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "REFERENCE_IDENTITY_MECHANISM_ONLY",
+      "legacy_pr200_decision": "Brigit-oriented personification material cannot define Vera self-state; mechanism evidence only.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/project-achilles",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "REFERENCE_SECURITY_SPECIALIST",
+      "legacy_pr200_decision": "Security/effect-review specialist retained independently; mechanisms inform Vera assurance without collapsing reviewer independence.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "PROTOCOL_V2_CURRENT.md",
+        "training",
+        "tests"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/project-lantern",
+      "mechanism_disposition": "CARRIED_EXACT_PUBLIC_MECHANISM",
+      "legacy_pr200_harvest_status": "MIGRATED_CODE",
+      "legacy_pr200_decision": "Canonical record, digest, custody and semantic validation core migrated; storage/CLI surfaces remain donor-specific.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "src/lantern/{ids,canonical,contracts,_store_types,validation}.py"
+      ],
+      "vera_targets": [
+        "portfolio_runtime/lantern"
+      ],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/project-runner",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "KEEP_EXTERNAL_EXECUTION_WITH_INTERNAL_VALIDATION",
+      "legacy_pr200_decision": "Execution engine remains external orchestration provider; Vera owns proof/currentness validation and should not duplicate the whole runner.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "runner"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/RepairTracker",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "NO_IMPLEMENTATION_TO_MIGRATE_YET",
+      "legacy_pr200_decision": "Current default branch is architecture README only; no executable V0 spine exists yet to migrate.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/rezon",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "KEEP_EXTERNAL_REVIEW_REASONING",
+      "legacy_pr200_decision": "Independent reasoning/adversarial source remains external; root currently has no executable implementation to migrate.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/roots",
+      "mechanism_disposition": "CARRIED_EXACT_PUBLIC_MECHANISM",
+      "legacy_pr200_harvest_status": "MIGRATED_CODE",
+      "legacy_pr200_decision": "Provenance receipt model, normalization and claim-strength validation migrated; external adapters remain separate.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "src/roots/{model,normalize,verification}.py"
+      ],
+      "vera_targets": [
+        "portfolio_runtime/roots"
+      ],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/semanticatlas",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "MIRRORED_SCHEMA_REFERENCE_PRIVATE_PAYLOAD_EXTERNAL",
+      "legacy_pr200_decision": "Reusable semantic schema mirrored byte-for-byte as reference architecture; historical/private corpus and research payload remain external and schema presence is not canonical runtime semantics.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/spm",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "REFERENCE_RESEARCH",
+      "legacy_pr200_decision": "Semantic-pragmatic mechanism research only; no executable implementation at root requiring migration.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/sql-connectome",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "NOT_PRESENT_IN_PR200",
+      "legacy_pr200_decision": null,
+      "inspected_surface": "PROJECT_RUNNER_PUBLIC_CORPUS_METADATA",
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/temporal",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "ALREADY_INTERNALIZED_SUPERSEDED",
+      "legacy_pr200_decision": "Standalone chronology mechanism is already superseded by stronger Vera-owned temporal/currentness implementation; copying it would regress semantics.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "temporal.py"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/testament",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "DOMAIN_EXTERNAL",
+      "legacy_pr200_decision": "Writing/research project, not Vera runtime implementation.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/transcendence",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "REFERENCE_DUPLICATE_HC_LINEAGE",
+      "legacy_pr200_decision": "HC-family source lineage; generic duplicated runtime is not re-copied after byte-overlap evidence.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/unbound-sol",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "SIBLING_FIREWALL_REFERENCE_MECHANISMS",
+      "legacy_pr200_decision": "Sol continuity/learning architecture may inform mechanisms, but identity/state/preferences/authority do not transfer.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/unvtrslr",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "REFERENCE_RESEARCH",
+      "legacy_pr200_decision": "Language/semantics/pragmatics research; no executable root implementation to migrate.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "TARGET_SELF",
+      "legacy_pr200_decision": "Canonical architectural target; not an upstream donor.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera_model_training",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "KEEP_EXTERNAL_TRAINING",
+      "legacy_pr200_decision": "Training/quality tooling remains evaluation infrastructure; training artifacts do not define Current Vera.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-control-plane",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "MIRRORED_CONTROL_SOURCE",
+      "legacy_pr200_decision": "Vera-specific control architecture mirrored with exact provenance; private save states/assets/provider secrets remain external and active install authority is unchanged.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "project-instructions/r10a0/rounds/r10",
+        "protocol"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-habitat",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "KEEP_EXTERNAL_PROVIDER",
+      "legacy_pr200_decision": "Virtual environment/runtime habitat remains external; main is stub-level.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-mesh",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "KEEP_EXTERNAL_PROVIDER",
+      "legacy_pr200_decision": "Connectivity/session transport remains external; exact runtime binding required.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-mono",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "NOT_PRESENT_IN_PR200",
+      "legacy_pr200_decision": null,
+      "inspected_surface": "PROJECT_RUNNER_PUBLIC_CORPUS_METADATA",
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-R9A0",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "ARCHIVE_ONLY",
+      "legacy_pr200_decision": "Predecessor release evidence; never promoted into current control.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-synology",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "KEEP_EXTERNAL_PROVIDER",
+      "legacy_pr200_decision": "Deployment/host custody remains external; source presence is not deployment.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/voss",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "KEEP_EXTERNAL_REVIEWER",
+      "legacy_pr200_decision": "Independent hostile/audit review surface; keeping it external preserves review independence.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/wip",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "ALREADY_ADAPTED_KEEP_EXTERNAL_TOOL",
+      "legacy_pr200_decision": "Checkpoint/effect-reconciliation concepts are already incorporated in Vera task/currentness contracts; public-safe standalone CLI stays external rather than weakening privacy rules.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "protocol",
+        "schemas",
+        "tools/wip.py"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/WorkBridgeMCP",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "KEEP_EXTERNAL_PROVIDER",
+      "legacy_pr200_decision": "Workstation/MCP bridge is a runtime provider. Default main is stub-level at this cut; active branch state must be bound separately before harvesting accepted implementation.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    },
+    {
+      "source_repository": "thebrazenbeard/world-zero",
+      "mechanism_disposition": "ARCHITECTURE_EVIDENCE_ONLY",
+      "legacy_pr200_harvest_status": "DOMAIN_EXTERNAL_RESEARCH_ENGINE",
+      "legacy_pr200_decision": "Scientific/world-model research application remains domain system; not Vera core runtime.",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "vera_targets": [],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY__NO_AUTO_BIND",
+      "freshness_rule": "Refresh mutable source/head evidence before current use."
+    }
+  ],
+  "private_inventory": {
+    "count": 18,
+    "public_commitment_scheme": "COUNT_ONLY_PUBLIC_V1",
+    "named_private_harvest_rows": [],
+    "rule": "PRIVATE_MEMBERSHIP_AND_PRIVATE_DONOR_PROVENANCE_ARE_NOT_ENUMERATED_ON_PUBLIC_SOURCE"
+  },
+  "carried_exact_public_mechanisms": [
+    "thebrazenbeard/Attune",
+    "thebrazenbeard/intranel",
+    "thebrazenbeard/project-lantern",
+    "thebrazenbeard/roots"
+  ],
+  "legacy_pr200_head": "078d2d7242384c58676305d47654406713e599cf",
+  "claim_ceiling": "Public source architecture/mechanism provenance only; no runtime/install/effect authority."
+}
