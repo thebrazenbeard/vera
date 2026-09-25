@@ -1,0 +1,534 @@
+{
+  "schema": "VERA_PORTFOLIO_PUBLIC_CUT_V2",
+  "status": "IMMUTABLE_PUBLIC_MEMBERSHIP_CUT_WITH_INDEPENDENT_HEAD_OBSERVATIONS",
+  "owner_repository": "thebrazenbeard/vera",
+  "created_at": "2026-09-24T20:52:00-04:00",
+  "membership_binding": {
+    "source_repository": "thebrazenbeard/project-runner",
+    "source_ref": "portfolio/effect-confirmed-finalization-v1-20260924",
+    "source_commit": "6c8e6827a204380b40b7c7fa07d785ca53cec136",
+    "source_path": "portfolio/corpus.public.json",
+    "source_blob_sha": "886e9be586c37584c17afdc540c38a1d95deaaa6",
+    "source_observed_at": "2026-09-24T17:16:00-04:00"
+  },
+  "cut_counts": {
+    "total": 67,
+    "public": 49,
+    "private": 18,
+    "archived": 2,
+    "public_archived": 0,
+    "private_archived": 2
+  },
+  "cardinality_semantics": "CUT_LOCAL_FACTS_ONLY_NOT_PERMANENT_PORTFOLIO_ASSERTIONS",
+  "private_inventory": {
+    "count": 18,
+    "public_commitment_scheme": "COUNT_ONLY_PUBLIC_V1",
+    "exact_membership_publicly_committed": false,
+    "membership_names_present_in_this_artifact": false
+  },
+  "freshness": {
+    "status": "SNAPSHOT_REQUIRES_REFRESH_BEFORE_MATERIAL_RUNTIME_BINDING",
+    "membership_refresh_trigger": "SOURCE_CORPUS_BLOB_OR_NEWER_AUTHORIZED_PORTFOLIO_CUT",
+    "head_refresh_trigger": "ANY_MATERIAL_USE_OF_MUTABLE_REPOSITORY_STATE",
+    "no_cardinality_invariant": "A later repository addition/removal does not falsify this immutable cut; it creates a newer cut."
+  },
+  "public_repositories": [
+    {
+      "repository": "thebrazenbeard/abil",
+      "default_branch": "main",
+      "observed_head": "69a2d8f4302e31db589c57871a04ff8c0178c1e9",
+      "priority": "P1",
+      "family_id": "industrial-intelligence",
+      "activity_state": "ACTIVE_HEAVY",
+      "current_frontier": "Reconcile the research stack into an executable bounded industrial-intelligence path.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/Attune",
+      "default_branch": "main",
+      "observed_head": "a0b142aeb96299cd20811e652b50e76687166e3f",
+      "priority": "P2",
+      "family_id": "cognitive-subsystems",
+      "activity_state": "STABLE",
+      "current_frontier": "Use only when a concrete runtime needs attunement.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/bt2",
+      "default_branch": "main",
+      "observed_head": "9f4409c96eb3e5c529da32ab83421f3fdcd5c284",
+      "priority": "P0",
+      "family_id": "portfolio-spine",
+      "activity_state": "ACTIVE_HEAVY",
+      "current_frontier": "Close currentness/database resilience gaps while preserving exact qualification boundaries.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/bugops",
+      "default_branch": "main",
+      "observed_head": "07b8bc90fcb4beb82b1d26b394c730f29c2c425a",
+      "priority": "P2",
+      "family_id": "assurance-and-repair",
+      "activity_state": "STABLE",
+      "current_frontier": "Remain an incident source rather than a competing orchestrator.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/build-team-2.0",
+      "default_branch": "main",
+      "observed_head": "9f2743214298f1ae9d424f300a13d37e49e3c74f",
+      "priority": "P4",
+      "family_id": "portfolio-spine",
+      "activity_state": "SUPERSEDED",
+      "current_frontier": "Preserve history; do not start new canonical work here.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/ccb-core",
+      "default_branch": "main",
+      "observed_head": "f96b73f1a9d78cb23675e05ef9c14e38ce37a122",
+      "priority": "P2",
+      "family_id": "coordination",
+      "activity_state": "STABLE",
+      "current_frontier": "Keep the public core narrow while operational transport evolves separately.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/conations",
+      "default_branch": "main",
+      "observed_head": "4b458ecf566f024c32109e06a96bf7b2e5f92da6",
+      "priority": "P2",
+      "family_id": "cognitive-subsystems",
+      "activity_state": "STABLE",
+      "current_frontier": "Treat wants/goals as provenance-bearing state, not standing instruction.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/deepmemorystorage",
+      "default_branch": "main",
+      "observed_head": "650cc3307e02e8829ef994f97937ce409ebc1c4e",
+      "priority": "P2",
+      "family_id": "memory-and-provenance",
+      "activity_state": "STABLE",
+      "current_frontier": "Donate proven memory mechanisms to current runtime instead of creating another authority.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/discovery",
+      "default_branch": "main",
+      "observed_head": "368e8dc8274e89a306039d28462c7547b263e93e",
+      "priority": "P0",
+      "family_id": "portfolio-spine",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Refresh census and feed descriptive inventory into Project Runner.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/driftguard",
+      "default_branch": "main",
+      "observed_head": "52fa829c629fa0f3e729204912db9f9f783f322a",
+      "priority": "P1",
+      "family_id": "assurance-and-repair",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Finish effect fencing while retaining exact-subject qualification.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/empathy",
+      "default_branch": "main",
+      "observed_head": "bc0c1d33b3187642d9e2f0801d1c5bde4f583e2b",
+      "priority": "P2",
+      "family_id": "cognitive-subsystems",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Consolidate lanes while preserving falsification independence.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/freerowcochkar",
+      "default_branch": "main",
+      "observed_head": "00562b5fedf5ff636750b87e5ba82dad2911e2ab",
+      "priority": "P2",
+      "family_id": "specialist-reasoning",
+      "activity_state": "INCUBATOR",
+      "current_frontier": "Prove bounded value on concrete cases before broad integration.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/fuckup",
+      "default_branch": "main",
+      "observed_head": "e999607481ba706523209ce129955a5e3d2d6ef7",
+      "priority": "P1",
+      "family_id": "assurance-and-repair",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Make correction/retention executable without unchecked self-modification.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/god-brain",
+      "default_branch": "main",
+      "observed_head": "47ced181ef46e4481b875d9279d21dcd540f795e",
+      "priority": "P2",
+      "family_id": "speculative-cognition",
+      "activity_state": "INCUBATOR",
+      "current_frontier": "Compress hypotheses into controlled experiments with explicit nulls.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/hc-brain",
+      "default_branch": "main",
+      "observed_head": "80a55949b0bb7549b7f678fba8ecedce854e3c0e",
+      "priority": "P1",
+      "family_id": "cognitive-architecture",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Qualify concrete subsystem behavior and keep claims below architecture.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/hephaestus",
+      "default_branch": "main",
+      "observed_head": "7eb30f2777a7d16e4f55ca3066d8ac1e484f79a6",
+      "priority": "P2",
+      "family_id": "specialist-workers",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Finish a reconstructible currentness-aware specialist package.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/intranel",
+      "default_branch": "main",
+      "observed_head": "677a1612e8a956760a40b942650b01cf0b22dd33",
+      "priority": "P2",
+      "family_id": "governance",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Close governance bypass paths and freeze a narrow reusable contract.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/masamune",
+      "default_branch": "collab",
+      "observed_head": "0091746bba7740632268fb590ce19512e371f508",
+      "priority": "P2",
+      "family_id": "specialist-workers",
+      "activity_state": "QUIET",
+      "current_frontier": "Activate only against concrete defects.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/meso-crct",
+      "default_branch": "main",
+      "observed_head": "6ca7873bf066178aa2a21cd9244f500a3ab1c845",
+      "priority": "P1",
+      "family_id": "synthetic-affect",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Qualify the executable transition and welfare constraints.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/mosaic",
+      "default_branch": "main",
+      "observed_head": "5450e6e5b7c919cb94586025032ca27ac28b73cb",
+      "priority": "P2",
+      "family_id": "model-composition",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Prove a minimal working multi-model continuity path.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/noema",
+      "default_branch": "main",
+      "observed_head": "094bdab92b7f74a12fd335ce421dcd61dc219abf",
+      "priority": "P1",
+      "family_id": "cognitive-architecture",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Prefer empirical validation over architectural enlargement.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/on-theo",
+      "default_branch": "main",
+      "observed_head": "268a005b11e3fede8a99d7cf2990f18fc3b32672",
+      "priority": "P1",
+      "family_id": "source-critical-research",
+      "activity_state": "ACTIVE_HEAVY",
+      "current_frontier": "Continue claim-centered hostile review and separate speculation from baseline evidence.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/personification",
+      "default_branch": "main",
+      "observed_head": "e2d8278257e1eda85d3e2f3f7a68bfe6a9616c38",
+      "priority": "P2",
+      "family_id": "cognitive-subsystems",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Establish measurable behavior without laundering self-description into phenomenology.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/project-achilles",
+      "default_branch": "main",
+      "observed_head": "6776d8c059e3f9ad791a47a0b62bb56588332968",
+      "priority": "P1",
+      "family_id": "assurance-and-repair",
+      "activity_state": "STABLE",
+      "current_frontier": "Serve as standing security reviewer for high-risk changes.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/project-lantern",
+      "default_branch": "main",
+      "observed_head": "8a7c3bada24bae17bcadac8549bc9cd729cfdf17",
+      "priority": "P0",
+      "family_id": "memory-and-provenance",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Consolidate package while keeping provider/runtime qualification fail-closed.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/project-runner",
+      "default_branch": "main",
+      "observed_head": "8aa5da0f55cd029e9cf4da79a090aa50859e662a",
+      "priority": "P0",
+      "family_id": "portfolio-spine",
+      "activity_state": "ACTIVE_HEAVY",
+      "current_frontier": "Make the corpus a validated descriptive input without turning priority into authority.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/RepairTracker",
+      "default_branch": "main",
+      "observed_head": "6b01c2a18035390c050ceecd0506181703d1f5fa",
+      "priority": "P2",
+      "family_id": "assurance-and-repair",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Prove a distinct role alongside BT2, Project Runner and BugOps.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/rezon",
+      "default_branch": "main",
+      "observed_head": "e9a893d11e47ba4065d962b8ee69d3b0e4c9e38a",
+      "priority": "P1",
+      "family_id": "reasoning-and-assurance",
+      "activity_state": "ACTIVE_HEAVY",
+      "current_frontier": "Collapse open assurance work into one current qualified kernel.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/roots",
+      "default_branch": "main",
+      "observed_head": "2c591176279d83ce6cc0d8dcf8e6062431913ea7",
+      "priority": "P1",
+      "family_id": "memory-and-provenance",
+      "activity_state": "STABLE",
+      "current_frontier": "Reuse broadly without making Roots a global truth authority.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/semanticatlas",
+      "default_branch": "main",
+      "observed_head": "beaecc6c64a6a8f90e7b47d4739296a3870b627c",
+      "priority": "P2",
+      "family_id": "cognitive-subsystems",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Finish currentness custody while separating evidence from authority.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/spm",
+      "default_branch": "main",
+      "observed_head": "5fdaf0418585ef9a57fb2a1df8d0725ffd6bd174",
+      "priority": "P2",
+      "family_id": "language-and-semantics",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Establish a reproducible causal experiment before stronger claims.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/sql-connectome",
+      "default_branch": "main",
+      "observed_head": "0e1fd409429d1657117b8f94e82be6b4fd5b6215",
+      "priority": "P1",
+      "family_id": "language-and-semantics",
+      "activity_state": "ACTIVE_HEAVY",
+      "current_frontier": "Stabilize semantic/execution boundaries and compose with BT2 database/Lantern work without turning translation or connectivity into effect authority.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/temporal",
+      "default_branch": "main",
+      "observed_head": "0fc7071a6b01e609fb2cdc76a32c73276ab27094",
+      "priority": "P2",
+      "family_id": "memory-and-provenance",
+      "activity_state": "STABLE",
+      "current_frontier": "Reuse wherever event, observation and record time must remain distinct.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/testament",
+      "default_branch": "main",
+      "observed_head": "a1fb95a40d49af994bf76c326e5eddf804979f62",
+      "priority": "P1",
+      "family_id": "source-critical-research",
+      "activity_state": "ACTIVE_HEAVY",
+      "current_frontier": "Consume survived source claims without promoting literary hypotheses upstream.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/transcendence",
+      "default_branch": "main",
+      "observed_head": "ea7b73a44f21e1286cff43b813ac67dc0035f77b",
+      "priority": "P2",
+      "family_id": "speculative-cognition",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Validate continuity mechanics while keeping consciousness claims unproven.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/unbound-sol",
+      "default_branch": "main",
+      "observed_head": "d4284dd1f044e506bb85554856c00497d6790d44",
+      "priority": "P1",
+      "family_id": "identity-runtime",
+      "activity_state": "ACTIVE_HEAVY",
+      "current_frontier": "Compose the active DAG and admit only mechanisms that survive exact-source review.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/unvtrslr",
+      "default_branch": "main",
+      "observed_head": "513309edd087f7206a408a6da86ee91fb9efb5c9",
+      "priority": "P1",
+      "family_id": "language-and-semantics",
+      "activity_state": "ACTIVE_HEAVY",
+      "current_frontier": "Complete reproducible held-out qualification and keep claims measurement-bound.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/vera",
+      "default_branch": "main",
+      "observed_head": "87aa888cb7543875ffa11c9c7a1eb9e5b60c35cf",
+      "priority": "P0",
+      "family_id": "vera-runtime",
+      "activity_state": "ACTIVE_HEAVY",
+      "current_frontier": "Reconcile useful mechanisms into the current implementation without competing runtime roots.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/vera_model_training",
+      "default_branch": "main",
+      "observed_head": "3ea9b345988201d78ad9c073254d9d3df15c9ed9",
+      "priority": "P0",
+      "family_id": "vera-runtime",
+      "activity_state": "ACTIVE_HEAVY",
+      "current_frontier": "Execute one reproducible training line with exact corpus lineage.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/vera-control-plane",
+      "default_branch": "main",
+      "observed_head": "65ce7908f640ffe53b678ef69c58411a91c23b8a",
+      "priority": "P0",
+      "family_id": "vera-runtime",
+      "activity_state": "ACTIVE_HEAVY",
+      "current_frontier": "Close exact currentness/authority gaps and stabilize the control plane.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/vera-habitat",
+      "default_branch": "main",
+      "observed_head": "fa93ad23d9f6ba0f6b9508ac1b1ac2238320a954",
+      "priority": "P2",
+      "family_id": "vera-runtime",
+      "activity_state": "INCUBATOR",
+      "current_frontier": "Define a concrete consumer before expanding the abstraction.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/vera-mesh",
+      "default_branch": "main",
+      "observed_head": "98b74ff77981a5478e20a748bbb94565ad9140c8",
+      "priority": "P0",
+      "family_id": "vera-runtime",
+      "activity_state": "ACTIVE_HEAVY",
+      "current_frontier": "Collapse stacked activation work into one qualified transport path.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/vera-mono",
+      "default_branch": "main",
+      "observed_head": "a9fc7d7ea25844603090e98d106bfeff6da348ae",
+      "priority": "P0",
+      "family_id": "vera-runtime",
+      "activity_state": "ACTIVE_HEAVY",
+      "current_frontier": "Finish portable recovery and reduce external runtime dependency without erasing provenance.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/vera-R9A0",
+      "default_branch": "main",
+      "observed_head": "363c15d262cc22a95d70a42b17ca245db5461d41",
+      "priority": "P2",
+      "family_id": "vera-lineage",
+      "activity_state": "QUIET",
+      "current_frontier": "Migrate useful mechanisms forward rather than revive a competing runtime.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/vera-synology",
+      "default_branch": "main",
+      "observed_head": "a39e9da662f4de3b48d426da9ece13fd0149fd53",
+      "priority": "P2",
+      "family_id": "vera-runtime",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Build one reproducible source/build/install/runtime path.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/voss",
+      "default_branch": "main",
+      "observed_head": "b8e35d4fb85da3e64521b0ebf02d8028311c3158",
+      "priority": "P2",
+      "family_id": "specialist-workers",
+      "activity_state": "QUIET",
+      "current_frontier": "Use for bounded independent forensic review.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/wip",
+      "default_branch": "main",
+      "observed_head": "3ced0899202374aa408756b04b0ee81ba13d0c16",
+      "priority": "P2",
+      "family_id": "portfolio-spine",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Reconcile overlap with Project Runner/BT2 and keep only distinct recovery semantics.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/WorkBridgeMCP",
+      "default_branch": "main",
+      "observed_head": "8707a2e1eaf7de5ce2316567b5e6f1e805c0537b",
+      "priority": "P0",
+      "family_id": "vera-runtime",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Qualify one narrow machine-control surface before broader capability exposure.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    },
+    {
+      "repository": "thebrazenbeard/world-zero",
+      "default_branch": "main",
+      "observed_head": "4cf0e094ebc6d4792f9dac9b3e0798a4307edf87",
+      "priority": "P1",
+      "family_id": "scientific-modeling",
+      "activity_state": "ACTIVE",
+      "current_frontier": "Complete frozen temporal qualification before interpreting later performance.",
+      "head_semantics": "INDEPENDENT_EXACT_REF_READ_NOT_ATOMIC_MULTI_REPOSITORY_SNAPSHOT"
+    }
+  ],
+  "predecessor_pr200": {
+    "repository": "thebrazenbeard/vera",
+    "pull_request": 200,
+    "head": "078d2d7242384c58676305d47654406713e599cf",
+    "disposition": "SUPERSEDED_CANDIDATE_PROVENANCE_ONLY",
+    "public_summary": "Useful public mechanism/provenance harvest is preserved selectively; stale whole-estate cardinality and private membership exposure are not carried forward."
+  }
+}
