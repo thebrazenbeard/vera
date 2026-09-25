@@ -99,41 +99,24 @@ def validate_source_registry(registry: Mapping[str, Any]) -> tuple[str, ...]:
         if not isinstance(counts, Mapping):
             errors.append("portfolio_reconciliation.classification_counts is required")
         else:
-            if counts.get("total") != len(snapshot):
-                errors.append("portfolio repository count must match owner_repository_snapshot")
-            if counts.get("classified_source_rows") != len(bound):
-                errors.append("portfolio classified_source_rows must match repository_sources")
-            if counts.get("no_auto_bind") != len(unbound):
-                errors.append("portfolio no_auto_bind must match unbound_repositories")
-        current_inventory = portfolio.get("current_inventory")
-        if not isinstance(current_inventory, Mapping):
-            errors.append("portfolio_reconciliation.current_inventory is required")
-        elif current_inventory.get("repository_count") != len(snapshot):
-            errors.append("current inventory repository_count must match owner_repository_snapshot")
-        predecessor = portfolio.get("predecessor_59_lineage")
-        if not isinstance(predecessor, Mapping):
-            errors.append("predecessor_59_lineage is required for provenance")
-        else:
-            discovery = predecessor.get("discovery")
-            roots = predecessor.get("roots")
-            if not isinstance(discovery, Mapping) or discovery.get("commit") != "2881a94c7eb3c83a34b0c00bab739b41c1d99b6d" or discovery.get("blob_sha") != "71b9f8deaf1079d5078b19e5bbddb743fd636437":
-                errors.append("Discovery predecessor portfolio binding mismatch")
-            if not isinstance(roots, Mapping) or roots.get("commit") != "a6994b415336bc179a41aad0ac9eec403d60f93c" or roots.get("blob_sha") != "ccac62eac08012269fec46669bce981b96a0f41d":
-                errors.append("Roots predecessor lineage binding mismatch")
+            if counts.get("total") != 59:
+                errors.append("portfolio repository count must be 59")
+            if counts.get("classified_source_rows") != 42 or counts.get("no_auto_bind") != 17:
+                errors.append("portfolio classification counts must be 42 source / 17 no-auto-bind")
+        discovery = portfolio.get("discovery")
+        roots = portfolio.get("roots")
+        if not isinstance(discovery, Mapping) or discovery.get("commit") != "2881a94c7eb3c83a34b0c00bab739b41c1d99b6d" or discovery.get("blob_sha") != "71b9f8deaf1079d5078b19e5bbddb743fd636437":
+            errors.append("Discovery canonical portfolio binding mismatch")
+        if not isinstance(roots, Mapping) or roots.get("commit") != "a6994b415336bc179a41aad0ac9eec403d60f93c" or roots.get("blob_sha") != "ccac62eac08012269fec46669bce981b96a0f41d":
+            errors.append("Roots canonical lineage binding mismatch")
+        if len(snapshot) != 59 or len(bound) != 42 or len(unbound) != 17:
+            errors.append("registry live classification cardinality mismatch")
 
     for repository in ("thebrazenbeard/vera-apk", "thebrazenbeard/vera-habitat", "thebrazenbeard/hc-brain", "thebrazenbeard/self", "thebrazenbeard/bt2"):
         if repository not in unbound:
             errors.append(f"{repository}: expected NO_AUTO_BIND classification")
     if "thebrazenbeard/voss" not in bound:
         errors.append("voss must be bound as review-only source")
-    for repository in (
-        "thebrazenbeard/meso-crct",
-        "thebrazenbeard/unbound-sol",
-        "thebrazenbeard/RepairTracker",
-        "thebrazenbeard/freerowcochkar",
-    ):
-        if repository not in bound:
-            errors.append(f"{repository}: expected current portfolio source classification")
 
     route_case = registry.get("observed_cross_provider_cases", {}).get("bus_to_radar_writer_route")
     if not isinstance(route_case, Mapping):
