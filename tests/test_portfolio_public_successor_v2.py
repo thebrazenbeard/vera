@@ -14,6 +14,7 @@ HARVEST = PORTFOLIO / "VERA_PORTFOLIO_HARVEST_V2.json"
 BINDINGS = PORTFOLIO / "VERA_PORTFOLIO_MIGRATION_BINDINGS_V2.json"
 CORPUS = PORTFOLIO / "vendor" / "project-runner" / "PROJECT_RUNNER_PORTFOLIO_CORPUS_V1_20260924.json"
 MANIFEST = ROOT / "architecture" / "VERA_SYSTEM_MANIFEST_V3.json"
+PREDECESSOR = "078d2d7242384c58676305d47654406713e599cf"
 REPO_TOKEN = re.compile(r"thebrazenbeard/[A-Za-z0-9_.-]+")
 
 def load(path: Path):
@@ -35,6 +36,14 @@ def canonical_sha256(value) -> str:
         ensure_ascii=False,
     ).encode("utf-8")
     return hashlib.sha256(raw).hexdigest()
+
+def git_show_json(path: str):
+    raw = subprocess.check_output(
+        ["git", "-C", str(ROOT), "show", f"{PREDECESSOR}:{path}"],
+        text=True,
+        encoding="utf-8",
+    )
+    return json.loads(raw)
 
 class PortfolioPublicSuccessorV2Tests(unittest.TestCase):
     @classmethod
@@ -156,6 +165,64 @@ class PortfolioPublicSuccessorV2Tests(unittest.TestCase):
                 file_path = ROOT / target["target_path"]
                 self.assertTrue(file_path.is_file(), target["target_path"])
                 self.assertEqual(git_blob_sha(file_path), target["target_blob"])
+
+    def test_public_predecessor_bindings_are_retained_or_explicitly_deferred(self):
+        predecessor = git_show_json(
+            "architecture/portfolio/VERA_PORTFOLIO_MIGRATION_BINDINGS_V1.json"
+        )
+        predecessor_public = [
+            row
+            for row in predecessor["bindings"]
+            if row["source_repository"] in self.public_repos
+        ]
+        active = self.bindings["public_exact_bindings"]
+        deferred = self.bindings["deferred_public_binding_provenance"]
+
+        def predecessor_key(row):
+            return (
+                row["source_repository"],
+                row["source_commit"],
+                row["source_path"],
+                row["source_blob"],
+                row["target_path"],
+                row["target_blob"],
+            )
+
+        def deferred_key(row):
+            return (
+                row["source_repository"],
+                row["source_commit"],
+                row["source_path"],
+                row["source_blob"],
+                row["predecessor_target_path"],
+                row["predecessor_target_blob"],
+            )
+
+        conserved = {predecessor_key(row) for row in active}
+        conserved.update(deferred_key(row) for row in deferred)
+        self.assertEqual(
+            conserved,
+            {predecessor_key(row) for row in predecessor_public},
+        )
+        self.assertEqual(
+            len(predecessor_public),
+            self.bindings["public_predecessor_binding_conservation"][
+                "predecessor_public_binding_count"
+            ],
+        )
+        self.assertEqual(
+            len(deferred),
+            self.bindings["deferred_public_binding_count"],
+        )
+        self.assertTrue(deferred)
+        self.assertEqual(
+            {row["source_repository"] for row in deferred},
+            {"thebrazenbeard/vera-control-plane"},
+        )
+        for row in deferred:
+            self.assertFalse(row["current_successor_target_present"])
+            self.assertFalse(row["activation_effect"])
+            self.assertIn("DEFERRED_TO_SEPARATE_VCP", row["disposition"])
 
     def test_successor_files_do_not_disclose_nonpublic_repository_membership(self):
         paths = [

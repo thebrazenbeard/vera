@@ -37,6 +37,8 @@ Useful PR #200 implementation is preserved where it can be made public safely:
 
 Public donor transfers retain exact repository/head/path/blob provenance.
 
+PR #200's 41 public predecessor bindings are conserved in V2: 17 remain exact present-target bindings, while 24 VCP bindings are retained as explicit deferred public provenance because the stale embedded VCP mirror is intentionally not copied. Those deferred rows have no activation effect and exist solely to support the later separately reviewed VCP `NO_AUTO_BIND` restack.
+
 Mechanisms inherited from private portfolio donors are moved into neutral Vera-owned namespaces. Public source records only an anonymous private-donor mechanism count plus target integrity hashes; exact private membership/source paths are intentionally absent.
 
 ## Successor artifacts
