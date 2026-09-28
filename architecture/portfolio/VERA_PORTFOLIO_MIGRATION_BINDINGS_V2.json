@@ -1,0 +1,250 @@
+{
+  "schema": "VERA_PORTFOLIO_MIGRATION_BINDINGS_V2",
+  "status": "PUBLIC_SAFE_PROVENANCE_BINDINGS",
+  "predecessor_pr": 200,
+  "predecessor_head": "078d2d7242384c58676305d47654406713e599cf",
+  "public_exact_bindings": [
+    {
+      "source_repository": "thebrazenbeard/roots",
+      "source_commit": "d99d3b709a1b257d8fa12fa541a6a6f18f03e2a8",
+      "source_path": "src/roots/model.py",
+      "source_blob": "6c170d60dbafd6a8f9cd50d87f45068bfe6976d4",
+      "target_path": "portfolio_runtime/roots/model.py",
+      "target_blob": "6c170d60dbafd6a8f9cd50d87f45068bfe6976d4",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/roots",
+      "source_commit": "d99d3b709a1b257d8fa12fa541a6a6f18f03e2a8",
+      "source_path": "src/roots/normalize.py",
+      "source_blob": "452a1275cf76eb952fb39ba20f1b1f810f4ec79a",
+      "target_path": "portfolio_runtime/roots/normalize.py",
+      "target_blob": "452a1275cf76eb952fb39ba20f1b1f810f4ec79a",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/roots",
+      "source_commit": "d99d3b709a1b257d8fa12fa541a6a6f18f03e2a8",
+      "source_path": "src/roots/verification.py",
+      "source_blob": "a3824ff8a733b0233981ed20abdc0636f6931688",
+      "target_path": "portfolio_runtime/roots/verification.py",
+      "target_blob": "a3824ff8a733b0233981ed20abdc0636f6931688",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/intranel",
+      "source_commit": "08bc122043b79422c31a958b7ffe7fff87e5f3f0",
+      "source_path": "src/intranel/canonical.py",
+      "source_blob": "6e177d0c904931be0428690e131def4ec4ec5693",
+      "target_path": "portfolio_runtime/intranel/canonical.py",
+      "target_blob": "6e177d0c904931be0428690e131def4ec4ec5693",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/intranel",
+      "source_commit": "08bc122043b79422c31a958b7ffe7fff87e5f3f0",
+      "source_path": "src/intranel/jsonvalue.py",
+      "source_blob": "763cc4c59e5515383ae4472f001647ca074c2c6c",
+      "target_path": "portfolio_runtime/intranel/jsonvalue.py",
+      "target_blob": "763cc4c59e5515383ae4472f001647ca074c2c6c",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/intranel",
+      "source_commit": "08bc122043b79422c31a958b7ffe7fff87e5f3f0",
+      "source_path": "src/intranel/types.py",
+      "source_blob": "0a788b69eae29ecd333a771cdcd3cf6ee6174823",
+      "target_path": "portfolio_runtime/intranel/types.py",
+      "target_blob": "0a788b69eae29ecd333a771cdcd3cf6ee6174823",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/intranel",
+      "source_commit": "08bc122043b79422c31a958b7ffe7fff87e5f3f0",
+      "source_path": "src/intranel/message.py",
+      "source_blob": "9641e20b5d42060e0814b195cace967d026dc268",
+      "target_path": "portfolio_runtime/intranel/message.py",
+      "target_blob": "9641e20b5d42060e0814b195cace967d026dc268",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/intranel",
+      "source_commit": "08bc122043b79422c31a958b7ffe7fff87e5f3f0",
+      "source_path": "src/intranel/admission.py",
+      "source_blob": "8cbe7d95c38c92653bdf9cbfe7a690e7abd2b92b",
+      "target_path": "portfolio_runtime/intranel/admission.py",
+      "target_blob": "8cbe7d95c38c92653bdf9cbfe7a690e7abd2b92b",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/Attune",
+      "source_commit": "fd856412edca83ff380a9d74d2875e817d920742",
+      "source_path": "src/attune_contracts.py",
+      "source_blob": "f9879d354792a8d06542c10f44bee29dc79d2bce",
+      "target_path": "portfolio_runtime/attune/contracts.py",
+      "target_blob": "f9879d354792a8d06542c10f44bee29dc79d2bce",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/project-lantern",
+      "source_commit": "9291d0cd914c40d16a80a24cc3fba92bbaa4b227",
+      "source_path": "src/lantern/ids.py",
+      "source_blob": "9865ee13c38178701201dafc9b2de0ef35fb9c7b",
+      "target_path": "portfolio_runtime/lantern/ids.py",
+      "target_blob": "9865ee13c38178701201dafc9b2de0ef35fb9c7b",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/project-lantern",
+      "source_commit": "9291d0cd914c40d16a80a24cc3fba92bbaa4b227",
+      "source_path": "src/lantern/canonical.py",
+      "source_blob": "875d5cd01a0fb4236847522451062e4eed59ec21",
+      "target_path": "portfolio_runtime/lantern/canonical.py",
+      "target_blob": "875d5cd01a0fb4236847522451062e4eed59ec21",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/project-lantern",
+      "source_commit": "9291d0cd914c40d16a80a24cc3fba92bbaa4b227",
+      "source_path": "src/lantern/contracts.py",
+      "source_blob": "e94b1ede57bad11609608558e28a7e77627fdbce",
+      "target_path": "portfolio_runtime/lantern/contracts.py",
+      "target_blob": "e94b1ede57bad11609608558e28a7e77627fdbce",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/project-lantern",
+      "source_commit": "9291d0cd914c40d16a80a24cc3fba92bbaa4b227",
+      "source_path": "src/lantern/_store_types.py",
+      "source_blob": "aec4abb3fc575f56cae27aae55f90bdcf01f1d36",
+      "target_path": "portfolio_runtime/lantern/_store_types.py",
+      "target_blob": "aec4abb3fc575f56cae27aae55f90bdcf01f1d36",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/project-lantern",
+      "source_commit": "9291d0cd914c40d16a80a24cc3fba92bbaa4b227",
+      "source_path": "src/lantern/validation.py",
+      "source_blob": "4fc6de89a84dfdb880d1d904063742d9b4d4e34d",
+      "target_path": "portfolio_runtime/lantern/validation.py",
+      "target_blob": "4fc6de89a84dfdb880d1d904063742d9b4d4e34d",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/empathy",
+      "source_commit": "bc0c1d33b3187642d9e2f0801d1c5bde4f583e2b",
+      "source_path": "VERA_REACTIVE_EMPATHY_ARCHITECTURE.md",
+      "source_blob": "ba26dfe238cd677ff4db81ded8529f347861e263",
+      "target_path": "architecture/self_model/vendor/empathy/VERA_REACTIVE_EMPATHY_ARCHITECTURE.md",
+      "target_blob": "ba26dfe238cd677ff4db81ded8529f347861e263",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/empathy",
+      "source_commit": "bc0c1d33b3187642d9e2f0801d1c5bde4f583e2b",
+      "source_path": "docs/ARCHITECTURE_STATUS.md",
+      "source_blob": "026e510bec3f64ff85c8278f3258882f7ccd574a",
+      "target_path": "architecture/self_model/vendor/empathy/ARCHITECTURE_STATUS.md",
+      "target_blob": "026e510bec3f64ff85c8278f3258882f7ccd574a",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    },
+    {
+      "source_repository": "thebrazenbeard/semanticatlas",
+      "source_commit": "1efb5e5e4b124953f0d38e525df42445c5309d32",
+      "source_path": "schemas/semantic_atlas_v0.1.schema.json",
+      "source_blob": "f4592c2ea71896296df29cb821dde317e086f77a",
+      "target_path": "architecture/semantic/vendor/semanticatlas/semantic_atlas_v0.1.schema.json",
+      "target_blob": "f4592c2ea71896296df29cb821dde317e086f77a",
+      "transfer_kind": "EXACT_GIT_BLOB_COPY",
+      "verified_blob_equal": true
+    }
+  ],
+  "public_exact_binding_count": 17,
+  "private_donor_mechanism_provenance": {
+    "donor_repository_count": 2,
+    "membership_publicly_committed": false,
+    "rule": "Exact private donor membership/source paths remain outside public source. Vera-owned mechanism bytes are integrity-bound only by target blob in this public artifact.",
+    "mechanism_sets": [
+      {
+        "vera_owned_namespace": "portfolio_runtime/evidence_runtime",
+        "target_files": [
+          {
+            "target_path": "portfolio_runtime/evidence_runtime/__init__.py",
+            "target_blob": "e1eca6ea478f7ba10daf5584f780b487e8bd5f7f"
+          },
+          {
+            "target_path": "portfolio_runtime/evidence_runtime/evidence.py",
+            "target_blob": "7cdb788afe9550d42f5fdc304920257345ce9313"
+          },
+          {
+            "target_path": "portfolio_runtime/evidence_runtime/replay.py",
+            "target_blob": "26592e29c58cd30b7d1e74e04ef3365725cff065"
+          },
+          {
+            "target_path": "portfolio_runtime/evidence_runtime/sequence.py",
+            "target_blob": "8b2c9e0835ec2c8f7664a821d76822a5f467c587"
+          },
+          {
+            "target_path": "portfolio_runtime/evidence_runtime/timing.py",
+            "target_blob": "427c5ed1169bc7c1359ee3f2cd41661ad39aa107"
+          }
+        ]
+      },
+      {
+        "vera_owned_namespace": "portfolio_runtime/work_state_runtime",
+        "target_files": [
+          {
+            "target_path": "portfolio_runtime/work_state_runtime/__init__.py",
+            "target_blob": "f948e0d881bc6aedbadcebfdf70da67d233453e6"
+          },
+          {
+            "target_path": "portfolio_runtime/work_state_runtime/contracts/states-v1.json",
+            "target_blob": "7e965f1a537200ef2ded579e8f8c7ea886d2c2c8"
+          },
+          {
+            "target_path": "portfolio_runtime/work_state_runtime/contracts.py",
+            "target_blob": "b71d3fb9733e5278b7f1825c637d8f9d15793099"
+          },
+          {
+            "target_path": "portfolio_runtime/work_state_runtime/projections.py",
+            "target_blob": "d39c2e5aedee34928aa03b1c12f10d4ab7acd6cf"
+          },
+          {
+            "target_path": "portfolio_runtime/work_state_runtime/state_machine.py",
+            "target_blob": "fcfaa1fd152b09dffac1be60432b89c162d1ff45"
+          }
+        ]
+      }
+    ]
+  },
+  "derived_integrations": [
+    {
+      "source_repository": "thebrazenbeard/discovery",
+      "transfer_kind": "DERIVED_ARCHITECTURE",
+      "target_paths": [
+        "architecture/portfolio/VERA_PORTFOLIO_PUBLIC_CUT_V2.json",
+        "architecture/portfolio/VERA_PORTFOLIO_ABSORPTION_V2.json",
+        "architecture/portfolio/VERA_PORTFOLIO_CAPABILITY_ARCHITECTURE_V2.json",
+        "architecture/portfolio/VERA_PORTFOLIO_HARVEST_V2.json"
+      ],
+      "rule": "Discovery-style open-world intake is adapted into Vera architecture; these targets are not represented as byte-identical donor copies."
+    }
+  ],
+  "claim_ceiling": "Source-byte/mechanism provenance only. No donor supersession, private membership disclosure, runtime activation, installation, authority, memory admission, or qualification."
+}
