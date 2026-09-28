@@ -14,7 +14,7 @@ That corpus records one observed portfolio cut:
 
 Those numbers describe that immutable evidence cut. They are not a permanent assertion that the later estate must contain exactly 67 repositories.
 
-Mutable repository heads are refreshed separately from the membership cut. Any currentness-sensitive decision must refresh the live source again.
+Mutable repository heads are refreshed separately from the membership cut. The cut's SHA-256 covers only immutable membership/source-cut fields and explicitly excludes the mutable head-refresh block. A no-change rebuild preserves the prior refresh timestamp and is byte-for-byte deterministic. Any currentness-sensitive decision must refresh the live source again.
 
 ## Public/private boundary
 
