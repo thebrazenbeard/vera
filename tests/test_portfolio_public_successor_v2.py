@@ -27,6 +27,15 @@ def git_blob_sha(path: Path) -> str:
         encoding="utf-8",
     ).strip()
 
+def canonical_sha256(value) -> str:
+    raw = json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()
+
 class PortfolioPublicSuccessorV2Tests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -66,6 +75,26 @@ class PortfolioPublicSuccessorV2Tests(unittest.TestCase):
         for row in refresh["heads"]:
             self.assertIn(row["repository"], self.public_repos)
             self.assertRegex(row["observed_head"], r"^[0-9a-f]{40}$")
+
+    def test_cut_digest_excludes_mutable_head_refresh(self):
+        immutable = {
+            key: value
+            for key, value in self.cut.items()
+            if key not in {"public_head_refresh", "cut_sha256"}
+        }
+        self.assertEqual(self.cut["cut_sha256"], canonical_sha256(immutable))
+        mutated = dict(self.cut)
+        mutated["public_head_refresh"] = dict(self.cut["public_head_refresh"])
+        mutated["public_head_refresh"]["observed_at"] = "2099-01-01T00:00:00Z"
+        mutated_immutable = {
+            key: value
+            for key, value in mutated.items()
+            if key not in {"public_head_refresh", "cut_sha256"}
+        }
+        self.assertEqual(
+            canonical_sha256(mutated_immutable),
+            self.cut["cut_sha256"],
+        )
 
     def test_absorption_covers_all_and_only_public_cut_members(self):
         modules = self.absorption["modules"]

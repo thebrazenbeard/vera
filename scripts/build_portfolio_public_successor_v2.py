@@ -74,10 +74,30 @@ old_cap_modules = {row["source_repository"]: row for row in old_cap["modules"]}
 old_harvest_rows = {row["source_repository"]: row for row in old_harvest["repositories"]}
 public_repositories = {row["repository"] for row in records}
 
-observed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 heads = {}
 for row in records:
     heads[row["repository"]] = live_head(row["repository"], row["default_branch"])
+
+head_rows = [
+    {
+        "repository": row["repository"],
+        "default_branch": row["default_branch"],
+        "observed_head": heads[row["repository"]],
+    }
+    for row in records
+]
+existing_cut_path = PORTFOLIO / "VERA_PORTFOLIO_PUBLIC_CUT_V2.json"
+existing_refresh = None
+if existing_cut_path.is_file():
+    existing_cut = load_json(existing_cut_path)
+    candidate = existing_cut.get("public_head_refresh")
+    if isinstance(candidate, dict) and candidate.get("heads") == head_rows:
+        existing_refresh = candidate
+observed_at = (
+    existing_refresh["observed_at"]
+    if existing_refresh is not None
+    else datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+)
 
 cut = {
     "schema": "VERA_PORTFOLIO_PUBLIC_CUT_V2",
@@ -98,17 +118,15 @@ cut = {
     "public_head_refresh": {
         "observed_at": observed_at,
         "semantics": "MUTABLE_HEAD_REFRESH_SEPARATE_FROM_IMMUTABLE_MEMBERSHIP_CUT",
-        "heads": [
-            {
-                "repository": row["repository"],
-                "default_branch": row["default_branch"],
-                "observed_head": heads[row["repository"]],
-            }
-            for row in records
-        ],
+        "heads": head_rows,
     },
 }
-cut["cut_sha256"] = canonical_sha256({k: v for k, v in cut.items() if k != "cut_sha256"})
+immutable_cut = {
+    key: value
+    for key, value in cut.items()
+    if key not in {"public_head_refresh", "cut_sha256"}
+}
+cut["cut_sha256"] = canonical_sha256(immutable_cut)
 write_json("VERA_PORTFOLIO_PUBLIC_CUT_V2.json", cut)
 
 new_defaults = {
