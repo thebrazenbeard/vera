@@ -293,6 +293,26 @@ public_bindings = [
         and (ROOT / row["target_path"]).is_file()
     )
 ]
+deferred_public_bindings = []
+for row in old_bindings["bindings"]:
+    if (
+        row["source_repository"] in public_repositories
+        and not (ROOT / row["target_path"]).is_file()
+    ):
+        deferred_public_bindings.append({
+            "source_repository": row["source_repository"],
+            "source_commit": row["source_commit"],
+            "source_path": row["source_path"],
+            "source_blob": row["source_blob"],
+            "predecessor_target_path": row["target_path"],
+            "predecessor_target_blob": row["target_blob"],
+            "predecessor_transfer_kind": row["transfer_kind"],
+            "predecessor_verified_blob_equal": row["verified_blob_equal"],
+            "disposition": "DEFERRED_TO_SEPARATE_VCP_NO_AUTO_BIND_RESTACK",
+            "current_successor_target_present": False,
+            "activation_effect": False,
+            "rule": "Historical public provenance is retained, but the stale embedded target is not copied into this successor. Rebind only through the separately reviewed VCP NO_AUTO_BIND restack.",
+        })
 private_targets = []
 for namespace in ("portfolio_runtime/evidence_runtime", "portfolio_runtime/work_state_runtime"):
     root = ROOT / namespace
@@ -321,6 +341,14 @@ bindings = {
     "predecessor_head": PREDECESSOR,
     "public_exact_bindings": public_bindings,
     "public_exact_binding_count": len(public_bindings),
+    "deferred_public_binding_provenance": deferred_public_bindings,
+    "deferred_public_binding_count": len(deferred_public_bindings),
+    "public_predecessor_binding_conservation": {
+        "predecessor_public_binding_count": len(public_bindings) + len(deferred_public_bindings),
+        "active_exact_binding_count": len(public_bindings),
+        "deferred_provenance_count": len(deferred_public_bindings),
+        "rule": "Every public predecessor binding is either retained as an exact present target or carried as explicit deferred provenance for a separately governed restack.",
+    },
     "private_donor_mechanism_provenance": {
         "donor_repository_count": 2,
         "membership_publicly_committed": False,
@@ -382,5 +410,6 @@ print(json.dumps({
     "public_modules": len(modules),
     "harvest_rows": len(harvest_rows),
     "public_exact_bindings": len(public_bindings),
+    "deferred_public_bindings": len(deferred_public_bindings),
     "head_refresh_observed_at": observed_at,
 }, indent=2))
