@@ -2,8 +2,8 @@
   "schema": "VERA_COHESION_CLEAN_SUCCESSOR_V1",
   "status": "SOURCE_BOUND_FLATTENED_NOT_INSTALLED_NOT_QUALIFIED",
   "repository": "thebrazenbeard/vera",
-  "clean_source_commit": "0c110eb1cde73f22ccd419ff4a9ef1b1e1eddcf2",
-  "clean_source_tree": "97aff3209701f4380ddf0c4bcb7577fe0ca44b5e",
+  "clean_source_commit": "349de790a583bb2fbe7ad8e3f4663854f9d98e50",
+  "clean_source_tree": "8754e26d2a7428a37e0ac0ff00992343869b417c",
   "construction_parent": "b0b4cac1cd187b32a6e9012ef98ab0d136e35e92",
   "flattening": "ONE_COMMIT_SINGLE_PARENT_POLICY_LINEAGE",
   "donor": {
@@ -12,6 +12,24 @@
     "runtime_generation": "ba6221f56b98be69c3ede1be9e3502eff897ca1a",
     "binding_blob": "037883261bd324e8080c323f1d96ff32179780ee",
     "ancestry_imported": false
+  },
+  "r1_predecessor": {
+    "clean_source_commit": "0c110eb1cde73f22ccd419ff4a9ef1b1e1eddcf2",
+    "review_head": "75bcdae943bb6034d4be8899aba163550a8f39bd",
+    "status": "SUPERSEDED_AFTER_STATIC_BLOCKERS",
+    "blocking_findings": [
+      "COHESION_EXCLUSIVE_PLANNING_MUTATION_BYPASS",
+      "CROSS_GENERATION_CHECKPOINT_CYCLE_COMPOSITION",
+      "STALE_SOURCE_REGISTRY"
+    ]
+  },
+  "repair_input": {
+    "workstream": "vera#114",
+    "runtime_generation": "54fef2659f0a8633dcef60cd36b296c37b6fa4b0",
+    "registry_refresh_commit": "d16cf044f2b733d2edd462b11855210dd3af1168",
+    "frontier_reconciliation_commit": "04037ec71161f150584a5cad10daf6c97a339f8d",
+    "test_reconciliation_commit": "4dfb5fcd08800c3a9427f05e4c8e23767d349354",
+    "history_imported": false
   },
   "frozen_sexuality_object": {
     "repository": "thebrazenbeard/sexuality",
@@ -25,8 +43,33 @@
   },
   "runtime_binding": {
     "path": "architecture/VERA_ORGASM_RUNTIME_BINDING_V1.json",
-    "required_cut_commit": "0c110eb1cde73f22ccd419ff4a9ef1b1e1eddcf2",
-    "binding_head_is_post_source_metadata": true
+    "clean_source_commit": "349de790a583bb2fbe7ad8e3f4663854f9d98e50",
+    "runtime_implementation_cut_commit": "54fef2659f0a8633dcef60cd36b296c37b6fa4b0",
+    "cohesion_integration_cut_commit": "54fef2659f0a8633dcef60cd36b296c37b6fa4b0",
+    "generation_commit": "54fef2659f0a8633dcef60cd36b296c37b6fa4b0",
+    "bound_module_byte_equivalence_required": true,
+    "binding_head_is_post_source_metadata": true,
+    "semantics": "Clean-source provenance and provider/runtime implementation-cut identity are distinct. Every bound runtime/integration module must resolve to the declared blob at both the implementation cut and the clean R2 source.",
+    "blob": "18aab421dbe519c0f0554a4351a725830b60e5e3",
+    "module_inventory_binding": "EXACT_CLOSED_PATH_TO_BLOB_MAP"
+  },
+  "source_registry": {
+    "path": "architecture/cohesion/VERA_COHESION_SOURCE_REGISTRY_V0_20260911.json",
+    "role": "CURRENT_NON_NORMATIVE_EVIDENCE_REGISTRY",
+    "required_entries": [
+      "vera-ov-cv-pr113",
+      "vera-clean-successor-repair-generation",
+      "orgasm-qualification-subject"
+    ],
+    "blob": "a0a0047e9386a299d1fb100e3f2f1b458ce0747b",
+    "entry_binding": "EXACT_FILE_BLOB_PLUS_REQUIRED_ENTRY_IDS"
+  },
+  "downstream_successor": {
+    "generation": "R3_INFERENCE_BOUNDARY",
+    "material_source_head": "810d778e6a53d0bd5cc74bba17538d0f508f9644",
+    "predecessor_clean_r2_source": "349de790a583bb2fbe7ad8e3f4663854f9d98e50",
+    "current_main_contains_successor": true,
+    "semantics": "R2 remains predecessor/source provenance for the later inference-boundary generation; this record does not claim whole-system current runtime closure."
   },
   "claim_ceiling": {
     "source": "SOURCE_BOUND",
@@ -49,9 +92,12 @@
     "PHENOMENOLOGY_PROMOTION"
   ],
   "notes": [
-    "The clean source commit has one parent on the Cohesion whole-system policy lineage and materializes the accepted PR #113 donor tree without importing donor ancestry.",
-    "The donor remains provenance evidence; it is not the clean successor's source commit.",
-    "Runtime and Cohesion integration cuts are rebound to the clean source commit only after runtime bytes stop moving.",
-    "Source correctness does not establish installation, current routing, provider currentness, durable production atomicity, behavioral qualification, or phenomenology."
+    "R2 is the single-parent flatten of the repaired PR114 tree onto the Cohesion policy-lineage parent; neither PR113 donor ancestry nor PR114 repair-bench ancestry is imported.",
+    "The provider/runtime implementation cut 54fef265... is a distinct provenance object from clean source 349de790...; their bound runtime/integration module blobs are byte-identical and that equivalence is validated explicitly.",
+    "R3 inference-boundary source extends clean R2 source 349de790...; R2 source correctness does not by itself establish inference-host installation or current runtime consumption.",
+    "Source correctness does not establish installation, current routing, provider currentness, durable production atomicity, behavioral qualification, or phenomenology.",
+    "The runtime binding is exact-blob-bound and its runtime/integration module maps are closed inventories; deleting, adding, or rebinding a module creates a new proof subject.",
+    "The source registry is exact-blob-bound; preserving a required ID while mutating its provenance row does not preserve this proof subject.",
+    "All repair_input provenance commits are normative and validated exactly."
   ]
 }
