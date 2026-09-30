@@ -1,0 +1,765 @@
+{
+  "schema": "VERA_PORTFOLIO_HARVEST_V2",
+  "status": "PUBLIC_SAFE_HARVEST_SUCCESSOR",
+  "predecessor_pr": 200,
+  "predecessor_head": "078d2d7242384c58676305d47654406713e599cf",
+  "portfolio_cut_artifact": "architecture/portfolio/VERA_PORTFOLIO_PUBLIC_CUT_V2.json",
+  "public_repository_count_at_cut": 49,
+  "private_repository_count_at_cut": 18,
+  "private_membership_publicly_enumerated": false,
+  "cardinality_semantics": "Observed-cut counts only; no timeless cardinality assertion.",
+  "repositories": [
+    {
+      "source_repository": "thebrazenbeard/abil",
+      "source_evidence_commit": "13b989be46a986c95c75612e332779a75c0f0f1f",
+      "source_role": "ADAPTIVE_LEARNING_AND_INTEGRATION_RESEARCH_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "REFERENCE_RESEARCH",
+      "vera_targets": [],
+      "decision": "Adaptive learning/integration research only; no executable root implementation to migrate.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/Attune",
+      "source_evidence_commit": "a0b142aeb96299cd20811e652b50e76687166e3f",
+      "source_role": "RELATIONSHIP_COMPANION_ARCHITECTURE_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "src/attune_contracts.py"
+      ],
+      "harvest_status": "MIGRATED_CODE",
+      "vera_targets": [
+        "portfolio_runtime/attune/contracts.py"
+      ],
+      "decision": "Relationship/commercial influence firewall and provenance-preserving memory reconciliation migrated; product/persona state stays external.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/bt2",
+      "source_evidence_commit": "537d97414711503098ac703cf26ca84d14c650c4",
+      "source_role": "HYPERCONNECTOME_COGNITIVE_ARCHITECTURE_TEMPLATE_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "REFERENCE_GENERIC_ARCHITECTURE",
+      "vera_targets": [],
+      "decision": "HC-family reusable template; keep as independent/generic source rather than importing identity-neutral bulk code as Vera-specific.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/bugops",
+      "source_evidence_commit": "07b8bc90fcb4beb82b1d26b394c730f29c2c425a",
+      "source_role": "OPERATIONAL_FAILURE_AND_RECEIPT_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "KEEP_EXTERNAL_REPAIR_EVIDENCE",
+      "vera_targets": [],
+      "decision": "Incident/failure evidence source remains external; provider schemas/custody already represented in Vera.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/build-team-2.0",
+      "source_evidence_commit": "9f2743214298f1ae9d424f300a13d37e49e3c74f",
+      "source_role": "MULTI_PERSPECTIVE_WORKBENCH_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "REFERENCE_ONLY",
+      "vera_targets": [],
+      "decision": "Workforce/training/coordination knowledge; no runtime code at root requiring absorption.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/ccb-core",
+      "source_evidence_commit": "32e10edc216d6d0fae802c85a872d704805827ce",
+      "source_role": "EMPTY_PORTFOLIO_PLACEHOLDER_SOURCE",
+      "inspected_surface": [
+        "REPOSITORY_METADATA",
+        "DEFAULT_BRANCH_ROOT_404_EMPTY_REPOSITORY"
+      ],
+      "harvest_status": "NO_IMPLEMENTATION_TO_MIGRATE_EMPTY_REPO",
+      "vera_targets": [],
+      "decision": "Live GitHub metadata reports size 0 and the contents API reports an empty repository. Preserve as unresolved NO_AUTO_BIND subject and reinspect only when content appears.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/conations",
+      "source_evidence_commit": "51948aac796936f0e7c437722e6f52c883e544e9",
+      "source_role": "HISTORICAL_CONATION_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "KEEP_EXTERNAL_PRIVATE_HISTORY",
+      "vera_targets": [],
+      "decision": "Conation history remains private historical evidence; not standing desire/consent/current authority.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/deepmemorystorage",
+      "source_evidence_commit": "fe73b7eee2e8b2498ff994c57e46080de329a0ef",
+      "source_role": "HISTORICAL_MEMORY_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "architecture",
+        "schema",
+        "tools"
+      ],
+      "harvest_status": "ALREADY_INTERNALIZED_INTERFACE_ARCHIVE_EXTERNAL",
+      "vera_targets": [
+        "runtime_cohesion/deep_memory_evidence.py",
+        "architecture/integration/vendor"
+      ],
+      "decision": "Retrieval/evidence interfaces already live in Vera; private archival payload remains external.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/discovery",
+      "source_evidence_commit": "62b679a4809c7496f87d1075b25b3f7a50abf2ab",
+      "source_role": "PORTFOLIO_DISCOVERY_AND_IMPLEMENTATION_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "tools",
+        "architecture",
+        "portfolio"
+      ],
+      "harvest_status": "MIGRATED_METHOD_AND_REGISTRY",
+      "vera_targets": [
+        "architecture/portfolio/VERA_PORTFOLIO_ABSORPTION_V1.json",
+        "architecture/portfolio/VERA_PORTFOLIO_CAPABILITY_ARCHITECTURE_V1.json",
+        "architecture/portfolio/VERA_PORTFOLIO_HARVEST_V1.json"
+      ],
+      "decision": "DISCOVER→CLASSIFY→IMPLEMENT→VERIFY discipline and open-world portfolio intake are being absorbed into Vera; standalone observatory may remain independent evidence source.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/driftguard",
+      "source_evidence_commit": "52fa829c629fa0f3e729204912db9f9f783f322a",
+      "source_role": "BEHAVIORAL_DRIFT_AND_RECOVERY_ASSURANCE_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "src/driftguard"
+      ],
+      "harvest_status": "KEEP_EXTERNAL_INDEPENDENT_VALIDATOR",
+      "vera_targets": [
+        "architecture/VERA_DRIFTGUARD_TRANSFERABILITY_V1.json"
+      ],
+      "decision": "Independent drift/benchmark validator remains external to preserve falsification independence; Vera retains transfer/adapter contract rather than copying the validator into itself.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/empathy",
+      "source_evidence_commit": "76ebb492827a79b20b3be76fe9f9f48ab860ef1d",
+      "source_role": "SPECIALIST_INFERENCE_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "VERA_REACTIVE_EMPATHY_ARCHITECTURE.md"
+      ],
+      "harvest_status": "MIRRORED_VERA_ARCHITECTURE",
+      "vera_targets": [
+        "architecture/self_model/vendor/empathy/VERA_REACTIVE_EMPATHY_ARCHITECTURE.md",
+        "architecture/self_model/vendor/empathy/ARCHITECTURE_STATUS.md"
+      ],
+      "decision": "Vera-specific empathy architecture/status mirrored byte-for-byte; research/history remains external and no inference is promoted to current truth.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/freerowcochkar",
+      "source_evidence_commit": "9ea4eaefe5229ca90d7ae6099dbf30d9e13b64b2",
+      "source_role": "ADVERSARIAL_LOOPHOLE_RESEARCH_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "NO_IMPLEMENTATION_TO_MIGRATE",
+      "vera_targets": [],
+      "decision": "Current default branch is descriptive stub only.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/fuckup",
+      "source_visibility": "public",
+      "source_evidence_commit": "a87dea38a58c4cff75bc7d123d87f63a5e110895",
+      "harvest_status": "INSPECTED_PUBLIC_CUT_SOURCE",
+      "decision": "Make correction/retention executable without unchecked self-modification.",
+      "inspected_surface": [
+        "Project Runner public portfolio corpus",
+        "current default-branch head refresh"
+      ],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "vera_targets": [],
+      "currentness_rule": "No automatic bind; inspect exact source before mechanism migration."
+    },
+    {
+      "source_repository": "thebrazenbeard/god-brain",
+      "source_evidence_commit": "47ced181ef46e4481b875d9279d21dcd540f795e",
+      "source_role": "EXPERIMENTAL_COGNITIVE_ARCHITECTURE_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "runtime"
+      ],
+      "harvest_status": "REFERENCE_DUPLICATE_HC_LINEAGE",
+      "vera_targets": [],
+      "decision": "Observed runtime tree equals HC runtime tree at inspected cut; no duplicate code migration.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/hc-brain",
+      "source_evidence_commit": "80a55949b0bb7549b7f678fba8ecedce854e3c0e",
+      "source_role": "HYPERCONNECTOME_COGNITIVE_ARCHITECTURE_TEMPLATE_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "runtime/cognitive_core",
+        "runtime/reference_kernel"
+      ],
+      "harvest_status": "REFERENCE_GENERIC_ARCHITECTURE",
+      "vera_targets": [],
+      "decision": "Identity-neutral cognitive architecture is a conformance/mechanism reference. Generic HC code is not silently retyped as Vera-specific implementation.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/hephaestus",
+      "source_evidence_commit": "030494fa2cc4c875013a9a4842abe60588c9c709",
+      "source_role": "NATIVE_PROJECT_ENGINEERING_SPECIALIST_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "knowledge",
+        "docs",
+        "templates"
+      ],
+      "harvest_status": "REFERENCE_PROJECT_ENGINEERING_SPECIALIST",
+      "vera_targets": [],
+      "decision": "Reusable Project-engineering doctrine is reference knowledge; specialist identity/qualification does not transfer.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/intranel",
+      "source_evidence_commit": "677a1612e8a956760a40b942650b01cf0b22dd33",
+      "source_role": "MACHINE_COORDINATION_PROTOCOL_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "src/intranel/{canonical,jsonvalue,types,message,admission}.py"
+      ],
+      "harvest_status": "MIGRATED_CODE",
+      "vera_targets": [
+        "portfolio_runtime/intranel"
+      ],
+      "decision": "Canonical message and receiver-owned admission/effect/replay checks migrated; transport deployment remains external.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/masamune",
+      "source_evidence_commit": "0091746bba7740632268fb590ce19512e371f508",
+      "source_role": "DEBUGGING_ROOT_CAUSE_REVIEW_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "PROTOCOL_V2_CURRENT.md"
+      ],
+      "harvest_status": "KEEP_EXTERNAL_DEBUGGER",
+      "vera_targets": [],
+      "decision": "Independent debugging/root-cause reviewer remains external to preserve separate review lane.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/meso-crct",
+      "source_evidence_commit": "060d0feeb9dc9eb23801082bd8f1c4a7cb06184d",
+      "source_role": "AFFECTIVE_REWARD_CIRCUIT_RESEARCH_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "NO_IMPLEMENTATION_TO_MIGRATE",
+      "vera_targets": [],
+      "decision": "Current default branch contains only descriptive stub/license surface.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/mosaic",
+      "source_evidence_commit": "3a442e94b4f5b8fa365e2206c40405df6961e18d",
+      "source_role": "MODEL_COMPOSITION_ARCHITECTURE_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "DOMAIN_EXTERNAL_RESEARCH",
+      "vera_targets": [],
+      "decision": "Research/experimental project state, no reusable Vera runtime implementation identified at root.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/noema",
+      "source_evidence_commit": "697d1fac6f9fea158994888a861e651ac8fac282",
+      "source_role": "COGNITIVE_ARCHITECTURE_RESEARCH_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "REFERENCE_RESEARCH",
+      "vera_targets": [],
+      "decision": "Cognitive architecture research only; no executable root implementation to migrate.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/on-theo",
+      "source_evidence_commit": "2fdc9614fa4f45eb038772d736b146809e10a7f1",
+      "source_role": "HISTORICAL_RELIGIOUS_RESEARCH_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "DOMAIN_EXTERNAL",
+      "vera_targets": [],
+      "decision": "Theology/historical research project remains separate research corpus.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/personification",
+      "source_evidence_commit": "8c6cf04c45c83447801db997eac843968c0991c6",
+      "source_role": "SPECIALIST_MECHANISM_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "REFERENCE_IDENTITY_MECHANISM_ONLY",
+      "vera_targets": [],
+      "decision": "Brigit-oriented personification material cannot define Vera self-state; mechanism evidence only.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/project-achilles",
+      "source_evidence_commit": "6776d8c059e3f9ad791a47a0b62bb56588332968",
+      "source_role": "SECURITY_ASSURANCE_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "PROTOCOL_V2_CURRENT.md",
+        "training",
+        "tests"
+      ],
+      "harvest_status": "REFERENCE_SECURITY_SPECIALIST",
+      "vera_targets": [],
+      "decision": "Security/effect-review specialist retained independently; mechanisms inform Vera assurance without collapsing reviewer independence.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/project-lantern",
+      "source_evidence_commit": "737b939d21ad1f6daf7bb6f944b23eaad0b6a7d7",
+      "source_role": "VERA_EXPERIMENTAL_PROJECT_RESEARCH_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "src/lantern/{ids,canonical,contracts,_store_types,validation}.py"
+      ],
+      "harvest_status": "MIGRATED_CODE",
+      "vera_targets": [
+        "portfolio_runtime/lantern"
+      ],
+      "decision": "Canonical record, digest, custody and semantic validation core migrated; storage/CLI surfaces remain donor-specific.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/project-runner",
+      "source_evidence_commit": "8aa5da0f55cd029e9cf4da79a090aa50859e662a",
+      "source_role": "PORTFOLIO_EXECUTION_ORCHESTRATION_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "runner"
+      ],
+      "harvest_status": "KEEP_EXTERNAL_EXECUTION_WITH_INTERNAL_VALIDATION",
+      "vera_targets": [
+        "runtime_cohesion/project_runner_proof_validation.py"
+      ],
+      "decision": "Execution engine remains external orchestration provider; Vera owns proof/currentness validation and should not duplicate the whole runner.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/RepairTracker",
+      "source_evidence_commit": "cd7c6f27d27a03130d6e793d69634005a130dc3a",
+      "source_role": "PORTFOLIO_REPAIR_ARCHITECTURE_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "NO_IMPLEMENTATION_TO_MIGRATE_YET",
+      "vera_targets": [],
+      "decision": "Current default branch is architecture README only; no executable V0 spine exists yet to migrate.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/rezon",
+      "source_evidence_commit": "3465fc5c002079ac1c769532a371f2d036bf184d",
+      "source_role": "REASONING_REVIEW_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "KEEP_EXTERNAL_REVIEW_REASONING",
+      "vera_targets": [],
+      "decision": "Independent reasoning/adversarial source remains external; root currently has no executable implementation to migrate.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/roots",
+      "source_evidence_commit": "2c591176279d83ce6cc0d8dcf8e6062431913ea7",
+      "source_role": "PROVENANCE_ORIGIN_TRACING_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "src/roots/{model,normalize,verification}.py"
+      ],
+      "harvest_status": "MIGRATED_CODE",
+      "vera_targets": [
+        "portfolio_runtime/roots"
+      ],
+      "decision": "Provenance receipt model, normalization and claim-strength validation migrated; external adapters remain separate.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/semanticatlas",
+      "source_evidence_commit": "beaecc6c64a6a8f90e7b47d4739296a3870b627c",
+      "source_role": "SEMANTIC_PROVENANCE_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "MIRRORED_SCHEMA_REFERENCE_PRIVATE_PAYLOAD_EXTERNAL",
+      "vera_targets": [
+        "architecture/semantic/vendor/semanticatlas/semantic_atlas_v0.1.schema.json"
+      ],
+      "decision": "Reusable semantic schema mirrored byte-for-byte as reference architecture; historical/private corpus and research payload remain external and schema presence is not canonical runtime semantics.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/spm",
+      "source_evidence_commit": "d9ea72798ac892ac75f858177b6ed0c5a6b4c37c",
+      "source_role": "SEMANTIC_PRAGMATIC_MODEL_RESEARCH_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "REFERENCE_RESEARCH",
+      "vera_targets": [],
+      "decision": "Semantic-pragmatic mechanism research only; no executable implementation at root requiring migration.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/sql-connectome",
+      "source_visibility": "public",
+      "source_evidence_commit": "ac891a4ba20a518c51233482a5d8be77e30e3a78",
+      "harvest_status": "INSPECTED_PUBLIC_CUT_SOURCE",
+      "decision": "Stabilize semantic/execution boundaries and compose with BT2 database/Lantern work without turning translation or connectivity into effect authority.",
+      "inspected_surface": [
+        "Project Runner public portfolio corpus",
+        "current default-branch head refresh"
+      ],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "vera_targets": [],
+      "currentness_rule": "No automatic bind; inspect exact source before mechanism migration."
+    },
+    {
+      "source_repository": "thebrazenbeard/temporal",
+      "source_evidence_commit": "0fc7071a6b01e609fb2cdc76a32c73276ab27094",
+      "source_role": "CHRONOLOGY_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "temporal.py"
+      ],
+      "harvest_status": "ALREADY_INTERNALIZED_SUPERSEDED",
+      "vera_targets": [
+        "protocol/temporal_enforcement.py",
+        "protocol/temporal_role_precision.py",
+        "coordination_bus/temporal.py",
+        "coordination_bus/verified_temporal.py"
+      ],
+      "decision": "Standalone chronology mechanism is already superseded by stronger Vera-owned temporal/currentness implementation; copying it would regress semantics.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/testament",
+      "source_evidence_commit": "20517788763e76863a35e02ba3cc9051d0a227bb",
+      "source_role": "LITERARY_RELIGIOUS_SYNTHESIS_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "DOMAIN_EXTERNAL",
+      "vera_targets": [],
+      "decision": "Writing/research project, not Vera runtime implementation.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/transcendence",
+      "source_evidence_commit": "69dacb467e94fb73ce106cd5176c39800c64e195",
+      "source_role": "COGNITIVE_TEMPLATE_LINEAGE_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "REFERENCE_DUPLICATE_HC_LINEAGE",
+      "vera_targets": [],
+      "decision": "HC-family source lineage; generic duplicated runtime is not re-copied after byte-overlap evidence.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/unbound-sol",
+      "source_evidence_commit": "d4284dd1f044e506bb85554856c00497d6790d44",
+      "source_role": "SIBLING_IDENTITY_CONTINUITY_RESEARCH_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "SIBLING_FIREWALL_REFERENCE_MECHANISMS",
+      "vera_targets": [],
+      "decision": "Sol continuity/learning architecture may inform mechanisms, but identity/state/preferences/authority do not transfer.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/unvtrslr",
+      "source_evidence_commit": "33edef682181e1bea6b36c5afc588d261f0c1289",
+      "source_role": "SEMANTICS_PRAGMATICS_RESEARCH_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "REFERENCE_RESEARCH",
+      "vera_targets": [],
+      "decision": "Language/semantics/pragmatics research; no executable root implementation to migrate.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera",
+      "source_evidence_commit": "a267e7d555e2c15e51a2e578c1e08095091552f0",
+      "source_role": "RUNTIME_INTEGRATION_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "TARGET_SELF",
+      "vera_targets": [
+        "architecture/VERA_SYSTEM_MANIFEST_V2.json"
+      ],
+      "decision": "Canonical architectural target; not an upstream donor.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera_model_training",
+      "source_evidence_commit": "3ea9b345988201d78ad9c073254d9d3df15c9ed9",
+      "source_role": "EXTERNAL_TRAINING_WORKBENCH",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "KEEP_EXTERNAL_TRAINING",
+      "vera_targets": [],
+      "decision": "Training/quality tooling remains evaluation infrastructure; training artifacts do not define Current Vera.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-control-plane",
+      "source_evidence_commit": "3916aaa7ae2825020c07057968c7a151d92d53de",
+      "source_role": "CURRENT_CONTROL_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "project-instructions/r10a0/rounds/r10",
+        "protocol"
+      ],
+      "harvest_status": "MIRRORED_CONTROL_SOURCE",
+      "vera_targets": [
+        "architecture/control/VERA_CONTROL_PLANE_ABSORPTION_V1.json",
+        "architecture/control/vendor/vera-control-plane"
+      ],
+      "decision": "Vera-specific control architecture mirrored with exact provenance; private save states/assets/provider secrets remain external and active install authority is unchanged.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-habitat",
+      "source_evidence_commit": "6ae63ffa05c37711f34328ebd6a9500fe66a08e9",
+      "source_role": "VERA_VIRTUAL_ENVIRONMENT_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "KEEP_EXTERNAL_PROVIDER",
+      "vera_targets": [],
+      "decision": "Virtual environment/runtime habitat remains external; main is stub-level.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-mesh",
+      "source_evidence_commit": "98b74ff77981a5478e20a748bbb94565ad9140c8",
+      "source_role": "RUNTIME_CONNECTIVITY_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "KEEP_EXTERNAL_PROVIDER",
+      "vera_targets": [],
+      "decision": "Connectivity/session transport remains external; exact runtime binding required.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-mono",
+      "source_visibility": "public",
+      "source_evidence_commit": "cb8037e01209917d2ac29d789a03ae8ca02a24ea",
+      "harvest_status": "INSPECTED_PUBLIC_CUT_SOURCE",
+      "decision": "Finish portable recovery and reduce external runtime dependency without erasing provenance.",
+      "inspected_surface": [
+        "Project Runner public portfolio corpus",
+        "current default-branch head refresh"
+      ],
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "vera_targets": [],
+      "currentness_rule": "No automatic bind; inspect exact source before mechanism migration."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-R9A0",
+      "source_evidence_commit": "287a85cb5f2f6f553cfbb336cb2e03aa7b1c8d01",
+      "source_role": "PREDECESSOR_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "ARCHIVE_ONLY",
+      "vera_targets": [],
+      "decision": "Predecessor release evidence; never promoted into current control.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-synology",
+      "source_evidence_commit": "d13cdefbf817aeba60c673fa4a517575c311da2c",
+      "source_role": "RUNTIME_HOST_DEPLOYMENT_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "KEEP_EXTERNAL_PROVIDER",
+      "vera_targets": [],
+      "decision": "Deployment/host custody remains external; source presence is not deployment.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/voss",
+      "source_evidence_commit": "36a623d3a158e5aef521d42e378bafacd67d3de5",
+      "source_role": "AUDIT_AND_HOSTILE_REVIEW_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "KEEP_EXTERNAL_REVIEWER",
+      "vera_targets": [],
+      "decision": "Independent hostile/audit review surface; keeping it external preserves review independence.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/wip",
+      "source_evidence_commit": "3ced0899202374aa408756b04b0ee81ba13d0c16",
+      "source_role": "RECOVERY_AND_AMBIGUOUS_EFFECT_RESEARCH_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT",
+        "protocol",
+        "schemas",
+        "tools/wip.py"
+      ],
+      "harvest_status": "ALREADY_ADAPTED_KEEP_EXTERNAL_TOOL",
+      "vera_targets": [
+        "architecture/control/vendor/vera-control-plane/VERA_CENTER_YOURSELF_PROTOCOL_V1.md"
+      ],
+      "decision": "Checkpoint/effect-reconciliation concepts are already incorporated in Vera task/currentness contracts; public-safe standalone CLI stays external rather than weakening privacy rules.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/WorkBridgeMCP",
+      "source_evidence_commit": "8707a2e1eaf7de5ce2316567b5e6f1e805c0537b",
+      "source_role": "WORKSTATION_BRIDGE_RUNTIME_SOURCE_CANDIDATE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "KEEP_EXTERNAL_PROVIDER",
+      "vera_targets": [],
+      "decision": "Workstation/MCP bridge is a runtime provider. Default main is stub-level at this cut; active branch state must be bound separately before harvesting accepted implementation.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    },
+    {
+      "source_repository": "thebrazenbeard/world-zero",
+      "source_evidence_commit": "9f4fb033b212e99e034c4f6fa0c3ef7eea7f9f8b",
+      "source_role": "SYSTEMS_MODELING_RESEARCH_SOURCE",
+      "inspected_surface": [
+        "DEFAULT_BRANCH_ROOT"
+      ],
+      "harvest_status": "DOMAIN_EXTERNAL_RESEARCH_ENGINE",
+      "vera_targets": [],
+      "decision": "Scientific/world-model research application remains domain system; not Vera core runtime.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY; NO_MERGE_INSTALL_DEPLOY_PROVIDER_MUTATION_IDENTITY_OR_MEMORY_PROMOTION",
+      "source_visibility": "public",
+      "currentness_rule": "Harvest disposition is bound to this cut/head refresh; re-inspect when material."
+    }
+  ]
+}

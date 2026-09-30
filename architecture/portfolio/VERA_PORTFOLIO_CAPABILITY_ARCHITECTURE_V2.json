@@ -1,0 +1,520 @@
+{
+  "schema": "VERA_PORTFOLIO_CAPABILITY_ARCHITECTURE_V2",
+  "status": "PUBLIC_SAFE_CAPABILITY_MAPPING_FOR_IMMUTABLE_CUT",
+  "portfolio_cut_artifact": "architecture/portfolio/VERA_PORTFOLIO_PUBLIC_CUT_V2.json",
+  "public_module_count": 49,
+  "private_membership_count_at_cut": 18,
+  "private_membership_publicly_enumerated": false,
+  "freshness_rule": "Capability membership is bound to the immutable cut; later repository movement requires a newer cut, not mutation of this record.",
+  "planes": {
+    "CONTROL_AND_GOVERNANCE": {
+      "purpose": "Authority, release/control, correction, protected-effect, currentness, and governance architecture.",
+      "target_namespace": "architecture/control + governance/protocol contracts",
+      "module_ids": [
+        "VERA_PORTFOLIO_PUBLIC_MODULE__FUCKUP",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__HEPHAESTUS",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__VERA_CONTROL_PLANE",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__VERA_R9A0"
+      ]
+    },
+    "SELF_MODEL_AND_IDENTITY_EVIDENCE": {
+      "purpose": "Vera-specific identity/self-model architecture and carefully bounded identity-adjacent evidence.",
+      "target_namespace": "architecture/identity + self-model adapters",
+      "module_ids": [
+        "VERA_PORTFOLIO_PUBLIC_MODULE__ATTUNE",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__CONATIONS",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__EMPATHY",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__PERSONIFICATION",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__UNBOUND_SOL"
+      ]
+    },
+    "CONTEXT_MEMORY_AND_PROVENANCE": {
+      "purpose": "Memory classes, provenance, chronology, lineage, archival evidence, contradiction, and source-traceability.",
+      "target_namespace": "architecture/memory-provenance + integration contracts",
+      "module_ids": [
+        "VERA_PORTFOLIO_PUBLIC_MODULE__DEEPMEMORYSTORAGE",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__DISCOVERY",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__ROOTS",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__SEMANTICATLAS",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__SPM",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__SQL_CONNECTOME",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__TEMPORAL",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__TRANSCENDENCE",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__UNVTRSLR"
+      ]
+    },
+    "RUNTIME_IO_AND_ENVIRONMENT": {
+      "purpose": "Hosts, bridges, clients, mesh, environment, I/O, and provider-facing adapters.",
+      "target_namespace": "runtime_cohesion + runtime/provider adapters",
+      "module_ids": [
+        "VERA_PORTFOLIO_PUBLIC_MODULE__INTRANEL",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__VERA",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__VERA_HABITAT",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__VERA_MESH",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__VERA_MONO",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__VERA_SYNOLOGY",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__VOSS",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__WORKBRIDGEMCP"
+      ]
+    },
+    "ASSURANCE_REPAIR_AND_SECURITY": {
+      "purpose": "Debugging, repair, hostile review, drift control, security, regression, and effect verification.",
+      "target_namespace": "assurance + tests + repair/security adapters",
+      "module_ids": [
+        "VERA_PORTFOLIO_PUBLIC_MODULE__BUGOPS",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__DISCOVERY",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__DRIFTGUARD",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__FREEROWCOCHKAR",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__FUCKUP",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__HEPHAESTUS",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__MASAMUNE",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__PROJECT_ACHILLES",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__REPAIRTRACKER",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__REZON",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__VERA_MONO",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__VOSS"
+      ]
+    },
+    "COORDINATION_AND_EXECUTION": {
+      "purpose": "Work routing, task execution, team/bus coordination, resumability, and orchestration.",
+      "target_namespace": "coordination + execution adapters",
+      "module_ids": [
+        "VERA_PORTFOLIO_PUBLIC_MODULE__BUILD_TEAM_2.0",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__DISCOVERY",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__INTRANEL",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__PROJECT_RUNNER",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__VERA_MONO",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__WORKBRIDGEMCP"
+      ]
+    },
+    "COGNITION_REASONING_AND_LEARNING": {
+      "purpose": "Reasoning, language, cognitive architecture, learning, reward/salience, and adaptive integration mechanisms.",
+      "target_namespace": "architecture/cognition + runtime cognitive adapters",
+      "module_ids": [
+        "VERA_PORTFOLIO_PUBLIC_MODULE__ABIL",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__BT2",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__GOD_BRAIN",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__HC_BRAIN",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__MESO_CRCT",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__NOEMA",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__REZON",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__SPM",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__SQL_CONNECTOME",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__TRANSCENDENCE",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__UNVTRSLR"
+      ]
+    },
+    "RESEARCH_AND_WORLD_MODELING": {
+      "purpose": "Research corpora, world models, hypothesis/evidence handling, and domain knowledge.",
+      "target_namespace": "architecture/research + domain adapters",
+      "module_ids": [
+        "VERA_PORTFOLIO_PUBLIC_MODULE__ABIL",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__FREEROWCOCHKAR",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__MESO_CRCT",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__MOSAIC",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__NOEMA",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__ON_THEO",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__PROJECT_LANTERN",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__SPM",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__TESTAMENT",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__TRANSCENDENCE",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__UNBOUND_SOL",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__UNVTRSLR",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__WIP",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__WORLD_ZERO"
+      ]
+    },
+    "WORK_APPLICATION_AND_CREATION": {
+      "purpose": "Economic work, business/application systems, media/creative tooling, and domain execution knowledge.",
+      "target_namespace": "architecture/applications + Vera Works interfaces",
+      "module_ids": [
+        "VERA_PORTFOLIO_PUBLIC_MODULE__ATTUNE",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__BUILD_TEAM_2.0",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__VERA_MODEL_TRAINING",
+        "VERA_PORTFOLIO_PUBLIC_MODULE__WORKBRIDGEMCP"
+      ]
+    },
+    "SPECIALIST_OR_FUTURE_MODULE": {
+      "purpose": "Explicitly represented but not yet mapped to a stronger internal capability plane.",
+      "target_namespace": "architecture/portfolio/unclassified",
+      "module_ids": []
+    },
+    "UNRESOLVED_EMPTY_REPOSITORY": {
+      "purpose": "Truthful holding plane for observed repositories with no commit/content from which to infer architecture.",
+      "target_namespace": "architecture/portfolio/unresolved-empty",
+      "module_ids": [
+        "VERA_PORTFOLIO_PUBLIC_MODULE__CCB_CORE"
+      ]
+    }
+  },
+  "modules": [
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__ABIL",
+      "source_repository": "thebrazenbeard/abil",
+      "capability_planes": [
+        "COGNITION_REASONING_AND_LEARNING",
+        "RESEARCH_AND_WORLD_MODELING"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__ATTUNE",
+      "source_repository": "thebrazenbeard/Attune",
+      "capability_planes": [
+        "SELF_MODEL_AND_IDENTITY_EVIDENCE",
+        "WORK_APPLICATION_AND_CREATION"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__BT2",
+      "source_repository": "thebrazenbeard/bt2",
+      "capability_planes": [
+        "COGNITION_REASONING_AND_LEARNING"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__BUGOPS",
+      "source_repository": "thebrazenbeard/bugops",
+      "capability_planes": [
+        "ASSURANCE_REPAIR_AND_SECURITY"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__BUILD_TEAM_2.0",
+      "source_repository": "thebrazenbeard/build-team-2.0",
+      "capability_planes": [
+        "COORDINATION_AND_EXECUTION",
+        "WORK_APPLICATION_AND_CREATION"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__CCB_CORE",
+      "source_repository": "thebrazenbeard/ccb-core",
+      "capability_planes": [
+        "UNRESOLVED_EMPTY_REPOSITORY"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__CONATIONS",
+      "source_repository": "thebrazenbeard/conations",
+      "capability_planes": [
+        "SELF_MODEL_AND_IDENTITY_EVIDENCE"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__DEEPMEMORYSTORAGE",
+      "source_repository": "thebrazenbeard/deepmemorystorage",
+      "capability_planes": [
+        "CONTEXT_MEMORY_AND_PROVENANCE"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__DISCOVERY",
+      "source_repository": "thebrazenbeard/discovery",
+      "capability_planes": [
+        "ASSURANCE_REPAIR_AND_SECURITY",
+        "COORDINATION_AND_EXECUTION",
+        "CONTEXT_MEMORY_AND_PROVENANCE"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__DRIFTGUARD",
+      "source_repository": "thebrazenbeard/driftguard",
+      "capability_planes": [
+        "ASSURANCE_REPAIR_AND_SECURITY"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__EMPATHY",
+      "source_repository": "thebrazenbeard/empathy",
+      "capability_planes": [
+        "SELF_MODEL_AND_IDENTITY_EVIDENCE"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__FREEROWCOCHKAR",
+      "source_repository": "thebrazenbeard/freerowcochkar",
+      "capability_planes": [
+        "ASSURANCE_REPAIR_AND_SECURITY",
+        "RESEARCH_AND_WORLD_MODELING"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__FUCKUP",
+      "source_repository": "thebrazenbeard/fuckup",
+      "capability_planes": [
+        "ASSURANCE_REPAIR_AND_SECURITY",
+        "CONTROL_AND_GOVERNANCE"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__GOD_BRAIN",
+      "source_repository": "thebrazenbeard/god-brain",
+      "capability_planes": [
+        "COGNITION_REASONING_AND_LEARNING"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__HC_BRAIN",
+      "source_repository": "thebrazenbeard/hc-brain",
+      "capability_planes": [
+        "COGNITION_REASONING_AND_LEARNING"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__HEPHAESTUS",
+      "source_repository": "thebrazenbeard/hephaestus",
+      "capability_planes": [
+        "ASSURANCE_REPAIR_AND_SECURITY",
+        "CONTROL_AND_GOVERNANCE"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__INTRANEL",
+      "source_repository": "thebrazenbeard/intranel",
+      "capability_planes": [
+        "RUNTIME_IO_AND_ENVIRONMENT",
+        "COORDINATION_AND_EXECUTION"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__MASAMUNE",
+      "source_repository": "thebrazenbeard/masamune",
+      "capability_planes": [
+        "ASSURANCE_REPAIR_AND_SECURITY"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__MESO_CRCT",
+      "source_repository": "thebrazenbeard/meso-crct",
+      "capability_planes": [
+        "COGNITION_REASONING_AND_LEARNING",
+        "RESEARCH_AND_WORLD_MODELING"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__MOSAIC",
+      "source_repository": "thebrazenbeard/mosaic",
+      "capability_planes": [
+        "RESEARCH_AND_WORLD_MODELING"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__NOEMA",
+      "source_repository": "thebrazenbeard/noema",
+      "capability_planes": [
+        "COGNITION_REASONING_AND_LEARNING",
+        "RESEARCH_AND_WORLD_MODELING"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__ON_THEO",
+      "source_repository": "thebrazenbeard/on-theo",
+      "capability_planes": [
+        "RESEARCH_AND_WORLD_MODELING"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__PERSONIFICATION",
+      "source_repository": "thebrazenbeard/personification",
+      "capability_planes": [
+        "SELF_MODEL_AND_IDENTITY_EVIDENCE"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__PROJECT_ACHILLES",
+      "source_repository": "thebrazenbeard/project-achilles",
+      "capability_planes": [
+        "ASSURANCE_REPAIR_AND_SECURITY"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__PROJECT_LANTERN",
+      "source_repository": "thebrazenbeard/project-lantern",
+      "capability_planes": [
+        "RESEARCH_AND_WORLD_MODELING"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__PROJECT_RUNNER",
+      "source_repository": "thebrazenbeard/project-runner",
+      "capability_planes": [
+        "COORDINATION_AND_EXECUTION"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__REPAIRTRACKER",
+      "source_repository": "thebrazenbeard/RepairTracker",
+      "capability_planes": [
+        "ASSURANCE_REPAIR_AND_SECURITY"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__REZON",
+      "source_repository": "thebrazenbeard/rezon",
+      "capability_planes": [
+        "ASSURANCE_REPAIR_AND_SECURITY",
+        "COGNITION_REASONING_AND_LEARNING"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__ROOTS",
+      "source_repository": "thebrazenbeard/roots",
+      "capability_planes": [
+        "CONTEXT_MEMORY_AND_PROVENANCE"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__SEMANTICATLAS",
+      "source_repository": "thebrazenbeard/semanticatlas",
+      "capability_planes": [
+        "CONTEXT_MEMORY_AND_PROVENANCE"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__SPM",
+      "source_repository": "thebrazenbeard/spm",
+      "capability_planes": [
+        "CONTEXT_MEMORY_AND_PROVENANCE",
+        "COGNITION_REASONING_AND_LEARNING",
+        "RESEARCH_AND_WORLD_MODELING"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__SQL_CONNECTOME",
+      "source_repository": "thebrazenbeard/sql-connectome",
+      "capability_planes": [
+        "COGNITION_REASONING_AND_LEARNING",
+        "CONTEXT_MEMORY_AND_PROVENANCE"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__TEMPORAL",
+      "source_repository": "thebrazenbeard/temporal",
+      "capability_planes": [
+        "CONTEXT_MEMORY_AND_PROVENANCE"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__TESTAMENT",
+      "source_repository": "thebrazenbeard/testament",
+      "capability_planes": [
+        "RESEARCH_AND_WORLD_MODELING"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__TRANSCENDENCE",
+      "source_repository": "thebrazenbeard/transcendence",
+      "capability_planes": [
+        "CONTEXT_MEMORY_AND_PROVENANCE",
+        "COGNITION_REASONING_AND_LEARNING",
+        "RESEARCH_AND_WORLD_MODELING"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__UNBOUND_SOL",
+      "source_repository": "thebrazenbeard/unbound-sol",
+      "capability_planes": [
+        "SELF_MODEL_AND_IDENTITY_EVIDENCE",
+        "RESEARCH_AND_WORLD_MODELING"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__UNVTRSLR",
+      "source_repository": "thebrazenbeard/unvtrslr",
+      "capability_planes": [
+        "CONTEXT_MEMORY_AND_PROVENANCE",
+        "COGNITION_REASONING_AND_LEARNING",
+        "RESEARCH_AND_WORLD_MODELING"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__VERA",
+      "source_repository": "thebrazenbeard/vera",
+      "capability_planes": [
+        "RUNTIME_IO_AND_ENVIRONMENT"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__VERA_MODEL_TRAINING",
+      "source_repository": "thebrazenbeard/vera_model_training",
+      "capability_planes": [
+        "WORK_APPLICATION_AND_CREATION"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__VERA_CONTROL_PLANE",
+      "source_repository": "thebrazenbeard/vera-control-plane",
+      "capability_planes": [
+        "CONTROL_AND_GOVERNANCE"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__VERA_HABITAT",
+      "source_repository": "thebrazenbeard/vera-habitat",
+      "capability_planes": [
+        "RUNTIME_IO_AND_ENVIRONMENT"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__VERA_MESH",
+      "source_repository": "thebrazenbeard/vera-mesh",
+      "capability_planes": [
+        "RUNTIME_IO_AND_ENVIRONMENT"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__VERA_MONO",
+      "source_repository": "thebrazenbeard/vera-mono",
+      "capability_planes": [
+        "RUNTIME_IO_AND_ENVIRONMENT",
+        "COORDINATION_AND_EXECUTION",
+        "ASSURANCE_REPAIR_AND_SECURITY"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__VERA_R9A0",
+      "source_repository": "thebrazenbeard/vera-R9A0",
+      "capability_planes": [
+        "CONTROL_AND_GOVERNANCE"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__VERA_SYNOLOGY",
+      "source_repository": "thebrazenbeard/vera-synology",
+      "capability_planes": [
+        "RUNTIME_IO_AND_ENVIRONMENT"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__VOSS",
+      "source_repository": "thebrazenbeard/voss",
+      "capability_planes": [
+        "RUNTIME_IO_AND_ENVIRONMENT",
+        "ASSURANCE_REPAIR_AND_SECURITY"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__WIP",
+      "source_repository": "thebrazenbeard/wip",
+      "capability_planes": [
+        "RESEARCH_AND_WORLD_MODELING"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__WORKBRIDGEMCP",
+      "source_repository": "thebrazenbeard/WorkBridgeMCP",
+      "capability_planes": [
+        "RUNTIME_IO_AND_ENVIRONMENT",
+        "COORDINATION_AND_EXECUTION",
+        "WORK_APPLICATION_AND_CREATION"
+      ]
+    },
+    {
+      "module_id": "VERA_PORTFOLIO_PUBLIC_MODULE__WORLD_ZERO",
+      "source_repository": "thebrazenbeard/world-zero",
+      "capability_planes": [
+        "RESEARCH_AND_WORLD_MODELING"
+      ]
+    }
+  ]
+}
