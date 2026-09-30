@@ -8,8 +8,8 @@ on:
     branches:
       - main
     paths:
-      - "supabase/migrations/20260731003000_add_memory_request_idempotency.sql"
-      - "supabase/migrations/20260731003100_correct_memory_request_status_semantics.sql"
+      - "supabase/drafts/pre-provider-composition-20260922/20260731003000_add_memory_request_idempotency.sql"
+      - "supabase/drafts/pre-provider-composition-20260922/20260731003100_correct_memory_request_status_semantics.sql"
       - "supabase/tests/validate_neutral_v3_memory_durability_review_corrections.sql"
       - "supabase/tests/exercise_neutral_v3_memory_concurrent_conflict_a.sql"
       - "supabase/tests/exercise_neutral_v3_memory_concurrent_conflict_b.sql"
@@ -43,10 +43,10 @@ jobs:
             supabase init
           fi
 
-      - name: Stage migrations for explicit replay
+      - name: Isolate provider baseline from historical Memory regression
         run: |
-          rm -rf supabase/migrations.explicit
-          mv supabase/migrations supabase/migrations.explicit
+          rm -rf /tmp/vera_provider_migrations
+          mv supabase/migrations /tmp/vera_provider_migrations
           mkdir -p supabase/migrations
 
       - name: Start isolated local Supabase stack
@@ -60,27 +60,27 @@ jobs:
       - name: Apply Memory lineage migration
         run: >-
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
-          -f supabase/migrations.explicit/20260730213000_harden_neutral_v3_memory_contract.sql
+          -f supabase/drafts/pre-provider-composition-20260922/20260730213000_harden_neutral_v3_memory_contract.sql
 
       - name: Apply Memory governance migration
         run: >-
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
-          -f supabase/migrations.explicit/20260730213100_tighten_neutral_v3_memory_governance.sql
+          -f supabase/drafts/pre-provider-composition-20260922/20260730213100_tighten_neutral_v3_memory_governance.sql
 
       - name: Apply Memory review correction migration
         run: >-
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
-          -f supabase/migrations.explicit/20260730213200_close_neutral_v3_memory_review_gaps.sql
+          -f supabase/drafts/pre-provider-composition-20260922/20260730213200_close_neutral_v3_memory_review_gaps.sql
 
       - name: Apply durable request migration
         run: >-
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
-          -f supabase/migrations.explicit/20260731003000_add_memory_request_idempotency.sql
+          -f supabase/drafts/pre-provider-composition-20260922/20260731003000_add_memory_request_idempotency.sql
 
       - name: Apply request status correction
         run: >-
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
-          -f supabase/migrations.explicit/20260731003100_correct_memory_request_status_semantics.sql
+          -f supabase/drafts/pre-provider-composition-20260922/20260731003100_correct_memory_request_status_semantics.sql
 
       - name: Prove access boundary and FAILED exact-retry recovery
         run: >-

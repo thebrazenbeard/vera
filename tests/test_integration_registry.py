@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -299,6 +300,81 @@ class IntegrationRegistryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             with self.assertRaisesRegex(ValueError, "invalid repository artifact path"):
                 validate_repository_artifact(Path(directory), "../outside")
+
+    def test_declared_provider_quarantine_resolves_historical_migration(self):
+        filename = "20260730213000_harden_neutral_v3_memory_contract.sql"
+        relative = f"supabase/migrations/{filename}"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            composition = root / "supabase/composition/VERA_PROVIDER_COMPOSITION_V1.json"
+            composition.parent.mkdir(parents=True)
+            composition.write_text(
+                json.dumps(
+                    {
+                        "quarantine": {
+                            "path": "supabase/drafts/pre-provider-composition-20260922",
+                            "semantics": "AUDIT_ONLY_NOT_EXECUTABLE_MIGRATION_INPUT",
+                            "filenames": [filename],
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            archived = (
+                root
+                / "supabase/drafts/pre-provider-composition-20260922"
+                / filename
+            )
+            archived.parent.mkdir(parents=True)
+            archived.write_text("historical bytes\n", encoding="utf-8")
+            self.assertEqual(
+                validate_repository_artifact(root, relative),
+                archived,
+            )
+
+    def test_undeclared_provider_quarantine_does_not_mask_missing_artifact(self):
+        filename = "20260730213000_harden_neutral_v3_memory_contract.sql"
+        relative = f"supabase/migrations/{filename}"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            composition = root / "supabase/composition/VERA_PROVIDER_COMPOSITION_V1.json"
+            composition.parent.mkdir(parents=True)
+            composition.write_text(
+                json.dumps(
+                    {
+                        "quarantine": {
+                            "path": "supabase/drafts/pre-provider-composition-20260922",
+                            "semantics": "AUDIT_ONLY_NOT_EXECUTABLE_MIGRATION_INPUT",
+                            "filenames": [],
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "missing repository artifact"):
+                validate_repository_artifact(root, relative)
+
+    def test_provider_quarantine_alias_requires_audit_only_semantics(self):
+        filename = "20260730213000_harden_neutral_v3_memory_contract.sql"
+        relative = f"supabase/migrations/{filename}"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            composition = root / "supabase/composition/VERA_PROVIDER_COMPOSITION_V1.json"
+            composition.parent.mkdir(parents=True)
+            composition.write_text(
+                json.dumps(
+                    {
+                        "quarantine": {
+                            "path": "supabase/drafts/pre-provider-composition-20260922",
+                            "semantics": "EXECUTABLE",
+                            "filenames": [filename],
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "quarantine semantics"):
+                validate_repository_artifact(root, relative)
 
 
 if __name__ == "__main__":
