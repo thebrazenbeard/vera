@@ -8,11 +8,11 @@ on:
     branches:
       - main
     paths:
-      - "supabase/migrations/20260730213000_harden_neutral_v3_memory_contract.sql"
-      - "supabase/migrations/20260730213100_tighten_neutral_v3_memory_governance.sql"
-      - "supabase/migrations/20260730213200_close_neutral_v3_memory_review_gaps.sql"
-      - "supabase/migrations/20260731003000_add_memory_request_idempotency.sql"
-      - "supabase/migrations/20260731003100_correct_memory_request_status_semantics.sql"
+      - "supabase/drafts/pre-provider-composition-20260922/20260730213000_harden_neutral_v3_memory_contract.sql"
+      - "supabase/drafts/pre-provider-composition-20260922/20260730213100_tighten_neutral_v3_memory_governance.sql"
+      - "supabase/drafts/pre-provider-composition-20260922/20260730213200_close_neutral_v3_memory_review_gaps.sql"
+      - "supabase/drafts/pre-provider-composition-20260922/20260731003000_add_memory_request_idempotency.sql"
+      - "supabase/drafts/pre-provider-composition-20260922/20260731003100_correct_memory_request_status_semantics.sql"
       - "supabase/tests/fixtures/neutral_v3_live_schema.sql"
       - "supabase/tests/fixtures/neutral_v3_cycle_preflight_fixture.sql"
       - "supabase/tests/fixtures/cleanup_neutral_v3_cycle_preflight_fixture.sql"
@@ -60,10 +60,10 @@ jobs:
             supabase init
           fi
 
-      - name: Stage repository migrations for explicit replay
+      - name: Isolate provider baseline from historical Memory regression
         run: |
-          rm -rf supabase/migrations.explicit
-          mv supabase/migrations supabase/migrations.explicit
+          rm -rf /tmp/vera_provider_migrations
+          mv supabase/migrations /tmp/vera_provider_migrations
           mkdir -p supabase/migrations
 
       - name: Start isolated local Supabase stack
@@ -79,7 +79,7 @@ jobs:
         run: |
           set +e
           output=$(psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 \
-            -f supabase/migrations.explicit/20260730213200_close_neutral_v3_memory_review_gaps.sql 2>&1)
+            -f supabase/drafts/pre-provider-composition-20260922/20260730213200_close_neutral_v3_memory_review_gaps.sql 2>&1)
           status=$?
           set -e
           printf '%s\n' "$output"
@@ -99,12 +99,12 @@ jobs:
       - name: Apply bounded Memory lineage migration
         run: >-
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
-          -f supabase/migrations.explicit/20260730213000_harden_neutral_v3_memory_contract.sql
+          -f supabase/drafts/pre-provider-composition-20260922/20260730213000_harden_neutral_v3_memory_contract.sql
 
       - name: Apply bounded Memory governance migration
         run: >-
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
-          -f supabase/migrations.explicit/20260730213100_tighten_neutral_v3_memory_governance.sql
+          -f supabase/drafts/pre-provider-composition-20260922/20260730213100_tighten_neutral_v3_memory_governance.sql
 
       - name: Run adversarial lineage and access validation
         run: >-
@@ -119,7 +119,7 @@ jobs:
       - name: Apply bounded Memory review correction migration
         run: >-
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
-          -f supabase/migrations.explicit/20260730213200_close_neutral_v3_memory_review_gaps.sql
+          -f supabase/drafts/pre-provider-composition-20260922/20260730213200_close_neutral_v3_memory_review_gaps.sql
 
       - name: Run adversarial independent-review correction validation
         run: >-
@@ -134,12 +134,12 @@ jobs:
       - name: Apply durable Memory request migration
         run: >-
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
-          -f supabase/migrations.explicit/20260731003000_add_memory_request_idempotency.sql
+          -f supabase/drafts/pre-provider-composition-20260922/20260731003000_add_memory_request_idempotency.sql
 
       - name: Apply Memory request status correction
         run: >-
           psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1
-          -f supabase/migrations.explicit/20260731003100_correct_memory_request_status_semantics.sql
+          -f supabase/drafts/pre-provider-composition-20260922/20260731003100_correct_memory_request_status_semantics.sql
 
       - name: Validate request idempotency and interrupted state
         run: >-

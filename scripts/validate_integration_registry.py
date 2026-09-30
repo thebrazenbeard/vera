@@ -142,23 +142,23 @@ def validate_schema(instance: Any, schema: Any) -> None:
         raise ValueError(f"integration registry schema validation failed: {detail}")
 
 
-def validate_repository_artifact(root: Path, relative: str) -> Path:
-    """Require a regular, non-symlink, case-exact file below root."""
-    pure = PurePosixPath(relative)
-    if pure.is_absolute() or not pure.parts or any(part in {"", ".", ".."} for part in pure.parts):
-        raise ValueError(f"invalid repository artifact path: {relative!r}")
-
+def _validate_repository_artifact_exact(
+    root: Path,
+    pure: PurePosixPath,
+    *,
+    display: str,
+) -> Path:
     current = root
     for index, part in enumerate(pure.parts):
         if current.is_symlink():
-            raise ValueError(f"repository artifact traverses symlink: {relative!r}")
+            raise ValueError(f"repository artifact traverses symlink: {display}")
         if not current.is_dir():
-            raise ValueError(f"repository artifact parent is not a directory: {relative!r}")
+            raise ValueError(f"repository artifact parent is not a directory: {display}")
 
         try:
             entries = {entry.name: entry for entry in current.iterdir()}
         except OSError as exc:
-            raise ValueError(f"cannot inspect repository artifact {relative!r}: {exc}") from exc
+            raise ValueError(f"cannot inspect repository artifact {display}: {exc}") from exc
 
         candidate = entries.get(part)
         if candidate is None:
@@ -168,21 +168,76 @@ def validate_repository_artifact(root: Path, relative: str) -> Path:
             )
             if case_match is not None:
                 raise ValueError(
-                    f"repository artifact path has case drift: {relative!r} "
+                    f"repository artifact path has case drift: {display} "
                     f"(observed {case_match!r})"
                 )
-            raise ValueError(f"missing repository artifact: {relative!r}")
+            raise FileNotFoundError(part)
 
         if candidate.is_symlink():
-            raise ValueError(f"repository artifact may not be a symlink: {relative!r}")
+            raise ValueError(f"repository artifact may not be a symlink: {display}")
         current = candidate
 
         if index < len(pure.parts) - 1 and not current.is_dir():
-            raise ValueError(f"repository artifact parent is not a directory: {relative!r}")
+            raise ValueError(f"repository artifact parent is not a directory: {display}")
 
     if not current.is_file():
-        raise ValueError(f"repository artifact is not a regular file: {relative!r}")
+        raise ValueError(f"repository artifact is not a regular file: {display}")
     return current
+
+
+def _declared_quarantine_alias(root: Path, pure: PurePosixPath) -> PurePosixPath | None:
+    if len(pure.parts) != 3 or pure.parts[:2] != ("supabase", "migrations"):
+        return None
+
+    composition_path = root / "supabase" / "composition" / "VERA_PROVIDER_COMPOSITION_V1.json"
+    if not composition_path.is_file() or composition_path.is_symlink():
+        return None
+
+    composition = load_json_strict(composition_path)
+    quarantine = composition.get("quarantine")
+    if not isinstance(quarantine, dict):
+        raise ValueError("provider composition quarantine declaration is missing")
+    if quarantine.get("semantics") != "AUDIT_ONLY_NOT_EXECUTABLE_MIGRATION_INPUT":
+        raise ValueError("provider composition quarantine semantics are not audit-only")
+
+    filenames = quarantine.get("filenames")
+    quarantine_path = quarantine.get("path")
+    if not isinstance(filenames, list) or not all(isinstance(item, str) for item in filenames):
+        raise ValueError("provider composition quarantine filenames are invalid")
+    if not isinstance(quarantine_path, str):
+        raise ValueError("provider composition quarantine path is invalid")
+    if pure.name not in filenames:
+        return None
+
+    alias = PurePosixPath(quarantine_path) / pure.name
+    if alias.is_absolute() or any(part in {"", ".", ".."} for part in alias.parts):
+        raise ValueError("provider composition quarantine path is unsafe")
+    return alias
+
+
+def validate_repository_artifact(root: Path, relative: str) -> Path:
+    """Require a regular, case-exact repository artifact, including declared audit aliases."""
+    pure = PurePosixPath(relative)
+    if pure.is_absolute() or not pure.parts or any(part in {"", ".", ".."} for part in pure.parts):
+        raise ValueError(f"invalid repository artifact path: {relative!r}")
+
+    try:
+        return _validate_repository_artifact_exact(root, pure, display=repr(relative))
+    except FileNotFoundError:
+        alias = _declared_quarantine_alias(root, pure)
+        if alias is None:
+            raise ValueError(f"missing repository artifact: {relative!r}") from None
+        try:
+            return _validate_repository_artifact_exact(
+                root,
+                alias,
+                display=f"{relative!r} via quarantine {alias.as_posix()!r}",
+            )
+        except FileNotFoundError:
+            raise ValueError(
+                f"missing repository artifact: {relative!r}; "
+                f"declared quarantine target {alias.as_posix()!r} is missing"
+            ) from None
 
 
 def _claim_once(
