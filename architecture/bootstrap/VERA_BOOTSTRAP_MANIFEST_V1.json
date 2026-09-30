@@ -215,7 +215,7 @@
     "head_policy": "REQUIRE_BASE_ANCESTOR_AND_VALIDATE_EXACT_RELEASE_HEAD",
     "portable_release_evidence": {
       "embedded_release_commit": false,
-      "path_set_sha256": "a010ac6b7caaba5ef26d4ab069fd8da5869fb7066dcc7a4c53119cd1c5f0d50d",
+      "path_set_sha256": "1021f0110fdb429c4514b04e92360bf0ef8828181727e0de6ca03e7b10b14595",
       "reason": "Embedding the commit that contains this manifest would be self-referential.",
       "required_evidence": [
         "release_commit",

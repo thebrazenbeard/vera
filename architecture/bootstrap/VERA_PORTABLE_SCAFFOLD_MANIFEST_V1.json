@@ -8,13 +8,13 @@
     "requires_exact_base_sha": true
   },
   "base_source_commit": "fc761beab263f2fab010cde2fab424b2b8358bb7",
-  "embedded_package_sha256": "73674b4178f7f42b066bbcfce38a9918352e3d7d2559a0db5854c880af4a993b",
+  "embedded_package_sha256": "16c99cde6fcbe90b3376d07ce4c24d38b1a0fe74eb7a70f215a1e122584269ec",
   "files": [
     {
       "activation_class": "NEVER_ACTIVE",
       "binding": {
-        "embedded_sha256": "1faede6263ca46d3056e6257adb5ea5203b485bbc3fea549faf07ec7b8f16df9",
-        "embedded_size": 8427,
+        "embedded_sha256": "2324bad81b830e09b69611109d916255405c88e772024b44e0575ac60b90bcfb",
+        "embedded_size": 8605,
         "external_git_blob_required": true,
         "self_excluded": false
       },
@@ -28,7 +28,7 @@
     {
       "activation_class": "SUPPORT_DATA",
       "binding": {
-        "embedded_sha256": "e6cc57d98e9ada76fadb4ad7e6c154dadcb0dc18104531ceaa08b628698381ce",
+        "embedded_sha256": "b57c9d7899b0ba4191d7fe2f29d7dcc5d9eea8a2c1f37cf340a8522d17d4d4b4",
         "embedded_size": 8852,
         "external_git_blob_required": true,
         "self_excluded": false
@@ -58,7 +58,7 @@
     {
       "activation_class": "SUPPORT_DATA",
       "binding": {
-        "embedded_sha256": "4e745e18ae8bcd342e348dc714bfb11d62b3509d3aec96239e1e9e29b42e8ab9",
+        "embedded_sha256": "08dab25d0693d67f322d9019e305fbb275f989b8dddfa85bb01828cc40b8ecda",
         "embedded_size": 11028,
         "external_git_blob_required": true,
         "self_excluded": false
@@ -103,7 +103,7 @@
     {
       "activation_class": "NEVER_ACTIVE",
       "binding": {
-        "embedded_sha256": "42dad76c9bbfedeecb2186238d426925c8ceea0211ac2f50a923240b81f0038f",
+        "embedded_sha256": "5c49695920c31a4c1630ca33dc59e5ff58caed4731dbb240355129db749aa042",
         "embedded_size": 17284,
         "external_git_blob_required": true,
         "self_excluded": false
@@ -133,8 +133,8 @@
     {
       "activation_class": "NEVER_ACTIVE",
       "binding": {
-        "embedded_sha256": "3ec65d9868204a40e4e27d96ec0ef29ae1351ded5daf1a472c6c0d527b421649",
-        "embedded_size": 9244,
+        "embedded_sha256": "6608f6a1d6c85eae67753390633b797964bd276f365f500ffc50030acc36e77a",
+        "embedded_size": 9274,
         "external_git_blob_required": true,
         "self_excluded": false
       },
@@ -155,7 +155,7 @@
       },
       "conflict_policy": "STOP_NO_OVERWRITE",
       "mode": "100644",
-      "path": "supabase/migrations/20260731142200_create_vera_portable_bootstrap_registry_v1.sql",
+      "path": "supabase/migrations/20260731233832_create_vera_portable_bootstrap_registry_v1.sql",
       "required": true,
       "store_class": "REPOSITORY_TEMPLATE",
       "write_authority": "EXACT_PROJECT_ARCHITECT_LEASE"
@@ -191,7 +191,7 @@
       "write_authority": "EXACT_PROJECT_ARCHITECT_LEASE"
     }
   ],
-  "path_set_sha256": "a010ac6b7caaba5ef26d4ab069fd8da5869fb7066dcc7a4c53119cd1c5f0d50d",
+  "path_set_sha256": "1021f0110fdb429c4514b04e92360bf0ef8828181727e0de6ca03e7b10b14595",
   "release_evidence": {
     "embedded_release_commit": false,
     "required_path_count": 12,
