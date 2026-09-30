@@ -1,0 +1,12 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+  - package-ecosystem: "pip"
+    directory: "/experiments/tul_instrumented_host_fixture_v0_1"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
