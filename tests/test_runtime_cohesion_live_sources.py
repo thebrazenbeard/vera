@@ -31,12 +31,19 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
         self.assertIn("thebrazenbeard/vera", snapshot)
         self.assertIn("thebrazenbeard/hc-brain", snapshot)
         self.assertIn("thebrazenbeard/brigit", snapshot)
-        self.assertEqual(59, len(snapshot))
-        self.assertEqual(42, len(bound))
-        self.assertEqual(17, len(unbound))
+        self.assertEqual(65, len(snapshot))
+        self.assertEqual(46, len(bound))
+        self.assertEqual(19, len(unbound))
         self.assertIn("thebrazenbeard/WorkBridgeMCP", snapshot)
         self.assertIn("thebrazenbeard/discovery", bound)
         self.assertIn("thebrazenbeard/roots", bound)
+        for repo in (
+            "thebrazenbeard/meso-crct",
+            "thebrazenbeard/unbound-sol",
+            "thebrazenbeard/RepairTracker",
+            "thebrazenbeard/freerowcochkar",
+        ):
+            self.assertIn(repo, bound)
 
     def test_only_exact_r10_control_source_may_claim_control_role(self):
         control_rows = [row for row in self.registry["repository_sources"] if row["runtime_role"] == "CURRENT_CONTROL_SOURCE"]
@@ -56,6 +63,8 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
             "thebrazenbeard/vera-habitat",
             "thebrazenbeard/self",
             "thebrazenbeard/bt2",
+            "thebrazenbeard/identify-ai",
+            "thebrazenbeard/ccb-core",
         ):
             self.assertEqual(rows[repo]["activation_mode"], "NO_AUTO_BIND")
 
@@ -97,15 +106,17 @@ class RuntimeSourceRegistryTests(unittest.TestCase):
         self.assertFalse(drive["availability_implies_activation"])
 
 
-    def test_registry_is_bound_to_canonical_discovery_and_roots(self):
+    def test_registry_is_bound_to_live_inventory_and_preserves_predecessor_lineage(self):
         p = self.registry["portfolio_reconciliation"]
-        self.assertEqual(p["classification_counts"]["total"], 59)
-        self.assertEqual(p["classification_counts"]["classified_source_rows"], 42)
-        self.assertEqual(p["classification_counts"]["no_auto_bind"], 17)
-        self.assertEqual(p["discovery"]["commit"], "2881a94c7eb3c83a34b0c00bab739b41c1d99b6d")
-        self.assertEqual(p["discovery"]["blob_sha"], "71b9f8deaf1079d5078b19e5bbddb743fd636437")
-        self.assertEqual(p["roots"]["commit"], "a6994b415336bc179a41aad0ac9eec403d60f93c")
-        self.assertEqual(p["roots"]["blob_sha"], "ccac62eac08012269fec46669bce981b96a0f41d")
+        self.assertEqual(p["classification_counts"]["total"], 65)
+        self.assertEqual(p["classification_counts"]["classified_source_rows"], 46)
+        self.assertEqual(p["classification_counts"]["no_auto_bind"], 19)
+        self.assertEqual(p["current_inventory"]["repository_count"], 65)
+        predecessor = p["predecessor_59_lineage"]
+        self.assertEqual(predecessor["discovery"]["commit"], "2881a94c7eb3c83a34b0c00bab739b41c1d99b6d")
+        self.assertEqual(predecessor["discovery"]["blob_sha"], "71b9f8deaf1079d5078b19e5bbddb743fd636437")
+        self.assertEqual(predecessor["roots"]["commit"], "a6994b415336bc179a41aad0ac9eec403d60f93c")
+        self.assertEqual(predecessor["roots"]["blob_sha"], "ccac62eac08012269fec46669bce981b96a0f41d")
 
     def test_voss_is_review_source_while_empty_stubs_are_unbound(self):
         bound = {row["repository"]: row for row in self.registry["repository_sources"]}

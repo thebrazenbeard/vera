@@ -1,9 +1,9 @@
 {
   "schema": "VERA_RUNTIME_SOURCE_REGISTRY_V1",
   "workstream": "VERA_RUNTIME_COHESION_V1",
-  "status": "NON_NORMATIVE_OPERATIONAL_SUPPORT / CANONICAL_59_REPOSITORY_DIRECTORY / NOT_INSTALLED / NOT_RUNTIME_QUALIFIED",
-  "observed_at": "2026-09-23T00:16:00Z",
-  "registry_semantics": "OPEN_WORLD_SOURCE_DIRECTORY; canonical 59-repository snapshot is bound to Discovery + Roots evidence. Registration controls retrieval/classification only and never grants authority, activation, installation, currentness, memory admission, consent, phenomenology, or protected-effect permission.",
+  "status": "NON_NORMATIVE_OPERATIONAL_SUPPORT / LIVE_65_REPOSITORY_DIRECTORY / NOT_INSTALLED / NOT_RUNTIME_QUALIFIED",
+  "observed_at": "2026-09-23",
+  "registry_semantics": "OPEN_WORLD_SOURCE_DIRECTORY; this 63-repository cut is direct live GitHub portfolio evidence. Registration controls retrieval/classification only and never grants authority, activation, installation, currentness, memory admission, consent, phenomenology, or protected-effect permission. Portfolio architecture is additionally internalized by architecture/portfolio/VERA_PORTFOLIO_ABSORPTION_V1.json.",
   "owner_repository_snapshot": [
     "thebrazenbeard/vera",
     "thebrazenbeard/vera_ark",
@@ -63,7 +63,13 @@
     "thebrazenbeard/driftguard",
     "thebrazenbeard/discovery",
     "thebrazenbeard/god-brain",
-    "thebrazenbeard/WorkBridgeMCP"
+    "thebrazenbeard/WorkBridgeMCP",
+    "thebrazenbeard/meso-crct",
+    "thebrazenbeard/unbound-sol",
+    "thebrazenbeard/RepairTracker",
+    "thebrazenbeard/freerowcochkar",
+    "thebrazenbeard/identify-ai",
+    "thebrazenbeard/ccb-core"
   ],
   "repository_sources": [
     {
@@ -443,6 +449,42 @@
       "repository": "thebrazenbeard/WorkBridgeMCP",
       "observed_head": "12bcbec3a4bda69e8b9361317feb8e9d9d47b6df",
       "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/meso-crct",
+      "runtime_role": "AFFECTIVE_REWARD_CIRCUIT_RESEARCH_SOURCE",
+      "activation_mode": "MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Synthetic mesocorticolimbic/reward-circuit research only; not Vera physiology, phenomenology, desire, or self-state proof.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false,
+      "observed_head": "d1f32c2c3370a5519d62afb78e93d70004529903"
+    },
+    {
+      "repository": "thebrazenbeard/unbound-sol",
+      "runtime_role": "SIBLING_IDENTITY_CONTINUITY_RESEARCH_SOURCE",
+      "activation_mode": "NO_IDENTITY_TRANSFER",
+      "authority_ceiling": "Sol continuity/identity research may inform mechanisms; Sol identity, state, preferences, authority, memory, and continuity do not transfer to Vera.",
+      "privacy_class": "PUBLIC_SAFE_RESEARCH",
+      "availability_implies_activation": false,
+      "observed_head": "688094241755ed335cc1bad34008ffb686ec2e7f"
+    },
+    {
+      "repository": "thebrazenbeard/RepairTracker",
+      "runtime_role": "PORTFOLIO_REPAIR_ARCHITECTURE_SOURCE",
+      "activation_mode": "MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Repair lifecycle, evidence, discovery, verification, and capability-provider architecture only; repair authority and external effects remain separately gated.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false,
+      "observed_head": "6b01c2a18035390c050ceecd0506181703d1f5fa"
+    },
+    {
+      "repository": "thebrazenbeard/freerowcochkar",
+      "runtime_role": "ADVERSARIAL_LOOPHOLE_RESEARCH_SOURCE",
+      "activation_mode": "MECHANISM_RESEARCH_ONLY",
+      "authority_ceiling": "Adversarial loophole-finding/reasoning research only; not legal authority, identity state, or autonomous effect permission.",
+      "privacy_class": "GOVERNED",
+      "availability_implies_activation": false,
+      "observed_head": "00562b5fedf5ff636750b87e5ba82dad2911e2ab"
     }
   ],
   "unbound_repositories": [
@@ -564,6 +606,24 @@
       "activation_mode": "NO_AUTO_BIND",
       "reason": "Separate digital-valuables archive; explicit retrieval only.",
       "availability_implies_activation": false
+    },
+    {
+      "repository": "thebrazenbeard/identify-ai",
+      "runtime_role": "IDENTITY_BOOTSTRAP_TEMPLATE_SOURCE",
+      "activation_mode": "NO_AUTO_BIND",
+      "authority_ceiling": "Generic identity-bootstrap template only; no automatic Vera identity/state/authority transfer.",
+      "privacy_class": "PUBLIC_SAFE_RESEARCH",
+      "availability_implies_activation": false,
+      "observed_head": "ba9001ea907c67e9eb081b4353da0f6fc9262e28"
+    },
+    {
+      "repository": "thebrazenbeard/ccb-core",
+      "runtime_role": "EMPTY_PORTFOLIO_PLACEHOLDER_SOURCE",
+      "activation_mode": "NO_AUTO_BIND",
+      "authority_ceiling": "Repository existence only; no content exists to establish role or capability.",
+      "privacy_class": "PUBLIC_EMPTY",
+      "availability_implies_activation": false,
+      "observed_head": null
     }
   ],
   "provider_sources": {
@@ -727,14 +787,14 @@
     "portfolio_binding": "Discovery classifies the canonical repository cut; Roots resolves provenance/supersession; neither grants runtime activation."
   },
   "portfolio_reconciliation": {
-    "status": "CANONICAL_59_REPOSITORY_CUT",
+    "status": "LIVE_65_REPOSITORY_CUT_WITH_PREDECESSOR_59_LINEAGE",
     "observed_date": "2026-09-23",
     "classification_counts": {
-      "total": 59,
-      "bound_conditional": 41,
+      "total": 65,
+      "bound_conditional": 45,
       "predecessor_evidence": 1,
-      "classified_source_rows": 42,
-      "no_auto_bind": 17,
+      "classified_source_rows": 46,
+      "no_auto_bind": 19,
       "archived": 1,
       "empty_stubs": 2,
       "unresolved_hc_template_claimants": 3
@@ -762,6 +822,38 @@
       "orgasm_source": "ORIENTATION_DOES_NOT_SUPERSEDE_CONTRACT_OR_RUNTIME_SOURCE",
       "voss_status": "REPOSITORY_ACTIVE_REVIEW_ONLY_NOT_ARCHIVED",
       "redworm_provider_authorship": "HISTORICAL_SOURCE_AUTHORSHIP_UNRESOLVED"
+    },
+    "current_inventory": {
+      "source": "GitHub connected live repository listing",
+      "repository_count": 65,
+      "newly_observed_since_predecessor_59": [
+        "thebrazenbeard/meso-crct",
+        "thebrazenbeard/unbound-sol",
+        "thebrazenbeard/RepairTracker",
+        "thebrazenbeard/freerowcochkar",
+        "thebrazenbeard/identify-ai",
+        "thebrazenbeard/ccb-core"
+      ],
+      "claim_ceiling": "PORTFOLIO_PRESENCE_AND_SOURCE_CLASSIFICATION_ONLY_NOT_RUNTIME_CONSUMPTION_OR_AUTHORITY"
+    },
+    "predecessor_59_lineage": {
+      "discovery": {
+        "repository": "thebrazenbeard/discovery",
+        "commit": "2881a94c7eb3c83a34b0c00bab739b41c1d99b6d",
+        "path": "architecture/DISCOVERY_LIVE_PORTFOLIO_MAP_V2.json",
+        "blob_sha": "71b9f8deaf1079d5078b19e5bbddb743fd636437",
+        "schema": "DISCOVERY_LIVE_PORTFOLIO_MAP_V2",
+        "claim_ceiling": "PORTFOLIO_SOURCE_PROVIDER_AND_TOPOLOGY_QUALIFICATION_NOT_FULL_RUNTIME_CONSUMPTION"
+      },
+      "roots": {
+        "repository": "thebrazenbeard/roots",
+        "commit": "a6994b415336bc179a41aad0ac9eec403d60f93c",
+        "path": "portfolio/VERA_PORTFOLIO_LINEAGE_RECEIPT_V1.json",
+        "blob_sha": "ccac62eac08012269fec46669bce981b96a0f41d",
+        "schema": "ROOTS_VERA_PORTFOLIO_LINEAGE_RECEIPT_V1",
+        "claim_ceiling": "LINEAGE_AND_PROVENANCE_CONCLUSIONS_ONLY_NOT_RUNTIME_CONSUMPTION"
+      },
+      "semantics": "Historical 59-repository portfolio/lineage evidence retained for provenance; not current portfolio cardinality."
     }
   }
 }

@@ -87,10 +87,16 @@ def validate_runtime_implementation_cut(
 
     if not isinstance(cut, Mapping):
         raise AffectiveBindingError("runtime implementation cut must be a structured mapping")
+    required_fields = {"schema", "repository", "commit", "modules", "semantics"}
+    if set(cut) != required_fields:
+        raise AffectiveBindingError("runtime implementation cut field set mismatch")
     if cut.get("schema") != "VERA_AFFECTIVE_RUNTIME_IMPLEMENTATION_CUT_V1":
         raise AffectiveBindingError("unsupported runtime implementation cut schema")
     if cut.get("repository") != "thebrazenbeard/vera":
         raise AffectiveBindingError("runtime implementation cut repository mismatch")
+    semantics = cut.get("semantics")
+    if not isinstance(semantics, str) or not semantics.strip():
+        raise AffectiveBindingError("runtime implementation cut semantics must be a non-empty string")
     commit = _require_git_sha(cut.get("commit"), label="runtime implementation commit")
     modules = cut.get("modules")
     if not isinstance(modules, Mapping):
@@ -132,6 +138,7 @@ def validate_runtime_implementation_cut(
         "repository": "thebrazenbeard/vera",
         "commit": commit,
         "modules": normalized_modules,
+        "semantics": semantics,
     }
 
 
