@@ -1,0 +1,48 @@
+name: Vera Portfolio Public-Safe Successor V2
+
+on:
+  push:
+    branches:
+      - work/vera-portfolio-public-successor-20260927
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  qualify-portfolio-public-successor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Run public-safe successor tests
+        run: |
+          python -m unittest -v             tests.test_portfolio_public_successor_v2             tests.test_portfolio_runtime_absorbed_v2
+
+      - name: Compile absorbed runtime and builder
+        run: |
+          python -m compileall -q portfolio_runtime
+          python -m py_compile scripts/build_portfolio_public_successor_v2.py
+
+      - name: Rebuild successor twice and require deterministic clean tree
+        run: |
+          python scripts/build_portfolio_public_successor_v2.py
+          git diff --exit-code
+          python scripts/build_portfolio_public_successor_v2.py
+          git diff --exit-code
+
+      - name: Verify no whitespace damage
+        run: git diff --check
