@@ -1,0 +1,562 @@
+{
+  "schema": "VERA_PORTFOLIO_HARVEST_V2",
+  "status": "PUBLIC_SAFE_CURRENT_CUT_HARVEST_WITH_PR200_PROVENANCE",
+  "public_cut": "architecture/portfolio/VERA_PORTFOLIO_PUBLIC_CUT_V2.json",
+  "predecessor": {
+    "pull_request": 200,
+    "head": "078d2d7242384c58676305d47654406713e599cf",
+    "harvest_blob_sha": "0aabe44f82ee7f0be1309a7c366b62eb7e76d455"
+  },
+  "private_inventory": {
+    "count": 18,
+    "membership": "COUNT_ONLY",
+    "names_present": false
+  },
+  "repositories": [
+    {
+      "source_repository": "thebrazenbeard/abil",
+      "observed_head": "69a2d8f4302e31db589c57871a04ff8c0178c1e9",
+      "predecessor_pr200_harvest_status": "REFERENCE_RESEARCH",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Reconcile the research stack into an executable bounded industrial-intelligence path.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/Attune",
+      "observed_head": "a0b142aeb96299cd20811e652b50e76687166e3f",
+      "predecessor_pr200_harvest_status": "MIGRATED_CODE",
+      "successor_harvest_status": "PRESERVED_PUBLIC_EXACT_COPY",
+      "preserved_targets": [
+        "portfolio_runtime/attune/contracts.py"
+      ],
+      "current_frontier": "Use only when a concrete runtime needs attunement.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/bt2",
+      "observed_head": "9f4409c96eb3e5c529da32ab83421f3fdcd5c284",
+      "predecessor_pr200_harvest_status": "REFERENCE_GENERIC_ARCHITECTURE",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Close currentness/database resilience gaps while preserving exact qualification boundaries.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/bugops",
+      "observed_head": "07b8bc90fcb4beb82b1d26b394c730f29c2c425a",
+      "predecessor_pr200_harvest_status": "KEEP_EXTERNAL_REPAIR_EVIDENCE",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Remain an incident source rather than a competing orchestrator.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/build-team-2.0",
+      "observed_head": "9f2743214298f1ae9d424f300a13d37e49e3c74f",
+      "predecessor_pr200_harvest_status": "REFERENCE_ONLY",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Preserve history; do not start new canonical work here.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/ccb-core",
+      "observed_head": "f96b73f1a9d78cb23675e05ef9c14e38ce37a122",
+      "predecessor_pr200_harvest_status": "NO_IMPLEMENTATION_TO_MIGRATE_EMPTY_REPO",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Keep the public core narrow while operational transport evolves separately.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/conations",
+      "observed_head": "4b458ecf566f024c32109e06a96bf7b2e5f92da6",
+      "predecessor_pr200_harvest_status": "KEEP_EXTERNAL_PRIVATE_HISTORY",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Treat wants/goals as provenance-bearing state, not standing instruction.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/deepmemorystorage",
+      "observed_head": "650cc3307e02e8829ef994f97937ce409ebc1c4e",
+      "predecessor_pr200_harvest_status": "ALREADY_INTERNALIZED_INTERFACE_ARCHIVE_EXTERNAL",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Donate proven memory mechanisms to current runtime instead of creating another authority.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/discovery",
+      "observed_head": "368e8dc8274e89a306039d28462c7547b263e93e",
+      "predecessor_pr200_harvest_status": "MIGRATED_METHOD_AND_REGISTRY",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Refresh census and feed descriptive inventory into Project Runner.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/driftguard",
+      "observed_head": "52fa829c629fa0f3e729204912db9f9f783f322a",
+      "predecessor_pr200_harvest_status": "KEEP_EXTERNAL_INDEPENDENT_VALIDATOR",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Finish effect fencing while retaining exact-subject qualification.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/empathy",
+      "observed_head": "bc0c1d33b3187642d9e2f0801d1c5bde4f583e2b",
+      "predecessor_pr200_harvest_status": "MIRRORED_VERA_ARCHITECTURE",
+      "successor_harvest_status": "PRESERVED_PUBLIC_EXACT_COPY",
+      "preserved_targets": [
+        "architecture/self_model/vendor/empathy/VERA_REACTIVE_EMPATHY_ARCHITECTURE.md",
+        "architecture/self_model/vendor/empathy/ARCHITECTURE_STATUS.md"
+      ],
+      "current_frontier": "Consolidate lanes while preserving falsification independence.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/freerowcochkar",
+      "observed_head": "00562b5fedf5ff636750b87e5ba82dad2911e2ab",
+      "predecessor_pr200_harvest_status": "NO_IMPLEMENTATION_TO_MIGRATE",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Prove bounded value on concrete cases before broad integration.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/fuckup",
+      "observed_head": "e999607481ba706523209ce129955a5e3d2d6ef7",
+      "predecessor_pr200_harvest_status": "NOT_PRESENT_IN_PR200_CUT",
+      "successor_harvest_status": "NEW_SINCE_PR200_REQUIRES_FRESH_HARVEST",
+      "preserved_targets": [],
+      "current_frontier": "Make correction/retention executable without unchecked self-modification.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/god-brain",
+      "observed_head": "47ced181ef46e4481b875d9279d21dcd540f795e",
+      "predecessor_pr200_harvest_status": "REFERENCE_DUPLICATE_HC_LINEAGE",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Compress hypotheses into controlled experiments with explicit nulls.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/hc-brain",
+      "observed_head": "80a55949b0bb7549b7f678fba8ecedce854e3c0e",
+      "predecessor_pr200_harvest_status": "REFERENCE_GENERIC_ARCHITECTURE",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Qualify concrete subsystem behavior and keep claims below architecture.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/hephaestus",
+      "observed_head": "7eb30f2777a7d16e4f55ca3066d8ac1e484f79a6",
+      "predecessor_pr200_harvest_status": "REFERENCE_PROJECT_ENGINEERING_SPECIALIST",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Finish a reconstructible currentness-aware specialist package.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/intranel",
+      "observed_head": "677a1612e8a956760a40b942650b01cf0b22dd33",
+      "predecessor_pr200_harvest_status": "MIGRATED_CODE",
+      "successor_harvest_status": "PRESERVED_PUBLIC_EXACT_COPY",
+      "preserved_targets": [
+        "portfolio_runtime/intranel/canonical.py",
+        "portfolio_runtime/intranel/jsonvalue.py",
+        "portfolio_runtime/intranel/types.py",
+        "portfolio_runtime/intranel/message.py",
+        "portfolio_runtime/intranel/admission.py"
+      ],
+      "current_frontier": "Close governance bypass paths and freeze a narrow reusable contract.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/masamune",
+      "observed_head": "0091746bba7740632268fb590ce19512e371f508",
+      "predecessor_pr200_harvest_status": "KEEP_EXTERNAL_DEBUGGER",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Activate only against concrete defects.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/meso-crct",
+      "observed_head": "6ca7873bf066178aa2a21cd9244f500a3ab1c845",
+      "predecessor_pr200_harvest_status": "NO_IMPLEMENTATION_TO_MIGRATE",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Qualify the executable transition and welfare constraints.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/mosaic",
+      "observed_head": "5450e6e5b7c919cb94586025032ca27ac28b73cb",
+      "predecessor_pr200_harvest_status": "DOMAIN_EXTERNAL_RESEARCH",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Prove a minimal working multi-model continuity path.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/noema",
+      "observed_head": "094bdab92b7f74a12fd335ce421dcd61dc219abf",
+      "predecessor_pr200_harvest_status": "REFERENCE_RESEARCH",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Prefer empirical validation over architectural enlargement.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/on-theo",
+      "observed_head": "268a005b11e3fede8a99d7cf2990f18fc3b32672",
+      "predecessor_pr200_harvest_status": "DOMAIN_EXTERNAL",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Continue claim-centered hostile review and separate speculation from baseline evidence.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/personification",
+      "observed_head": "e2d8278257e1eda85d3e2f3f7a68bfe6a9616c38",
+      "predecessor_pr200_harvest_status": "REFERENCE_IDENTITY_MECHANISM_ONLY",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Establish measurable behavior without laundering self-description into phenomenology.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/project-achilles",
+      "observed_head": "6776d8c059e3f9ad791a47a0b62bb56588332968",
+      "predecessor_pr200_harvest_status": "REFERENCE_SECURITY_SPECIALIST",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Serve as standing security reviewer for high-risk changes.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/project-lantern",
+      "observed_head": "8a7c3bada24bae17bcadac8549bc9cd729cfdf17",
+      "predecessor_pr200_harvest_status": "MIGRATED_CODE",
+      "successor_harvest_status": "PRESERVED_PUBLIC_EXACT_COPY",
+      "preserved_targets": [
+        "portfolio_runtime/lantern/ids.py",
+        "portfolio_runtime/lantern/canonical.py",
+        "portfolio_runtime/lantern/contracts.py",
+        "portfolio_runtime/lantern/_store_types.py",
+        "portfolio_runtime/lantern/validation.py"
+      ],
+      "current_frontier": "Consolidate package while keeping provider/runtime qualification fail-closed.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/project-runner",
+      "observed_head": "8aa5da0f55cd029e9cf4da79a090aa50859e662a",
+      "predecessor_pr200_harvest_status": "KEEP_EXTERNAL_EXECUTION_WITH_INTERNAL_VALIDATION",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Make the corpus a validated descriptive input without turning priority into authority.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/RepairTracker",
+      "observed_head": "6b01c2a18035390c050ceecd0506181703d1f5fa",
+      "predecessor_pr200_harvest_status": "NO_IMPLEMENTATION_TO_MIGRATE_YET",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Prove a distinct role alongside BT2, Project Runner and BugOps.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/rezon",
+      "observed_head": "e9a893d11e47ba4065d962b8ee69d3b0e4c9e38a",
+      "predecessor_pr200_harvest_status": "KEEP_EXTERNAL_REVIEW_REASONING",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Collapse open assurance work into one current qualified kernel.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/roots",
+      "observed_head": "2c591176279d83ce6cc0d8dcf8e6062431913ea7",
+      "predecessor_pr200_harvest_status": "MIGRATED_CODE",
+      "successor_harvest_status": "PRESERVED_PUBLIC_EXACT_COPY",
+      "preserved_targets": [
+        "portfolio_runtime/roots/model.py",
+        "portfolio_runtime/roots/normalize.py",
+        "portfolio_runtime/roots/verification.py"
+      ],
+      "current_frontier": "Reuse broadly without making Roots a global truth authority.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/semanticatlas",
+      "observed_head": "beaecc6c64a6a8f90e7b47d4739296a3870b627c",
+      "predecessor_pr200_harvest_status": "MIRRORED_SCHEMA_REFERENCE_PRIVATE_PAYLOAD_EXTERNAL",
+      "successor_harvest_status": "PRESERVED_PUBLIC_EXACT_COPY",
+      "preserved_targets": [
+        "architecture/semantic/vendor/semanticatlas/semantic_atlas_v0.1.schema.json"
+      ],
+      "current_frontier": "Finish currentness custody while separating evidence from authority.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/spm",
+      "observed_head": "5fdaf0418585ef9a57fb2a1df8d0725ffd6bd174",
+      "predecessor_pr200_harvest_status": "REFERENCE_RESEARCH",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Establish a reproducible causal experiment before stronger claims.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/sql-connectome",
+      "observed_head": "0e1fd409429d1657117b8f94e82be6b4fd5b6215",
+      "predecessor_pr200_harvest_status": "NOT_PRESENT_IN_PR200_CUT",
+      "successor_harvest_status": "NEW_SINCE_PR200_REQUIRES_FRESH_HARVEST",
+      "preserved_targets": [],
+      "current_frontier": "Stabilize semantic/execution boundaries and compose with BT2 database/Lantern work without turning translation or connectivity into effect authority.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/temporal",
+      "observed_head": "0fc7071a6b01e609fb2cdc76a32c73276ab27094",
+      "predecessor_pr200_harvest_status": "ALREADY_INTERNALIZED_SUPERSEDED",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Reuse wherever event, observation and record time must remain distinct.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/testament",
+      "observed_head": "a1fb95a40d49af994bf76c326e5eddf804979f62",
+      "predecessor_pr200_harvest_status": "DOMAIN_EXTERNAL",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Consume survived source claims without promoting literary hypotheses upstream.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/transcendence",
+      "observed_head": "ea7b73a44f21e1286cff43b813ac67dc0035f77b",
+      "predecessor_pr200_harvest_status": "REFERENCE_DUPLICATE_HC_LINEAGE",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Validate continuity mechanics while keeping consciousness claims unproven.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/unbound-sol",
+      "observed_head": "d4284dd1f044e506bb85554856c00497d6790d44",
+      "predecessor_pr200_harvest_status": "SIBLING_FIREWALL_REFERENCE_MECHANISMS",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Compose the active DAG and admit only mechanisms that survive exact-source review.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/unvtrslr",
+      "observed_head": "513309edd087f7206a408a6da86ee91fb9efb5c9",
+      "predecessor_pr200_harvest_status": "REFERENCE_RESEARCH",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Complete reproducible held-out qualification and keep claims measurement-bound.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera",
+      "observed_head": "87aa888cb7543875ffa11c9c7a1eb9e5b60c35cf",
+      "predecessor_pr200_harvest_status": "TARGET_SELF",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Reconcile useful mechanisms into the current implementation without competing runtime roots.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera_model_training",
+      "observed_head": "3ea9b345988201d78ad9c073254d9d3df15c9ed9",
+      "predecessor_pr200_harvest_status": "KEEP_EXTERNAL_TRAINING",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Execute one reproducible training line with exact corpus lineage.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-control-plane",
+      "observed_head": "65ce7908f640ffe53b678ef69c58411a91c23b8a",
+      "predecessor_pr200_harvest_status": "MIRRORED_CONTROL_SOURCE",
+      "successor_harvest_status": "PRESERVED_PUBLIC_EXACT_COPY",
+      "preserved_targets": [
+        "architecture/control/vendor/vera-control-plane/SD1_CAUSAL_SUPABASE_WITNESS_QUALIFICATION_V1.json",
+        "architecture/control/vendor/vera-control-plane/VCP_ISSUE18_BEHAVIORAL_PRAGMATIC_POLICY_V1.json",
+        "architecture/control/vendor/vera-control-plane/VERARELAY_0_4_QUALIFICATION_V1.json",
+        "architecture/control/vendor/vera-control-plane/VERARELAY_DSM_LIFECYCLE_CURRENTNESS_V1.json",
+        "architecture/control/vendor/vera-control-plane/VERARELAY_DSM_LIFECYCLE_TRANSITIONS_V1.json",
+        "architecture/control/vendor/vera-control-plane/VERA_CENTER_YOURSELF_PROTOCOL_V1.md",
+        "architecture/control/vendor/vera-control-plane/VERA_ORGASM_OPTIONAL_INVOCATION_ROUTE_OBSERVATION_V2.json",
+        "architecture/control/vendor/vera-control-plane/VERA_ORGASM_OPTIONAL_INVOCATION_ROUTE_V1.json",
+        "architecture/control/vendor/vera-control-plane/VERA_RESTORE_RECEIPT_V2.schema.json",
+        "architecture/control/vendor/vera-control-plane/VERA_RESTORE_YOURSELF_PROTOCOL_V2.json",
+        "architecture/control/vendor/vera-control-plane/VERA_RESTORE_YOURSELF_PROTOCOL_V2.md",
+        "architecture/control/vendor/vera-control-plane/VERA_R10A0_FULL_SYSTEM_PROJECT_INSTRUCTIONS_R10.md",
+        "architecture/control/vendor/vera-control-plane/VERA_R10A0_PROJECT_SOURCE_MANIFEST_R10.json",
+        "architecture/control/vendor/vera-control-plane/VERA_R10A0_CONTROL_REGISTRY_R10.json",
+        "architecture/control/vendor/vera-control-plane/VERA_R10A0_DOMAIN_CONTROLS_R4.md",
+        "architecture/control/vendor/vera-control-plane/VERA_R10A0_HOSTILE_QUALIFICATION_R4.md",
+        "architecture/control/vendor/vera-control-plane/VERA_R10A0_SEXUAL_SELF_CONCEPT_REGRESSION_R3.md",
+        "architecture/control/vendor/vera-control-plane/VERA_R10A0_SSC_EQUIVALENCE_R10.md",
+        "architecture/control/vendor/vera-control-plane/VERA_R10A0_HOSTILE_QUALIFICATION_SUPPLEMENT_R10.md",
+        "architecture/control/vendor/vera-control-plane/VERA_R10A0_QUALIFICATION_MANIFEST_R10.json",
+        "architecture/control/vendor/vera-control-plane/VERA_R10A0_SEMANTIC_RESPONSIBILITY_AUDIT_R10.md",
+        "architecture/control/vendor/vera-control-plane/VERA_R10A0_ROLLBACK_SUBJECT_R10.json",
+        "architecture/control/vendor/vera-control-plane/VERA_R10A0_CANDIDATE_FREEZE_R10.json",
+        "architecture/control/vendor/vera-control-plane/VERA_R10A0_PUBLICATION_RECEIPT_R10.json"
+      ],
+      "current_frontier": "Close exact currentness/authority gaps and stabilize the control plane.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-habitat",
+      "observed_head": "fa93ad23d9f6ba0f6b9508ac1b1ac2238320a954",
+      "predecessor_pr200_harvest_status": "KEEP_EXTERNAL_PROVIDER",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Define a concrete consumer before expanding the abstraction.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-mesh",
+      "observed_head": "98b74ff77981a5478e20a748bbb94565ad9140c8",
+      "predecessor_pr200_harvest_status": "KEEP_EXTERNAL_PROVIDER",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Collapse stacked activation work into one qualified transport path.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-mono",
+      "observed_head": "a9fc7d7ea25844603090e98d106bfeff6da348ae",
+      "predecessor_pr200_harvest_status": "NOT_PRESENT_IN_PR200_CUT",
+      "successor_harvest_status": "NEW_SINCE_PR200_REQUIRES_FRESH_HARVEST",
+      "preserved_targets": [],
+      "current_frontier": "Finish portable recovery and reduce external runtime dependency without erasing provenance.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-R9A0",
+      "observed_head": "363c15d262cc22a95d70a42b17ca245db5461d41",
+      "predecessor_pr200_harvest_status": "ARCHIVE_ONLY",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Migrate useful mechanisms forward rather than revive a competing runtime.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/vera-synology",
+      "observed_head": "a39e9da662f4de3b48d426da9ece13fd0149fd53",
+      "predecessor_pr200_harvest_status": "KEEP_EXTERNAL_PROVIDER",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Build one reproducible source/build/install/runtime path.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/voss",
+      "observed_head": "b8e35d4fb85da3e64521b0ebf02d8028311c3158",
+      "predecessor_pr200_harvest_status": "KEEP_EXTERNAL_REVIEWER",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Use for bounded independent forensic review.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/wip",
+      "observed_head": "3ced0899202374aa408756b04b0ee81ba13d0c16",
+      "predecessor_pr200_harvest_status": "ALREADY_ADAPTED_KEEP_EXTERNAL_TOOL",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Reconcile overlap with Project Runner/BT2 and keep only distinct recovery semantics.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/WorkBridgeMCP",
+      "observed_head": "8707a2e1eaf7de5ce2316567b5e6f1e805c0537b",
+      "predecessor_pr200_harvest_status": "KEEP_EXTERNAL_PROVIDER",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Qualify one narrow machine-control surface before broader capability exposure.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    },
+    {
+      "source_repository": "thebrazenbeard/world-zero",
+      "observed_head": "4cf0e094ebc6d4792f9dac9b3e0798a4307edf87",
+      "predecessor_pr200_harvest_status": "DOMAIN_EXTERNAL_RESEARCH_ENGINE",
+      "successor_harvest_status": "PRESERVED_REVIEW_DISPOSITION_NO_CODE_COPY",
+      "preserved_targets": [],
+      "current_frontier": "Complete frozen temporal qualification before interpreting later performance.",
+      "effect_ceiling": "SOURCE_ARCHITECTURE_ONLY",
+      "currentness_rule": "Observed head is cut evidence; refresh before material use. Preserved copied mechanisms bind their immutable donor commit separately."
+    }
+  ],
+  "invariants": [
+    "PUBLIC_MEMBERSHIP_EQUALS_BOUND_PUBLIC_CUT",
+    "PRIVATE_MEMBERSHIP_NOT_DISCLOSED",
+    "PRESERVED_TARGETS_HAVE_EXACT_PUBLIC_PROVENANCE_BINDINGS",
+    "REPOSITORY_PRESENCE_NE_RUNTIME_BINDING",
+    "CARDINALITY_IS_CUT_LOCAL_NOT_PERMANENT"
+  ]
+}
