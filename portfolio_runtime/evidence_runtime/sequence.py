@@ -79,4 +79,3 @@ def assess_sequence(samples: Iterable[SequenceSample]) -> SequenceAssessment:
         flags=frozenset(flags),
         continuity_segments=tuple(segments),
     )
-

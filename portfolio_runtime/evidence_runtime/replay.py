@@ -92,4 +92,3 @@ def assert_replay_match(
         raise ReplayMismatchError(
             f"replay output differs for {original.derivation_id}"
         )
-

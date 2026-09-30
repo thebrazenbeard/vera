@@ -101,4 +101,3 @@ def definite_order(a: TimeInterval, b: TimeInterval) -> EventOrder:
     if b.latest < a.earliest:
         return EventOrder.B_BEFORE_A
     return EventOrder.ORDER_UNRESOLVED
-

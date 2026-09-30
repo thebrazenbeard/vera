@@ -126,4 +126,3 @@ def validate_evidence_graph(records: list[Mapping[str, Any]]) -> None:
 
     for record_id in by_id:
         visit(record_id)
-

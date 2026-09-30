@@ -713,38 +713,38 @@
     }
   ],
   "public_head_refresh": {
-    "observed_at": "2026-09-28T00:48:57.549645Z",
+    "observed_at": "2026-09-30T20:27:57.591737Z",
     "semantics": "MUTABLE_HEAD_REFRESH_SEPARATE_FROM_IMMUTABLE_MEMBERSHIP_CUT",
     "heads": [
       {
         "repository": "thebrazenbeard/abil",
         "default_branch": "main",
-        "observed_head": "13b989be46a986c95c75612e332779a75c0f0f1f"
+        "observed_head": "a93e345da27028df77e8c9047d1d32780038550b"
       },
       {
         "repository": "thebrazenbeard/Attune",
         "default_branch": "main",
-        "observed_head": "a0b142aeb96299cd20811e652b50e76687166e3f"
+        "observed_head": "46461057e4d9ea25ec91a051fc17020e1113329a"
       },
       {
         "repository": "thebrazenbeard/bt2",
         "default_branch": "main",
-        "observed_head": "537d97414711503098ac703cf26ca84d14c650c4"
+        "observed_head": "66ecc19b60036c14f6c0327787bddf9e2cb6b132"
       },
       {
         "repository": "thebrazenbeard/bugops",
         "default_branch": "main",
-        "observed_head": "07b8bc90fcb4beb82b1d26b394c730f29c2c425a"
+        "observed_head": "1d35bcbd16da24c7635a004845de1390de850b4e"
       },
       {
         "repository": "thebrazenbeard/build-team-2.0",
         "default_branch": "main",
-        "observed_head": "9f2743214298f1ae9d424f300a13d37e49e3c74f"
+        "observed_head": "950112a697550b689049da807f2d8176a507c38f"
       },
       {
         "repository": "thebrazenbeard/ccb-core",
         "default_branch": "main",
-        "observed_head": "32e10edc216d6d0fae802c85a872d704805827ce"
+        "observed_head": "273c93bc46683580024c1521fd2c523a8a6593bd"
       },
       {
         "repository": "thebrazenbeard/conations",
@@ -754,7 +754,7 @@
       {
         "repository": "thebrazenbeard/deepmemorystorage",
         "default_branch": "main",
-        "observed_head": "fe73b7eee2e8b2498ff994c57e46080de329a0ef"
+        "observed_head": "3199b05a24411ed1b3a3561fe90866adf9c74d14"
       },
       {
         "repository": "thebrazenbeard/discovery",
@@ -784,7 +784,7 @@
       {
         "repository": "thebrazenbeard/god-brain",
         "default_branch": "main",
-        "observed_head": "47ced181ef46e4481b875d9279d21dcd540f795e"
+        "observed_head": "495c2b42932153cba0926744d04a69bc34557f81"
       },
       {
         "repository": "thebrazenbeard/hc-brain",
@@ -834,17 +834,17 @@
       {
         "repository": "thebrazenbeard/project-achilles",
         "default_branch": "main",
-        "observed_head": "6776d8c059e3f9ad791a47a0b62bb56588332968"
+        "observed_head": "99bc4e8cf7bd60d022fb25222d701a8cf42f80c0"
       },
       {
         "repository": "thebrazenbeard/project-lantern",
         "default_branch": "main",
-        "observed_head": "737b939d21ad1f6daf7bb6f944b23eaad0b6a7d7"
+        "observed_head": "49df2a6996d4d6ed0db52fed4e7d3757507def74"
       },
       {
         "repository": "thebrazenbeard/project-runner",
         "default_branch": "main",
-        "observed_head": "8aa5da0f55cd029e9cf4da79a090aa50859e662a"
+        "observed_head": "ee17ce504018aff2eb26c9a71e16e4832ebee6bf"
       },
       {
         "repository": "thebrazenbeard/RepairTracker",
@@ -854,12 +854,12 @@
       {
         "repository": "thebrazenbeard/rezon",
         "default_branch": "main",
-        "observed_head": "3465fc5c002079ac1c769532a371f2d036bf184d"
+        "observed_head": "ec401810990337bf07a5d6473782ba13eba1bb3f"
       },
       {
         "repository": "thebrazenbeard/roots",
         "default_branch": "main",
-        "observed_head": "2c591176279d83ce6cc0d8dcf8e6062431913ea7"
+        "observed_head": "1bc3af6aec0bebe383f60f56ad3070e83f0f40b5"
       },
       {
         "repository": "thebrazenbeard/semanticatlas",
@@ -874,7 +874,7 @@
       {
         "repository": "thebrazenbeard/sql-connectome",
         "default_branch": "main",
-        "observed_head": "ac891a4ba20a518c51233482a5d8be77e30e3a78"
+        "observed_head": "f81ff43e5358f798f23bab8a718bda743c93e930"
       },
       {
         "repository": "thebrazenbeard/temporal",
@@ -904,22 +904,22 @@
       {
         "repository": "thebrazenbeard/vera",
         "default_branch": "main",
-        "observed_head": "a267e7d555e2c15e51a2e578c1e08095091552f0"
+        "observed_head": "e87a1500a7fb35c1d0927e1dba663573ff6c7b64"
       },
       {
         "repository": "thebrazenbeard/vera_model_training",
         "default_branch": "main",
-        "observed_head": "3ea9b345988201d78ad9c073254d9d3df15c9ed9"
+        "observed_head": "08a69c98312dd5aab437d4996e12bbb34a5900c2"
       },
       {
         "repository": "thebrazenbeard/vera-control-plane",
         "default_branch": "main",
-        "observed_head": "3916aaa7ae2825020c07057968c7a151d92d53de"
+        "observed_head": "5ea58cfc2dd184ef916532d3b4e2bd13b99c2709"
       },
       {
         "repository": "thebrazenbeard/vera-habitat",
         "default_branch": "main",
-        "observed_head": "6ae63ffa05c37711f34328ebd6a9500fe66a08e9"
+        "observed_head": "82cf6a625e417ced00205f66be1e76dc396ab617"
       },
       {
         "repository": "thebrazenbeard/vera-mesh",
@@ -929,7 +929,7 @@
       {
         "repository": "thebrazenbeard/vera-mono",
         "default_branch": "main",
-        "observed_head": "cb8037e01209917d2ac29d789a03ae8ca02a24ea"
+        "observed_head": "413397e51bce35d0a36f00cf0ca2c876ca720b44"
       },
       {
         "repository": "thebrazenbeard/vera-R9A0",
@@ -949,17 +949,17 @@
       {
         "repository": "thebrazenbeard/wip",
         "default_branch": "main",
-        "observed_head": "3ced0899202374aa408756b04b0ee81ba13d0c16"
+        "observed_head": "3b93b64c09f5ed704b21a9db28cb918df181947e"
       },
       {
         "repository": "thebrazenbeard/WorkBridgeMCP",
         "default_branch": "main",
-        "observed_head": "8707a2e1eaf7de5ce2316567b5e6f1e805c0537b"
+        "observed_head": "f091f6be6e85f489e3e7839e10612204b89a4a9e"
       },
       {
         "repository": "thebrazenbeard/world-zero",
         "default_branch": "main",
-        "observed_head": "9f4fb033b212e99e034c4f6fa0c3ef7eea7f9f8b"
+        "observed_head": "d2f1c13b40257bef0e81e3adc9eb751bffd1c74f"
       }
     ]
   },

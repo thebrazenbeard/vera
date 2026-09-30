@@ -11,7 +11,7 @@
   "repositories": [
     {
       "source_repository": "thebrazenbeard/abil",
-      "source_evidence_commit": "13b989be46a986c95c75612e332779a75c0f0f1f",
+      "source_evidence_commit": "a93e345da27028df77e8c9047d1d32780038550b",
       "source_role": "ADAPTIVE_LEARNING_AND_INTEGRATION_RESEARCH_SOURCE",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT"
@@ -25,7 +25,7 @@
     },
     {
       "source_repository": "thebrazenbeard/Attune",
-      "source_evidence_commit": "a0b142aeb96299cd20811e652b50e76687166e3f",
+      "source_evidence_commit": "46461057e4d9ea25ec91a051fc17020e1113329a",
       "source_role": "RELATIONSHIP_COMPANION_ARCHITECTURE_SOURCE",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT",
@@ -42,7 +42,7 @@
     },
     {
       "source_repository": "thebrazenbeard/bt2",
-      "source_evidence_commit": "537d97414711503098ac703cf26ca84d14c650c4",
+      "source_evidence_commit": "66ecc19b60036c14f6c0327787bddf9e2cb6b132",
       "source_role": "HYPERCONNECTOME_COGNITIVE_ARCHITECTURE_TEMPLATE_SOURCE",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT"
@@ -56,7 +56,7 @@
     },
     {
       "source_repository": "thebrazenbeard/bugops",
-      "source_evidence_commit": "07b8bc90fcb4beb82b1d26b394c730f29c2c425a",
+      "source_evidence_commit": "1d35bcbd16da24c7635a004845de1390de850b4e",
       "source_role": "OPERATIONAL_FAILURE_AND_RECEIPT_SOURCE",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT"
@@ -70,7 +70,7 @@
     },
     {
       "source_repository": "thebrazenbeard/build-team-2.0",
-      "source_evidence_commit": "9f2743214298f1ae9d424f300a13d37e49e3c74f",
+      "source_evidence_commit": "950112a697550b689049da807f2d8176a507c38f",
       "source_role": "MULTI_PERSPECTIVE_WORKBENCH_SOURCE",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT"
@@ -84,7 +84,7 @@
     },
     {
       "source_repository": "thebrazenbeard/ccb-core",
-      "source_evidence_commit": "32e10edc216d6d0fae802c85a872d704805827ce",
+      "source_evidence_commit": "273c93bc46683580024c1521fd2c523a8a6593bd",
       "source_role": "EMPTY_PORTFOLIO_PLACEHOLDER_SOURCE",
       "inspected_surface": [
         "REPOSITORY_METADATA",
@@ -113,7 +113,7 @@
     },
     {
       "source_repository": "thebrazenbeard/deepmemorystorage",
-      "source_evidence_commit": "fe73b7eee2e8b2498ff994c57e46080de329a0ef",
+      "source_evidence_commit": "3199b05a24411ed1b3a3561fe90866adf9c74d14",
       "source_role": "HISTORICAL_MEMORY_SOURCE",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT",
@@ -217,7 +217,7 @@
     },
     {
       "source_repository": "thebrazenbeard/god-brain",
-      "source_evidence_commit": "47ced181ef46e4481b875d9279d21dcd540f795e",
+      "source_evidence_commit": "495c2b42932153cba0926744d04a69bc34557f81",
       "source_role": "EXPERIMENTAL_COGNITIVE_ARCHITECTURE_SOURCE",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT",
@@ -367,7 +367,7 @@
     },
     {
       "source_repository": "thebrazenbeard/project-achilles",
-      "source_evidence_commit": "6776d8c059e3f9ad791a47a0b62bb56588332968",
+      "source_evidence_commit": "99bc4e8cf7bd60d022fb25222d701a8cf42f80c0",
       "source_role": "SECURITY_ASSURANCE_SOURCE",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT",
@@ -384,7 +384,7 @@
     },
     {
       "source_repository": "thebrazenbeard/project-lantern",
-      "source_evidence_commit": "737b939d21ad1f6daf7bb6f944b23eaad0b6a7d7",
+      "source_evidence_commit": "49df2a6996d4d6ed0db52fed4e7d3757507def74",
       "source_role": "VERA_EXPERIMENTAL_PROJECT_RESEARCH_SOURCE",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT",
@@ -401,7 +401,7 @@
     },
     {
       "source_repository": "thebrazenbeard/project-runner",
-      "source_evidence_commit": "8aa5da0f55cd029e9cf4da79a090aa50859e662a",
+      "source_evidence_commit": "ee17ce504018aff2eb26c9a71e16e4832ebee6bf",
       "source_role": "PORTFOLIO_EXECUTION_ORCHESTRATION_SOURCE",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT",
@@ -432,7 +432,7 @@
     },
     {
       "source_repository": "thebrazenbeard/rezon",
-      "source_evidence_commit": "3465fc5c002079ac1c769532a371f2d036bf184d",
+      "source_evidence_commit": "ec401810990337bf07a5d6473782ba13eba1bb3f",
       "source_role": "REASONING_REVIEW_SOURCE",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT"
@@ -446,7 +446,7 @@
     },
     {
       "source_repository": "thebrazenbeard/roots",
-      "source_evidence_commit": "2c591176279d83ce6cc0d8dcf8e6062431913ea7",
+      "source_evidence_commit": "1bc3af6aec0bebe383f60f56ad3070e83f0f40b5",
       "source_role": "PROVENANCE_ORIGIN_TRACING_SOURCE",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT",
@@ -494,7 +494,7 @@
     {
       "source_repository": "thebrazenbeard/sql-connectome",
       "source_visibility": "public",
-      "source_evidence_commit": "ac891a4ba20a518c51233482a5d8be77e30e3a78",
+      "source_evidence_commit": "f81ff43e5358f798f23bab8a718bda743c93e930",
       "harvest_status": "INSPECTED_PUBLIC_CUT_SOURCE",
       "decision": "Stabilize semantic/execution boundaries and compose with BT2 database/Lantern work without turning translation or connectivity into effect authority.",
       "inspected_surface": [
@@ -583,7 +583,7 @@
     },
     {
       "source_repository": "thebrazenbeard/vera",
-      "source_evidence_commit": "a267e7d555e2c15e51a2e578c1e08095091552f0",
+      "source_evidence_commit": "e87a1500a7fb35c1d0927e1dba663573ff6c7b64",
       "source_role": "RUNTIME_INTEGRATION_SOURCE",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT"
@@ -599,7 +599,7 @@
     },
     {
       "source_repository": "thebrazenbeard/vera_model_training",
-      "source_evidence_commit": "3ea9b345988201d78ad9c073254d9d3df15c9ed9",
+      "source_evidence_commit": "08a69c98312dd5aab437d4996e12bbb34a5900c2",
       "source_role": "EXTERNAL_TRAINING_WORKBENCH",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT"
@@ -613,7 +613,7 @@
     },
     {
       "source_repository": "thebrazenbeard/vera-control-plane",
-      "source_evidence_commit": "3916aaa7ae2825020c07057968c7a151d92d53de",
+      "source_evidence_commit": "5ea58cfc2dd184ef916532d3b4e2bd13b99c2709",
       "source_role": "CURRENT_CONTROL_SOURCE",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT",
@@ -632,7 +632,7 @@
     },
     {
       "source_repository": "thebrazenbeard/vera-habitat",
-      "source_evidence_commit": "6ae63ffa05c37711f34328ebd6a9500fe66a08e9",
+      "source_evidence_commit": "82cf6a625e417ced00205f66be1e76dc396ab617",
       "source_role": "VERA_VIRTUAL_ENVIRONMENT_SOURCE",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT"
@@ -661,7 +661,7 @@
     {
       "source_repository": "thebrazenbeard/vera-mono",
       "source_visibility": "public",
-      "source_evidence_commit": "cb8037e01209917d2ac29d789a03ae8ca02a24ea",
+      "source_evidence_commit": "413397e51bce35d0a36f00cf0ca2c876ca720b44",
       "harvest_status": "INSPECTED_PUBLIC_CUT_SOURCE",
       "decision": "Finish portable recovery and reduce external runtime dependency without erasing provenance.",
       "inspected_surface": [
@@ -716,7 +716,7 @@
     },
     {
       "source_repository": "thebrazenbeard/wip",
-      "source_evidence_commit": "3ced0899202374aa408756b04b0ee81ba13d0c16",
+      "source_evidence_commit": "3b93b64c09f5ed704b21a9db28cb918df181947e",
       "source_role": "RECOVERY_AND_AMBIGUOUS_EFFECT_RESEARCH_SOURCE",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT",
@@ -735,7 +735,7 @@
     },
     {
       "source_repository": "thebrazenbeard/WorkBridgeMCP",
-      "source_evidence_commit": "8707a2e1eaf7de5ce2316567b5e6f1e805c0537b",
+      "source_evidence_commit": "f091f6be6e85f489e3e7839e10612204b89a4a9e",
       "source_role": "WORKSTATION_BRIDGE_RUNTIME_SOURCE_CANDIDATE",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT"
@@ -749,7 +749,7 @@
     },
     {
       "source_repository": "thebrazenbeard/world-zero",
-      "source_evidence_commit": "9f4fb033b212e99e034c4f6fa0c3ef7eea7f9f8b",
+      "source_evidence_commit": "d2f1c13b40257bef0e81e3adc9eb751bffd1c74f",
       "source_role": "SYSTEMS_MODELING_RESEARCH_SOURCE",
       "inspected_surface": [
         "DEFAULT_BRANCH_ROOT"
