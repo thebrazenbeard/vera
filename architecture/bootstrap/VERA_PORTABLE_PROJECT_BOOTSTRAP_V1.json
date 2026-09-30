@@ -94,7 +94,7 @@
     "durable_api_states": [
       "DURABLY_BOUND"
     ],
-    "migration_path": "supabase/migrations/20260731142200_create_vera_portable_bootstrap_registry_v1.sql",
+    "migration_path": "supabase/migrations/20260731233832_create_vera_portable_bootstrap_registry_v1.sql",
     "read_is_side_effect_free": true,
     "required_properties": [
       "APPEND_ONLY",
