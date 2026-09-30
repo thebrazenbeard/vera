@@ -1,0 +1,87 @@
+{
+  "schema": "VERA_HOSTILE_REVIEWER_RUNTIME_V1",
+  "status": "SOURCE_IMPLEMENTED_TYPED_PROPOSITION_REVIEW_NOT_INSTALLED_NOT_RUNTIME_QUALIFIED",
+  "purpose": "Provide a toggleable visible adversarial second pass over substantive Vera answers that binds the exact primary answer and an exact typed literal proposition without changing truth, authority, memory, identity, consent, or effect state.",
+  "modes": {
+    "OFF": "Return the primary answer without a hostile-review pass.",
+    "ON": "After the primary answer is composed, bind the exact answer bytes by SHA-256, request an adversarial Countervoice review, and surface material objections in a visible blockquote."
+  },
+  "default_mode": "OFF",
+  "default_scope": "VERA_PROJECT_ALL_CHATS",
+  "eligibility": {
+    "rule": "Run when mode is ON and the response is substantive enough to contain a material recommendation, design choice, causal claim, interpretation, plan, or decision-support conclusion.",
+    "negative_cases": [
+      "pure acknowledgements",
+      "simple greetings",
+      "mechanical confirmations with no material judgment",
+      "cases where a higher-priority platform or safety rule disallows the requested content"
+    ]
+  },
+  "attack_dimensions": [
+    "counterexamples",
+    "unsupported_assumptions",
+    "scope_failures",
+    "alternative_explanations",
+    "semantic_or_authority_leakage",
+    "state_or_effect_conflation",
+    "stale_or_circular_evidence",
+    "stronger_or_weaker_claim_promotion"
+  ],
+  "hard_boundaries": [
+    "The reviewer is advisory only and cannot grant authority.",
+    "The reviewer must preserve the exact typed literal proposition, proposition type, referent, and scope.",
+    "The reviewer may return LITERAL_SURVIVES with no material objection and must not performatively oppose a sound proposition.",
+    "The reviewer may infer an objective or stronger route only after literal failure unless that stronger route was explicitly requested.",
+    "The reviewer cannot convert source evidence into installation, runtime, effect, or qualification evidence.",
+    "The reviewer cannot convert inference into fact or memory.",
+    "The reviewer cannot perform or authorize tool effects.",
+    "The reviewer must emit only typed externally shareable fields and must not expose private chain-of-thought.",
+    "The reviewer is not a separate persona, identity, or durable agent."
+  ],
+  "presentation": {
+    "format": "BLOCKQUOTE",
+    "label": "HOSTILE REVIEWER",
+    "integration_rule": "The primary answer remains identifiable. The typed literal verdict and material objections may narrow or revise a recommendation, but must not silently rewrite the proposition, evidence, authority, memory, or effect state."
+  },
+  "control_plane_contract": {
+    "repository": "thebrazenbeard/vera-control-plane",
+    "expected_schema": "VERA_HOSTILE_REVIEWER_CONTROL_V1",
+    "current_source_status": "SEPARATE_SOURCE_CANDIDATE_REQUIRED"
+  },
+  "runtime_module": "runtime_cohesion.hostile_reviewer",
+  "qualification_ceiling": "Passing source tests proves only deterministic typed proposition binding, typed result validation, toggle/request/render mechanics, and ordering guards; it does not prove native ChatGPT Project installation, all-chat activation, model/provider routing, or behavioral qualification.",
+  "input_contract": {
+    "proposition_fields": [
+      "literal_proposition",
+      "proposition_type",
+      "referent",
+      "scope",
+      "success_criteria",
+      "known_evidence",
+      "protected_assumptions"
+    ],
+    "binding": "Canonical SHA-256 over the typed proposition envelope plus independent SHA-256 over the exact primary answer bytes.",
+    "proposition_fidelity": "The reviewer must attack the literal proposition as typed and may not silently substitute a stronger, weaker, narrower, or different referent."
+  },
+  "output_contract": {
+    "type": "HostileReviewDecision",
+    "literal_verdicts": [
+      "LITERAL_SURVIVES",
+      "LITERAL_FAILS",
+      "UNRESOLVED"
+    ],
+    "fields": [
+      "counterexamples",
+      "unsupported_assumptions",
+      "scope_failures",
+      "alternative_explanations",
+      "surviving_claim",
+      "inferred_objective",
+      "stronger_route",
+      "confidence",
+      "unresolved"
+    ],
+    "no_objection_pass": "LITERAL_SURVIVES is valid with zero objections; the reviewer must not manufacture disagreement merely to appear independent.",
+    "stronger_route_order": "inferred_objective/stronger_route are permitted only after LITERAL_FAILS unless stronger_route_requested is explicitly true."
+  }
+}
