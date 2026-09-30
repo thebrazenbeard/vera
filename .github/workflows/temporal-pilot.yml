@@ -22,10 +22,12 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install pinned Supabase CLI
-        uses: supabase/setup-cli@v1
+        uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # immutable revision
         with:
           version: ${{ env.SUPABASE_CLI_VERSION }}
 
@@ -64,10 +66,10 @@ jobs:
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/fixtures/legacy_save_state_rows.sql
 
       - name: Apply promoted temporal precision migration
-        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations.explicit/20260729133200_add_event_time_precision.sql
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/drafts/pre-provider-composition-20260922/20260729133200_add_event_time_precision.sql
 
       - name: Apply promoted lineage hardening migration
-        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations.explicit/20260729133300_enforce_save_state_lineage.sql
+        run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/drafts/pre-provider-composition-20260922/20260729133300_enforce_save_state_lineage.sql
 
       - name: Validate legacy row migration
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/validate_legacy_save_state_migration.sql
