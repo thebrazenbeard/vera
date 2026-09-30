@@ -37,12 +37,46 @@ jobs:
           python -m compileall -q portfolio_runtime
           python -m py_compile scripts/build_portfolio_public_successor_v2.py
 
-      - name: Rebuild successor twice and require deterministic clean tree
+      - name: Rebuild freshness twice and require stable second result
+        shell: bash
         run: |
+          set -euo pipefail
+          before_cut_sha="$(python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('architecture/portfolio/VERA_PORTFOLIO_PUBLIC_CUT_V2.json').read_text())
+          print(p['cut_sha256'])
+          PY
+          )"
+
           python scripts/build_portfolio_public_successor_v2.py
-          git diff --exit-code
+          git diff --binary > /tmp/refresh-first.patch
+
+          after_first_cut_sha="$(python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('architecture/portfolio/VERA_PORTFOLIO_PUBLIC_CUT_V2.json').read_text())
+          print(p['cut_sha256'])
+          PY
+          )"
+          test "$before_cut_sha" = "$after_first_cut_sha"
+
           python scripts/build_portfolio_public_successor_v2.py
-          git diff --exit-code
+          git diff --binary > /tmp/refresh-second.patch
+          cmp /tmp/refresh-first.patch /tmp/refresh-second.patch
+
+          after_second_cut_sha="$(python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('architecture/portfolio/VERA_PORTFOLIO_PUBLIC_CUT_V2.json').read_text())
+          print(p['cut_sha256'])
+          PY
+          )"
+          test "$before_cut_sha" = "$after_second_cut_sha"
+
+      - name: Re-run successor tests after live freshness refresh
+        run: |
+          python -m unittest -v             tests.test_portfolio_public_successor_v2             tests.test_portfolio_runtime_absorbed_v2
 
       - name: Verify no whitespace damage
         run: git diff --check
