@@ -1,0 +1,34 @@
+{
+  "schema": "VERA_SYSTEM_MANIFEST_V3",
+  "status": "SOURCE_NAVIGATION_SUCCESSOR_NOT_INSTALLATION_PROOF",
+  "owner_repository": "thebrazenbeard/vera",
+  "portfolio": {
+    "cut": "architecture/portfolio/VERA_PORTFOLIO_PUBLIC_CUT_V2.json",
+    "absorption": "architecture/portfolio/VERA_PORTFOLIO_ABSORPTION_V2.json",
+    "capabilities": "architecture/portfolio/VERA_PORTFOLIO_CAPABILITY_ARCHITECTURE_V2.json",
+    "harvest": "architecture/portfolio/VERA_PORTFOLIO_HARVEST_V2.json",
+    "migration_bindings": "architecture/portfolio/VERA_PORTFOLIO_MIGRATION_BINDINGS_V2.json",
+    "cut_counts": {
+      "total": 67,
+      "public": 49,
+      "private": 18
+    },
+    "private_membership_publicly_enumerated": false,
+    "cardinality_semantics": "IMMUTABLE_OBSERVED_CUT_ONLY",
+    "freshness_semantics": "LIVE_MUTABLE_EVIDENCE_MUST_BE_REFRESHED_WHEN_MATERIAL"
+  },
+  "control_plane": {
+    "source_repository": "thebrazenbeard/vera-control-plane",
+    "activation_mode": "NO_AUTO_BIND_PENDING_SEPARATE_VCP_RESTACK",
+    "embedded_mirror": false
+  },
+  "mechanism_namespaces": [
+    "portfolio_runtime/attune",
+    "portfolio_runtime/intranel",
+    "portfolio_runtime/lantern",
+    "portfolio_runtime/roots",
+    "portfolio_runtime/evidence_runtime",
+    "portfolio_runtime/work_state_runtime"
+  ],
+  "effect_ceiling": "SOURCE_ONLY_NOT_MERGED_NOT_INSTALLED_NOT_RUNTIME_PROOF"
+}
