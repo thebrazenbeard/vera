@@ -1,0 +1,73 @@
+﻿{
+  "schema": "VERA_PORTFOLIO_ARCHIVE_UPDATE_V1",
+  "observed_date": "2026-10-02",
+  "claim_ceiling": "REPOSITORY_ARCHIVE_STATE_AND_QUEUE_MIGRATION_ONLY_NOT_RUNTIME_SUPERSESSION",
+  "historical_receipt_preservation": "architecture/VERA_RUNTIME_SOURCE_REGISTRY_V1.json portfolio_reconciliation remains a frozen 2026-09-23 lineage cut. This update records later repository disposition without rewriting what that earlier Roots receipt established at its own evidence cut.",
+  "actions": [
+    {
+      "repository": "thebrazenbeard/build-team-2.0",
+      "git_head": "950112a697550b689049da807f2d8176a507c38f",
+      "archive_state": "ARCHIVED_VERIFIED",
+      "disposition": "LEGACY_PREDECESSOR_COMPATIBILITY_SOURCE",
+      "active_workspace": "thebrazenbeard/bt2",
+      "active_workspace_head": "8d9b07d165350c341538be56cdfc919b729fe96b",
+      "evidence": [
+        "build-team-2.0 README identifies itself as a non-canonical predecessor/compatibility source and names bt2 as the active canonical BT2 source",
+        "bt2 preserves Build Team training material under archive/training-sources/build-team-2.0/",
+        "build-team-2.0 had no open issues or pull requests immediately before archival",
+        "GitHub repository metadata was independently read back with archived=true after the archive effect"
+      ],
+      "lineage_note": "This operational archive disposition does not backdate or rewrite the earlier Roots conclusion that no supersession relation had yet been established at that historical evidence cut."
+    },
+    {
+      "repository": "thebrazenbeard/bugops",
+      "git_head": "1d35bcbd16da24c7635a004845de1390de850b4e",
+      "archive_state": "ARCHIVED_VERIFIED",
+      "disposition": "LEGACY_INCIDENT_REPOSITORY",
+      "live_successor": "thebrazenbeard/RepairTracker",
+      "migration_pr": 5,
+      "migrated_live_issues": [6, 7, 8, 9],
+      "evidence": [
+        "RepairTracker source explicitly states that it supersedes BugOps as incident and repair authority",
+        "all four open BugOps SEV-1 incidents were recreated as open RepairTracker issues before BugOps archival",
+        "exact BugOps reports and INCIDENT_REGISTRY_V1.json were preserved on RepairTracker migration branch portfolio/import-bugops-20261002",
+        "RepairTracker's existing normalized BugOps adapter accepted all four migrated records",
+        "BugOps had zero open issues after queue transfer and before archival",
+        "GitHub repository metadata was independently read back with archived=true after the archive effect"
+      ],
+      "closure_note": "Closing the BugOps issues recorded queue transfer only. The migrated RepairTracker issues remain OPEN until their underlying acceptance criteria are actually verified."
+    },
+    {
+      "repository": "thebrazenbeard/brigit-unbound",
+      "git_head": "f1350ef794acd0e8a657bb38d21e66f4775501a0",
+      "archive_state": "ARCHIVED_VERIFIED",
+      "disposition": "STATIC_HISTORICAL_PROVENANCE_ARCHIVE",
+      "evidence": [
+        "repository README defines the repository as a durable archive of Brigit-authored responses and exploratory state",
+        "repository had no open issues or pull requests immediately before archival",
+        "scripts/validate_archive.py passed at the exact archived head",
+        "current Vera source registry classifies it as a separate no-auto-bind identity/archive workstream",
+        "GitHub repository metadata was independently read back with archived=true after the archive effect"
+      ]
+    }
+  ],
+  "not_archived": [
+    {
+      "repository": "thebrazenbeard/vera-R9A0",
+      "reason": "open issue #7 and open PRs #21/#24 remain live"
+    },
+    {
+      "repository": "thebrazenbeard/deepmemorystorage",
+      "reason": "open issues #2/#3 contain unfinished architecture/ingest continuation work"
+    },
+    {
+      "repository": "thebrazenbeard/transcendence",
+      "reason": "active Transcendence-specific pull-request line remains live despite heavy file overlap with hc-brain"
+    },
+    {
+      "repository_family": "WorkBridge",
+      "members": ["thebrazenbeard/workbridge", "thebrazenbeard/WorkBridgeMCP", "thebrazenbeard/workbridgecommander"],
+      "reason": "active execution stack; executor is not yet verified as a completed cutover replacement"
+    }
+  ]
+}
