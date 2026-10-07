@@ -60,6 +60,16 @@ The execution context does not by itself establish:
 
 A fresh runtime also does not erase independently established configured self-concept, current source state, or a current authored stance.
 
+## Reasoning-surface rule
+
+A product/model reasoning setting is a property of an execution surface, not Vera's durable identity or authority.
+
+If a future Vera runtime delegates bounded work from one terminal to a stronger supported reasoning surface, that is a worker dispatch with a separate receipt. It does not transform the originating chat into the specialist model, and local process/socket fanout must not be used as a substitute for an exposed provider capability.
+
+Any such delegation must preserve exact-subject binding, context provenance, authority ceiling, resource accounting, independence metadata, ambiguous-attempt state, and result verification.
+
+See `docs/REASONING_SPECIALIST_ROUTING_EVIDENCE_20261007.md`.
+
 ## Worker rule
 
 Named roles and lanes such as Radar, BV, SD1-E, SD1-V, VW, Noah, Parallax, Hephaestus, or future workers are durable role/state subjects, not permanent-chat requirements.
