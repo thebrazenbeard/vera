@@ -1,0 +1,149 @@
+{
+  "schema": "VERA_SUPABASE_PORTFOLIO_INCLUSION_V1",
+  "status": "SOURCE_CONTRACT_NOT_PROVIDER_DEPLOYMENT",
+  "provider_ref": "klmbpaigzeguvnpccqzz",
+  "observed_date": "2026-10-13",
+  "composition_owner": "thebrazenbeard/vera",
+  "native_implementation_owner": "thebrazenbeard/vera-mono",
+  "rules": [
+    "REPOSITORY_EXISTS != SUPABASE_INCLUSION_REQUIREMENT",
+    "DESIGN_SQL != APPROVED_PRODUCTION_MIGRATION",
+    "SUPABASE_PROVIDER_STATE != VERA_MONO_CANONICAL_MEMORY",
+    "STORAGE_EXISTS != QUALIFIED_RUNTIME_CONSUMPTION",
+    "UNRELATED_PROVIDER_OWNERSHIP != VERA_PROJECT_TARGET",
+    "NO_CREDENTIALS_PRIVATE_ROWS_OR_TOKENS_IN_SOURCE"
+  ],
+  "components": [
+    {
+      "id": "vera-state-history",
+      "owner": "thebrazenbeard/vera",
+      "classification": "DEPLOYED_PROVIDER_STATE",
+      "observed_objects": [
+        "public.vera_save_state_events",
+        "public.vera_context_events_v3",
+        "public.vera_memory_epoch_events_v1",
+        "public.vera_affective_runtime_events_v1"
+      ],
+      "runtime_requirement": "EXTERNAL_EVIDENCE_ONLY"
+    },
+    {
+      "id": "semantic-atlas-materialization",
+      "owner": "thebrazenbeard/semanticatlas",
+      "classification": "DEPLOYED_PROVIDER_STATE",
+      "observed_objects": [
+        "semantic_atlas.runtime_snapshots",
+        "semantic_atlas.runtime_objects"
+      ],
+      "runtime_requirement": "EXTERNAL_EVIDENCE_ONLY"
+    },
+    {
+      "id": "radar-projection",
+      "owner": "thebrazenbeard/ccb-core",
+      "deployment_overlay": "thebrazenbeard/chat-communication-bus",
+      "classification": "DEPLOYED_INDEPENDENT_SERVICE",
+      "observed_objects": [
+        "radar.messages",
+        "radar.projection_batches"
+      ],
+      "runtime_requirement": "NOT_REQUIRED_BY_VERA_MONO"
+    },
+    {
+      "id": "bug-ops",
+      "owner": "thebrazenbeard/vera",
+      "classification": "DEPLOYED_INDEPENDENT_SERVICE",
+      "observed_objects": [
+        "bug_ops.bug_reports",
+        "bug_ops.operation_receipts"
+      ],
+      "runtime_requirement": "NOT_REQUIRED_BY_VERA_MONO"
+    },
+    {
+      "id": "bt2-legacy",
+      "owner": "thebrazenbeard/bt2",
+      "classification": "DEPLOYED_HISTORICAL_STATE",
+      "observed_objects": [
+        "build_team_2.memory_events"
+      ],
+      "runtime_requirement": "NOT_REQUIRED_BY_VERA_MONO"
+    },
+    {
+      "id": "redworm-status",
+      "owner": "thebrazenbeard/redworm",
+      "classification": "DEPLOYED_HISTORICAL_STATE",
+      "observed_objects": [
+        "redworm.runtime_registry"
+      ],
+      "runtime_requirement": "NOT_REQUIRED_BY_VERA_MONO"
+    },
+    {
+      "id": "vera-ark-mirror",
+      "owner": "thebrazenbeard/vera-ark",
+      "classification": "DESIGN_ONLY_OPTIONAL",
+      "candidate_objects": [
+        "public.vera_ark_operational_events"
+      ],
+      "admission_requires": [
+        "explicit operational mirror selection",
+        "bound producer identity and restricted writer role",
+        "privacy and retention review",
+        "provider migration custody and live verification"
+      ],
+      "runtime_requirement": "OPTIONAL"
+    },
+    {
+      "id": "masamune-webhook",
+      "owner": "thebrazenbeard/masamune",
+      "classification": "SEPARATE_OWNER_CANDIDATE",
+      "candidate_objects": [
+        "edge:masamune-webhook"
+      ],
+      "admission_requires": [
+        "explicit target project and ownership",
+        "source version and deployment authorization",
+        "authentication and redaction review"
+      ],
+      "runtime_requirement": "NOT_REQUIRED_BY_VERA_MONO"
+    },
+    {
+      "id": "fuckup-postgresql",
+      "owner": "thebrazenbeard/fuckup",
+      "classification": "SEPARATE_OWNER_CANDIDATE",
+      "admission_requires": [
+        "exact execution-store owner and host selection",
+        "postgres contract qualification"
+      ],
+      "runtime_requirement": "NOT_REQUIRED_BY_VERA_MONO"
+    },
+    {
+      "id": "sql-connectome-control",
+      "owner": "thebrazenbeard/sql-connectome",
+      "classification": "SEPARATE_OWNER_CANDIDATE",
+      "admission_requires": [
+        "independent PostgreSQL control-plane target selection"
+      ],
+      "runtime_requirement": "NOT_REQUIRED_BY_VERA_MONO"
+    },
+    {
+      "id": "mediaphile-lan",
+      "owner": "thebrazenbeard/mediaphile-server",
+      "classification": "LOCAL_NON_SUPABASE",
+      "runtime_requirement": "NOT_APPLICABLE"
+    },
+    {
+      "id": "vera-mono-native",
+      "owner": "thebrazenbeard/vera-mono",
+      "classification": "LOCAL_NON_SUPABASE",
+      "runtime_requirement": "CANONICAL_NATIVE_LOCAL_STATE"
+    }
+  ],
+  "verification": {
+    "only_deployed_classes": [
+      "DEPLOYED_PROVIDER_STATE",
+      "DEPLOYED_INDEPENDENT_SERVICE",
+      "DEPLOYED_HISTORICAL_STATE"
+    ],
+    "observations_are_date_scoped": true,
+    "reconciliation_does_not_authorize_effects": true,
+    "report_unknown_observed_objects_without_auto_admission": true
+  }
+}
