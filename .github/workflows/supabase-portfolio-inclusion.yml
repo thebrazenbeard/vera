@@ -1,0 +1,41 @@
+name: Supabase portfolio inclusion contract
+
+on:
+  pull_request:
+    paths:
+      - "supabase/composition/PORTFOLIO_INCLUSION_V1.json"
+      - "supabase/composition/PORTFOLIO_INCLUSION_README.md"
+      - "scripts/validate_supabase_portfolio_inclusion.py"
+      - "tests/test_supabase_portfolio_inclusion.py"
+      - ".github/workflows/supabase-portfolio-inclusion.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/composition/PORTFOLIO_INCLUSION_V1.json"
+      - "supabase/composition/PORTFOLIO_INCLUSION_README.md"
+      - "scripts/validate_supabase_portfolio_inclusion.py"
+      - "tests/test_supabase_portfolio_inclusion.py"
+      - ".github/workflows/supabase-portfolio-inclusion.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Install pinned test runner
+        run: python -m pip install pytest==8.4.2
+      - name: Verify inclusion boundary and adverse cases
+        run: python -m pytest tests/test_supabase_portfolio_inclusion.py -q
+      - name: Verify migration custody unchanged
+        run: python scripts/validate_supabase_provider_composition.py
+      - name: Compile reconciliation without provider access
+        run: python -m py_compile scripts/validate_supabase_portfolio_inclusion.py
