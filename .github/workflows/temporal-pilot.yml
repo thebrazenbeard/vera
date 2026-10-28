@@ -47,8 +47,12 @@ jobs:
           mv supabase/migrations supabase/migrations.explicit
           mkdir -p supabase/migrations
 
-      - name: Start isolated local Supabase stack
-        run: supabase start
+      # The Supabase CLI is a disposable historical SQL test harness, not a
+      # live persistence provider. Replay needs Postgres and the local role/RLS
+      # fixture, not the Deno edge runtime. That unrelated container can fail
+      # its health check before any temporal migration tests execute.
+      - name: Start isolated local PostgreSQL fixture
+        run: supabase start --exclude edge-runtime
 
       - name: Install test-only platform fixture
         run: psql "$PGDATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/fixtures/platform_rls_auto_enable.sql
