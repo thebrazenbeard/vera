@@ -238,11 +238,15 @@ class DeepMemoryEvidenceAdapter:
             for overlay in overlays:
                 if not isinstance(overlay, Mapping):
                     raise EvidenceContractError(f"{field_name} entries must be objects")
-                overlay_scope = overlay.get("privacy_scope")
-                if overlay_scope is not None and overlay_scope not in allowed:
-                    raise EvidenceAuthorizationError(
-                        f"{field_name} contains an unauthorized explicit privacy scope"
-                    )
+                # Only an absent field inherits its target's scope. An explicit
+                # null (or other invalid value) must not silently become an
+                # authorization to read the overlay.
+                if "privacy_scope" in overlay:
+                    overlay_scope = overlay["privacy_scope"]
+                    if not isinstance(overlay_scope, str) or overlay_scope not in allowed:
+                        raise EvidenceAuthorizationError(
+                            f"{field_name} contains an unauthorized explicit privacy scope"
+                        )
 
 
 def prepare_historical_admission_review(

@@ -138,6 +138,24 @@ class DeepMemoryEvidenceAdapterTests(unittest.TestCase):
         with self.assertRaises(EvidenceAuthorizationError):
             adapter.search(request)
 
+    def test_malformed_explicit_overlay_scope_cannot_inherit_parent_scope(self):
+        for field_name in (
+            "historical_canon_overlays", "amendments", "classification_corrections"
+        ):
+            for invalid_scope in (None, [], 7, ""):
+                with self.subTest(field=field_name, scope=repr(invalid_scope)):
+                    bad_row = row("m1")
+                    bad_row[field_name] = [
+                        {**bad_row["historical_canon_overlays"][0], "privacy_scope": invalid_scope}
+                    ]
+                    adapter, _ = self.adapter(result("history", [bad_row]))
+                    request = EvidenceSearchRequest(
+                        query="history",
+                        authorized_privacy_scopes=("PRIVATE_AUTOBIOGRAPHICAL",),
+                    )
+                    with self.assertRaises(EvidenceAuthorizationError):
+                        adapter.search(request)
+
     def test_unknown_row_privacy_scope_fails_closed(self):
         bad_row = row("m1")
         bad_row["privacy_scope"] = None
