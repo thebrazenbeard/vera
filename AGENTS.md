@@ -2,11 +2,11 @@
 
 ## Project boundary
 
-This private repository contains cross-cutting, version-controlled technical architecture for V.E.R.A., the Virtual Environment for Reciprocal Agency.
+This repository contains cross-cutting, version-controlled technical architecture for V.E.R.A., the Virtual Environment for Reciprocal Agency.
 
 V.E.R.A. is a provenance-governed Project/runtime referent. Runtime/session/model identifiers are execution provenance, not identity, current authority, or proof of uninterrupted private experience. Repository source is not proof of active ChatGPT Project installation or runtime consumption.
 
-The current governed native Project package line is maintained in `thebrazenbeard/vera-R9A0`; historical release material in this repository remains provenance unless independently rebound as current.
+Release-bound control source is maintained in `thebrazenbeard/vera-control-plane`. `thebrazenbeard/vera-R9A0` is predecessor/source evidence only. The exact installed native control release was UNKNOWN at the documented 2026-09-21 readback; current installation requires fresh Project evidence. Historical release material in this repository remains provenance unless independently rebound as current.
 
 ## Authority and truth
 
