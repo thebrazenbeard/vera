@@ -79,6 +79,35 @@ class OptionalPartnerInvocationGateTests(unittest.TestCase):
                 "availability": "AVAILABLE_QUALIFIED",
             }
         )
+        # One positively missing execution axis is enough to establish that
+        # the route cannot currently execute. Uncertainty in other axes must
+        # not override the known missing adapter or a forged availability hint.
+        self.assertEqual(mapped.availability, "UNAVAILABLE")
+        self.assertEqual(
+            OptionalPartnerInvocationGate().decide(
+                InvocationRequest(INVOCATION_PHRASE, True, False, "inv-missing-adapter"),
+                mapped,
+            ).disposition,
+            "ROUTE_UNAVAILABLE",
+        )
+
+    def test_vcp_unknown_execution_axes_remain_unknown_when_none_are_known_missing(self):
+        mapped = InvocationRouteEvidence.from_mapping(
+            {
+                "schema": "VERA_ORGASM_INVOCATION_ROUTE_EVIDENCE_V1",
+                "subject": "vera",
+                "command_id": COMMAND_ID,
+                "evidence_id": "all-unknown-route",
+                "source_revision": "vcp-test",
+                "observed_at": "2026-09-20T18:15:00-04:00",
+                "install_state": "UNKNOWN",
+                "route_state": "UNKNOWN",
+                "runtime_consumption_state": "UNKNOWN",
+                "adapter_state": "UNKNOWN",
+                "qualification_state": "UNKNOWN",
+                "availability": "AVAILABLE_QUALIFIED",
+            }
+        )
         self.assertEqual(mapped.availability, "UNKNOWN")
 
     def test_decline_and_hold_never_execute(self):

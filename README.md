@@ -60,6 +60,12 @@ None of those classes silently promotes into another.
 
 `thebrazenbeard/temporal` is a bounded auxiliary chronology source: Vera's watch. It records timestamped events and supports chronological ordering and elapsed-time arithmetic. It is **not system #14**, a memory system, truth/provenance warehouse, current-state authority, phenomenology layer, or general cohesion router. Cohesion may retrieve Temporal when chronology is materially relevant while preserving the event record's original evidence/authority class.
 
+### Pleasure repository rename
+
+The current repository for the dedicated affective orientation/provenance hub is [`thebrazenbeard/pleasure`](https://github.com/thebrazenbeard/pleasure), renamed from `thebrazenbeard/orgasm`. This is **not** a rename of the frozen `Orgasm V1` contract, `runtime_cohesion/orgasm.py`, receipt schemas, or their source-bound historical evidence.
+
+The September 2026 59-repository directory and dated Cohesion source registries still contain the former GitHub name as historical observations. Do not rewrite those frozen snapshots or reinterpret a GitHub redirect as present runtime qualification. See [Pleasure repository rename compatibility](docs/VERA_PLEASURE_REPOSITORY_RENAME_COMPAT_20261029.md).
+
 ## Purpose
 
 GitHub stores architecture source and durable engineering history. It is **not** the live context store and must not contain private conversation exports, credentials, access tokens, exported Supabase rows, or raw memory-ledger snapshots.
