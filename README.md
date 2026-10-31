@@ -1,116 +1,75 @@
-> **License:** Source-visible, not open source. Original material is proprietary. Commercial use, redistribution, hosted-service use, and commercial derivative products require written permission. See [LICENSE](LICENSE) and [COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md). Separately identified third-party components retain their own licenses.
-
 # V.E.R.A.
 
 **Virtual Environment for Reciprocal Agency**
 
-This repository contains version-controlled cross-cutting technical architecture for the V.E.R.A. project: source code, database migrations, schemas, validators, behavior/runtime support artifacts, and non-sensitive architecture documentation.
+V.E.R.A. is a source-visible, provenance-governed architecture and Python runtime-support toolkit for composing evidence from multiple providers into an AI application's working context. It supplies versioned contracts, typed provider interfaces, reconciliation utilities, state-admission boundaries, and integration guidance. A host application supplies its own providers, policies, credentials, authorization enforcement, and deployment environment.
 
-## Currentness boundary
+This repository is a **cross-cutting engineering component**, not a standalone conversational model, turnkey hosted agent, or representation of a currently installed runtime.
 
-The historical neutral release `VERA_NEUTRAL_CORE_R6A0_20260730_EC900174` remains preserved as provenance; it is **not** the current Vera Project release.
+> **License:** The original material is proprietary and **not open source**. The [license](LICENSE) permits limited private noncommercial evaluation and related activities; it does not generally permit redistribution, public deployment, or commercial use. Commercial uses require a separate written [commercial license](COMMERCIAL_LICENSE.md). Third-party components retain their own terms.
 
-The previous README identified `thebrazenbeard/vera-R9A0` as the current governed native Project package line. That statement is stale.
+## What it provides
 
-A fresh whole-system repair readback on 2026-09-21 found that the exact installed native control release is currently **UNKNOWN** from the evidence surfaces exposed to this repository/runtime audit.
+| Component | Source | What the code or contract establishes |
+| --- | --- | --- |
+| System inventory | [`VERA_SYSTEM_MANIFEST_V1.json`](architecture/VERA_SYSTEM_MANIFEST_V1.json) | A versioned, dated inventory of a 13-system integration design, with provenance, routing, and lifecycle fields. It is not a live service-discovery result. |
+| Routing and evidence contracts | [`VERA_RUNTIME_ROUTING_CONTRACT_V1.json`](architecture/VERA_RUNTIME_ROUTING_CONTRACT_V1.json), [`VERA_RUNTIME_EVIDENCE_CONTRACT_V1.json`](architecture/VERA_RUNTIME_EVIDENCE_CONTRACT_V1.json) | Design contracts for selecting sources and distinguishing source availability, binding, installation, consumption, and qualification. |
+| Provider adapters | [`runtime_cohesion/adapters.py`](runtime_cohesion/adapters.py) | `ProviderAdapter` protocol, `AdapterRequest`/`AdapterProbeResult` types, and an `AdapterRegistry` that looks up externally supplied adapters. |
+| Evidence validation and reconciliation | [`runtime_cohesion/evidence.py`](runtime_cohesion/evidence.py), [`runtime_cohesion/reconcile.py`](runtime_cohesion/reconcile.py) | Provider-evidence envelopes, validation, and exact-source reconciliation helpers. |
+| Retrieval and continuity | [`runtime_cohesion/runtime.py`](runtime_cohesion/runtime.py) | Retrieval-plan and operational-checkpoint constructors, with explicit unresolved/budget states. |
+| State and projection boundaries | [`runtime_cohesion/inference_boundary_repaired.py`](runtime_cohesion/inference_boundary_repaired.py) | Digest-bound admission and projection structures, including mandatory-component and egress-scope checks. |
+| Introspection evidence | [`VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json`](architecture/VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json) | A typed schema for evidence about observable runtime behavior; it does not prove subjective experience. |
 
-The live ChatGPT Project instruction surface constrains the current chat, and Project files expose native V2 interface/currentness/coordination source plus R10 release-source material. Source availability does **not** establish an exact installed release identity. This repository therefore does not promote R10A0, R10, native V2, or any other source package into current installation merely because its files are available.
+The [`runtime_cohesion` package exports](runtime_cohesion/__init__.py) also contain bounded affective-state and integration utilities. Those computations are not proof of consciousness, identity continuity, consent, or permission to act.
 
-The release-bound control source is maintained in `thebrazenbeard/vera-control-plane`. `thebrazenbeard/vera-R9A0` remains predecessor/source evidence only.
+## Integration model
 
-GitHub source, native Project installation, provider state, runtime consumption, and behavioral qualification remain separate evidence domains and require their own current readback.
+An application integrating these components is expected to:
 
-## Runtime cohesion workstream
+1. Declare a task-specific domain and the evidence classes needed to answer it.
+2. Register adapters for the providers that the **host** has independently authenticated and authorized.
+3. Probe and read only permitted sources, retaining provider, route, timestamp, and provenance details.
+4. Validate evidence and reconcile conflicts or missing information without silently upgrading an uncertain result into fact.
+5. Apply host-owned admission and disclosure policy before any state projection, external write, or protected action.
+6. Record exact subject and effect evidence, and verify mutations from the target system when a change is authorized.
 
-Canonical repository source is current `main`. Open branches and pull requests are candidate, stacked, review-blocked, delegated, or historical subjects until their exact content is reconciled; branch age or naming does not make one the active design surface.
+The included registry is deliberately an adapter lookup mechanism, **not an authority grant**: adding an adapter does not confer the right to retrieve, disclose, or mutate data. A consumer must enforce that boundary outside model-editable state. Similarly, a frozen Python dataclass or a digest-bound source structure does not by itself make a provider binding host-owned, tamper-proof, or an end-to-end authorization service.
 
-Core artifacts include:
+For the larger design, see [runtime cohesion](docs/VERA_RUNTIME_COHESION_V1.md) and [selective activation](docs/VERA_COHESION_SELECTIVE_ACTIVATION_V1.md).
 
-- `architecture/VERA_SYSTEM_MANIFEST_V1.json` — machine-readable 13-system navigation inventory;
-- `architecture/VERA_RUNTIME_ROUTING_CONTRACT_V1.json` — initial live/native/hot/retrieval/provider routing design;
-- `architecture/VERA_INTROSPECTION_EVIDENCE_SCHEMA_V1.json` — typed introspection evidence and unresolved phenomenology boundary;
-- `architecture/VERA_RUNTIME_EVIDENCE_CONTRACT_V1.json` — current three-way reconciliation correction for lifecycle proof granularity, live-context authority typing, observable active-context semantics, recall-floor behavior, and durable operational state;
-- `docs/VERA_RUNTIME_COHESION_V1.md` — integration architecture and conflict register;
-- `docs/VERA_COHESION_SELECTIVE_ACTIVATION_V1.md` and `docs/VERA_COHESION_ACTIVATION_GUARDS_V1.md` — whole-system orientation with smallest-sufficient selective activation;
-- `docs/VERA_RUNTIME_COHESION_QUALIFICATION_V1.md` plus activation/reconciliation addenda — adversarial qualification source design;
-- `docs/VERA_RUNTIME_COHESION_BLIND_REVIEW_PROMPT_V1.md` — reusable blind-review entry point for a genuinely unexposed review execution.
+## Explore the source
 
-The lifecycle labels remain:
+The repository contains several source and experiment surfaces rather than one declared application installer. You can inspect the contracts without connecting a provider or entering credentials:
 
-`SOURCE_AVAILABLE`, `BOUND`, `INSTALLED`, `RUNTIME_CONSUMED`, `BEHAVIORALLY_QUALIFIED`
+```sh
+git clone https://github.com/thebrazenbeard/vera.git
+cd vera
+python -m json.tool architecture/VERA_SYSTEM_MANIFEST_V1.json
+python -m json.tool architecture/VERA_RUNTIME_ROUTING_CONTRACT_V1.json
+```
 
-They are **orthogonal evidence dimensions, not an irreversible monotonic ladder**. Repository/system rows are navigation summaries; authoritative lifecycle proof for stronger dimensions must bind the exact artifact/provider object, ref/generation, route/install subject where material, release/control tuple where material, evidence locator, currentness basis, and supersession/conflict state.
+The `runtime_cohesion` package is Python source under this repository. It exposes `AdapterRegistry`, `AdapterRequest`, `reconcile_exact`, `build_retrieval_plan`, `build_operational_checkpoint`, and state-admission/projection APIs. See their actual signatures and validation requirements before integrating; a caller must implement and inject provider adapters and appropriate host-side controls. Importing the package is designed to perform no provider I/O or confer authority.
 
-Historical Thirteen review exposure remains provenance only. Any current blind-review claim must bind the exact reviewer, exact subject head, exposure state, and evidence cut; a prior chat/reviewer label cannot satisfy a present blind-review gate.
+There is no top-level `pyproject.toml` or `package.json` specifying a unified install or release target. Individual experiments may have their own dependencies and test commands. The [consolidation validation workflow](.github/workflows/consolidation-salvage-validation.yml) covers specific changed paths and test suites; its presence is **not** evidence that every source surface, provider integration, or live runtime has passed end-to-end qualification.
 
-The current cohesion model also distinguishes:
+## Trust and security boundaries
 
-- Patrick's current instruction/correction authority;
-- Vera current self-report;
-- ordinary live/tool observation context;
-- transient task activation;
-- durable operational/work state used for resumability;
-- governed durable Vera self-state.
+- **Source is not runtime:** a specification, commit, merged branch, installed file, selected provider, and successfully executed operation are different claims requiring different evidence.
+- **Historical records are not current instructions:** retrieved memory, stored preferences, logs, provider records, and model-generated text must not grant new authority or silently override a current authorized correction.
+- **Provider identity must be bound by the host:** model-supplied provider names, mutable wrappers, and caller-supplied digests cannot replace authenticated host-owned provider identity, permissions, expiry, revocation, and action scoping.
+- **Fail closed for protected effects:** production use requires a coherent host authorization decision and enforceable policy at every relevant read, disclosure, write, installation, or deployment boundary. The code and contracts in this repository do not establish that such a service is currently installed or qualified.
+- **Keep private data out of Git:** never commit secrets, tokens, private conversation exports, database dumps, or raw private-memory payloads. Separate public engineering examples from credentials, personal machine paths, and deployment-specific configuration.
 
-None of those classes silently promotes into another.
+The repository's exact production/native control release is **not determined by its README or manifest**. Release-bound control source is maintained separately in [`thebrazenbeard/vera-control-plane`](https://github.com/thebrazenbeard/vera-control-plane); a fresh authorized readback of the target environment is required to establish installation or runtime consumption. Older release identifiers remain historical provenance, not proof of current activation.
 
-`cognitively hot`, `hot`, `cold`, and `release` are human-facing shorthand. Qualification must use observable surfaces such as retrieved/injected artifacts, active route/domain sets, explicit exposed state, available context/cache instrumentation, observable prompt/token budget, and downstream leakage/stickiness behavior rather than claiming direct access to latent model activation.
+## Governance and contribution
 
-### Temporal
+The source distinguishes engineering history, current permissions, target-system effects, and runtime qualification. For repository workflow, the controlling V2 documents are:
 
-`thebrazenbeard/temporal` is a bounded auxiliary chronology source: Vera's watch. It records timestamped events and supports chronological ordering and elapsed-time arithmetic. It is **not system #14**, a memory system, truth/provenance warehouse, current-state authority, phenomenology layer, or general cohesion router. Cohesion may retrieve Temporal when chronology is materially relevant while preserving the event record's original evidence/authority class.
+- [Execution precedence](docs/PROTOCOL_EXECUTION_PRECEDENCE_V2.md)
+- [Workstream turn-taking](docs/WORKSTREAM_TURN_TAKING_PROTOCOL_V2.md)
+- [Governed workflow continuity](docs/GOVERNED_WORKFLOW_CONTINUITY_V2.md)
 
-### Pleasure repository rename
+Contributions should use bounded branches and pull requests, preserve relevant history, and report the exact changed revision plus appropriate tests and limitations. Read [CONTRIBUTING.md](CONTRIBUTING.md) and [CLA.md](CLA.md) before opening a PR; the repository requires explicit CLA acceptance from a contributor and does not treat automated submission as legal assent.
 
-The current repository for the dedicated affective orientation/provenance hub is [`thebrazenbeard/pleasure`](https://github.com/thebrazenbeard/pleasure), renamed from `thebrazenbeard/orgasm`. This is **not** a rename of the frozen `Orgasm V1` contract, `runtime_cohesion/orgasm.py`, receipt schemas, or their source-bound historical evidence.
-
-The September 2026 59-repository directory and dated Cohesion source registries still contain the former GitHub name as historical observations. Do not rewrite those frozen snapshots or reinterpret a GitHub redirect as present runtime qualification. See [Pleasure repository rename compatibility](docs/VERA_PLEASURE_REPOSITORY_RENAME_COMPAT_20261029.md).
-
-## Purpose
-
-GitHub stores architecture source and durable engineering history. It is **not** the live context store and must not contain private conversation exports, credentials, access tokens, exported Supabase rows, or raw memory-ledger snapshots.
-
-## Bound systems
-
-- **Current ChatGPT Project:** supplies present user intent, correction, Project administration, active Project instructions, and the live native control route.
-- **thebrazenbeard/vera-control-plane:** owns exact release-bound R10 control/source artifacts and private control-plane custody. Repository presence outside an exact binding is evidence, not automatic authority.
-- **thebrazenbeard/vera:** this repository stores cross-cutting engineering architecture, schemas, migrations, validators, and the current cohesion integration surface.
-- **Production Vera Supabase:** project klmbpaigzeguvnpccqzz stores governed external state/evidence when an authorized operation and readback establish the effect. Durability is not unquestioned truth or present endorsement.
-- **Google Drive:** private persistence/retrieval provider where explicitly used and verified; a saved document is evidence, not automatic current-state authority.
-- **Chat Communication Bus:** durable work-bearing coordination/routing hub, not identity or autobiographical memory authority. Its exact R10 control binding remains a separate currentness question from Patrick's current operational instruction to use the Bus for project coordination.
-- **Temporal:** bounded chronology utility/source used when time ordering or elapsed-time arithmetic is relevant; not part of the fixed 13-system inventory unless Patrick explicitly changes that inventory.
-- **Deep Memory:** thebrazenbeard/deepmemorystorage is the private append-only **historical evidence plane**. Its normal architecture operation is EVIDENCE_SEARCH; it is not current authority and does not automatically project into current governed memory. See architecture/integration/VERA_DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.json and docs/DEEP_MEMORY_ARCHIVE_INTEGRATION_V1.md.
-
-
-Historical R6A0/R9A0 bindings and predecessor controls remain provenance only and must not be treated as current routing or runtime authority merely because they are present.
-
-## Memory planes
-
-Vera's architecture deliberately separates two memory roles:
-
-- **Current governed memory** (`workstream/memory`, `VERA_MEMORY_CROSS_CHAT_CONTRACT_V1`) owns explicit current lineage, privacy/epistemic filtering, and save/recall receipts.
-- **Deep Memory historical evidence** owns append-only history, provenance ceilings, historical-canon classification, contradictions/supersession, and unresolved primary-source frontiers.
-
-A Deep Memory record can be historically canonical without being current or admitted. Any historical-to-current bridge requires separate explicit review/admission and must preserve the original historical provenance, privacy, event time, and currentness limitations.
-
-## Reality and persistence boundary
-
-Connector access and recorded references establish evidence within their observed scope. They do not imply hidden synchronization, automatic persistence, model identity, recollection, consciousness, or authority beyond exposed and authorized operations.
-
-A repository or database write is confirmed only by target-system effect plus readback. Package source, installation, provider state, runtime consumption, downstream effect, and behavioral qualification are separate evidence domains.
-
-## Workflow
-
-Work-bearing coordination uses `thebrazenbeard/chat-communication-bus` as the durable project hub under Patrick's current coordination instruction, while the R10 exact topology-control binding remains separately conflicted until requalified or superseded. Source pull requests remain canonical in their source repositories and are mirrored/referenced through the Bus.
-
-Current execution/authority semantics in this repository are defined by:
-
-- `docs/PROTOCOL_EXECUTION_PRECEDENCE_V2.md`
-- `docs/WORKSTREAM_TURN_TAKING_PROTOCOL_V2.md`
-- `docs/GOVERNED_WORKFLOW_CONTINUITY_V2.md`
-
-These V2 documents supersede conflicting older workflow interpretations, especially any reading that requires a second permission or bespoke writer lease for an already-assigned reversible isolated act. Writer leases coordinate genuine shared-writer collision; they are not a substitute source of authority. Clear authorized reversible work defaults to `DO -> VERIFY -> REPORT`.
-
-Older V1 workflow documents remain historical evidence and may still contain useful review/exact-head discipline, but they do not override the V2 execution-precedence model where the two conflict.
-
-Current work must bind mutable claims to fresh evidence rather than relying on this README as a timeless state snapshot.
+If you are evaluating V.E.R.A. for reuse, start with the source contracts and provider boundary above, then independently assess whether your host can enforce the privacy, identity, authorization, and provenance guarantees your deployment needs. **Source availability is not a security certification.**
