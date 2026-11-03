@@ -1,7 +1,14 @@
 import json
 from pathlib import Path
+from unittest.mock import patch
 
-from scripts.validate_supabase_provider_composition import validate
+from scripts import validate_supabase_provider_composition as validator
+from scripts.validate_supabase_provider_composition import (
+    LiveProviderQualificationRequired,
+    REPORT_SCHEMA,
+    require_live_provider_parity,
+    validate,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -9,10 +16,54 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_supabase_provider_composition_is_exact() -> None:
     report = validate()
-    assert report["status"] == "PASS"
-    assert report["provider_migrations"] == 99
-    assert report["pending_migrations"] == 0
-    assert report["last_provider_version"] == "20260922190100"
+    assert report["report_schema"] == REPORT_SCHEMA
+    assert report["status"] == "HISTORICAL_BASELINE_ONLY"
+    assert report["historical_source_byte_check"] == "PASS"
+    assert report["historical_inventory_observed_date"] == "2026-09-22"
+    assert report["historical_provider_project_id"] == "klmbpaigzeguvnpccqzz"
+    assert report["historical_provider_migrations"] == 99
+    assert report["pending_source_migrations"] == 0
+    assert report["historical_last_provider_version"] == "20260922190100"
+    assert report["live_provider_queried"] is False
+    assert report["live_full_ledger_parity"] == "UNVERIFIED_NOT_QUERIED"
+    assert report["live_sql_bytes_attested"] is False
+    assert report["provider_apply_or_install_authorized"] is False
+    assert report["legacy_v1_pass_compatible"] is False
+
+
+def test_legacy_generic_pass_and_ambiguous_count_fields_cannot_return() -> None:
+    report = validate()
+    assert report["status"] != "PASS"
+    assert {"provider_migrations", "pending_migrations", "last_provider_version"}.isdisjoint(report)
+    assert report["report_schema"] == "VERA_PROVIDER_COMPOSITION_REPORT_V2"
+
+
+def test_frozen_99_migrations_cannot_qualify_live_provider() -> None:
+    report = validate()
+    try:
+        require_live_provider_parity(report)
+    except LiveProviderQualificationRequired:
+        pass
+    else:
+        raise AssertionError("frozen Vera provider source was falsely promoted live")
+
+
+def test_matching_version_but_different_executable_sql_bytes_rejected() -> None:
+    original_sha256 = validator.sha256
+
+    def simulate_changed_sql(path: Path) -> str:
+        digest = original_sha256(path)
+        if path.parent == validator.MIGRATIONS and path.name.startswith("20260729012911_"):
+            return "0" * 64
+        return digest
+
+    with patch.object(validator, "sha256", side_effect=simulate_changed_sql):
+        try:
+            validate()
+        except AssertionError as error:
+            assert "executable migration differs from custody" in str(error)
+        else:
+            raise AssertionError("same migration identity concealed altered SQL bytes")
 
 
 def test_datum_acl_migration_is_promoted_from_exact_reviewed_source() -> None:
