@@ -1,0 +1,46 @@
+name: Vera frozen provider source boundary
+
+on:
+  pull_request:
+    paths:
+      - "scripts/validate_supabase_provider_composition.py"
+      - "tests/test_supabase_provider_composition.py"
+      - "supabase/composition/README.md"
+      - ".github/workflows/vera-provider-historical-source.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  historical-source-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout PR source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Validate historical source-only provider report
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/validate_supabase_provider_composition.py
+          python - <<'PY'
+          import inspect
+          from tests import test_supabase_provider_composition as suite
+
+          tests = [
+              (name, fn)
+              for name, fn in inspect.getmembers(suite, inspect.isfunction)
+              if name.startswith("test_")
+          ]
+          assert tests, "no provider custody regression tests discovered"
+          for name, fn in tests:
+              fn()
+              print(f"PASS {name}")
+          print(f"PASS {len(tests)} historical source-only tests")
+          PY

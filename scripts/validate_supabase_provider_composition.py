@@ -11,6 +11,11 @@ CUSTODY = SUPABASE / "provider-custody" / "klmbpaigzeguvnpccqzz"
 INVENTORY = CUSTODY / "VERA_FULL_PROVIDER_LEDGER_CUSTODY_V4.json"
 COMPOSITION = SUPABASE / "composition" / "VERA_PROVIDER_COMPOSITION_V1.json"
 PENDING = SUPABASE / "composition" / "PENDING_MIGRATIONS_V1.json"
+REPORT_SCHEMA = "VERA_PROVIDER_COMPOSITION_REPORT_V2"
+
+
+class LiveProviderQualificationRequired(ValueError):
+    """A frozen source manifest cannot qualify a current provider."""
 
 
 def sha256(path: Path) -> str:
@@ -77,11 +82,31 @@ def validate() -> dict[str, object]:
             raise AssertionError(f"pending migration lacks exact source binding: {name}")
 
     return {
-        "status": "PASS",
-        "provider_migrations": len(expected),
-        "pending_migrations": len(declared_pending),
-        "last_provider_version": last,
+        "report_schema": REPORT_SCHEMA,
+        "status": "HISTORICAL_BASELINE_ONLY",
+        "historical_source_byte_check": "PASS",
+        "historical_inventory_observed_date": inventory["observed_cut"]["date"],
+        "historical_provider_project_id": inventory["provider"]["project_id"],
+        "historical_provider_migrations": len(expected),
+        "pending_source_migrations": len(declared_pending),
+        "historical_last_provider_version": last,
+        "live_provider_queried": False,
+        "live_full_ledger_parity": "UNVERIFIED_NOT_QUERIED",
+        "live_sql_bytes_attested": False,
+        "provider_apply_or_install_authorized": False,
+        "legacy_v1_pass_compatible": False,
     }
+
+
+def require_live_provider_parity(report: dict[str, object]) -> None:
+    """Refuse source-report promotion regardless of its local PASS result.
+
+    This validator has no provider connection, so even an altered or
+    caller-forged report is not authenticated live readback.
+    """
+    raise LiveProviderQualificationRequired(
+        "source-only Vera provider composition cannot attest current provider ledger or SQL bytes"
+    )
 
 
 if __name__ == "__main__":
