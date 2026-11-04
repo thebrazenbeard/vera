@@ -16,6 +16,7 @@ from scripts.validate_vera_runtime_cohesion_v1 import (
     validate_routing,
     validate_runtime_contract,
 )
+from scripts.validate_runtime_source_json_keys import validate_source_syntax
 
 ROOT = Path(__file__).resolve().parents[1]
 ARCHITECTURE = ROOT / "architecture"
@@ -52,6 +53,11 @@ def pair_receipt() -> dict:
 class VeraRuntimeCohesionV1Tests(unittest.TestCase):
     def test_current_source_passes(self):
         validate_cohesion(ROOT)
+
+    def test_source_json_keys_are_unambiguous(self):
+        # Historical validator's exact bytes are bound by its pair receipt.
+        # Add an independent syntax guard without silently replacing it.
+        self.assertEqual(len(validate_source_syntax(ROOT)), 7)
 
     def test_manifest_rejects_inventory_count_drift(self):
         document = manifest()

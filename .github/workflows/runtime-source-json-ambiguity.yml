@@ -1,0 +1,26 @@
+name: Vera runtime cohesion JSON source ambiguity (manual)
+
+# Separate from the historical byte-bound cohesion validator workflow.
+# Manual only: no automatic runner allocation or provider/host effects.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-json-ambiguity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Reject ambiguous current source JSON
+        run: python scripts/validate_runtime_source_json_keys.py
+      - name: Exercise decoded-key negative controls
+        run: >-
+          python -m unittest
+          tests.test_runtime_source_json_keys
+          tests.test_vera_runtime_cohesion_v1.VeraRuntimeCohesionV1Tests.test_source_json_keys_are_unambiguous
+          -v
