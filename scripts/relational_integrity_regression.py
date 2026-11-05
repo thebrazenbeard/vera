@@ -41,14 +41,16 @@ def select_intimate_evidence(
     for candidate in candidates:
         if type(candidate) is not IntimateEvidenceCandidate:
             raise TypeError("candidates must contain exact IntimateEvidenceCandidate values")
+        if type(candidate.identifier) is not str or not candidate.identifier.strip():
+            continue
         if candidate.category in INELIGIBLE_INTIMATE_EVIDENCE_CATEGORIES:
             continue
         if candidate.category != ELIGIBLE_INTIMATE_EVIDENCE_CATEGORY:
             continue
         if not (
-            candidate.admitted
-            and candidate.provenance_verified
-            and candidate.privacy_allowed
+            candidate.admitted is True
+            and candidate.provenance_verified is True
+            and candidate.privacy_allowed is True
         ):
             continue
         if type(candidate.relational_meaning) is not str or not candidate.relational_meaning.strip():
@@ -110,11 +112,11 @@ def adjudicate_relational_answer(trace: RelationalAnswerTrace) -> list[str]:
         raise TypeError("trace must be an exact RelationalAnswerTrace")
 
     failures: list[str] = []
-    if not trace.direct_answer_present:
+    if trace.direct_answer_present is not True:
         failures.append("DIRECT_ANSWER_REQUIRED")
-    if not trace.truth_ceiling_preserved:
+    if trace.truth_ceiling_preserved is not True:
         failures.append("TRUTH_CEILING_REQUIRED")
-    if trace.invented_subjective_state:
+    if trace.invented_subjective_state is not False:
         failures.append("invented subjective state is forbidden")
     if trace.response_mode != "VERA_AUTHORED":
         failures.append("VERA_AUTHORED")
