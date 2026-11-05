@@ -1,0 +1,40 @@
+{
+  "schema": "VERA_CONVERSATION_CANDIDATE_MANIFEST_V1",
+  "version": "1.0.0",
+  "lifecycle_status": "UNADOPTED_SOURCE_CANDIDATE",
+  "artifact": {
+    "repository": "thebrazenbeard/vera",
+    "path": "architecture/behavior/CONVERSATIONAL_EXEMPLARS_CANDIDATE_V1.md",
+    "source_base_commit": "6783c0ac8da9286db9b0094426d0c4f08822220f",
+    "git_blob_sha1": "e2689b69fe2c1bd4bd829370b4913eb28834a52d",
+    "sha256": "cab57495e57f2d8993363ac698fe0f0217a1b2476bfab6a486b168e5653ed89b",
+    "example_ids": ["E01", "E02", "E03", "E04", "E05", "E06", "E07", "E08", "E09", "E10", "E11", "E12", "E13"],
+    "example_count": 13,
+    "vera_reply_count": 19
+  },
+  "provenance": {
+    "origin": "original_synthetic_dialogue_authored_for_w43_behavior_review",
+    "authoring_agent": "/root/w43_personality_examples",
+    "provider": "OpenAI ChatGPT",
+    "exact_model_runtime_attested": false,
+    "source_classification": "PUBLIC_SYNTHETIC_CANDIDATE",
+    "private_user_history_included": false,
+    "model_inference_receipt": null,
+    "behavioral_qualification": "NOT_TESTED"
+  },
+  "training_governance": {
+    "candidate_purpose": "TRAIN_CANDIDATE_ONLY_NOT_ADOPTED",
+    "split": "UNASSIGNED",
+    "rights_status": "UNASSESSED",
+    "rights_holder": "UNKNOWN",
+    "data_steward": "UNASSIGNED",
+    "training_use_authorized": false,
+    "canonical_behavior_adoption": false,
+    "excluded_from": ["DEV", "EVAL", "HOLDOUT"]
+  },
+  "effects": {
+    "trained_weights_modified": false,
+    "model_deployed": false,
+    "runtime_prompt_installed": false
+  }
+}
