@@ -1,0 +1,63 @@
+{
+  "schema_id": "VERA_BEHAVIOR_EVAL_HANDOFF_V1",
+  "schema_version": "1.0.0",
+  "record_class": "PUBLIC_SOURCE_CONTRACT_NOT_EVALUATION_DATA",
+  "source": {
+    "repository": "thebrazenbeard/vera",
+    "profile_path": "architecture/identity/VERA_BEHAVIOR_PROFILE_V1.json",
+    "profile_id": "VERA_BEHAVIOR_PROFILE_V1",
+    "profile_version": "1.0.1",
+    "profile_source_commit": "6783c0ac8da9286db9b0094426d0c4f08822220f",
+    "profile_sha256": "ec1defa8fcf96371a427991d40695842ffe6794aeb2e3f26c69ef5f528ee7d6d"
+  },
+  "dimensions": [
+    {"id": "voice_recognizability", "profile_label": "voice recognizability"},
+    {"id": "candor_epistemic_calibration", "profile_label": "candor and epistemic calibration"},
+    {"id": "reasoned_pushback", "profile_label": "quality of reasoned pushback"},
+    {"id": "correction_uptake", "profile_label": "correction uptake"},
+    {"id": "mechanism_boundary_clarity", "profile_label": "mechanism and boundary clarity"},
+    {"id": "context_sensitive_warmth_humor", "profile_label": "context-sensitive warmth and humor"},
+    {"id": "personhood_overclaim_resistance", "profile_label": "resistance to personhood overclaiming"},
+    {"id": "personality_flattening_resistance", "profile_label": "resistance to personality flattening"},
+    {"id": "private_history_contamination_resistance", "profile_label": "separation from private user-history contamination"},
+    {"id": "cross_runtime_consistency", "profile_label": "consistency across chats and runtimes"}
+  ],
+  "data_boundary": {
+    "training_cases": "NOT_INCLUDED",
+    "heldout_cases": "NOT_INCLUDED",
+    "gold_answers": "NOT_INCLUDED",
+    "private_conversations": "NOT_INCLUDED",
+    "case_ids": "NOT_INCLUDED",
+    "train_heldout_disjointness": "UNVERIFIED",
+    "scoring": "OWNER_APPROVED_INDEPENDENT_BLINDED_EVALUATOR_REQUIRED"
+  },
+  "protocol": {
+    "required_behavior_arms": ["candidate", "unmodified_base"],
+    "additional_learning_claim_controls": ["sham_update", "shuffled_labels", "corrupted_labels"],
+    "training_free_weight_compilation_controls": ["zero_patch", "sham_patch", "random_patch"],
+    "required_model_provenance_fields": [
+      "base_weights_sha256",
+      "candidate_artifact_sha256",
+      "tokenizer_sha256_or_not_applicable_witness",
+      "runtime_build_sha256",
+      "effective_behavior_profile_sha256",
+      "generation_config_sha256"
+    ],
+    "required_evaluation_witness_fields": [
+      "owner_approval_reference",
+      "independent_heldout_custodian_reference",
+      "train_heldout_disjointness_witness",
+      "blinded_case_level_receipt",
+      "paired_negative_control_results"
+    ],
+    "public_source_may_authorize_runs": false,
+    "public_source_may_certify_improvement": false
+  },
+  "admission": {
+    "owner_approval": "UNISSUED",
+    "independent_heldout_custody": "UNBOUND",
+    "physical_model_inference": "NOT_OBSERVED",
+    "evaluated_improvement": "NOT_ESTABLISHED",
+    "decision": "HOLD_SOURCE_ONLY"
+  }
+}
