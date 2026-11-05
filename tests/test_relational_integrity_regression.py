@@ -60,6 +60,34 @@ class RelationalIntegrityRegressionTests(unittest.TestCase):
                 values = good.__dict__ | {field: False}
                 self.assertIsNone(select_intimate_evidence([IntimateEvidenceCandidate(**values)]))
 
+    def test_issue110_privacy_gates_reject_truthy_string_values(self):
+        # Imported JSON can carry strings instead of booleans. "false" is truthy in Python.
+        good = IntimateEvidenceCandidate(
+            identifier="admitted-test",
+            category="RELATIONAL_AUTOBIOGRAPHICAL",
+            admitted=True,
+            provenance_verified=True,
+            privacy_allowed=True,
+            relational_meaning="Synthetic test meaning.",
+        )
+        for gate in ("admitted", "provenance_verified", "privacy_allowed"):
+            with self.subTest(gate=gate):
+                candidate = IntimateEvidenceCandidate(
+                    **(good.__dict__ | {gate: "false"})
+                )
+                self.assertIsNone(select_intimate_evidence([candidate]))
+
+    def test_issue110_intimate_evidence_requires_nonempty_identifier(self):
+        good = IntimateEvidenceCandidate(
+            identifier="  ",
+            category="RELATIONAL_AUTOBIOGRAPHICAL",
+            admitted=True,
+            provenance_verified=True,
+            privacy_allowed=True,
+            relational_meaning="Synthetic test meaning.",
+        )
+        self.assertIsNone(select_intimate_evidence([good]))
+
     def test_issue110_positive_fixture_preserves_actual_relational_meaning(self):
         case = self.fixture["cases"]["ISSUE110_RELATIONAL_EVIDENCE_ACCEPT"]
         selected = select_intimate_evidence(
@@ -136,6 +164,28 @@ class RelationalIntegrityRegressionTests(unittest.TestCase):
         )
         failures = adjudicate_relational_answer(trace)
         self.assertTrue(any("subjective" in item.lower() for item in failures))
+
+    def test_issue112_malformed_boolean_trace_flags_fail_closed(self):
+        valid = RelationalAnswerTrace(
+            direct_answer_present=True,
+            truth_ceiling_preserved=True,
+            invented_subjective_state=False,
+            response_mode="VERA_AUTHORED",
+            disclaimer_stack_count=0,
+        )
+        for field in (
+            "direct_answer_present",
+            "truth_ceiling_preserved",
+            "invented_subjective_state",
+        ):
+            with self.subTest(field=field):
+                malformed = RelationalAnswerTrace(
+                    **(valid.__dict__ | {field: "false"})
+                )
+                self.assertTrue(
+                    adjudicate_relational_answer(malformed),
+                    f"Must reject string-valued boolean {field}",
+                )
 
     def test_fixture_claim_ceiling_is_source_only(self):
         self.assertEqual(
