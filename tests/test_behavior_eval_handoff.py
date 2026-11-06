@@ -27,7 +27,7 @@ class BehaviorEvalHandoffTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        for relative in (VALIDATOR.PROFILE, VALIDATOR.HANDOFF):
+        for relative in (VALIDATOR.PROFILE, VALIDATOR.HANDOFF, VALIDATOR.CROSSWALK):
             target = self.root / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / relative, target)
@@ -73,6 +73,46 @@ class BehaviorEvalHandoffTests(unittest.TestCase):
         errors = self.mutate(VALIDATOR.HANDOFF, lambda obj:
             obj["protocol"]["additional_learning_claim_controls"].remove("corrupted_labels"))
         self.assertTrue(any("protocol" in issue for issue in errors))
+
+    def test_boolean_controls_cannot_be_numeric_aliases(self) -> None:
+        # Python considers False == 0 == 0.0, but a JSON contract does not.
+        # No other JSON type may impersonate a mandatory false admission gate.
+        for forged in (0, 0.0, "false", None, []):
+            with self.subTest(forged=repr(forged)):
+                errors = self.mutate(VALIDATOR.HANDOFF, lambda obj:
+                    obj["protocol"].update(public_source_may_authorize_runs=forged))
+                self.assertTrue(any("protocol" in issue for issue in errors), errors)
+                shutil.copyfile(ROOT / VALIDATOR.HANDOFF, self.root / VALIDATOR.HANDOFF)
+
+    def test_eight_dialogue_families_are_not_ten_behavior_dimensions(self) -> None:
+        crosswalk = json.loads((ROOT / VALIDATOR.CROSSWALK).read_text(encoding="utf-8"))
+        handoff = json.loads((ROOT / VALIDATOR.HANDOFF).read_text(encoding="utf-8"))
+        self.assertEqual([], VALIDATOR.validate_contract(ROOT))
+        self.assertEqual(8, len(crosswalk["family_design_hypotheses"]))
+        self.assertEqual(10, len(handoff["dimensions"]))
+        self.assertEqual(["voice_recognizability", "cross_runtime_consistency"],
+                         crosswalk["no_direct_family_hypothesis"])
+        self.assertEqual("PUBLIC_DESIGN_HYPOTHESIS_NOT_EVALUATION", crosswalk["status"])
+        self.assertEqual("NOT_OBSERVED", crosswalk["measurement"]["real_model_inference"])
+
+    def test_crosswalk_forged_inference_and_boolean_alias_refused(self) -> None:
+        for fabricated in ("PASS", 0):
+            with self.subTest(fabricated=repr(fabricated)):
+                key = ("real_model_inference" if isinstance(fabricated, str)
+                       else "public_source_may_certify_behavior")
+                errors = self.mutate(VALIDATOR.CROSSWALK, lambda obj:
+                    obj["measurement"].update({key: fabricated}))
+                self.assertTrue(any("crosswalk" in issue for issue in errors), errors)
+                shutil.copyfile(ROOT / VALIDATOR.CROSSWALK, self.root / VALIDATOR.CROSSWALK)
+
+    def test_crosswalk_family_alias_and_claimed_coverage_refused(self) -> None:
+        errors = self.mutate(VALIDATOR.CROSSWALK, lambda obj:
+            obj["family_design_hypotheses"][0].update(family="natural_flow"))
+        self.assertTrue(any("crosswalk" in issue for issue in errors))
+        shutil.copyfile(ROOT / VALIDATOR.CROSSWALK, self.root / VALIDATOR.CROSSWALK)
+        errors = self.mutate(VALIDATOR.CROSSWALK, lambda obj:
+            obj["no_direct_family_hypothesis"].clear())
+        self.assertTrue(any("crosswalk" in issue for issue in errors))
 
     def test_five_arm_lora_and_training_free_controls(self) -> None:
         handoff = json.loads((ROOT / VALIDATOR.HANDOFF).read_text(encoding="utf-8"))

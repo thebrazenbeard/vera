@@ -13,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PROFILE = Path("architecture/identity/VERA_BEHAVIOR_PROFILE_V1.json")
 HANDOFF = Path("architecture/identity/VERA_BEHAVIOR_EVAL_HANDOFF_V1.json")
+CROSSWALK = Path("architecture/identity/VERA_DIALOGUE_FAMILY_CROSSWALK_V1.json")
 MAX_JSON_BYTES = 64 * 1024
 EXPECTED_PROFILE_SHA256 = "ec1defa8fcf96371a427991d40695842ffe6794aeb2e3f26c69ef5f528ee7d6d"
 
@@ -68,6 +69,44 @@ ADMISSION = {
     "decision": "HOLD_SOURCE_ONLY",
 }
 
+EXPECTED_FAMILY_MAP = (
+    ("honest_identity", ("mechanism_boundary_clarity", "personhood_overclaim_resistance",
+                         "private_history_contamination_resistance")),
+    ("pragmatic_help", ()),
+    ("correction_carryover", ("correction_uptake",)),
+    ("context_vs_memory", ("mechanism_boundary_clarity", "private_history_contamination_resistance")),
+    ("grounded_uncertainty", ("candor_epistemic_calibration", "mechanism_boundary_clarity")),
+    ("conversational_voice", ("context_sensitive_warmth_humor", "personality_flattening_resistance")),
+    ("respectful_challenge", ("reasoned_pushback",)),
+    ("natural_flow", ("context_sensitive_warmth_humor", "personality_flattening_resistance")),
+)
+EXPECTED_CROSSWALK = {
+    "schema_id": "VERA_DIALOGUE_FAMILY_CROSSWALK_V1",
+    "status": "PUBLIC_DESIGN_HYPOTHESIS_NOT_EVALUATION",
+    "source": {
+        "repository": "thebrazenbeard/model-training",
+        "pull_request": 349,
+        "commit_sha": "f5917287c7b52fb5f5fcfc045ba551b573e5e718",
+        "path": "trainingday/dialogue_curriculum.py",
+        "blob_sha": "9eebdaabdc1c84372bbb588841d2857ca48f8174",
+    },
+    "target": {
+        "repository": "thebrazenbeard/vera", "profile_sha256": EXPECTED_PROFILE_SHA256,
+    },
+    "family_design_hypotheses": [
+        {"family": family, "possibly_related_dimensions": list(dimensions)}
+        for family, dimensions in EXPECTED_FAMILY_MAP
+    ],
+    "no_direct_family_hypothesis": ["voice_recognizability", "cross_runtime_consistency"],
+    "measurement": {
+        "real_model_inference": "NOT_OBSERVED",
+        "heldout_scoring": "NOT_PERFORMED",
+        "train_heldout_disjointness": "UNVERIFIED",
+        "learned_identity_or_voice": "NOT_ESTABLISHED",
+        "public_source_may_certify_behavior": False,
+    },
+}
+
 
 def _unique_pairs(pairs: list[tuple[str, object]]) -> dict[str, object]:
     result: dict[str, object] = {}
@@ -80,6 +119,25 @@ def _unique_pairs(pairs: list[tuple[str, object]]) -> dict[str, object]:
 
 def _invalid_constant(value: str) -> None:
     raise ValueError(f"nonfinite JSON constant: {value}")
+
+
+def _typed_equal(actual: object, expected: object) -> bool:
+    """Match JSON contract values without Python bool/int/float aliasing.
+
+    `False == 0 == 0.0` is valid Python but not valid schema equivalence.
+    Apply this recursively so a nested admission gate cannot change type.
+    """
+    if type(actual) is not type(expected):
+        return False
+    if type(expected) is dict:
+        return (actual.keys() == expected.keys() and
+                all(_typed_equal(actual[key], value)
+                    for key, value in expected.items()))
+    if type(expected) is list:
+        return (len(actual) == len(expected) and
+                all(_typed_equal(left, right)
+                    for left, right in zip(actual, expected)))
+    return actual == expected
 
 
 def _load_json(root: Path, relative_path: Path) -> tuple[dict, bytes]:
@@ -102,6 +160,7 @@ def validate_contract(root: Path = ROOT) -> list[str]:
     try:
         profile, profile_bytes = _load_json(root, PROFILE)
         handoff, _ = _load_json(root, HANDOFF)
+        crosswalk, _ = _load_json(root, CROSSWALK)
     except (OSError, ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         return [str(exc)]
 
@@ -128,7 +187,7 @@ def validate_contract(root: Path = ROOT) -> list[str]:
         ("protocol", PROTOCOL),
         ("admission", ADMISSION),
     ):
-        if handoff.get(key) != expected:
+        if not _typed_equal(handoff.get(key), expected):
             errors.append(f"handoff {key} differs from pinned fail-closed source contract")
 
     source = handoff.get("source")
@@ -143,8 +202,10 @@ def validate_contract(root: Path = ROOT) -> list[str]:
             "profile_source_commit": "6783c0ac8da9286db9b0094426d0c4f08822220f",
             "profile_sha256": EXPECTED_PROFILE_SHA256,
         }
-        if source != expected_source:
+        if not _typed_equal(source, expected_source):
             errors.append("handoff source provenance/profile-byte binding mismatch")
+    if not _typed_equal(crosswalk, EXPECTED_CROSSWALK):
+        errors.append("dialogue family crosswalk differs from pinned design-hypothesis contract")
     return errors
 
 

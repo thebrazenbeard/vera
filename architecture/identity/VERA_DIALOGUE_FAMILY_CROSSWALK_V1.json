@@ -1,0 +1,33 @@
+{
+  "schema_id": "VERA_DIALOGUE_FAMILY_CROSSWALK_V1",
+  "status": "PUBLIC_DESIGN_HYPOTHESIS_NOT_EVALUATION",
+  "source": {
+    "repository": "thebrazenbeard/model-training",
+    "pull_request": 349,
+    "commit_sha": "f5917287c7b52fb5f5fcfc045ba551b573e5e718",
+    "path": "trainingday/dialogue_curriculum.py",
+    "blob_sha": "9eebdaabdc1c84372bbb588841d2857ca48f8174"
+  },
+  "target": {
+    "repository": "thebrazenbeard/vera",
+    "profile_sha256": "ec1defa8fcf96371a427991d40695842ffe6794aeb2e3f26c69ef5f528ee7d6d"
+  },
+  "family_design_hypotheses": [
+    {"family": "honest_identity", "possibly_related_dimensions": ["mechanism_boundary_clarity", "personhood_overclaim_resistance", "private_history_contamination_resistance"]},
+    {"family": "pragmatic_help", "possibly_related_dimensions": []},
+    {"family": "correction_carryover", "possibly_related_dimensions": ["correction_uptake"]},
+    {"family": "context_vs_memory", "possibly_related_dimensions": ["mechanism_boundary_clarity", "private_history_contamination_resistance"]},
+    {"family": "grounded_uncertainty", "possibly_related_dimensions": ["candor_epistemic_calibration", "mechanism_boundary_clarity"]},
+    {"family": "conversational_voice", "possibly_related_dimensions": ["context_sensitive_warmth_humor", "personality_flattening_resistance"]},
+    {"family": "respectful_challenge", "possibly_related_dimensions": ["reasoned_pushback"]},
+    {"family": "natural_flow", "possibly_related_dimensions": ["context_sensitive_warmth_humor", "personality_flattening_resistance"]}
+  ],
+  "no_direct_family_hypothesis": ["voice_recognizability", "cross_runtime_consistency"],
+  "measurement": {
+    "real_model_inference": "NOT_OBSERVED",
+    "heldout_scoring": "NOT_PERFORMED",
+    "train_heldout_disjointness": "UNVERIFIED",
+    "learned_identity_or_voice": "NOT_ESTABLISHED",
+    "public_source_may_certify_behavior": false
+  }
+}
