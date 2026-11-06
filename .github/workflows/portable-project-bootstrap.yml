@@ -115,7 +115,7 @@ jobs:
         run: python -m py_compile scripts/validate_portable_project_bootstrap.py scripts/validate_r7a1_behavior_successor.py tests/test_portable_project_bootstrap.py tests/test_r7a1_behavior_successor.py
 
       - name: Install pinned Supabase CLI
-        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.0
+        uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.0.0
         with:
           version: ${{ env.SUPABASE_CLI_VERSION }}
 
